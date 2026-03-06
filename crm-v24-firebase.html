@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Master Baez Martial Arts - CRM</title>
 
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <!-- 🔥 Firebase Realtime Database -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
@@ -448,11 +450,11 @@
             </div>
             <input class="login-input" type="text"     id="loginUser"     placeholder="Usuario" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
             <input class="login-input" type="password" id="loginPassword" placeholder="Contraseña" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
-            <button class="login-btn" onclick="doLogin()">🔐 Ingresar</button>
+            <button class="login-btn" onclick="doLogin()"><i class="fa fa-lock"></i> Ingresar</button>
             <div class="login-error" id="loginError"></div>
             <div style="text-align:center;margin-top:12px">
                 <button onclick="forgotPassword()" style="background:none;border:none;color:#60a5fa;font-size:12px;cursor:pointer;text-decoration:underline">
-                    🔑 ¿Olvidaste tu contraseña?
+                    <i class="fa fa-key"></i> ¿Olvidaste tu contraseña?
                 </button>
             </div>
             <div style="text-align:center;margin-top:12px;font-size:11px;color:#444">
@@ -496,17 +498,17 @@
     </header>
     
     <nav class="sidebar">
-        <div class="menu-item" onclick="showTab('config')" data-i18n="menu_config">⚙️ Configuración</div>
-        <div class="menu-item admin-only" onclick="showTab('usuarios')" id="menuUsuarios">👑 Usuarios</div>
-        <div class="menu-item active" onclick="showTab('dashboard')" data-i18n="menu_dashboard">📊 Dashboard</div>
-        <div class="menu-item" onclick="showTab('leads')">🎯 Leads <span id="leadBadge" class="trash-badge">0</span></div>
-        <div class="menu-item" onclick="showTab('students')">👥 Estudiantes <span id="studentBadge" class="trash-badge">0</span></div>
-        <div class="menu-item" onclick="showTab('payments')" data-i18n="menu_payments">💳 Pagos</div>
-        <div class="menu-item" onclick="showTab('attendance')" data-i18n="menu_attendance">📅 Asistencia</div>
-        <div class="menu-item" onclick="showTab('events')" data-i18n="menu_events">📆 Eventos</div>
-        <div class="menu-item" onclick="showTab('store')" data-i18n="menu_store">🛍️ Tienda</div>
-        <div class="menu-item" onclick="showTab('reports')" data-i18n="menu_reports">📈 Reportes</div>
-        <div class="menu-item" onclick="showTab('trash')" id="trashMenuItem" data-i18n="menu_trash">🗑️ Papelera <span id="trashBadge2" class="trash-badge" style="display:none"></span></div>
+        <div class="menu-item" onclick="showTab('config')" data-i18n="menu_config"><i class="fa fa-gear"></i> Configuracion</div>
+        <div class="menu-item admin-only" onclick="showTab('usuarios')" id="menuUsuarios"><i class="fa fa-crown"></i> Usuarios</div>
+        <div class="menu-item active" onclick="showTab('dashboard')" data-i18n="menu_dashboard"><i class="fa fa-chart-bar"></i> Dashboard</div>
+        <div class="menu-item" onclick="showTab('leads')"><i class="fa fa-bullseye"></i> Leads <span id="leadBadge" class="trash-badge">0</span></div>
+        <div class="menu-item" onclick="showTab('students')"><i class="fa fa-users"></i> Estudiantes <span id="studentBadge" class="trash-badge">0</span></div>
+        <div class="menu-item" onclick="showTab('payments')" data-i18n="menu_payments"><i class="fa fa-credit-card"></i> Pagos</div>
+        <div class="menu-item" onclick="showTab('attendance')" data-i18n="menu_attendance"><i class="fa fa-calendar-check"></i> Asistencia</div>
+        <div class="menu-item" onclick="showTab('events')" data-i18n="menu_events"><i class="fa fa-calendar"></i> Eventos</div>
+        <div class="menu-item" onclick="showTab('store')" data-i18n="menu_store"><i class="fa fa-store"></i> Tienda</div>
+        <div class="menu-item" onclick="showTab('reports')" data-i18n="menu_reports"><i class="fa fa-chart-line"></i> Reportes</div>
+        <div class="menu-item" onclick="showTab('trash')" id="trashMenuItem" data-i18n="menu_trash"><i class="fa fa-trash"></i> Papelera <span id="trashBadge2" class="trash-badge" style="display:none"></span></div>
     </nav>
     
     <main class="main-content">
