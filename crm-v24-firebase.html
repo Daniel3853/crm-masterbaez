@@ -10,6 +10,7 @@
     <!-- 🔥 Firebase Realtime Database -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyC0GZUhbfipXCBeP6LJcXmKcHugNuG2f4E",
@@ -22,6 +23,8 @@
         };
         firebase.initializeApp(firebaseConfig);
         const _db = firebase.database();
+        const _auth = firebase.auth();
+        _auth.signInAnonymously().catch(e => console.warn("Auth:", e.message));
 
         window.cloudSave = async function(key, data) {
             try { localStorage.setItem(key, JSON.stringify(data)); } catch(e) {}
@@ -509,6 +512,7 @@
         <div class="menu-item" onclick="showTab('store')" data-i18n="menu_store"><i class="fa fa-store"></i> Tienda</div>
         <div class="menu-item" onclick="showTab('reports')" data-i18n="menu_reports"><i class="fa fa-chart-line"></i> Reportes</div>
         <div class="menu-item" onclick="showTab('trash')" id="trashMenuItem" data-i18n="menu_trash"><i class="fa fa-trash"></i> Papelera <span id="trashBadge2" class="trash-badge" style="display:none"></span></div>
+        <div class="menu-item admin-only" onclick="showTab('contactus')">📬 Contact Us</div>
     </nav>
     
     <main class="main-content">
@@ -829,6 +833,37 @@
 
             <div style="padding:20px">
                 <div id="globalTrashList"></div>
+            </div>
+        </div>
+
+        <!-- CONTACT US -->
+        <div id="contactus" class="tab-container">
+            <div style="padding:28px 28px 16px;border-bottom:1px solid #1e1e3f">
+                <h2 style="color:#ffd700;margin:0;font-size:22px;letter-spacing:2px">📬 Contact Us</h2>
+                <p style="color:#888;font-size:12px;margin:4px 0 0">Formulario de contacto — los mensajes llegan a dbkoryo@gmail.com</p>
+            </div>
+            <div style="padding:30px;max-width:600px">
+                <div class="panel">
+                    <h3>Enviar Mensaje</h3>
+                    <div class="form-group" style="margin-bottom:14px">
+                        <label>Nombre</label>
+                        <input type="text" id="contactName" class="form-group input" style="padding:10px;border:1px solid #333;border-radius:6px;background:#0f0f23;color:#fff;font-size:13px;width:100%" placeholder="Tu nombre">
+                    </div>
+                    <div class="form-group" style="margin-bottom:14px">
+                        <label>Email</label>
+                        <input type="email" id="contactEmail" style="padding:10px;border:1px solid #333;border-radius:6px;background:#0f0f23;color:#fff;font-size:13px;width:100%" placeholder="tucorreo@email.com">
+                    </div>
+                    <div class="form-group" style="margin-bottom:14px">
+                        <label>Asunto</label>
+                        <input type="text" id="contactSubject" style="padding:10px;border:1px solid #333;border-radius:6px;background:#0f0f23;color:#fff;font-size:13px;width:100%" placeholder="Asunto del mensaje">
+                    </div>
+                    <div class="form-group" style="margin-bottom:14px">
+                        <label>Mensaje</label>
+                        <textarea id="contactMessage" rows="5" style="padding:10px;border:1px solid #333;border-radius:6px;background:#0f0f23;color:#fff;font-size:13px;width:100%;resize:vertical" placeholder="Escribe tu mensaje aquí..."></textarea>
+                    </div>
+                    <button onclick="sendContactForm()" class="btn btn-primary" style="width:100%;padding:12px;font-size:15px">📨 Enviar Mensaje</button>
+                    <div id="contactResult" style="margin-top:12px;text-align:center;font-size:13px"></div>
+                </div>
             </div>
         </div>
 
@@ -5474,6 +5509,46 @@
         }
 
         
+
+        // ── CONTACT US (Formspree) ────────────────────────────────────────
+        async function sendContactForm() {
+            const name    = document.getElementById('contactName').value.trim();
+            const email   = document.getElementById('contactEmail').value.trim();
+            const subject = document.getElementById('contactSubject').value.trim();
+            const message = document.getElementById('contactMessage').value.trim();
+            const result  = document.getElementById('contactResult');
+
+            if (!name || !email || !subject || !message) {
+                result.style.color = '#f87171';
+                result.textContent = '⚠️ Por favor llena todos los campos.';
+                return;
+            }
+
+            result.style.color = '#fbbf24';
+            result.textContent = '⏳ Enviando...';
+
+            try {
+                const res = await fetch('https://formspree.io/f/myknzkjj', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({ name, email, subject, message })
+                });
+                if (res.ok) {
+                    result.style.color = '#4ade80';
+                    result.textContent = '✅ Mensaje enviado exitosamente!';
+                    document.getElementById('contactName').value = '';
+                    document.getElementById('contactEmail').value = '';
+                    document.getElementById('contactSubject').value = '';
+                    document.getElementById('contactMessage').value = '';
+                } else {
+                    throw new Error('Error al enviar');
+                }
+            } catch(e) {
+                result.style.color = '#f87171';
+                result.textContent = '❌ Error al enviar. Intenta de nuevo.';
+            }
+        }
+        // ─────────────────────────────────────────────────────────────────
 
         // ── FUNCIONES FALTANTES ──────────────────────────────────────────
         function getStorageKey() {
