@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Master Baez Martial Arts — Inscríbete</title>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script>emailjs.init("yN6IRgA-WdmQlNWpf");</script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <script>
@@ -365,7 +367,17 @@ async function submitLead() {
         }
     } catch(e) {}
 
-    // 3️⃣ & 4️⃣ Mostrar botones SMS y WhatsApp en pantalla de éxito
+    // 3️⃣ SMS automático vía EmailJS → Metro PCS gateway
+    try {
+        await emailjs.send('service_qvbvhat', 'fi6y4kl', {
+            name:    name,
+            phone:   phone,
+            program: program || 'N/A',
+            source:  source  || 'N/A'
+        });
+    } catch(e) { console.warn('EmailJS SMS:', e); }
+
+    // 4️⃣ Mostrar botones SMS y WhatsApp en pantalla de éxito
     const smsBody = `🥋 NUEVO LEAD\nNombre: ${name}\nTel: ${phone}\nForm: ${formTemplate?.name||'Web'}\nPrograma: ${program||'N/A'}`;
     const waMsg   = `🥋 *NUEVO LEAD*\n*Formulario:* ${formTemplate?.name||'Web'}\n*Nombre:* ${name}\n*Teléfono:* ${phone}\n*Email:* ${email||'N/A'}\n*Programa:* ${program||'N/A'}\n*Fuente:* ${source||'N/A'}`;
     const instrGateway = instrPhone + '@mymetropcs.com';
