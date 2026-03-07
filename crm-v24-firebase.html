@@ -512,7 +512,8 @@
         <div class="menu-item" onclick="showTab('store')" data-i18n="menu_store"><i class="fa fa-store"></i> Tienda</div>
         <div class="menu-item" onclick="showTab('reports')" data-i18n="menu_reports"><i class="fa fa-chart-line"></i> Reportes</div>
         <div class="menu-item" onclick="showTab('trash')" id="trashMenuItem" data-i18n="menu_trash"><i class="fa fa-trash"></i> Papelera <span id="trashBadge2" class="trash-badge" style="display:none"></span></div>
-        <div class="menu-item admin-only" onclick="showTab('contactus')">📬 Contact Us</div>
+        <div class="menu-item" onclick="showTab('formularios')">📋 Mis Formularios</div>
+        <div class="menu-item admin-only" onclick="showTab('contactus')" data-i18n="menu_contactus">📬 Contact Us</div>
     </nav>
     
     <main class="main-content">
@@ -836,32 +837,138 @@
             </div>
         </div>
 
+        <!-- FORMULARIOS DE CAPTURA -->
+        <div id="formularios" class="tab-container">
+            <div style="padding:28px 28px 16px;border-bottom:1px solid #1e1e3f;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+                <div>
+                    <h2 style="color:#ffd700;margin:0;font-size:22px;letter-spacing:2px">📋 Mis Formularios</h2>
+                    <p style="color:#888;font-size:12px;margin:4px 0 0">Crea formularios para tus promociones y eventos — cada uno con su propio link</p>
+                </div>
+                <button class="btn btn-primary" onclick="openFormBuilder()">+ Nuevo Formulario</button>
+            </div>
+            <div style="padding:20px" id="formulariosList"></div>
+        </div>
+
+        <!-- MODAL FORM BUILDER -->
+        <div class="modal" id="formBuilderModal">
+            <div class="modal-content" style="max-width:620px">
+                <div class="modal-header">
+                    <h3 id="formBuilderTitle" style="color:#ffd700">📋 Nuevo Formulario</h3>
+                    <button class="modal-close" onclick="closeModal('formBuilderModal')">&times;</button>
+                </div>
+                <input type="hidden" id="fbId">
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nombre del formulario *</label>
+                        <input type="text" id="fbName" placeholder="Ej: Clase Gratis Enero">
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de evento</label>
+                        <select id="fbType">
+                            <option value="Clase Gratis">🥋 Clase Gratis</option>
+                            <option value="Torneo">🏆 Torneo</option>
+                            <option value="Evento Especial">🎉 Evento Especial</option>
+                            <option value="Seminario">📚 Seminario</option>
+                            <option value="Promoción">💥 Promoción</option>
+                            <option value="Otro">📌 Otro</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom:12px">
+                    <label>Título principal del formulario *</label>
+                    <input type="text" id="fbTitle" placeholder="Ej: ¡Primera Clase GRATIS!">
+                </div>
+
+                <div class="form-group" style="margin-bottom:12px">
+                    <label>Subtítulo / descripción</label>
+                    <input type="text" id="fbSubtitle" placeholder="Ej: Inscríbete y prueba las artes marciales sin costo">
+                </div>
+
+                <div class="form-group" style="margin-bottom:12px">
+                    <label>Texto del botón de envío</label>
+                    <input type="text" id="fbButton" placeholder="Ej: ¡Quiero mi Clase Gratis!">
+                </div>
+
+                <div class="form-group" style="margin-bottom:12px">
+                    <label>Mensaje de éxito (lo que ve el usuario al enviar)</label>
+                    <textarea id="fbSuccess" rows="2" style="padding:10px;border:1px solid #333;border-radius:6px;background:#0f0f23;color:#fff;font-size:13px;width:100%" placeholder="Ej: ¡Gracias! Nos pondremos en contacto muy pronto."></textarea>
+                </div>
+
+                <div style="background:#0f0f23;border-radius:8px;padding:14px;margin-bottom:12px">
+                    <div style="font-size:11px;color:#888;margin-bottom:10px;font-weight:700">CAMPOS DEL FORMULARIO</div>
+                    <div style="display:flex;flex-direction:column;gap:8px">
+                        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#ccc">
+                            <input type="checkbox" id="fbFieldName" checked disabled> Nombre completo (siempre requerido)
+                        </label>
+                        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#ccc">
+                            <input type="checkbox" id="fbFieldPhone" checked disabled> Teléfono (siempre requerido)
+                        </label>
+                        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#ccc">
+                            <input type="checkbox" id="fbFieldEmail"> Email
+                        </label>
+                        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#ccc">
+                            <input type="checkbox" id="fbFieldAge"> Edad
+                        </label>
+                        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#ccc">
+                            <input type="checkbox" id="fbFieldProgram"> Programa de interés
+                        </label>
+                        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#ccc">
+                            <input type="checkbox" id="fbFieldSource"> ¿Cómo nos encontraste?
+                        </label>
+                        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#ccc">
+                            <input type="checkbox" id="fbFieldMessage"> Mensaje / Pregunta
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom:16px">
+                    <label>Color principal del formulario</label>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px">
+                        <div onclick="selectColor('#c41e3a')" style="width:30px;height:30px;border-radius:50%;background:#c41e3a;cursor:pointer;border:2px solid transparent" class="color-opt" data-color="#c41e3a"></div>
+                        <div onclick="selectColor('#1d4ed8')" style="width:30px;height:30px;border-radius:50%;background:#1d4ed8;cursor:pointer;border:2px solid transparent" class="color-opt" data-color="#1d4ed8"></div>
+                        <div onclick="selectColor('#16a34a')" style="width:30px;height:30px;border-radius:50%;background:#16a34a;cursor:pointer;border:2px solid transparent" class="color-opt" data-color="#16a34a"></div>
+                        <div onclick="selectColor('#7c3aed')" style="width:30px;height:30px;border-radius:50%;background:#7c3aed;cursor:pointer;border:2px solid transparent" class="color-opt" data-color="#7c3aed"></div>
+                        <div onclick="selectColor('#ea580c')" style="width:30px;height:30px;border-radius:50%;background:#ea580c;cursor:pointer;border:2px solid transparent" class="color-opt" data-color="#ea580c"></div>
+                        <div onclick="selectColor('#0891b2')" style="width:30px;height:30px;border-radius:50%;background:#0891b2;cursor:pointer;border:2px solid transparent" class="color-opt" data-color="#0891b2"></div>
+                    </div>
+                    <input type="hidden" id="fbColor" value="#c41e3a">
+                </div>
+
+                <div style="display:flex;gap:10px">
+                    <button class="btn btn-success" onclick="saveFormTemplate()" style="flex:1">💾 Guardar Formulario</button>
+                    <button class="btn btn-danger" onclick="closeModal('formBuilderModal')" style="flex:1">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
         <!-- CONTACT US -->
         <div id="contactus" class="tab-container">
             <div style="padding:28px 28px 16px;border-bottom:1px solid #1e1e3f">
                 <h2 style="color:#ffd700;margin:0;font-size:22px;letter-spacing:2px">📬 Contact Us</h2>
-                <p style="color:#888;font-size:12px;margin:4px 0 0">Formulario de contacto — los mensajes llegan a dbkoryo@gmail.com</p>
+                <p data-i18n="contactus_subtitle" style="color:#888;font-size:12px;margin:4px 0 0">Formulario de contacto — los mensajes llegan a dbkoryo@gmail.com</p>
             </div>
             <div style="padding:30px;max-width:600px">
                 <div class="panel">
-                    <h3>Enviar Mensaje</h3>
+                    <h3 data-i18n="contactus_send">Enviar Mensaje</h3>
                     <div class="form-group" style="margin-bottom:14px">
-                        <label>Nombre</label>
-                        <input type="text" id="contactName" class="form-group input" style="padding:10px;border:1px solid #333;border-radius:6px;background:#0f0f23;color:#fff;font-size:13px;width:100%" placeholder="Tu nombre">
+                        <label data-i18n="contactus_name">Nombre</label>
+                        <input type="text" id="contactName" style="padding:10px;border:1px solid #333;border-radius:6px;background:#0f0f23;color:#fff;font-size:13px;width:100%" placeholder="Tu nombre">
                     </div>
                     <div class="form-group" style="margin-bottom:14px">
-                        <label>Email</label>
+                        <label data-i18n="contactus_email">Email</label>
                         <input type="email" id="contactEmail" style="padding:10px;border:1px solid #333;border-radius:6px;background:#0f0f23;color:#fff;font-size:13px;width:100%" placeholder="tucorreo@email.com">
                     </div>
                     <div class="form-group" style="margin-bottom:14px">
-                        <label>Asunto</label>
+                        <label data-i18n="contactus_subject">Asunto</label>
                         <input type="text" id="contactSubject" style="padding:10px;border:1px solid #333;border-radius:6px;background:#0f0f23;color:#fff;font-size:13px;width:100%" placeholder="Asunto del mensaje">
                     </div>
                     <div class="form-group" style="margin-bottom:14px">
-                        <label>Mensaje</label>
+                        <label data-i18n="contactus_message">Mensaje</label>
                         <textarea id="contactMessage" rows="5" style="padding:10px;border:1px solid #333;border-radius:6px;background:#0f0f23;color:#fff;font-size:13px;width:100%;resize:vertical" placeholder="Escribe tu mensaje aquí..."></textarea>
                     </div>
-                    <button onclick="sendContactForm()" class="btn btn-primary" style="width:100%;padding:12px;font-size:15px">📨 Enviar Mensaje</button>
+                    <button onclick="sendContactForm()" class="btn btn-primary" style="width:100%;padding:12px;font-size:15px" data-i18n="contactus_btn">📨 Enviar Mensaje</button>
                     <div id="contactResult" style="margin-top:12px;text-align:center;font-size:13px"></div>
                 </div>
             </div>
@@ -1215,6 +1322,16 @@
                 <div class="form-group">
                     <label>Nombre de su escuela</label>
                     <input type="text" id="instrSchool" class="login-input" style="margin:0" placeholder="Ej: Dojo Norte">
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+                <div class="form-group">
+                    <label>📱 Teléfono (para notificaciones)</label>
+                    <input type="tel" id="instrPhone" class="login-input" style="margin:0" placeholder="Ej: 9541234567">
+                </div>
+                <div class="form-group">
+                    <label>📧 Email (para notificaciones)</label>
+                    <input type="email" id="instrEmail" class="login-input" style="margin:0" placeholder="instructor@email.com">
                 </div>
             </div>
             <div class="form-group" style="margin-bottom:14px">
@@ -3447,6 +3564,18 @@
                 menu_store:       '🛍️ Tienda',
                 menu_reports:     '📈 Reportes',
                 menu_trash:       '🗑️ Papelera',
+                menu_contactus:   '📬 Contact Us',
+                contactus_subtitle: 'Formulario de contacto — los mensajes llegan a dbkoryo@gmail.com',
+                contactus_send:   'Enviar Mensaje',
+                contactus_name:   'Nombre',
+                contactus_email:  'Email',
+                contactus_subject:'Asunto',
+                contactus_message:'Mensaje',
+                contactus_btn:    '📨 Enviar Mensaje',
+                contactus_success:'✅ Mensaje enviado exitosamente!',
+                contactus_error:  '❌ Error al enviar. Intenta de nuevo.',
+                contactus_empty:  '⚠️ Por favor llena todos los campos.',
+                contactus_sending:'⏳ Enviando...',
                 // ── DASHBOARD ──
                 stat_active_students: 'ESTUDIANTES ACTIVOS',
                 stat_leads_month:     'LEADS ESTE MES',
@@ -3761,6 +3890,18 @@
                 menu_store:       '🛍️ Store',
                 menu_reports:     '📈 Reports',
                 menu_trash:       '🗑️ Trash',
+                menu_contactus:   '📬 Contact Us',
+                contactus_subtitle: 'Contact form — messages are sent to dbkoryo@gmail.com',
+                contactus_send:   'Send Message',
+                contactus_name:   'Name',
+                contactus_email:  'Email',
+                contactus_subject:'Subject',
+                contactus_message:'Message',
+                contactus_btn:    '📨 Send Message',
+                contactus_success:'✅ Message sent successfully!',
+                contactus_error:  '❌ Error sending. Try again.',
+                contactus_empty:  '⚠️ Please fill in all fields.',
+                contactus_sending:'⏳ Sending...',
                 // ── DASHBOARD ──
                 stat_active_students: 'ACTIVE STUDENTS',
                 stat_leads_month:     'LEADS THIS MONTH',
@@ -5301,6 +5442,8 @@
             document.getElementById('instrUser').value = '';
             document.getElementById('instrPass').value = '';
             document.getElementById('instrSchool').value = '';
+            document.getElementById('instrPhone').value = '';
+            document.getElementById('instrEmail').value = '';
             document.getElementById('instrLogoData').value = '';
             document.getElementById('instrLogoPreviewWrap').innerHTML = '🥋';
             document.getElementById('instructorModal').classList.add('active');
@@ -5314,6 +5457,8 @@
             document.getElementById('instrUser').value   = instr.user;
             document.getElementById('instrPass').value   = instr.pass;
             document.getElementById('instrSchool').value = instr.school || '';
+            document.getElementById('instrPhone').value  = instr.phone || '';
+            document.getElementById('instrEmail').value  = instr.email || '';
             document.getElementById('instrLogoData').value = instr.logo || '';
             document.getElementById('instrLogoPreviewWrap').innerHTML = instr.logo
                 ? `<img src="${instr.logo}" style="width:100%;height:100%;object-fit:cover">`
@@ -5338,6 +5483,8 @@
             const pass   = document.getElementById('instrPass').value;
             const school = document.getElementById('instrSchool').value.trim();
             const logo   = document.getElementById('instrLogoData').value;
+            const phone  = document.getElementById('instrPhone').value.trim();
+            const email  = document.getElementById('instrEmail').value.trim();
             const editId = document.getElementById('instructorEditId').value;
 
             if (!name || !user || !pass) {
@@ -5351,7 +5498,7 @@
                 alert('Ese usuario ya existe. Elige otro.'); return;
             }
 
-            const instrData = { id: editId !== '' ? appUsers.instructors[parseInt(editId)].id : Date.now(), name, user, pass, school, logo };
+            const instrData = { id: editId !== '' ? appUsers.instructors[parseInt(editId)].id : Date.now(), name, user, pass, school, logo, phone, email };
 
             if (editId !== '') {
                 appUsers.instructors[parseInt(editId)] = instrData;
@@ -5401,6 +5548,7 @@
             renderGlobalTrash();
             renderStore();
             renderInstructorsList();
+            renderFormularios();
             setTimeout(renderMonthlyChart, 50);
         }
 
@@ -5421,7 +5569,7 @@
 
         function buildPayload() {
             return { students, leads, leadHistory, payments, paymentHistory,
-                     trash, attendance, events, config, storeProducts, storeSales };
+                     trash, attendance, events, config, storeProducts, storeSales, formTemplates };
         }
 
         function applyPayload(d) {
@@ -5436,6 +5584,7 @@
             if (d.config)          config          = { ...config, ...d.config };
             if (d.storeProducts)   storeProducts   = d.storeProducts;
             if (d.storeSales)      storeSales      = d.storeSales;
+            if (d.formTemplates)  formTemplates   = d.formTemplates;
         }
 
         // Indicador visual de sincronización con Firebase
@@ -5510,6 +5659,182 @@
 
         
 
+
+        // ══════════════════════════════════════════════════════════════════
+        // FORMULARIOS DE CAPTURA DE LEADS
+        // ══════════════════════════════════════════════════════════════════
+
+        let formTemplates = []; // stored in crmData
+        let selectedFormColor = '#c41e3a';
+
+        function selectColor(color) {
+            selectedFormColor = color;
+            document.getElementById('fbColor').value = color;
+            document.querySelectorAll('.color-opt').forEach(el => {
+                el.style.border = el.dataset.color === color ? '3px solid #fff' : '2px solid transparent';
+            });
+        }
+
+        function openFormBuilder(id) {
+            if (id) {
+                const ft = formTemplates.find(f => f.id === id);
+                if (!ft) return;
+                document.getElementById('formBuilderTitle').textContent = '✏️ Editar Formulario';
+                document.getElementById('fbId').value = ft.id;
+                document.getElementById('fbName').value = ft.name || '';
+                document.getElementById('fbType').value = ft.type || 'Clase Gratis';
+                document.getElementById('fbTitle').value = ft.title || '';
+                document.getElementById('fbSubtitle').value = ft.subtitle || '';
+                document.getElementById('fbButton').value = ft.button || '';
+                document.getElementById('fbSuccess').value = ft.successMsg || '';
+                document.getElementById('fbFieldEmail').checked   = ft.fields?.email   || false;
+                document.getElementById('fbFieldAge').checked     = ft.fields?.age     || false;
+                document.getElementById('fbFieldProgram').checked = ft.fields?.program || false;
+                document.getElementById('fbFieldSource').checked  = ft.fields?.source  || false;
+                document.getElementById('fbFieldMessage').checked = ft.fields?.message || false;
+                selectColor(ft.color || '#c41e3a');
+            } else {
+                document.getElementById('formBuilderTitle').textContent = '📋 Nuevo Formulario';
+                document.getElementById('fbId').value = '';
+                document.getElementById('fbName').value = '';
+                document.getElementById('fbType').value = 'Clase Gratis';
+                document.getElementById('fbTitle').value = '';
+                document.getElementById('fbSubtitle').value = '';
+                document.getElementById('fbButton').value = '';
+                document.getElementById('fbSuccess').value = '';
+                document.getElementById('fbFieldEmail').checked   = true;
+                document.getElementById('fbFieldAge').checked     = false;
+                document.getElementById('fbFieldProgram').checked = true;
+                document.getElementById('fbFieldSource').checked  = true;
+                document.getElementById('fbFieldMessage').checked = false;
+                selectColor('#c41e3a');
+            }
+            document.getElementById('formBuilderModal').classList.add('active');
+        }
+
+        function saveFormTemplate() {
+            const name  = document.getElementById('fbName').value.trim();
+            const title = document.getElementById('fbTitle').value.trim();
+            if (!name || !title) { alert('El nombre y el título son obligatorios.'); return; }
+
+            const existingId = document.getElementById('fbId').value;
+            const ft = {
+                id:         existingId || 'form_' + Date.now(),
+                name,
+                type:       document.getElementById('fbType').value,
+                title,
+                subtitle:   document.getElementById('fbSubtitle').value.trim(),
+                button:     document.getElementById('fbButton').value.trim() || '🥋 ¡Quiero mi Clase Gratis!',
+                successMsg: document.getElementById('fbSuccess').value.trim() || '¡Gracias! Nos pondremos en contacto muy pronto.',
+                color:      document.getElementById('fbColor').value || '#c41e3a',
+                fields: {
+                    email:   document.getElementById('fbFieldEmail').checked,
+                    age:     document.getElementById('fbFieldAge').checked,
+                    program: document.getElementById('fbFieldProgram').checked,
+                    source:  document.getElementById('fbFieldSource').checked,
+                    message: document.getElementById('fbFieldMessage').checked
+                },
+                instrId:   currentUser?.id || 'admin',
+                createdAt: existingId ? (formTemplates.find(f=>f.id===existingId)?.createdAt || new Date().toISOString()) : new Date().toISOString()
+            };
+
+            if (existingId) {
+                const idx = formTemplates.findIndex(f => f.id === existingId);
+                if (idx !== -1) formTemplates[idx] = ft; else formTemplates.push(ft);
+            } else {
+                formTemplates.push(ft);
+            }
+
+            saveData();
+            closeModal('formBuilderModal');
+            renderFormularios();
+        }
+
+        function deleteFormTemplate(id) {
+            if (!confirm('¿Eliminar este formulario?')) return;
+            formTemplates = formTemplates.filter(f => f.id !== id);
+            saveData();
+            renderFormularios();
+        }
+
+        function getFormLink(ft) {
+            const base = window.location.href.replace(/[^/]*$/, '') + 'lead-form.html';
+            const instrId = currentUser?.role === 'admin' ? 'admin' : (currentUser?.id || 'admin');
+            return `${base}?instructor=${instrId}&form=${ft.id}`;
+        }
+
+        function copyFormLink(id) {
+            const ft = formTemplates.find(f => f.id === id);
+            if (!ft) return;
+            const link = getFormLink(ft);
+            navigator.clipboard.writeText(link).then(() => {
+                alert('✅ Link copiado al portapapeles:\n' + link);
+            }).catch(() => {
+                prompt('Copia este link:', link);
+            });
+        }
+
+        function shareFormWhatsApp(id) {
+            const ft = formTemplates.find(f => f.id === id);
+            if (!ft) return;
+            const link = getFormLink(ft);
+            const msg = `🥋 *${ft.name}*\n\n${ft.title}\n\n👉 ${link}`;
+            window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+        }
+
+        function renderFormularios() {
+            const container = document.getElementById('formulariosList');
+            if (!container) return;
+
+            // Filter by current user
+            const myForms = currentUser?.role === 'admin'
+                ? formTemplates
+                : formTemplates.filter(f => f.instrId === currentUser?.id || f.instrId === 'admin');
+
+            if (myForms.length === 0) {
+                container.innerHTML = `<div class="empty-message">
+                    <div style="font-size:48px;margin-bottom:12px">📋</div>
+                    <div style="font-size:16px;margin-bottom:8px">No tienes formularios todavía</div>
+                    <div style="font-size:13px;color:#666">Crea tu primer formulario para capturar leads desde redes sociales</div>
+                </div>`;
+                return;
+            }
+
+            container.innerHTML = myForms.map(ft => {
+                const link = getFormLink(ft);
+                return `
+                <div style="background:#1a1a2e;border-radius:12px;padding:18px;margin-bottom:14px;border-left:4px solid ${ft.color || '#c41e3a'}">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
+                        <div>
+                            <div style="font-size:16px;font-weight:700;color:#fff">${ft.name}</div>
+                            <div style="font-size:12px;color:#888;margin-top:2px">${ft.type} · ${new Date(ft.createdAt).toLocaleDateString()}</div>
+                            <div style="font-size:13px;color:#ffd700;margin-top:6px">${ft.title}</div>
+                            ${ft.subtitle ? `<div style="font-size:11px;color:#888;margin-top:2px">${ft.subtitle}</div>` : ''}
+                        </div>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap">
+                            <button onclick="openFormBuilder('${ft.id}')" class="btn btn-sm" style="background:#3b82f6;color:#fff">✏️ Editar</button>
+                            <button onclick="deleteFormTemplate('${ft.id}')" class="btn btn-sm btn-danger">🗑️</button>
+                        </div>
+                    </div>
+                    <div style="margin-top:12px;background:#0f0f23;border-radius:8px;padding:10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                        <div style="font-size:11px;color:#666;flex:1;word-break:break-all">${link}</div>
+                        <button onclick="copyFormLink('${ft.id}')" class="btn btn-sm btn-warning">📋 Copiar Link</button>
+                        <button onclick="shareFormWhatsApp('${ft.id}')" class="btn btn-sm" style="background:#25D366;color:#fff">📲 WhatsApp</button>
+                        <a href="${link}" target="_blank" class="btn btn-sm btn-success">👁️ Ver</a>
+                    </div>
+                    <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+                        ${ft.fields?.email   ? '<span style="background:#1e3a5f;color:#60a5fa;padding:2px 8px;border-radius:10px;font-size:10px">Email</span>' : ''}
+                        ${ft.fields?.age     ? '<span style="background:#1e3a5f;color:#60a5fa;padding:2px 8px;border-radius:10px;font-size:10px">Edad</span>' : ''}
+                        ${ft.fields?.program ? '<span style="background:#1e3a5f;color:#60a5fa;padding:2px 8px;border-radius:10px;font-size:10px">Programa</span>' : ''}
+                        ${ft.fields?.source  ? '<span style="background:#1e3a5f;color:#60a5fa;padding:2px 8px;border-radius:10px;font-size:10px">Fuente</span>' : ''}
+                        ${ft.fields?.message ? '<span style="background:#1e3a5f;color:#60a5fa;padding:2px 8px;border-radius:10px;font-size:10px">Mensaje</span>' : ''}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // ══════════════════════════════════════════════════════════════════
+
         // ── CONTACT US (Formspree) ────────────────────────────────────────
         async function sendContactForm() {
             const name    = document.getElementById('contactName').value.trim();
@@ -5520,7 +5845,7 @@
 
             if (!name || !email || !subject || !message) {
                 result.style.color = '#f87171';
-                result.textContent = '⚠️ Por favor llena todos los campos.';
+                result.textContent = t('contactus_empty');
                 return;
             }
 
@@ -5535,7 +5860,7 @@
                 });
                 if (res.ok) {
                     result.style.color = '#4ade80';
-                    result.textContent = '✅ Mensaje enviado exitosamente!';
+                    result.textContent = t('contactus_success');
                     document.getElementById('contactName').value = '';
                     document.getElementById('contactEmail').value = '';
                     document.getElementById('contactSubject').value = '';
@@ -5545,7 +5870,7 @@
                 }
             } catch(e) {
                 result.style.color = '#f87171';
-                result.textContent = '❌ Error al enviar. Intenta de nuevo.';
+                result.textContent = t('contactus_error');
             }
         }
         // ─────────────────────────────────────────────────────────────────
