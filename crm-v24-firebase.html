@@ -5320,6 +5320,7 @@
 
             // Navegar siempre al dashboard al entrar
             goToTab('dashboard');
+            startRealtimeListener();
         }
 
         function applyInstructorRestrictions() {
@@ -5338,6 +5339,7 @@
             const logoSrc    = config.logo || '';
             const schoolName = config.companyName || 'Master Baez Martial Arts';
 
+            stopRealtimeListener();
             currentUser = null;
             document.body.classList.remove('instructor-mode');
             // Resetear datos en memoria
@@ -5560,6 +5562,34 @@
             showSyncIndicator(window._cloudReady === true);
         }
         initApp();
+
+        // ── TIEMPO REAL: escuchar nuevos leads desde Firebase ──────────
+        let _rtListener = null;
+        function startRealtimeListener() {
+            if (_rtListener) return;
+            const key = getStorageKey();
+            const ref = _db.ref(key.replace(/[.#$\[\]]/g,'_') + '/leads');
+            _rtListener = ref.on('value', snap => {
+                if (!snap.exists()) return;
+                const remoteleads = snap.val() || [];
+                if (remoteleads.length !== leads.length) {
+                    leads = remoteleads;
+                    renderLeads();
+                    renderDashboardExtras();
+                    renderPayments();
+                    renderMonthlyChart();
+                    showSyncIndicator(true);
+                }
+            });
+        }
+        function stopRealtimeListener() {
+            if (_rtListener) {
+                const key = getStorageKey();
+                _db.ref(key.replace(/[.#$\[\]]/g,'_') + '/leads').off('value', _rtListener);
+                _rtListener = null;
+            }
+        }
+        // ─────────────────────────────────────────────────────────────
         window.addEventListener('resize', () => {
             if (document.getElementById('dashboard').classList.contains('active')) renderMonthlyChart();
         });

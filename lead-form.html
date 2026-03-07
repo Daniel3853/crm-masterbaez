@@ -113,7 +113,12 @@
         <h2 id="successTitle">¡Gracias!</h2>
         <p id="successMsgEl">Recibimos tu información. Nos pondremos en contacto contigo muy pronto.</p>
         <br>
-        <p style="color:#ffd700;font-size:16px;font-weight:700" id="successSchoolName">🥋 Master Baez Martial Arts</p>
+        <p style="color:#ffd700;font-size:16px;font-weight:700;margin-bottom:20px" id="successSchoolName">🥋 Master Baez Martial Arts</p>
+        <div id="notifyBtns" style="display:none;flex-direction:column;gap:10px;margin-top:10px">
+            <p style="color:#888;font-size:12px;margin-bottom:4px" id="notifyLabel">Notificar al instructor:</p>
+            <a id="smsBtn" href="#" style="display:block;padding:13px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none">📱 Enviar SMS</a>
+            <a id="waBtn" href="#" style="display:block;padding:13px;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none">💬 Enviar WhatsApp</a>
+        </div>
     </div>
 </div>
 
@@ -360,32 +365,13 @@ async function submitLead() {
         }
     } catch(e) {}
 
-    // 3️⃣ SMS Metro PCS — al instructor Y al admin
-    try {
-        const smsBody = `🥋 NUEVO LEAD\nNombre: ${name}\nTel: ${phone}\nForm: ${formTemplate?.name||'Web'}\nPrograma: ${program||'N/A'}`;
-        const instrGateway = instrPhone + '@mymetropcs.com';
-        window.open(`mailto:${instrGateway}?subject=Lead: ${encodeURIComponent(name)}&body=${encodeURIComponent(smsBody)}`, '_blank');
-        // Si el instructor es diferente al admin, enviar copia al admin también
-        if (instrPhone !== ADMIN_PHONE) {
-            setTimeout(() => {
-                try { window.open(`mailto:${ADMIN_PHONE}@mymetropcs.com?subject=Lead (copia): ${encodeURIComponent(name)}&body=${encodeURIComponent(smsBody)}`, '_blank'); } catch(e) {}
-            }, 800);
-        }
-    } catch(e) {}
-
-    // 4️⃣ WhatsApp — al instructor Y al admin
-    setTimeout(() => {
-        try {
-            const waMsg = `🥋 *NUEVO LEAD*\n*Formulario:* ${formTemplate?.name||'Web'}\n*Nombre:* ${name}\n*Teléfono:* ${phone}\n*Email:* ${email||'N/A'}\n*Programa:* ${program||'N/A'}\n*Fuente:* ${source||'N/A'}`;
-            window.open(`https://wa.me/${instrWhatsApp}?text=${encodeURIComponent(waMsg)}`, '_blank');
-            // Copia al admin si es diferente
-            if (instrWhatsApp !== ADMIN_WHATSAPP) {
-                setTimeout(() => {
-                    try { window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent('📋 COPIA ADMIN\n' + waMsg)}`, '_blank'); } catch(e) {}
-                }, 2000);
-            }
-        } catch(e) {}
-    }, 1500);
+    // 3️⃣ & 4️⃣ Mostrar botones SMS y WhatsApp en pantalla de éxito
+    const smsBody = `🥋 NUEVO LEAD\nNombre: ${name}\nTel: ${phone}\nForm: ${formTemplate?.name||'Web'}\nPrograma: ${program||'N/A'}`;
+    const waMsg   = `🥋 *NUEVO LEAD*\n*Formulario:* ${formTemplate?.name||'Web'}\n*Nombre:* ${name}\n*Teléfono:* ${phone}\n*Email:* ${email||'N/A'}\n*Programa:* ${program||'N/A'}\n*Fuente:* ${source||'N/A'}`;
+    const instrGateway = instrPhone + '@mymetropcs.com';
+    document.getElementById('smsBtn').href = `mailto:${instrGateway}?subject=Lead: ${encodeURIComponent(name)}&body=${encodeURIComponent(smsBody)}`;
+    document.getElementById('waBtn').href  = `https://wa.me/${instrWhatsApp}?text=${encodeURIComponent(waMsg)}`;
+    document.getElementById('notifyBtns').style.display = 'flex';
 
     // Mostrar éxito
     document.getElementById('formSection').style.display = 'none';
