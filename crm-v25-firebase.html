@@ -3073,36 +3073,35 @@
             const item = { type, id, name, itemType, date: new Date().toISOString().split('T')[0] };
 
             if (type === 'student') {
-                const s = students.find(s => s.id === id);
+                const s = students.find(s => s.id == id);
                 if (s) { item.details = `${s.program||''} - ${s.belt||''}`; item.originalData = {...s}; }
-                students = students.filter(s => s.id !== id);
+                students = students.filter(s => s.id != id);
                 renderStudents();
             } else if (type === 'lead') {
-                const l = leads.find(l => l.id === id);
+                const l = leads.find(l => l.id == id);
                 if (l) { item.details = `${l.source} - ${l.stage}`; item.originalData = {...l}; }
-                leads = leads.filter(l => l.id !== id);
+                leads = leads.filter(l => l.id != id);
                 renderLeads();
             } else if (type === 'payment') {
-                const p = payments.find(p => p.id === id);
+                const p = payments.find(p => p.id == id);
                 if (p) { item.details = `$${p.amount}`; item.originalData = {...p}; }
-                payments = payments.filter(p => p.id !== id);
+                payments = payments.filter(p => p.id != id);
                 renderPayments();
             } else if (type === 'attendance') {
-                const a = attendance.find(a => a.id === id);
+                const a = attendance.find(a => a.id == id);
                 if (a) { item.details = a.status; item.originalData = {...a}; }
-                attendance = attendance.filter(a => a.id !== id);
+                attendance = attendance.filter(a => a.id != id);
                 renderAttendance();
             } else if (type === 'event') {
-                const e = events.find(e => e.id === id);
+                const e = events.find(e => e.id == id);
                 if (e) { item.details = e.date; item.originalData = {...e}; }
-                events = events.filter(e => e.id !== id);
+                events = events.filter(e => e.id != id);
                 renderEvents();
             }
 
             trash.push(item);
             updateTrashBadge();
             saveToStorage();
-            // No alert - less disruptive
         }
         
         function updateTrashBadge() {
@@ -5421,18 +5420,25 @@
                      trash, attendance, events, config, storeProducts, storeSales };
         }
 
+        // Firebase a veces convierte arrays a objetos — esto los convierte de vuelta
+        function toArray(val) {
+            if (!val) return [];
+            if (Array.isArray(val)) return val;
+            return Object.values(val);
+        }
+
         function applyPayload(d) {
-            if (d.students)        students        = d.students;
-            if (d.leads)           leads           = d.leads;
-            if (d.leadHistory)     leadHistory     = d.leadHistory;
-            if (d.payments)        payments        = d.payments;
-            if (d.paymentHistory)  paymentHistory  = d.paymentHistory;
-            if (d.trash)           trash           = d.trash;
-            if (d.attendance)      attendance      = d.attendance;
-            if (d.events)          events          = d.events;
+            if (d.students)        students        = toArray(d.students);
+            if (d.leads)           leads           = toArray(d.leads);
+            if (d.leadHistory)     leadHistory     = toArray(d.leadHistory);
+            if (d.payments)        payments        = toArray(d.payments);
+            if (d.paymentHistory)  paymentHistory  = toArray(d.paymentHistory);
+            if (d.trash)           trash           = toArray(d.trash);
+            if (d.attendance)      attendance      = toArray(d.attendance);
+            if (d.events)          events          = toArray(d.events);
             if (d.config)          config          = { ...config, ...d.config };
-            if (d.storeProducts)   storeProducts   = d.storeProducts;
-            if (d.storeSales)      storeSales      = d.storeSales;
+            if (d.storeProducts)   storeProducts   = toArray(d.storeProducts);
+            if (d.storeSales)      storeSales      = toArray(d.storeSales);
         }
 
         // Indicador visual de sincronización con Firebase
