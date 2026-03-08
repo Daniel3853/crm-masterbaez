@@ -5175,6 +5175,63 @@
 
             // Navegar siempre al dashboard al entrar
             goToTab('dashboard');
+
+            // Verificar estudiantes con programa por vencer
+            setTimeout(checkProgramExpirations, 800);
+        }
+
+        function checkProgramExpirations() {
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const in14 = new Date(today); in14.setDate(today.getDate() + 14);
+
+            const expiring = students.filter(s => {
+                if (!s.endDate || s.status === 'Inactivo') return false;
+                const end = new Date(s.endDate + 'T00:00:00');
+                return end >= today && end <= in14;
+            });
+
+            if (expiring.length === 0) return;
+
+            // Build modal HTML
+            const rows = expiring.map(s => {
+                const end = new Date(s.endDate + 'T00:00:00');
+                const diff = Math.round((end - today) / (1000*60*60*24));
+                const days = diff === 0 ? '⚠️ HOY' : diff === 1 ? '⚠️ Mañana' : `${diff} días`;
+                const color = diff <= 1 ? '#ef4444' : diff <= 7 ? '#f59e0b' : '#4ade80';
+                const waMsg = encodeURIComponent(`🥋 Hola ${s.name}, tu programa *${s.program || 'actual'}* está por terminar el ${s.endDate}. ¿Te gustaría continuar? ¡Contáctanos!`);
+                const emailSubj = encodeURIComponent(`Tu programa está por terminar — ${s.name}`);
+                const emailBody = encodeURIComponent(`Hola ${s.name},\n\nTu programa ${s.program || 'actual'} está por terminar el ${s.endDate}.\n\nNos gustaría hablar contigo sobre continuar.\n\nMaster Baez Martial Arts`);
+                const smsBody = encodeURIComponent(`Hola ${s.name}, tu programa ${s.program||''} termina el ${s.endDate}. Llámanos para continuar. Master Baez`);
+                return `
+                <div style="background:#0f0f23;border-radius:10px;padding:14px;margin-bottom:10px">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                        <strong style="color:#fff;font-size:14px">${s.name}</strong>
+                        <span style="color:${color};font-size:12px;font-weight:700">${days}</span>
+                    </div>
+                    <div style="font-size:12px;color:#aaa;margin-bottom:8px">
+                        📚 ${s.program || 'Sin programa'} &nbsp;|&nbsp; 📅 Vence: ${s.endDate}
+                    </div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap">
+                        ${s.phone ? `<a href="sms:+1${s.phone.replace(/\D/g,'')}?body=${smsBody}" style="background:#22c55e;color:#fff;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none">📱 SMS</a>` : ''}
+                        ${s.phone ? `<a href="https://wa.me/1${s.phone.replace(/\D/g,'')}?text=${waMsg}" target="_blank" style="background:#25D366;color:#fff;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none">💬 WhatsApp</a>` : ''}
+                        ${s.email ? `<a href="mailto:${s.email}?subject=${emailSubj}&body=${emailBody}" style="background:#3b82f6;color:#fff;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none">📧 Email</a>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+            modal.innerHTML = `
+                <div style="background:#1a1a2e;border:1px solid #c41e3a;border-radius:16px;padding:24px;max-width:480px;width:100%;max-height:85vh;overflow-y:auto">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                        <h3 style="color:#ffd700;font-size:16px">📅 Programas por Vencer</h3>
+                        <button onclick="this.closest('[style*=fixed]').remove()" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer">&times;</button>
+                    </div>
+                    <p style="color:#aaa;font-size:12px;margin-bottom:14px">Los siguientes estudiantes tienen su programa terminando en los próximos 14 días:</p>
+                    ${rows}
+                </div>`;
+            document.body.appendChild(modal);
         }
 
         function applyInstructorRestrictions() {
