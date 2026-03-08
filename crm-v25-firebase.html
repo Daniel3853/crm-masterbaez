@@ -5072,7 +5072,7 @@
         };
         let currentUser = null; // { role:'admin'|'instructor', ...userData }
 
-        function doLogin() {
+        async function doLogin() {
             const user = document.getElementById('loginUser').value.trim();
             const pass = document.getElementById('loginPassword').value;
             const errEl = document.getElementById('loginError');
@@ -5086,7 +5086,7 @@
             // Verificar admin
             if (user === appUsers.admin.user && pass === appUsers.admin.pass) {
                 currentUser = { role: 'admin', name: appUsers.admin.name, user: appUsers.admin.user };
-                onLoginSuccess();
+                await onLoginSuccess();
                 return;
             }
 
@@ -5094,7 +5094,7 @@
             const instr = appUsers.instructors.find(i => i.user === user && i.pass === pass);
             if (instr) {
                 currentUser = { role: 'instructor', ...instr };
-                onLoginSuccess();
+                await onLoginSuccess();
                 return;
             }
 
