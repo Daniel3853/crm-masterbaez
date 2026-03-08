@@ -2692,7 +2692,7 @@
             document.getElementById('photoPlaceholder').style.display = 'block';
             
             if (id) {
-                const s = students.find(s => s.id === id);
+                const s = students.find(s => s.id == id);
                 document.getElementById('studentModalTitle').textContent = t('modal_edit_student');
                 document.getElementById('studentId').value = s.id;
                 document.getElementById('studentName').value = s.name;
@@ -2945,12 +2945,12 @@
         
         // PAPELERA
         function deleteStudentById(id) {
-            const s = students.find(s => s.id === id);
-            if (s) moveToTrash('student', id, s.name, t('type_student'));
+            const s = students.find(s => s.id == id);
+            if (s) moveToTrash('student', s.id, s.name, t('type_student'));
         }
         function deleteLeadById(id) {
-            const l = leads.find(l => l.id === id);
-            if (l) moveToTrash('lead', id, l.name, t('type_lead'));
+            const l = leads.find(l => l.id == id);
+            if (l) moveToTrash('lead', l.id, l.name, t('type_lead'));
         }
         // ═══════════════ GLOBAL TRASH SYSTEM ═══════════════
         let trashTabFilter = 'all';
@@ -3170,7 +3170,17 @@
         function deleteLead(id) { moveToTrash('lead', id, leads.find(l => l.id === id)?.name, 'Lead'); }
         function deletePayment(id) { moveToTrash('payment', id, payments.find(p => p.id === id)?.studentName, t('type_payment')); }
         function editStudent(id) { openStudentModal(id); }
-        function editLead(id) { openLeadModal(id); }
+        function editLead(id) { 
+            const lead = leads.find(l => l.id == id);
+            if (!lead) { alert('Lead no encontrado'); return; }
+            document.getElementById('leadModal').classList.add('active');
+            document.getElementById('leadId').value = lead.id;
+            document.getElementById('leadName').value = lead.name;
+            document.getElementById('leadPhone').value = lead.phone || '';
+            document.getElementById('leadEmail').value = lead.email || '';
+            document.getElementById('leadSource').value = lead.source || 'Web';
+            document.getElementById('leadTag').value = lead.tag || 'padre-interesado';
+        }
         
         function markPaid(id) {
             const p = payments.find(p => p.id === id);
