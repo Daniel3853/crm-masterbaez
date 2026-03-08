@@ -5,76 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Master Baez Martial Arts - CRM</title>
 
-    <!-- JSONBin Cloud Storage -->
+    <!-- 🔥 Firebase Realtime Database -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <script>
-        // ── JSONBin.io — Almacenamiento en la nube gratis ──
-        const JSONBIN_API_KEY = '$2a$10$rCoFAPm8CbSHxf/bMPEJlOEqpYcr5/VaynLsYS9quCE9VMqPBmJSG';
-        const JSONBIN_BASE    = 'https://api.jsonbin.io/v3';
+        const firebaseConfig = {
+            apiKey: "AIzaSyC0GZUhbfipXCBeP6LJcXmKcHugNuG2f4E",
+            authDomain: "masterbaez-crm.firebaseapp.com",
+            databaseURL: "https://masterbaez-crm-default-rtdb.firebaseio.com",
+            projectId: "masterbaez-crm",
+            storageBucket: "masterbaez-crm.firebasestorage.app",
+            messagingSenderId: "105620561253",
+            appId: "1:105620561253:web:90516b7e8b25a3a736958c"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const _db = firebase.database();
 
-        // Mapa de bins por clave (se crea automáticamente la primera vez)
-        // Se guarda en localStorage para no recrearlos
-        function getBinMap() {
-            try { return JSON.parse(localStorage.getItem('crmBinMap') || '{}'); } catch(e) { return {}; }
-        }
-        function saveBinMap(map) {
-            localStorage.setItem('crmBinMap', JSON.stringify(map));
-        }
-
-        // Guardar datos en JSONBin (crea el bin si no existe)
         window.cloudSave = async function(key, data) {
-            const map = getBinMap();
+            try { localStorage.setItem(key, JSON.stringify(data)); } catch(e) {}
             try {
-                if (map[key]) {
-                    // Actualizar bin existente
-                    const res = await fetch(`${JSONBIN_BASE}/b/${map[key]}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_API_KEY },
-                        body: JSON.stringify(data)
-                    });
-                    if (!res.ok) throw new Error('Update failed');
-                } else {
-                    // Crear bin nuevo
-                    const res = await fetch(`${JSONBIN_BASE}/b`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Master-Key': JSONBIN_API_KEY,
-                            'X-Bin-Name': key,
-                            'X-Bin-Private': 'true'
-                        },
-                        body: JSON.stringify(data)
-                    });
-                    if (!res.ok) throw new Error('Create failed');
-                    const json = await res.json();
-                    map[key] = json.metadata.id;
-                    saveBinMap(map);
-                }
+                const k = key.replace(/[.#$\[\]]/g, '_');
+                await _db.ref(k).set(data);
                 return true;
-            } catch(e) {
-                console.warn('JSONBin save error:', e.message);
-                return false;
-            }
+            } catch(e) { console.warn('Firebase save:', e.message); return false; }
         };
 
-        // Cargar datos desde JSONBin
         window.cloudLoad = async function(key) {
-            const map = getBinMap();
-            if (!map[key]) return null; // No existe todavía
             try {
-                const res = await fetch(`${JSONBIN_BASE}/b/${map[key]}/latest`, {
-                    headers: { 'X-Master-Key': JSONBIN_API_KEY }
-                });
-                if (!res.ok) return null;
-                const json = await res.json();
-                return json.record;
-            } catch(e) {
-                console.warn('JSONBin load error:', e.message);
+                const k = key.replace(/[.#$\[\]]/g, '_');
+                const snap = await _db.ref(k).get();
+                if (snap.exists()) {
+                    const d = snap.val();
+                    try { localStorage.setItem(key, JSON.stringify(d)); } catch(e) {}
+                    return d;
+                }
                 return null;
+            } catch(e) {
+                console.warn('Firebase load:', e.message);
+                try { const l = localStorage.getItem(key); return l ? JSON.parse(l) : null; } catch(e2) { return null; }
             }
         };
 
         window._cloudReady = true;
-        console.log('JSONBin listo ✅');
+        console.log('🔥 Firebase Realtime Database listo ✅');
     </script>
 
     <style>
@@ -901,6 +874,7 @@
                             <th data-i18n="col_source">Origen</th>
                             <th data-i18n="col_tag">Etiqueta</th>
                             <th data-i18n="col_stage">Etapa</th>
+                            <th>📅 Recibido</th>
                             <th data-i18n="leads_actions_col">Acciones</th>
                         </tr>
                     </thead>
@@ -1259,9 +1233,9 @@
                 📋 Copiar número y mensaje al portapapeles
             </button>
             <div style="background:#1e1e3f;border-radius:8px;padding:10px 12px;font-size:11px;color:#888;line-height:1.6">
-                <strong style="color:#ffd700">📱 SMS Metro PCS</strong> — Envía desde tu email, llega como SMS desde tu número Metro PCS<br>
-                <strong style="color:#60a5fa">💬 App Mensajes</strong> — Abre la app de mensajes de tu teléfono con número y mensaje listos<br>
-                <strong style="color:#aaa">📋 Copiar</strong> — Si la app no abre, copia el número/mensaje y pégalo manualmente
+                <strong style="color:#ffd700">📱 SMS Metro PCS</strong> — Solo funciona en teléfonos Metro PCS, envía via email gateway<br>
+                <strong style="color:#60a5fa">💬 App Mensajes</strong> — Abre la app de mensajes de tu teléfono (solo funciona en celular, no en computadora)<br>
+                <strong style="color:#aaa">📋 Copiar</strong> — Copia el número y mensaje para pegar manualmente en cualquier app
             </div>
         </div>
     </div>
@@ -1334,6 +1308,16 @@
                             <option value="Trial">Trial</option>
                             <option value="Inactivo">Inactivo</option>
                         </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>📅 Fecha Inicio Programa</label>
+                        <input type="date" id="studentStartDate">
+                    </div>
+                    <div class="form-group">
+                        <label>📅 Fecha Fin Programa</label>
+                        <input type="date" id="studentEndDate">
                     </div>
                 </div>
                 <button type="button" class="btn btn-success" style="width:100%;margin-top:15px" onclick="saveStudent()">Guardar</button>
@@ -1409,6 +1393,7 @@
                 <div><strong>Nombre:</strong> <span id="previewName"></span></div>
                 <div><strong>Teléfono:</strong> <span id="previewPhone"></span></div>
                 <div><strong>Email:</strong> <span id="previewEmail"></span></div>
+                <div><strong>📅 Fecha recibido:</strong> <span id="previewDate"></span></div>
             </div>
             <button class="btn btn-primary" style="width:100%" onclick="convertLead()">✓ Convertir a Estudiante</button>
         </div>
@@ -2012,7 +1997,7 @@
         function renderLeads() {
             const tbody = document.getElementById('leadsTable');
             if (leads.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="empty-message">${t('empty_leads')}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="empty-message">${t('empty_leads')}</td></tr>`;
             } else {
                 tbody.innerHTML = leads.map(l => `
                     <tr>
@@ -2026,6 +2011,7 @@
                         <td>${l.source}</td>
                         <td><span class="tag-chip">#${l.tag}</span></td>
                         <td><span class="status status-active">${getStageName(l.stage)}</span></td>
+                        <td style="font-size:11px;color:#aaa">${l.createdAt || '-'}</td>
                         <td class="action-btns">
                             <button class="btn-edit" onclick="editLead(${l.id})">✏️</button>
                             <button class="btn-delete" onclick="deleteLeadById(${l.id})">🗑️</button>
@@ -2717,6 +2703,8 @@
                 document.getElementById('studentProgram').value = s.program || '';
                 document.getElementById('studentBelt').value = s.belt;
                 document.getElementById('studentStatus').value = s.status;
+                document.getElementById('studentStartDate').value = s.startDate || '';
+                document.getElementById('studentEndDate').value = s.endDate || '';
                 
                 if (s.photo) {
                     document.getElementById('photoPreview').src = s.photo;
@@ -2732,6 +2720,8 @@
                 document.getElementById('studentBirthday').value = '';
                 document.getElementById('studentBelt').value = 'White';
                 document.getElementById('studentStatus').value = 'Activo';
+                document.getElementById('studentStartDate').value = '';
+                document.getElementById('studentEndDate').value = '';
                 document.getElementById('studentId').value = '';
             }
         }
@@ -2819,6 +2809,8 @@
                 program: document.getElementById('studentProgram').value,
                 belt: document.getElementById('studentBelt').value,
                 status: document.getElementById('studentStatus').value,
+                startDate: document.getElementById('studentStartDate').value,
+                endDate: document.getElementById('studentEndDate').value,
                 photo: photo
             };
             
@@ -2919,6 +2911,7 @@
             document.getElementById('previewName').textContent = lead.name;
             document.getElementById('previewPhone').textContent = lead.phone;
             document.getElementById('previewEmail').textContent = lead.email;
+            document.getElementById('previewDate').textContent = lead.createdAt || '-';
             document.getElementById('leadPreview').style.display = 'block';
         }
         
@@ -2927,6 +2920,7 @@
             if (!id) { alert('Selecciona un lead'); return; }
             
             const lead = leads.find(l => l.id == id);
+            const today = new Date().toISOString().split('T')[0];
             students.push({
                 id: Date.now(),
                 name: lead.name,
@@ -2935,7 +2929,10 @@
                 program: '',
                 belt: 'White',
                 status: 'Trial',
-                photo: ''
+                photo: '',
+                startDate: today,
+                endDate: '',
+                leadReceivedDate: lead.createdAt || today
             });
             
             leads = leads.filter(l => l.id != id);
@@ -5075,7 +5072,7 @@
         };
         let currentUser = null; // { role:'admin'|'instructor', ...userData }
 
-        function doLogin() {
+        async function doLogin() {
             const user = document.getElementById('loginUser').value.trim();
             const pass = document.getElementById('loginPassword').value;
             const errEl = document.getElementById('loginError');
@@ -5089,7 +5086,7 @@
             // Verificar admin
             if (user === appUsers.admin.user && pass === appUsers.admin.pass) {
                 currentUser = { role: 'admin', name: appUsers.admin.name, user: appUsers.admin.user };
-                onLoginSuccess();
+                await onLoginSuccess();
                 return;
             }
 
@@ -5097,7 +5094,7 @@
             const instr = appUsers.instructors.find(i => i.user === user && i.pass === pass);
             if (instr) {
                 currentUser = { role: 'instructor', ...instr };
-                onLoginSuccess();
+                await onLoginSuccess();
                 return;
             }
 
@@ -5105,7 +5102,7 @@
             document.getElementById('loginPassword').value = '';
         }
 
-        function onLoginSuccess() {
+        async function onLoginSuccess() {
             // Ocultar login
             document.getElementById('loginScreen').classList.add('hidden');
 
@@ -5113,7 +5110,7 @@
             const storageKey = currentUser.role === 'admin'
                 ? 'crmData'
                 : 'crmData_' + currentUser.id;
-            loadFromStorage(storageKey);
+            await loadFromStorage(storageKey);
 
             // Si instructor tiene su escuela/logo, aplicarlo
             if (currentUser.role === 'instructor') {
@@ -5399,130 +5396,114 @@
         async function initApp() {
             await loadAppUsers();
             document.getElementById('loginUser').focus();
-            // Si Firebase no está listo todavía, reintentar cuando esté
-            if (!window._firebaseReady) {
-                window._pendingFirebaseLoad = async () => {
-                    await loadAppUsers();
-                };
-            }
-            showSyncIndicator(window._firebaseReady);
+            showSyncIndicator(window._cloudReady === true);
         }
         initApp();
         window.addEventListener('resize', () => {
             if (document.getElementById('dashboard').classList.contains('active')) renderMonthlyChart();
         });
         // ═══════════════════════════════════════════
-        // STORAGE — JSONBin (nube) + localStorage (fallback)
-        // ═══════════════════════════════════════════
+        // STORAGE — Firebase + localStorage
+        // ══════════════════════════════════════════════════════════════════
 
-        function getStorageKey() {
-            return (currentUser && currentUser.role !== 'admin')
-                ? 'crmData_' + currentUser.id
-                : 'crmData';
+        function buildPayload() {
+            return { students, leads, leadHistory, payments, paymentHistory,
+                     trash, attendance, events, config, storeProducts, storeSales };
         }
 
-        function buildDataObject() {
-            return { students, leads, leadHistory, payments, paymentHistory, trash, attendance, events, config };
+        function applyPayload(d) {
+            if (d.students)        students        = d.students;
+            if (d.leads)           leads           = d.leads;
+            if (d.leadHistory)     leadHistory     = d.leadHistory;
+            if (d.payments)        payments        = d.payments;
+            if (d.paymentHistory)  paymentHistory  = d.paymentHistory;
+            if (d.trash)           trash           = d.trash;
+            if (d.attendance)      attendance      = d.attendance;
+            if (d.events)          events          = d.events;
+            if (d.config)          config          = { ...config, ...d.config };
+            if (d.storeProducts)   storeProducts   = d.storeProducts;
+            if (d.storeSales)      storeSales      = d.storeSales;
         }
 
-        function applyDataObject(data) {
-            if (data.students)       students       = data.students;
-            if (data.leads)          leads          = data.leads;
-            if (data.leadHistory)    leadHistory    = data.leadHistory;
-            if (data.payments)       payments       = data.payments;
-            if (data.paymentHistory) paymentHistory = data.paymentHistory;
-            if (data.trash)          trash          = data.trash;
-            if (data.attendance)     attendance     = data.attendance;
-            if (data.events)         events         = data.events;
-            if (data.config)         config         = { ...config, ...data.config };
+        // Indicador visual de sincronización con Firebase
+        function showSyncIndicator(status) {
+            let el = document.getElementById('syncIndicator');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'syncIndicator';
+                el.style.cssText = 'position:fixed;bottom:16px;left:50%;transform:translateX(-50%);padding:6px 16px;border-radius:20px;font-size:12px;font-weight:700;z-index:9998;transition:all 0.3s;pointer-events:none;';
+                document.body.appendChild(el);
+            }
+            if (status === null) {
+                el.style.background = '#f59e0b'; el.style.color = '#000';
+                el.textContent = '☁️ Guardando...'; el.style.display = 'block';
+            } else if (status === true) {
+                el.style.background = '#22c55e'; el.style.color = '#fff';
+                el.textContent = '✅ Guardado en la nube'; el.style.display = 'block';
+                setTimeout(() => { el.style.display = 'none'; }, 2500);
+            } else if (status === false) {
+                el.style.background = '#ef4444'; el.style.color = '#fff';
+                el.textContent = '⚠️ Solo guardado local'; el.style.display = 'block';
+                setTimeout(() => { el.style.display = 'none'; }, 3500);
+            } else {
+                el.style.display = 'none';
+            }
         }
 
-        // Guarda en JSONBin Y en localStorage (doble respaldo)
-        async function saveToStorage(key) {
-            const k    = key || getStorageKey();
-            const data = buildDataObject();
-
-            // Siempre guardar en localStorage como respaldo inmediato
-            try { localStorage.setItem(k, JSON.stringify(data)); } catch(e) {}
-
-            // Guardar en la nube
+                // Guarda en Firebase Y en localStorage (doble respaldo)
+        async function saveData() {
+            const key = getStorageKey();
+            const data = buildPayload();
+            try { localStorage.setItem(key, JSON.stringify(data)); } catch(e) {}
             showSyncIndicator(null);
-            const ok = await window.cloudSave(k, data);
+            const ok = await window.cloudSave(key, data);
             showSyncIndicator(ok);
         }
 
-        // Carga desde JSONBin primero, si falla usa localStorage
-        async function loadFromStorage(key) {
-            const k = key || getStorageKey();
-
-            // Intentar nube primero
+        // Carga desde Firebase primero, si falla usa localStorage
+        async function loadData() {
+            const key = getStorageKey();
             showSyncIndicator(null);
-            const cloudData = await window.cloudLoad(k);
-            if (cloudData) {
-                applyDataObject(cloudData);
-                try { localStorage.setItem(k, JSON.stringify(cloudData)); } catch(e) {}
-                showSyncIndicator(true);
-                console.log('Datos cargados desde la nube ☁️');
-                return;
-            }
-
-            // Fallback: localStorage
+            const cloud = await window.cloudLoad(key);
+            if (cloud) { applyPayload(cloud); showSyncIndicator(true); return; }
             try {
-                const saved = localStorage.getItem(k);
-                if (saved) {
-                    applyDataObject(JSON.parse(saved));
-                    console.log('Datos cargados desde localStorage 💾');
-                }
-            } catch(e) { console.error('Error al cargar datos:', e); }
+                const local = localStorage.getItem(key);
+                if (local) applyPayload(JSON.parse(local));
+            } catch(e) {}
             showSyncIndicator(false);
         }
 
-        // Cargar usuarios desde JSONBin
+        // Cargar usuarios desde Firebase
         async function loadAppUsers() {
-            // Primero cargar localStorage (instantáneo)
-            const savedLocal = localStorage.getItem('crmUsers');
-            if (savedLocal) {
-                try { appUsers = JSON.parse(savedLocal); } catch(e) {}
-            }
-            // Luego sincronizar con la nube
-            const cloudData = await window.cloudLoad('crmUsers');
-            if (cloudData) {
-                appUsers = cloudData;
-                localStorage.setItem('crmUsers', JSON.stringify(appUsers));
-            }
+            const defaults = { admin: { name: 'Master Baez', user: 'admin', pass: 'admin123', email: '' }, instructors: [] };
+            try { const l=localStorage.getItem('crmUsers'); if(l) { const p=JSON.parse(l); if(p && p.admin) appUsers=p; } } catch(e) {}
+            try {
+                const cloud = await window.cloudLoad('crmUsers');
+                if (cloud && cloud.admin) {
+                    appUsers = cloud;
+                    try { localStorage.setItem('crmUsers', JSON.stringify(cloud)); } catch(e) {}
+                }
+            } catch(e) {}
+            // Safety: always ensure admin exists
+            if (!appUsers.admin || !appUsers.admin.user) appUsers = defaults;
+            if (!appUsers.instructors) appUsers.instructors = [];
         }
 
-        // Guardar usuarios en JSONBin
+        // Guardar usuarios en Firebase
         async function saveAppUsers() {
-            localStorage.setItem('crmUsers', JSON.stringify(appUsers));
+            try { localStorage.setItem('crmUsers', JSON.stringify(appUsers)); } catch(e) {}
             await window.cloudSave('crmUsers', appUsers);
         }
 
-        // Indicador visual de sincronización en el header
-        function showSyncIndicator(ok) {
-            let el = document.getElementById('syncIndicator');
-            if (!el) {
-                el = document.createElement('span');
-                el.id = 'syncIndicator';
-                el.style.cssText = 'font-size:11px;padding:4px 10px;border-radius:12px;margin-left:8px;font-weight:600;transition:all 0.3s';
-                const logoutBtn = document.getElementById('logoutBtn');
-                if (logoutBtn) logoutBtn.after(el);
-            }
-            if (ok === null) {
-                el.textContent = '⏳ Guardando...';
-                el.style.background = '#1e1e3f';
-                el.style.color = '#888';
-            } else if (ok) {
-                el.textContent = '☁️ Guardado';
-                el.style.background = '#052e16';
-                el.style.color = '#4ade80';
-                setTimeout(() => { if(el) { el.textContent = '☁️ Nube activa'; el.style.color = '#555'; } }, 3000);
-            } else {
-                el.textContent = '💾 Solo local';
-                el.style.background = '#1e1e3f';
-                el.style.color = '#ffd700';
-            }
+        
+
+        function getStorageKey() {
+            if (!currentUser) return 'crmData';
+            return currentUser.role === 'admin' ? 'crmData' : 'crmData_' + currentUser.id;
         }
+        async function saveToStorage(key) { await saveData(); }
+        async function loadFromStorage(key) { await loadData(); }
+
     </script>
 </body>
 </html>
