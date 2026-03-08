@@ -336,6 +336,8 @@ async function submitLead() {
         name, phone, email, program, source, age,
         notes: message ? 'Mensaje: ' + message : ('Lead — ' + (formTemplate?.name || source || 'web')),
         stage: 'nuevo', status: 'nuevo',
+        tag: 'padre-interesado',
+        createdAt: new Date().toISOString().split('T')[0],
         date: new Date().toISOString().split('T')[0],
         formId: formId || '', formName: formTemplate?.name || 'Formulario Web', instrId
     };
