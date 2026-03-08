@@ -1979,8 +1979,8 @@
                             <td><span class="belt belt-${s.belt.toLowerCase()}">${s.belt}</span></td>
                             <td><span class="status status-${s.status.toLowerCase()}">${getStatusLabel(s.status)}</span></td>
                             <td class="action-btns">
-                                <button class="btn-edit" onclick="editStudent(${s.id})">✏️</button>
-                                <button class="btn-delete" onclick="deleteStudentById(${s.id})">🗑️</button>
+                                <button class="btn-edit" onclick="editStudent('${s.id}')">✏️</button>
+                                <button class="btn-delete" onclick="deleteStudentById('${s.id}')">🗑️</button>
                             </td>
                         </tr>
                     `;
@@ -2013,8 +2013,8 @@
                         <td><span class="status status-active">${getStageName(l.stage)}</span></td>
                         <td style="font-size:11px;color:#aaa">${l.createdAt || '-'}</td>
                         <td class="action-btns">
-                            <button class="btn-edit" onclick="editLead(${l.id})">✏️</button>
-                            <button class="btn-delete" onclick="deleteLeadById(${l.id})">🗑️</button>
+                            <button class="btn-edit" onclick="editLead('${l.id}')">✏️</button>
+                            <button class="btn-delete" onclick="deleteLeadById('${l.id}')">🗑️</button>
                         </td>
                     </tr>
                 `).join('');
@@ -2153,7 +2153,7 @@
                         <td>${p.link ? `<a href="${p.link}" target="_blank" style="background:#3b82f6;color:#fff;padding:4px 8px;border-radius:4px;font-size:11px;text-decoration:none">Pagar</a>` : '-'}</td>
                         <td class="action-btns">
                             <button class="btn-success btn-sm" onclick="markPaid(${p.id})">✓</button>
-                            <button class="btn-delete btn-sm" onclick="deletePayment(${p.id})">🗑️</button>
+                            <button class="btn-delete btn-sm" onclick="deletePayment('${p.id}')">🗑️</button>
                         </td>
                     </tr>
                 `).join('');
@@ -2230,8 +2230,8 @@
                             <td>${a.time || '-'}</td>
                             <td>${statusIcon} ${getAttStatusLabel(a.status)}</td>
                             <td class="action-btns">
-                                <button class="btn-edit btn-sm" onclick="editAttendanceRecord(${a.studentId})">✏️</button>
-                                <button class="btn-delete btn-sm" onclick="deleteAttendanceByStudentId(${a.studentId})">🗑️</button>
+                                <button class="btn-edit btn-sm" onclick="editAttendanceRecord('${a.studentId}')">✏️</button>
+                                <button class="btn-delete btn-sm" onclick="deleteAttendanceByStudentId('${a.studentId}')">🗑️</button>
                             </td>
                         </tr>
                     `;
