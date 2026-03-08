@@ -731,6 +731,7 @@
                 <button class="report-tab" data-i18n="rpt_leads" onclick="showReport('leads', this)">🎯 Leads</button>
                 <button class="report-tab" data-i18n="rpt_attendance" onclick="showReport('attendance', this)">📅 Asistencia</button>
                 <button class="report-tab" data-i18n="rpt_store" onclick="showReport('store', this)">🛍️ Tienda</button>
+                <button class="report-tab" onclick="showReport('renewals', this)">🔄 Renovaciones</button>
             </div>
 
             <!-- FINANZAS -->
@@ -794,6 +795,34 @@
                 <div class="report-panel">
                     <h3 data-i18n="rpt_att_monthly">📅 Asistencia por Mes</h3>
                     <div id="rpt-attendance-monthly"></div>
+                </div>
+            </div>
+
+            <!-- RENOVACIONES -->
+            <div class="report-section" id="report-renewals">
+                <div class="report-panel">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+                        <h3>🔄 Reporte de Renovaciones de Programas</h3>
+                        <button class="btn-export" onclick="exportRenewalsCSV()" style="background:#22c55e;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:700;cursor:pointer">⬇️ Descargar CSV</button>
+                    </div>
+                    <div style="overflow-x:auto">
+                        <table style="width:100%;border-collapse:collapse">
+                            <thead>
+                                <tr style="background:#0f0f23">
+                                    <th style="padding:10px;text-align:left;font-size:11px;color:#888;text-transform:uppercase">Estudiante</th>
+                                    <th style="padding:10px;text-align:left;font-size:11px;color:#888;text-transform:uppercase">Programa</th>
+                                    <th style="padding:10px;text-align:left;font-size:11px;color:#888;text-transform:uppercase">Cinturón</th>
+                                    <th style="padding:10px;text-align:left;font-size:11px;color:#888;text-transform:uppercase">Inicio</th>
+                                    <th style="padding:10px;text-align:left;font-size:11px;color:#888;text-transform:uppercase">Renovación</th>
+                                    <th style="padding:10px;text-align:left;font-size:11px;color:#888;text-transform:uppercase">Estado</th>
+                                    <th style="padding:10px;text-align:left;font-size:11px;color:#888;text-transform:uppercase">Actualizado</th>
+                                    <th style="padding:10px;text-align:left;font-size:11px;color:#888;text-transform:uppercase">Teléfono</th>
+                                    <th style="padding:10px;text-align:left;font-size:11px;color:#888;text-transform:uppercase">Email</th>
+                                </tr>
+                            </thead>
+                            <tbody id="renewalsTableBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -1633,6 +1662,14 @@
         function getStageName(s) { const map = {'nuevo':'txt_new','contacto':'txt_contact','prueba':'txt_test','completada':'txt_completed','negociacion':'txt_negotiation','inscrito':'txt_enrolled'}; return t(map[s]) || stageNames[s] || s; }
         function getStatusLabel(s) { const map = {'Activo':'txt_active','Trial':'txt_trial','Inactivo':'txt_inactive'}; return t(map[s]) || s; }
         function getAttStatusLabel(s) { const map = {'presente':'txt_present','ausente':'txt_absent','tarde':'txt_late'}; return t(map[s]) || s; }
+
+        // Convierte YYYY-MM-DD a MM/DD/YYYY para mostrar
+        function formatDate(d) {
+            if (!d) return '-';
+            const parts = d.split('-');
+            if (parts.length !== 3) return d;
+            return parts[1] + '/' + parts[2] + '/' + parts[0];
+        }
         
         let showTrashMode = false;
         
@@ -2017,7 +2054,7 @@
                         <td>${l.source}</td>
                         <td><span class="tag-chip">#${l.tag}</span></td>
                         <td><span class="status status-active">${getStageName(l.stage)}</span></td>
-                        <td style="font-size:11px;color:#aaa">${l.createdAt || '-'}</td>
+                        <td style="font-size:11px;color:#aaa">${formatDate(l.createdAt)}</td>
                         <td class="action-btns">
                             <button class="btn-edit" onclick="editLead('${l.id}')">✏️</button>
                             <button class="btn-delete" onclick="deleteLeadById('${l.id}')">🗑️</button>
@@ -2095,7 +2132,7 @@
                                 <span style="color:${color};font-size:12px;font-weight:700;background:rgba(0,0,0,0.3);padding:3px 8px;border-radius:10px">${days}</span>
                             </div>
                             <div style="font-size:12px;color:#aaa;margin-bottom:10px">
-                                📚 ${s.program || (currentLang==='en'?'No program':'Sin programa')} &nbsp;|&nbsp; 📅 ${currentLang==='en'?'Expires':'Vence'}: <strong style="color:#fff">${s.endDate}</strong>
+                                📚 ${s.program || (currentLang==='en'?'No program':'Sin programa')} &nbsp;|&nbsp; 📅 ${currentLang==='en'?'Expires':'Vence'}: <strong style="color:#fff">${formatDate(s.endDate)}</strong>
                             </div>
                             <div style="display:flex;gap:6px;flex-wrap:wrap">
                                 ${phone ? `<a href="sms:+1${phone}?body=${smsBody}" style="background:#22c55e;color:#fff;padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none">📱 SMS</a>` : ''}
@@ -2211,7 +2248,7 @@
                         <td>${p.reasonName || '-'}</td>
                         <td>${p.method || '-'}</td>
                         <td>$${p.amount}</td>
-                        <td>${p.due}</td>
+                        <td>${formatDate(p.due)}</td>
                         <td>${p.link ? `<a href="${p.link}" target="_blank" style="background:#3b82f6;color:#fff;padding:4px 8px;border-radius:4px;font-size:11px;text-decoration:none">Pagar</a>` : '-'}</td>
                         <td class="action-btns">
                             <button class="btn-success btn-sm" onclick="markPaid(${p.id})">✓</button>
@@ -2231,7 +2268,7 @@
                 historyDiv.innerHTML = paymentHistory.map((p, index) => `
                     <div class="history-item">
                         <span>${p.student}</span>
-                        <span style="font-size:11px;color:#888">${p.reasonName || ''}</span>
+                        <span style="font-size:11px;color:#888">${p.reasonName || ''} ${p.date ? '· ' + formatDate(p.date) : ''}</span>
                         <span class="amount">$${p.amount}</span>
                         <div class="action-btns">
                             <button class="btn-edit btn-sm" onclick="editPaymentHistory(${index})">✏️</button>
@@ -2598,7 +2635,7 @@
                     ${e.photo ? `<img src="${e.photo}" style="width:120px;height:90px;object-fit:cover;border-radius:8px">` : `<div style="width:120px;height:90px;background:#1e1e3f;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:40px">${typeIcons[e.type] || '📌'}</div>`}
                     <div style="flex:1;min-width:200px">
                         <h3 style="margin:0 0 5px 0">${e.title}</h3>
-                        <p style="margin:0;font-size:13px;color:#888">📅 ${e.date} ${e.time ? '⏰ ' + e.time : ''} | 📍 ${e.location || t('cal_no_location')}</p>
+                        <p style="margin:0;font-size:13px;color:#888">📅 ${formatDate(e.date)} ${e.time ? '⏰ ' + e.time : ''} | 📍 ${e.location || t('cal_no_location')}</p>
                         <p style="margin:5px 0;font-size:13px">${e.description || ''}</p>
                         ${e.paymentLink ? `<a href="${e.paymentLink}" target="_blank" style="background:#3b82f6;color:#fff;padding:5px 10px;border-radius:5px;text-decoration:none;font-size:12px">💳 Inscribirse</a>` : ''}
                     </div>
@@ -3061,7 +3098,7 @@
                         <div style="font-size:11px;color:#888;margin-top:2px">
                             <span style="color:${typeColors[item.type]||'#888'};font-weight:600">${item.itemType}</span>
                             ${item.details ? ' · ' + item.details : ''}
-                            <span style="margin-left:8px;color:#555">🗓 ${item.date}</span>
+                            <span style="margin-left:8px;color:#555">🗓 ${formatDate(item.date)}</span>
                         </div>
                     </div>
                     <div style="display:flex;gap:8px;flex-shrink:0">
@@ -4401,6 +4438,7 @@
             document.querySelectorAll('.report-tab').forEach(b => b.classList.remove('active'));
             document.getElementById('report-' + tab).classList.add('active');
             btn.classList.add('active');
+            if (tab === 'renewals') renderRenewals();
         }
 
         function makeBars(containerId, data, colorFn) {
@@ -4569,7 +4607,7 @@
                 if (storeSalesData.length === 0) { storeHistEl.innerHTML = `<p style="color:#555;font-size:13px">${t('txt_no_sales')}</p>`; }
                 else {
                     storeHistEl.innerHTML = `<table class="report-table"><thead><tr><th>${t('rpt_date')}</th><th>${t('rpt_client')}</th><th>${t('rpt_product')}</th><th>${t('rpt_amount')}</th><th>${t('rpt_method')}</th></tr></thead><tbody>` +
-                        storeSalesData.slice().reverse().slice(0,20).map(p=>`<tr><td>${p.date||'-'}</td><td>${p.student}</td><td>${p.reasonName||'-'}</td><td style="color:#ffd700;font-weight:700">$${(p.amount||0).toLocaleString()}</td><td>${p.method||'-'}</td></tr>`).join('') +
+                        storeSalesData.slice().reverse().slice(0,20).map(p=>`<tr><td>${formatDate(p.date)||'-'}</td><td>${p.student}</td><td>${p.reasonName||'-'}</td><td style="color:#ffd700;font-weight:700">$${(p.amount||0).toLocaleString()}</td><td>${p.method||'-'}</td></tr>`).join('') +
                     '</tbody></table>';
                 }
             }
@@ -4582,6 +4620,66 @@
             const blob = new Blob([csv], {type:'text/csv'});
             const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
             a.download = 'Reporte-MasterBaez-'+new Date().toISOString().split('T')[0]+'.csv';
+            a.click();
+        }
+
+        function renderRenewals() {
+            const tbody = document.getElementById('renewalsTableBody');
+            if (!tbody) return;
+            const today = new Date(); today.setHours(0,0,0,0);
+
+            const rows = students.map(s => {
+                const hasEnd = !!s.endDate;
+                let status = '—';
+                let statusColor = '#888';
+                if (hasEnd) {
+                    const end = new Date(s.endDate + 'T00:00:00');
+                    const diff = Math.round((end - today) / (1000*60*60*24));
+                    if (diff < 0) { status = currentLang==='en'?'Expired':'Vencido'; statusColor='#ef4444'; }
+                    else if (diff <= 7) { status = currentLang==='en'?'This week':'Esta semana'; statusColor='#f59e0b'; }
+                    else if (diff <= 14) { status = currentLang==='en'?'Soon':'Próximo'; statusColor='#fbbf24'; }
+                    else { status = currentLang==='en'?'Active':'Vigente'; statusColor='#4ade80'; }
+                }
+                const updated = (s.phone || s.email) ? (currentLang==='en'?'✅ Yes':'✅ Sí') : (currentLang==='en'?'❌ No':'❌ No');
+                return `<tr style="border-bottom:1px solid #2a2a4a">
+                    <td style="padding:10px;font-size:13px;color:#fff">${s.name}</td>
+                    <td style="padding:10px;font-size:13px;color:#aaa">${s.program||'—'}</td>
+                    <td style="padding:10px;font-size:12px"><span class="belt belt-${(s.belt||'white').toLowerCase()}">${s.belt||'—'}</span></td>
+                    <td style="padding:10px;font-size:12px;color:#aaa">${formatDate(s.startDate)||'—'}</td>
+                    <td style="padding:10px;font-size:12px;color:#fff;font-weight:700">${formatDate(s.endDate)||'—'}</td>
+                    <td style="padding:10px"><span style="color:${statusColor};font-size:12px;font-weight:700">${status}</span></td>
+                    <td style="padding:10px;font-size:12px;text-align:center">${updated}</td>
+                    <td style="padding:10px;font-size:12px;color:#aaa">${s.phone||'—'}</td>
+                    <td style="padding:10px;font-size:12px;color:#aaa">${s.email||'—'}</td>
+                </tr>`;
+            }).join('');
+
+            tbody.innerHTML = rows || `<tr><td colspan="9" style="text-align:center;color:#888;padding:30px">${currentLang==='en'?'No students found':'No hay estudiantes'}</td></tr>`;
+        }
+
+        function exportRenewalsCSV() {
+            const today = new Date(); today.setHours(0,0,0,0);
+            const header = currentLang==='en'
+                ? ['Student','Program','Belt','Start Date','Renewal Date','Status','Updated','Phone','Email']
+                : ['Estudiante','Programa','Cinturón','Fecha Inicio','Fecha Renovación','Estado','Actualizado','Teléfono','Email'];
+            const rows = [header];
+            students.forEach(s => {
+                let status = '—';
+                if (s.endDate) {
+                    const end = new Date(s.endDate + 'T00:00:00');
+                    const diff = Math.round((end - today) / (1000*60*60*24));
+                    if (diff < 0) status = currentLang==='en'?'Expired':'Vencido';
+                    else if (diff <= 7) status = currentLang==='en'?'This week':'Esta semana';
+                    else if (diff <= 14) status = currentLang==='en'?'Soon':'Próximo';
+                    else status = currentLang==='en'?'Active':'Vigente';
+                }
+                const updated = (s.phone || s.email) ? (currentLang==='en'?'Yes':'Sí') : 'No';
+                rows.push([s.name, s.program||'', s.belt||'', formatDate(s.startDate)||'', formatDate(s.endDate)||'', status, updated, s.phone||'', s.email||'']);
+            });
+            const csv = rows.map(r => r.map(v => '"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+            const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+            a.download = 'Renovaciones-MasterBaez-'+new Date().toISOString().split('T')[0]+'.csv';
             a.click();
         }
 
@@ -5272,7 +5370,7 @@
                         <span style="color:${color};font-size:12px;font-weight:700">${days}</span>
                     </div>
                     <div style="font-size:12px;color:#aaa;margin-bottom:8px">
-                        📚 ${s.program || 'Sin programa'} &nbsp;|&nbsp; 📅 Vence: ${s.endDate}
+                        📚 ${s.program || 'Sin programa'} &nbsp;|&nbsp; 📅 Vence: ${formatDate(s.endDate)}
                     </div>
                     <div style="display:flex;gap:6px;flex-wrap:wrap">
                         ${s.phone ? `<a href="sms:+1${s.phone.replace(/\D/g,'')}?body=${smsBody}" style="background:#22c55e;color:#fff;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none">📱 SMS</a>` : ''}
