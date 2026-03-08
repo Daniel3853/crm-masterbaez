@@ -5102,7 +5102,7 @@
             document.getElementById('loginPassword').value = '';
         }
 
-        function onLoginSuccess() {
+        async function onLoginSuccess() {
             // Ocultar login
             document.getElementById('loginScreen').classList.add('hidden');
 
@@ -5110,7 +5110,7 @@
             const storageKey = currentUser.role === 'admin'
                 ? 'crmData'
                 : 'crmData_' + currentUser.id;
-            loadFromStorage(storageKey);
+            await loadFromStorage(storageKey);
 
             // Si instructor tiene su escuela/logo, aplicarlo
             if (currentUser.role === 'instructor') {
