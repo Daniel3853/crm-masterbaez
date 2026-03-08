@@ -1979,8 +1979,8 @@
                             <td><span class="belt belt-${s.belt.toLowerCase()}">${s.belt}</span></td>
                             <td><span class="status status-${s.status.toLowerCase()}">${getStatusLabel(s.status)}</span></td>
                             <td class="action-btns">
-                                <button class="btn-edit" onclick="editStudent(${s.id})">✏️</button>
-                                <button class="btn-delete" onclick="deleteStudentById(${s.id})">🗑️</button>
+                                <button class="btn-edit" onclick="editStudent('${s.id}')">✏️</button>
+                                <button class="btn-delete" onclick="deleteStudentById('${s.id}')">🗑️</button>
                             </td>
                         </tr>
                     `;
@@ -2013,8 +2013,8 @@
                         <td><span class="status status-active">${getStageName(l.stage)}</span></td>
                         <td style="font-size:11px;color:#aaa">${l.createdAt || '-'}</td>
                         <td class="action-btns">
-                            <button class="btn-edit" onclick="editLead(${l.id})">✏️</button>
-                            <button class="btn-delete" onclick="deleteLeadById(${l.id})">🗑️</button>
+                            <button class="btn-edit" onclick="editLead('${l.id}')">✏️</button>
+                            <button class="btn-delete" onclick="deleteLeadById('${l.id}')">🗑️</button>
                         </td>
                     </tr>
                 `).join('');
@@ -2153,7 +2153,7 @@
                         <td>${p.link ? `<a href="${p.link}" target="_blank" style="background:#3b82f6;color:#fff;padding:4px 8px;border-radius:4px;font-size:11px;text-decoration:none">Pagar</a>` : '-'}</td>
                         <td class="action-btns">
                             <button class="btn-success btn-sm" onclick="markPaid(${p.id})">✓</button>
-                            <button class="btn-delete btn-sm" onclick="deletePayment(${p.id})">🗑️</button>
+                            <button class="btn-delete btn-sm" onclick="deletePayment('${p.id}')">🗑️</button>
                         </td>
                     </tr>
                 `).join('');
@@ -2230,8 +2230,8 @@
                             <td>${a.time || '-'}</td>
                             <td>${statusIcon} ${getAttStatusLabel(a.status)}</td>
                             <td class="action-btns">
-                                <button class="btn-edit btn-sm" onclick="editAttendanceRecord(${a.studentId})">✏️</button>
-                                <button class="btn-delete btn-sm" onclick="deleteAttendanceByStudentId(${a.studentId})">🗑️</button>
+                                <button class="btn-edit btn-sm" onclick="editAttendanceRecord('${a.studentId}')">✏️</button>
+                                <button class="btn-delete btn-sm" onclick="deleteAttendanceByStudentId('${a.studentId}')">🗑️</button>
                             </td>
                         </tr>
                     `;
@@ -2692,7 +2692,7 @@
             document.getElementById('photoPlaceholder').style.display = 'block';
             
             if (id) {
-                const s = students.find(s => s.id === id);
+                const s = students.find(s => s.id == id);
                 document.getElementById('studentModalTitle').textContent = t('modal_edit_student');
                 document.getElementById('studentId').value = s.id;
                 document.getElementById('studentName').value = s.name;
@@ -2945,12 +2945,12 @@
         
         // PAPELERA
         function deleteStudentById(id) {
-            const s = students.find(s => s.id === id);
-            if (s) moveToTrash('student', id, s.name, t('type_student'));
+            const s = students.find(s => s.id == id);
+            if (s) moveToTrash('student', s.id, s.name, t('type_student'));
         }
         function deleteLeadById(id) {
-            const l = leads.find(l => l.id === id);
-            if (l) moveToTrash('lead', id, l.name, t('type_lead'));
+            const l = leads.find(l => l.id == id);
+            if (l) moveToTrash('lead', l.id, l.name, t('type_lead'));
         }
         // ═══════════════ GLOBAL TRASH SYSTEM ═══════════════
         let trashTabFilter = 'all';
@@ -3073,36 +3073,35 @@
             const item = { type, id, name, itemType, date: new Date().toISOString().split('T')[0] };
 
             if (type === 'student') {
-                const s = students.find(s => s.id === id);
+                const s = students.find(s => s.id == id);
                 if (s) { item.details = `${s.program||''} - ${s.belt||''}`; item.originalData = {...s}; }
-                students = students.filter(s => s.id !== id);
+                students = students.filter(s => s.id != id);
                 renderStudents();
             } else if (type === 'lead') {
-                const l = leads.find(l => l.id === id);
+                const l = leads.find(l => l.id == id);
                 if (l) { item.details = `${l.source} - ${l.stage}`; item.originalData = {...l}; }
-                leads = leads.filter(l => l.id !== id);
+                leads = leads.filter(l => l.id != id);
                 renderLeads();
             } else if (type === 'payment') {
-                const p = payments.find(p => p.id === id);
+                const p = payments.find(p => p.id == id);
                 if (p) { item.details = `$${p.amount}`; item.originalData = {...p}; }
-                payments = payments.filter(p => p.id !== id);
+                payments = payments.filter(p => p.id != id);
                 renderPayments();
             } else if (type === 'attendance') {
-                const a = attendance.find(a => a.id === id);
+                const a = attendance.find(a => a.id == id);
                 if (a) { item.details = a.status; item.originalData = {...a}; }
-                attendance = attendance.filter(a => a.id !== id);
+                attendance = attendance.filter(a => a.id != id);
                 renderAttendance();
             } else if (type === 'event') {
-                const e = events.find(e => e.id === id);
+                const e = events.find(e => e.id == id);
                 if (e) { item.details = e.date; item.originalData = {...e}; }
-                events = events.filter(e => e.id !== id);
+                events = events.filter(e => e.id != id);
                 renderEvents();
             }
 
             trash.push(item);
             updateTrashBadge();
             saveToStorage();
-            // No alert - less disruptive
         }
         
         function updateTrashBadge() {
@@ -3170,7 +3169,17 @@
         function deleteLead(id) { moveToTrash('lead', id, leads.find(l => l.id === id)?.name, 'Lead'); }
         function deletePayment(id) { moveToTrash('payment', id, payments.find(p => p.id === id)?.studentName, t('type_payment')); }
         function editStudent(id) { openStudentModal(id); }
-        function editLead(id) { openLeadModal(id); }
+        function editLead(id) { 
+            const lead = leads.find(l => l.id == id);
+            if (!lead) { alert('Lead no encontrado'); return; }
+            document.getElementById('leadModal').classList.add('active');
+            document.getElementById('leadId').value = lead.id;
+            document.getElementById('leadName').value = lead.name;
+            document.getElementById('leadPhone').value = lead.phone || '';
+            document.getElementById('leadEmail').value = lead.email || '';
+            document.getElementById('leadSource').value = lead.source || 'Web';
+            document.getElementById('leadTag').value = lead.tag || 'padre-interesado';
+        }
         
         function markPaid(id) {
             const p = payments.find(p => p.id === id);
@@ -5411,18 +5420,25 @@
                      trash, attendance, events, config, storeProducts, storeSales };
         }
 
+        // Firebase a veces convierte arrays a objetos — esto los convierte de vuelta
+        function toArray(val) {
+            if (!val) return [];
+            if (Array.isArray(val)) return val;
+            return Object.values(val);
+        }
+
         function applyPayload(d) {
-            if (d.students)        students        = d.students;
-            if (d.leads)           leads           = d.leads;
-            if (d.leadHistory)     leadHistory     = d.leadHistory;
-            if (d.payments)        payments        = d.payments;
-            if (d.paymentHistory)  paymentHistory  = d.paymentHistory;
-            if (d.trash)           trash           = d.trash;
-            if (d.attendance)      attendance      = d.attendance;
-            if (d.events)          events          = d.events;
+            if (d.students)        students        = toArray(d.students);
+            if (d.leads)           leads           = toArray(d.leads);
+            if (d.leadHistory)     leadHistory     = toArray(d.leadHistory);
+            if (d.payments)        payments        = toArray(d.payments);
+            if (d.paymentHistory)  paymentHistory  = toArray(d.paymentHistory);
+            if (d.trash)           trash           = toArray(d.trash);
+            if (d.attendance)      attendance      = toArray(d.attendance);
+            if (d.events)          events          = toArray(d.events);
             if (d.config)          config          = { ...config, ...d.config };
-            if (d.storeProducts)   storeProducts   = d.storeProducts;
-            if (d.storeSales)      storeSales      = d.storeSales;
+            if (d.storeProducts)   storeProducts   = toArray(d.storeProducts);
+            if (d.storeSales)      storeSales      = toArray(d.storeSales);
         }
 
         // Indicador visual de sincronización con Firebase
