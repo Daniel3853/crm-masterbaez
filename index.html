@@ -2223,7 +2223,7 @@
                 const stageLeads = leads.filter(l => l.stage === stage);
                 html += `
                     <div class="pipeline-stage">
-                        <h4>${stageNames[stage]}</h4>
+                        <h4>${getStageName(stage)}</h4>
                         <div class="count">${stageLeads.length}</div>
                     </div>
                 `;
@@ -4818,11 +4818,27 @@ async function submitLead(){
 
             // Leads — tabla encabezados
             const leadsHeaders = document.querySelectorAll('#leads table thead th');
-            if (leadsHeaders.length >= 6) {
+            if (leadsHeaders.length >= 8) {
                 leadsHeaders[0].textContent = t('leads_name_col');
                 leadsHeaders[1].textContent = t('leads_phone_col');
                 leadsHeaders[2].textContent = t('leads_email_col');
+                leadsHeaders[3].textContent = t('col_source');
+                leadsHeaders[4].textContent = t('col_tag');
+                leadsHeaders[5].textContent = t('col_stage');
+                leadsHeaders[6].textContent = currentLang === 'en' ? '📅 Received' : '📅 Recibido';
+                leadsHeaders[7].textContent = t('leads_actions_col');
             }
+
+            // Leads — botón nuevo lead
+            const btnNewLead = document.querySelector('#leads .btn-primary[onclick="openLeadModal()"]');
+            if (btnNewLead) btnNewLead.textContent = currentLang === 'en' ? '+ New Lead' : '+ Nuevo Lead';
+
+            // Leads — modal título
+            const modalLeadTitle = document.querySelector('#leadModal .modal-header h3');
+            if (modalLeadTitle) modalLeadTitle.textContent = t('modal_new_lead');
+
+            // Leads — pipeline etapas
+            renderPipeline();
 
             // Pagos — tabla encabezados hardcodeados
             const payHeaders = document.querySelectorAll('#payments table thead th');
@@ -4879,7 +4895,15 @@ async function submitLead(){
                 if (txt === 'Teléfono' || txt === 'Phone') lbl.textContent = t('lbl_student_phone');
                 if (txt === 'Email') lbl.textContent = 'Email';
                 if (txt === 'Origen' || txt === 'Source') lbl.textContent = t('lbl_student_origin');
+                if (txt === '📊 Etapa del Lead' || txt === '📊 Lead Stage') lbl.textContent = currentLang === 'en' ? '📊 Lead Stage' : '📊 Etapa del Lead';
+                if (txt === '📝 Notas' || txt === '📝 Notes') lbl.textContent = currentLang === 'en' ? '📝 Notes' : '📝 Notas';
             });
+            // Lead stage options
+            const leadStageSel = document.getElementById('leadStageEdit');
+            if (leadStageSel) {
+                const stageOpts = { nuevo: currentLang==='en'?'🆕 New':'🆕 Nuevo', contacto: currentLang==='en'?'📞 Contacted':'📞 Contactado', prueba: currentLang==='en'?'🥋 Trial':'🥋 En Prueba', negociacion: currentLang==='en'?'💬 Negotiation':'💬 En Negociación', completada: currentLang==='en'?'✅ Completed':'✅ Completado', inscrito: currentLang==='en'?'🎓 Enrolled':'🎓 Inscrito' };
+                Array.from(leadStageSel.options).forEach(opt => { if (stageOpts[opt.value]) opt.textContent = stageOpts[opt.value]; });
+            }
             const leadSaveBtn = document.querySelector('[onclick="saveLead()"]');
             if (leadSaveBtn) leadSaveBtn.textContent = t('btn_save2');
             // Lead source options
