@@ -1185,6 +1185,39 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Link y código para Landing Page -->
+            <div class="panel">
+                <h3 style="margin-bottom:6px">🔗 Link del Formulario para Landing Page</h3>
+                <p style="font-size:12px;color:#888;margin-bottom:14px">Comparte el link directo o copia el código para embeber el formulario en cualquier sitio web — Wix, WordPress, Squarespace, etc. Funciona para ti y para tus instructores.</p>
+
+                <div style="margin-bottom:16px">
+                    <label style="font-size:12px;color:#aaa;display:block;margin-bottom:6px">📎 Link directo del formulario</label>
+                    <div style="display:flex;gap:8px">
+                        <input type="text" id="embedLinkInput" value="https://daniel3853.github.io/crm-masterbaez/lead-form.html" readonly style="flex:1;background:#0f0f23;border:1px solid #2a2a4a;color:#fff;border-radius:8px;padding:8px 12px;font-size:13px">
+                        <button class="btn btn-primary btn-sm" onclick="copyEmbedLink()">📋 Copiar</button>
+                    </div>
+                    <p id="embedLinkCopied" style="display:none;color:#4ade80;font-size:12px;margin-top:4px">✅ ¡Link copiado!</p>
+                </div>
+
+                <div style="margin-bottom:16px">
+                    <label style="font-size:12px;color:#aaa;display:block;margin-bottom:6px">💻 Código para embeber en tu sitio web (iframe)</label>
+                    <textarea id="embedCodeBox" readonly rows="4" onclick="this.select()" style="width:100%;background:#0f0f23;border:1px solid #2a2a4a;color:#60a5fa;border-radius:8px;padding:10px;font-size:11px;font-family:monospace;resize:none">&lt;iframe src="https://daniel3853.github.io/crm-masterbaez/lead-form.html" width="100%" height="700" frameborder="0" style="border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.3)"&gt;&lt;/iframe&gt;</textarea>
+                    <button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="copyEmbedCode()">📋 Copiar Código</button>
+                    <p id="embedCodeCopied" style="display:none;color:#4ade80;font-size:12px;margin-top:4px">✅ ¡Código copiado!</p>
+                </div>
+
+                <div style="background:#0f0f23;border-radius:10px;padding:14px;font-size:12px;color:#aaa;line-height:1.8">
+                    <div style="color:#ffd700;font-weight:700;margin-bottom:8px">💡 ¿Cómo usarlo?</div>
+                    <div>📌 <strong style="color:#fff">Wix:</strong> Agregar → Embed → HTML iFrame → pegar código</div>
+                    <div>📌 <strong style="color:#fff">WordPress:</strong> Bloque → Custom HTML → pegar código</div>
+                    <div>📌 <strong style="color:#fff">Squarespace:</strong> Agregar bloque → Code → pegar código</div>
+                    <div>📌 <strong style="color:#fff">WhatsApp / Redes:</strong> Comparte el link directo</div>
+                    <div style="margin-top:10px;padding:8px;background:#1e1e3f;border-radius:6px;border-left:3px solid #c41e3a">
+                        👨‍🏫 Para instructores: funciona igual — los leads que lleguen por su formulario se guardan en su cuenta separada automáticamente.
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
     
@@ -1405,6 +1438,21 @@
                         <option value="familiar">Familiar</option>
                         <option value="competitivo">Competitivo</option>
                     </select>
+                </div>
+                <div class="form-group" style="margin-bottom:12px">
+                    <label>📊 Etapa del Lead</label>
+                    <select id="leadStageEdit" style="width:100%">
+                        <option value="nuevo">🆕 Nuevo</option>
+                        <option value="contacto">📞 Contactado</option>
+                        <option value="prueba">🥋 En Prueba</option>
+                        <option value="negociacion">💬 En Negociación</option>
+                        <option value="completada">✅ Completado</option>
+                        <option value="inscrito">🎓 Inscrito</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:12px">
+                    <label>📝 Notas</label>
+                    <textarea id="leadNotes" rows="2" style="width:100%;background:#0f0f23;border:1px solid #2a2a4a;color:#fff;border-radius:8px;padding:8px;font-size:13px;resize:vertical"></textarea>
                 </div>
                 <button type="button" class="btn btn-success" style="width:100%;margin-top:15px" onclick="saveLead()">Guardar</button>
             </div>
@@ -2929,23 +2977,23 @@
             const nameVal = document.getElementById('leadName').value.trim();
             if (!nameVal) { alert(t('prompt_name_required') + ' (' + t('menu_leads') + ')'); return; }
             const id = document.getElementById('leadId').value;
-            const existingLead = id ? leads.find(l => l.id === parseInt(id)) : null;
+            const existingLead = id ? leads.find(l => l.id == id) : null;
+            const stageEl = document.getElementById('leadStageEdit');
             const lead = {
-                id: id ? parseInt(id) : Date.now(),
+                id: id ? (isNaN(parseInt(id)) ? id : parseInt(id)) : Date.now(),
                 name: document.getElementById('leadName').value,
                 phone: document.getElementById('leadPhone').value,
                 email: document.getElementById('leadEmail').value,
                 source: document.getElementById('leadSource').value,
                 tag: document.getElementById('leadTag').value,
-                stage: existingLead ? existingLead.stage : 'nuevo',
+                stage: stageEl ? stageEl.value : (existingLead ? existingLead.stage : 'nuevo'),
+                notes: document.getElementById('leadNotes').value || '',
                 createdAt: existingLead ? existingLead.createdAt : new Date().toISOString().split('T')[0]
             };
             
             if (id && existingLead) {
-                const index = leads.findIndex(l => l.id === parseInt(id));
-                if (index !== -1) {
-                    leads[index] = lead;
-                }
+                const index = leads.findIndex(l => l.id == id);
+                if (index !== -1) leads[index] = lead;
             } else {
                 leads.push(lead);
                 leadHistory.push({ name: lead.name, date: lead.createdAt, source: lead.source });
@@ -3278,6 +3326,8 @@
             document.getElementById('leadEmail').value = lead.email || '';
             document.getElementById('leadSource').value = lead.source || 'Web';
             document.getElementById('leadTag').value = lead.tag || 'padre-interesado';
+            document.getElementById('leadStageEdit').value = lead.stage || 'nuevo';
+            document.getElementById('leadNotes').value = lead.notes || '';
         }
         
         function markPaid(id) {
@@ -3311,6 +3361,22 @@
                 { label: '❌ Class cancelled', text: 'Hi {name}, we regret to inform you that today\'s class was cancelled. We will notify you of the new date. Master Baez Martial Arts.' },
             ]
         };
+
+        function copyEmbedLink() {
+            const el = document.getElementById('embedLinkInput');
+            el.select(); document.execCommand('copy');
+            const msg = document.getElementById('embedLinkCopied');
+            msg.style.display = 'block';
+            setTimeout(() => msg.style.display = 'none', 2500);
+        }
+
+        function copyEmbedCode() {
+            const el = document.getElementById('embedCodeBox');
+            el.select(); document.execCommand('copy');
+            const msg = document.getElementById('embedCodeCopied');
+            msg.style.display = 'block';
+            setTimeout(() => msg.style.display = 'none', 2500);
+        }
 
         function openSmsModal(phone, name) {
             smsCurrentPhone = (phone || '').replace(/[^0-9]/g, '');
