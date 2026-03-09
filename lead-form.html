@@ -234,17 +234,43 @@ function applyLang() {
     document.getElementById('leadEmail').placeholder       = t('phEmail');
     document.getElementById('leadAge').placeholder         = t('phAge');
     document.getElementById('leadMessage').placeholder     = t('phMsg');
-    document.getElementById('optSelect').textContent       = t('optSelect');
-    document.getElementById('optKids').textContent         = t('optKids');
-    document.getElementById('optYouth').textContent        = t('optYouth');
-    document.getElementById('optAdults').textContent       = t('optAdults');
-    document.getElementById('optFamily').textContent       = t('optFamily');
-    document.getElementById('optSelfDef').textContent      = t('optSelfDef');
-    document.getElementById('optReferral').textContent     = t('optReferral');
-    document.getElementById('optOther').textContent        = t('optOther');
-    document.getElementById('privacyTxt').textContent      = t('privacy');
-    document.getElementById('successTitle').textContent    = t('successTitle');
-    document.getElementById('notifyLabel').textContent     = lang === 'en' ? 'Notify instructor:' : 'Notificar al instructor:';
+
+    // Opciones de programa — solo las default (con id), las cargadas de Firebase no cambian
+    const optSelect = document.getElementById('optSelect');
+    if (optSelect) optSelect.textContent = t('optSelect');
+    const optKids = document.getElementById('optKids');
+    if (optKids) optKids.textContent = t('optKids');
+    const optYouth = document.getElementById('optYouth');
+    if (optYouth) optYouth.textContent = t('optYouth');
+    const optAdults = document.getElementById('optAdults');
+    if (optAdults) optAdults.textContent = t('optAdults');
+    const optFamily = document.getElementById('optFamily');
+    if (optFamily) optFamily.textContent = t('optFamily');
+    const optSelfDef = document.getElementById('optSelfDef');
+    if (optSelfDef) optSelfDef.textContent = t('optSelfDef');
+    const optReferral = document.getElementById('optReferral');
+    if (optReferral) optReferral.textContent = t('optReferral');
+    const optOther = document.getElementById('optOther');
+    if (optOther) optOther.textContent = t('optOther');
+
+    // Primera opción del select de programa (— Selecciona — / — Select —)
+    const progSel = document.getElementById('leadProgram');
+    if (progSel && progSel.options.length > 0) {
+        progSel.options[0].textContent = t('optSelect');
+    }
+
+    // Opciones del select de fuente (¿Cómo nos encontraste?)
+    const srcSel = document.getElementById('leadSource');
+    if (srcSel) {
+        Array.from(srcSel.options).forEach(opt => {
+            if (opt.value === 'Referido' || opt.value === 'Referral') opt.textContent = t('optReferral');
+            if (opt.value === 'Otro'     || opt.value === 'Other')    opt.textContent = t('optOther');
+        });
+    }
+
+    document.getElementById('privacyTxt').textContent = t('privacy');
+    document.getElementById('successTitle').textContent = t('successTitle');
+    document.getElementById('notifyLabel').textContent = lang === 'en' ? 'Notify instructor:' : 'Notificar al instructor:';
     const instrEl = document.getElementById('notifyInstructions');
     if (instrEl) instrEl.innerHTML = lang === 'en'
         ? 'Tap the button below and press <strong style="color:#fff">SEND</strong> so we receive your request by text. It only takes 2 seconds!'
@@ -254,11 +280,16 @@ function applyLang() {
     const waEl = document.getElementById('waBtn');
     if (waEl) waEl.textContent = lang === 'en' ? '💬 Or send via WhatsApp' : '💬 O envía por WhatsApp';
 
-    // Only override tagline/btn/success if no custom template
+    // Botón submit — siempre actualizar (con o sin template)
+    const submitBtn = document.getElementById('submitBtn');
+    if (submitBtn && !submitBtn.disabled) {
+        submitBtn.textContent = formTemplate?.button || t('defaultBtn');
+    }
+
+    // Tagline y mensaje de éxito — solo si no hay template
     if (!formTemplate) {
-        document.getElementById('formTagline').textContent = t('defaultTag');
-        document.getElementById('submitBtn').textContent   = t('defaultBtn');
-        document.getElementById('successMsgEl').textContent = t('successMsg');
+        document.getElementById('formTagline').textContent   = t('defaultTag');
+        document.getElementById('successMsgEl').textContent  = t('successMsg');
     }
 }
 
