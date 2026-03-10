@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inscríbete</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script>
+firebase.initializeApp({
+    apiKey:"AIzaSyC0GZUhbfipXCBeP6LJcXmKcHugNuG2f4E",
+    authDomain:"masterbaez-crm.firebaseapp.com",
+    databaseURL:"https://masterbaez-crm-default-rtdb.firebaseio.com",
+    projectId:"masterbaez-crm",
+    storageBucket:"masterbaez-crm.firebasestorage.app",
+    messagingSenderId:"105620561253",
+    appId:"1:105620561253:web:90516b7e8b25a3a736958c"
+});
+const db = firebase.database();
+</script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',sans-serif; }
+body { background:linear-gradient(135deg,#1a1a2e,#16213e); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
+.card { background:linear-gradient(135deg,#1e1e3f,#12122a); border:1px solid rgba(196,30,58,0.4); border-radius:20px; padding:36px 32px; width:100%; max-width:460px; box-shadow:0 20px 60px rgba(0,0,0,0.6); position:relative; }
+.lang-btn { position:absolute; top:14px; right:14px; background:transparent; border:1px solid rgba(255,215,0,0.5); border-radius:20px; color:#ffd700; font-size:12px; font-weight:700; padding:5px 12px; cursor:pointer; }
+.logo-wrap { text-align:center; margin-bottom:20px; }
+.logo-circle { width:76px; height:76px; border-radius:50%; background:#fff; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; font-size:38px; overflow:hidden; }
+.logo-circle img { width:100%; height:100%; object-fit:cover; }
+.school-name { color:#ffd700; font-size:20px; font-weight:700; }
+.school-sub  { color:#888; font-size:12px; margin-top:2px; }
+.tagline { font-size:18px; font-weight:700; text-align:center; margin:16px 0 4px; color:#c41e3a; }
+.subtitle { text-align:center; font-size:13px; color:#aaa; margin-bottom:18px; }
+label { display:block; font-size:11px; color:#888; margin:12px 0 4px; }
+input, select { width:100%; padding:11px 14px; background:#0f0f23; border:1px solid #333; border-radius:10px; color:#fff; font-size:14px; }
+input:focus, select:focus { outline:none; border-color:#c41e3a; }
+select option { background:#1a1a2e; }
+.btn-submit { width:100%; padding:14px; border:none; border-radius:10px; color:#fff; font-size:16px; font-weight:700; cursor:pointer; margin-top:20px; background:linear-gradient(135deg,#c41e3a,#8b0000); letter-spacing:0.5px; }
+.btn-submit:disabled { opacity:0.6; cursor:not-allowed; }
+.privacy { text-align:center; font-size:11px; color:#555; margin-top:10px; }
+.error-msg { color:#f87171; font-size:12px; text-align:center; margin-top:8px; min-height:14px; }
+.success-box { display:none; text-align:center; padding:20px 0; }
+.success-box .icon { font-size:56px; margin-bottom:12px; }
+.success-box h2 { color:#4ade80; font-size:22px; margin-bottom:8px; }
+.success-box p  { color:#ccc; font-size:14px; line-height:1.6; }
+.reset-btn { margin-top:18px; padding:9px 22px; background:transparent; border:1px solid #444; border-radius:10px; color:#888; font-size:13px; cursor:pointer; }
+.loading { text-align:center; color:#888; padding:50px 0; font-size:14px; }
+</style>
+</head>
+<body>
+<div class="card">
+    <button class="lang-btn" id="langBtn" onclick="toggleLang()">🇺🇸 English</button>
+
+    <!-- Loading -->
+    <div id="loadingEl" class="loading">⏳ Cargando...</div>
+
+    <!-- Header -->
+    <div id="headerEl" style="display:none">
+        <div class="logo-wrap">
+            <div class="logo-circle" id="logoEl"><span>🥋</span></div>
+            <div class="school-name" id="schoolNameEl">Master Baez Martial Arts</div>
+            <div class="school-sub"  id="schoolSubEl">Sistema de Artes Marciales</div>
+        </div>
+        <div class="tagline"  id="taglineEl"></div>
+        <div class="subtitle" id="subtitleEl"></div>
+    </div>
+
+    <!-- Formulario -->
+    <div id="formEl" style="display:none">
+        <label id="lblName">Nombre completo *</label>
+        <input type="text" id="inpName" placeholder="Tu nombre completo">
+
+        <label id="lblPhone">Teléfono *</label>
+        <input type="tel" id="inpPhone" placeholder="(954) 000-0000">
+
+        <label id="lblEmail">Email</label>
+        <input type="email" id="inpEmail" placeholder="tucorreo@email.com">
+
+        <label id="lblPromo">Programa / Promoción</label>
+        <select id="inpPromo">
+            <option value="">— Selecciona —</option>
+        </select>
+
+        <button class="btn-submit" id="btnSubmit" onclick="submitLead()">🥋 ¡Quiero mi Clase Gratis!</button>
+        <div class="error-msg" id="errorEl"></div>
+        <div class="privacy"   id="privacyEl">🔒 Tu información es privada y segura</div>
+    </div>
+
+    <!-- Éxito -->
+    <div id="successEl" class="success-box">
+        <div class="icon">🎉</div>
+        <h2 id="successTitleEl">¡Gracias!</h2>
+        <p  id="successMsgEl">Recibimos tu información. ¡Te contactamos muy pronto!</p>
+        <br>
+        <p style="color:#ffd700;font-size:15px;font-weight:700" id="successSchoolEl">🥋 Master Baez Martial Arts</p>
+        <button class="reset-btn" id="resetBtnEl" onclick="resetForm()">↩️ Enviar otro</button>
+    </div>
+</div>
+
+<script>
+// ─── PARAMS ────────────────────────────────────────────────
+const params     = new URLSearchParams(window.location.search);
+const instrId    = params.get('instructor') || 'admin';
+const storageKey = (instrId === 'admin' ? 'crmData' : 'crmData_' + instrId).replace(/[.#$\[\]]/g,'_');
+
+// ─── ESTADO ────────────────────────────────────────────────
+let lang     = 'es';
+let crmData  = null;
+let template = null;   // { title, subtitle, button, successMsg, promos:[], color }
+
+// ─── TEXTOS ────────────────────────────────────────────────
+const TX = {
+    es: {
+        sub:'Sistema de Artes Marciales', langBtn:'🇺🇸 English',
+        lblName:'Nombre completo *', lblPhone:'Teléfono *',
+        lblEmail:'Email', lblPromo:'Programa / Promoción',
+        optSelect:'— Selecciona —',
+        defaultTitle:'🥋 ¡Primera Clase GRATIS!',
+        defaultBtn:'🥋 ¡Quiero mi Clase Gratis!',
+        defaultSuccess:'Recibimos tu información. ¡Te contactamos muy pronto!',
+        successTitle:'¡Gracias!', privacy:'🔒 Tu información es privada y segura',
+        sending:'⏳ Enviando...', error:'⚠️ Nombre y teléfono son obligatorios.',
+        reset:'↩️ Enviar otro'
+    },
+    en: {
+        sub:'Martial Arts System', langBtn:'🇪🇸 Español',
+        lblName:'Full Name *', lblPhone:'Phone *',
+        lblEmail:'Email', lblPromo:'Program / Promotion',
+        optSelect:'— Select —',
+        defaultTitle:'🥋 First Class FREE!',
+        defaultBtn:'🥋 I Want My Free Class!',
+        defaultSuccess:'We received your info. We will contact you very soon!',
+        successTitle:'Thank you!', privacy:'🔒 Your info is private and secure',
+        sending:'⏳ Sending...', error:'⚠️ Name and phone are required.',
+        reset:'↩️ Submit another'
+    }
+};
+function tx(k){ return TX[lang][k] || TX.es[k] || k; }
+
+// ─── APLICAR IDIOMA ────────────────────────────────────────
+function applyLang() {
+    const s = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+    const p = (id,v) => { const e=document.getElementById(id); if(e) e.placeholder=v; };
+
+    s('langBtn',    tx('langBtn'));
+    s('schoolSubEl',tx('sub'));
+    s('lblName',    tx('lblName'));
+    s('lblPhone',   tx('lblPhone'));
+    s('lblEmail',   tx('lblEmail'));
+    s('lblPromo',   tx('lblPromo'));
+    s('privacyEl',  tx('privacy'));
+    s('successTitleEl', tx('successTitle'));
+    s('resetBtnEl', tx('reset'));
+    p('inpName',    lang==='en'?'Your full name':'Tu nombre completo');
+    p('inpPhone',   '(954) 000-0000');
+    p('inpEmail',   lang==='en'?'youremail@email.com':'tucorreo@email.com');
+
+    // Primer option del select
+    const sel = document.getElementById('inpPromo');
+    if (sel && sel.options[0]) sel.options[0].textContent = tx('optSelect');
+
+    // Título, botón y éxito — template gana sobre default
+    s('taglineEl',    template?.title      || tx('defaultTitle'));
+    s('btnSubmit',    template?.button     || tx('defaultBtn'));
+    s('successMsgEl', template?.successMsg || tx('defaultSuccess'));
+}
+
+function toggleLang() { lang = lang==='es'?'en':'es'; applyLang(); }
+
+// ─── INIT ──────────────────────────────────────────────────
+async function init() {
+    // 1. Cargar Firebase
+    try {
+        const snap = await db.ref(storageKey).get();
+        if (snap.exists()) crmData = snap.val();
+    } catch(e) { console.warn('Firebase:', e); }
+
+    // 2. Escuela
+    const cfg = crmData?.config || {};
+    if (cfg.companyName) {
+        document.getElementById('schoolNameEl').textContent  = cfg.companyName;
+        document.getElementById('successSchoolEl').textContent = '🥋 ' + cfg.companyName;
+        document.title = cfg.companyName + ' — Inscríbete';
+    }
+    if (cfg.logo) document.getElementById('logoEl').innerHTML = `<img src="${cfg.logo}">`;
+
+    // 3. Buscar template en Firebase — siempre usar el primero disponible
+    if (crmData?.formTemplates) {
+        const arr = Array.isArray(crmData.formTemplates)
+            ? crmData.formTemplates
+            : Object.values(crmData.formTemplates).filter(v => v && v.name);
+        if (arr.length > 0) template = arr[0];
+    }
+
+    // 4. Llenar select de programas/promos
+    const sel = document.getElementById('inpPromo');
+    // Primero promos del template, si no los programas del config
+    const promos = (template?.promos && template.promos.length > 0)
+        ? template.promos
+        : (cfg.programs ? (Array.isArray(cfg.programs) ? cfg.programs : Object.values(cfg.programs)) : []);
+    sel.innerHTML = `<option value="">— Selecciona —</option>`;
+    promos.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p; opt.textContent = p;
+        sel.appendChild(opt);
+    });
+
+    // 5. Aplicar color si tiene template
+    if (template?.color) {
+        const c = template.color;
+        document.getElementById('btnSubmit').style.background = `linear-gradient(135deg,${c},#4a0000)`;
+        document.getElementById('taglineEl').style.color = c;
+    }
+
+    // 6. Aplicar idioma (incluye título/botón/éxito del template)
+    applyLang();
+
+    // 7. Mostrar
+    document.getElementById('loadingEl').style.display = 'none';
+    document.getElementById('headerEl').style.display  = 'block';
+    document.getElementById('formEl').style.display    = 'block';
+}
+init();
+
+// ─── ENVIAR ────────────────────────────────────────────────
+async function submitLead() {
+    const name  = document.getElementById('inpName').value.trim();
+    const phone = document.getElementById('inpPhone').value.trim();
+    const email = document.getElementById('inpEmail').value.trim();
+    const promo = document.getElementById('inpPromo').value;
+    const errEl = document.getElementById('errorEl');
+
+    errEl.textContent = '';
+    if (!name || !phone) { errEl.textContent = tx('error'); return; }
+
+    const btn = document.getElementById('btnSubmit');
+    btn.disabled = true;
+    btn.textContent = tx('sending');
+
+    // Guardar lead en Firebase — SOLO el lead, nunca tocar el resto del CRM
+    try {
+        const lead = {
+            id: 'lead_' + Date.now(),
+            name, phone, email, program: promo,
+            source: 'Formulario Web',
+            notes: 'Lead — ' + (template?.name || 'Web'),
+            stage: 'nuevo', status: 'nuevo',
+            createdAt: new Date().toISOString().split('T')[0],
+            instrId
+        };
+        // Usar push() — agrega solo este lead sin tocar nada más en Firebase
+        await db.ref(storageKey + '/leads').push(lead);
+    } catch(e) { console.warn('Firebase save:', e); }
+
+    // Mostrar éxito
+    document.getElementById('formEl').style.display     = 'none';
+    document.getElementById('successEl').style.display  = 'block';
+}
+
+// ─── RESET ─────────────────────────────────────────────────
+function resetForm() {
+    ['inpName','inpPhone','inpEmail'].forEach(id => {
+        const e = document.getElementById(id); if(e) e.value='';
+    });
+    document.getElementById('inpPromo').selectedIndex = 0;
+    document.getElementById('errorEl').textContent = '';
+    const btn = document.getElementById('btnSubmit');
+    btn.disabled = false;
+    btn.textContent = template?.button || tx('defaultBtn');
+    document.getElementById('successEl').style.display = 'none';
+    document.getElementById('formEl').style.display    = 'block';
+    window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
