@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Master Baez Martial Arts — Inscríbete</title>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script>emailjs.init("yN6IRgA-WdmQlNWpf");</script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script>
+firebase.initializeApp({
+    apiKey:"AIzaSyC0GZUhbfipXCBeP6LJcXmKcHugNuG2f4E",
+    authDomain:"masterbaez-crm.firebaseapp.com",
+    databaseURL:"https://masterbaez-crm-default-rtdb.firebaseio.com",
+    projectId:"masterbaez-crm",
+    storageBucket:"masterbaez-crm.firebasestorage.app",
+    messagingSenderId:"105620561253",
+    appId:"1:105620561253:web:90516b7e8b25a3a736958c"
+});
+const db = firebase.database();
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+body{background:linear-gradient(135deg,#1a1a2e,#16213e);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:linear-gradient(135deg,#1e1e3f,#12122a);border:1px solid rgba(196,30,58,0.4);border-radius:20px;padding:36px 32px;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,0.6);position:relative}
+#langBtn{position:absolute;top:14px;right:14px;background:transparent;border:1px solid rgba(255,215,0,0.5);border-radius:20px;color:#ffd700;font-size:12px;font-weight:700;padding:5px 12px;cursor:pointer}
+.logo-wrap{text-align:center;margin-bottom:20px}
+.logo-circle{width:76px;height:76px;border-radius:50%;background:#fff;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:38px;overflow:hidden}
+.logo-circle img{width:100%;height:100%;object-fit:cover}
+#schoolName{color:#ffd700;font-size:20px;font-weight:700}
+#schoolSub{color:#888;font-size:12px;margin-top:2px}
+#tagline{font-size:18px;font-weight:700;text-align:center;margin:16px 0 4px;color:#c41e3a}
+label{display:block;font-size:11px;color:#888;margin:12px 0 4px}
+input,select{width:100%;padding:11px 14px;background:#0f0f23;border:1px solid #333;border-radius:10px;color:#fff;font-size:14px}
+input:focus,select:focus{outline:none;border-color:#c41e3a}
+select option{background:#1a1a2e}
+#btnSubmit{width:100%;padding:14px;border:none;border-radius:10px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;margin-top:20px;background:linear-gradient(135deg,#c41e3a,#8b0000)}
+#btnSubmit:disabled{opacity:0.6;cursor:not-allowed}
+#privacyTxt{text-align:center;font-size:11px;color:#555;margin-top:10px}
+#errorMsg{color:#f87171;font-size:12px;text-align:center;margin-top:8px;min-height:14px}
+#successBox{display:none;text-align:center;padding:20px 0}
+#successBox .icon{font-size:56px;margin-bottom:12px}
+#successBox h2{color:#4ade80;font-size:22px;margin-bottom:8px}
+#successBox p{color:#ccc;font-size:14px;line-height:1.6}
+#btnReset{margin-top:18px;padding:9px 22px;background:transparent;border:1px solid #444;border-radius:10px;color:#888;font-size:13px;cursor:pointer}
+.age-btn{padding:12px 6px;background:#0f0f23;border:2px solid #333;border-radius:10px;color:#aaa;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;width:100%}
+.age-btn:hover{border-color:#c41e3a;color:#fff}
+.age-btn.selected{border-color:#c41e3a;background:rgba(196,30,58,0.2);color:#fff}
+</style>
+</head>
+<body>
+<div class="card">
+
+  <button id="langBtn" onclick="toggleLang()">🇺🇸 English</button>
+
+  <div class="logo-wrap">
+    <div class="logo-circle" id="logoEl">🥋</div>
+    <div id="schoolName">Master Baez Martial Arts</div>
+    <div id="schoolSub">Sistema de Artes Marciales</div>
+  </div>
+
+  <div id="tagline">🥋 ¡Primera Clase GRATIS!</div>
+
+  <div id="formBox">
+    <label id="lblName">Nombre completo *</label>
+    <input type="text" id="inpName" placeholder="Tu nombre completo">
+
+    <label id="lblPhone">Teléfono *</label>
+    <input type="tel" id="inpPhone" placeholder="(954) 000-0000">
+
+    <label id="lblEmail">Email</label>
+    <input type="email" id="inpEmail" placeholder="tucorreo@email.com">
+
+    <label id="lblPromo">Programa / Promoción</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:4px">
+      <button type="button" class="age-btn" id="btnNinos"   onclick="selectAge('ninos')"   >🧒 <span id="lblNinos">Niños</span></button>
+      <button type="button" class="age-btn" id="btnJovenes" onclick="selectAge('jovenes')" >🧑 <span id="lblJovenes">Jóvenes</span></button>
+      <button type="button" class="age-btn" id="btnAdultos" onclick="selectAge('adultos')" >👨 <span id="lblAdultos">Adultos</span></button>
+    </div>
+    <input type="hidden" id="inpPromo" value="">
+
+    <button id="btnSubmit" onclick="submitLead()">🥋 ¡Quiero mi Clase Gratis!</button>
+    <div id="errorMsg"></div>
+    <div id="privacyTxt">🔒 Tu información es privada y segura</div>
+  </div>
+
+  <div id="successBox">
+    <div class="icon">🎉</div>
+    <h2 id="successTitle">¡Gracias!</h2>
+    <p id="successMsg">Recibimos tu información. ¡Te contactamos muy pronto!</p>
+    <br>
+    <p style="color:#ffd700;font-size:15px;font-weight:700" id="successSchool">🥋 Master Baez Martial Arts</p>
+    <div id="notifyBtns" style="display:none;flex-direction:column;gap:10px;margin-top:16px">
+      <div style="background:rgba(255,215,0,0.1);border:1px solid rgba(255,215,0,0.4);border-radius:10px;padding:12px;margin-bottom:4px">
+        <p style="color:#ffd700;font-size:13px;font-weight:700;margin-bottom:6px">📣 ¡Un último paso!</p>
+        <p id="notifyInstructions" style="color:#ccc;font-size:12px;line-height:1.6">Toca el botón de abajo y presiona <strong style="color:#fff">SEND / ENVIAR</strong> para que recibamos tu solicitud por mensaje de texto. ¡Solo toma 2 segundos!</p>
+      </div>
+      <a id="smsBtn" href="#" style="display:block;padding:13px;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;text-align:center">📱 Toca aquí → luego presiona SEND</a>
+      <a id="waBtn"  href="#" style="display:block;padding:13px;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;border-radius:10px;font-weight:700;font-size:15px;text-decoration:none;text-align:center">💬 O envía por WhatsApp</a>
+    </div>
+    <button id="btnReset" onclick="resetForm()" style="margin-top:14px">↩️ Enviar otro</button>
+  </div>
+
+</div>
+<script>
+// ── IDIOMA ────────────────────────────────────────────────────────
+var lang = 'es';
+var tmpl = null;
+
+var TX = {
+  es: {
+    langBtn:      '🇺🇸 English',
+    schoolSub:    'Sistema de Artes Marciales',
+    tagline:      '🥋 ¡Primera Clase GRATIS!',
+    lblName:      'Nombre completo *',
+    lblPhone:     'Teléfono *',
+    lblEmail:     'Email',
+    lblPromo:     'Programa / Promoción',
+    optSelect:    '— Selecciona —',
+    btnSubmit:    '🥋 ¡Quiero mi Clase Gratis!',
+    privacy:      '🔒 Tu información es privada y segura',
+    successTitle: '¡Gracias!',
+    successMsg:   'Recibimos tu información. ¡Te contactamos muy pronto!',
+    btnReset:     '↩️ Enviar otro',
+    sending:      '⏳ Enviando...',
+    errorEmpty:   '⚠️ Nombre y teléfono son obligatorios.'
+  },
+  en: {
+    langBtn:      '🇪🇸 Español',
+    schoolSub:    'Martial Arts System',
+    tagline:      '🥋 First Class FREE!',
+    lblName:      'Full Name *',
+    lblPhone:     'Phone *',
+    lblEmail:     'Email',
+    lblPromo:     'Program / Promotion',
+    optSelect:    '— Select —',
+    btnSubmit:    '🥋 I Want My Free Class!',
+    privacy:      '🔒 Your information is private and secure',
+    successTitle: 'Thank You!',
+    successMsg:   'We received your info. We will contact you very soon!',
+    btnReset:     '↩️ Submit another',
+    sending:      '⏳ Sending...',
+    errorEmpty:   '⚠️ Name and phone are required.'
+  }
+};
+
+function t(k) { return TX[lang][k] || TX['es'][k] || k; }
+
+function applyLang() {
+  document.getElementById('langBtn').textContent      = t('langBtn');
+  document.getElementById('schoolSub').textContent    = t('schoolSub');
+  document.getElementById('tagline').textContent      = t('tagline');
+  document.getElementById('lblName').textContent      = t('lblName');
+  document.getElementById('lblPhone').textContent     = t('lblPhone');
+  document.getElementById('lblEmail').textContent     = t('lblEmail');
+  document.getElementById('lblPromo').textContent     = t('lblPromo');
+  document.getElementById('lblNinos').textContent     = lang === 'en' ? 'Kids'   : 'Niños';
+  document.getElementById('lblJovenes').textContent   = lang === 'en' ? 'Teens'  : 'Jóvenes';
+  document.getElementById('lblAdultos').textContent   = lang === 'en' ? 'Adults' : 'Adultos';
+  document.getElementById('btnSubmit').textContent    = t('btnSubmit');
+  document.getElementById('privacyTxt').textContent   = t('privacy');
+  document.getElementById('successTitle').textContent = t('successTitle');
+  document.getElementById('successMsg').textContent   = t('successMsg');
+  document.getElementById('btnReset').textContent     = t('btnReset');
+  document.getElementById('inpName').placeholder      = lang === 'en' ? 'Your full name'    : 'Tu nombre completo';
+  var ni = document.getElementById('notifyInstructions');
+  if (ni) ni.innerHTML = lang === 'en' ? 'Tap the button below and press <strong style="color:#fff">SEND</strong> so we receive your request by text. It only takes 2 seconds!' : 'Toca el botón de abajo y presiona <strong style="color:#fff">SEND / ENVIAR</strong> para que recibamos tu solicitud por mensaje de texto. ¡Solo toma 2 segundos!';
+  var sb = document.getElementById('smsBtn'); if (sb) sb.textContent = lang === 'en' ? '📱 Tap here → then press SEND' : '📱 Toca aquí → luego presiona SEND';
+  var wb = document.getElementById('waBtn');  if (wb) wb.textContent = lang === 'en' ? '💬 Or send via WhatsApp' : '💬 O envía por WhatsApp';
+  document.getElementById('inpPhone').placeholder     = '(954) 000-0000';
+  document.getElementById('inpEmail').placeholder     = lang === 'en' ? 'youremail@email.com' : 'tucorreo@email.com';
+  // Resetear selección de botones si cambia idioma (no pierde el valor)
+}
+
+function applyTemplate() {
+  if (!tmpl) return;
+  var title = (lang === 'en' && tmpl.titleEN)      ? tmpl.titleEN      : (tmpl.title      || null);
+  var btn   = (lang === 'en' && tmpl.buttonEN)     ? tmpl.buttonEN     : (tmpl.button     || null);
+  var succ  = (lang === 'en' && tmpl.successMsgEN) ? tmpl.successMsgEN : (tmpl.successMsg || null);
+  if (title) document.getElementById('tagline').textContent    = title;
+  if (btn)   document.getElementById('btnSubmit').textContent  = btn;
+  if (succ)  document.getElementById('successMsg').textContent = succ;
+  if (tmpl.color) {
+    document.getElementById('tagline').style.color = tmpl.color;
+    document.getElementById('btnSubmit').style.background = 'linear-gradient(135deg,' + tmpl.color + ',#4a0000)';
+  }
+}
+
+function toggleLang() {
+  lang = (lang === 'es') ? 'en' : 'es';
+  applyLang();
+  applyTemplate();
+}
+
+// ── FIREBASE / INIT ───────────────────────────────────────────────
+var params     = new URLSearchParams(window.location.search);
+var instrId    = params.get('instructor') || 'admin';
+var formId     = params.get('form') || null;
+var storageKey = (instrId === 'admin' ? 'crmData' : 'crmData_' + instrId).replace(/[.#$\[\]]/g,'_');
+var ADMIN_PHONE    = '9543801340';
+var ADMIN_WHATSAPP = '19543801340';
+var ADMIN_EMAIL    = 'dbkoryo@gmail.com';
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbwjNsvIMj--oTncM_dHpGn0Tm1wA9kyflHNd1-x6uf8CsVW4Yl2llafE3xQuSLTqU0/exec';
+var instrPhone     = ADMIN_PHONE;
+var instrWhatsApp  = ADMIN_WHATSAPP;
+var instrEmail     = ADMIN_EMAIL;
+
+async function init() {
+  var crmData = null;
+  try {
+    var snap = await db.ref(storageKey).get();
+    if (snap.exists()) crmData = snap.val();
+  } catch(e) {}
+
+  var cfg = (crmData && crmData.config) ? crmData.config : {};
+
+  // Nombre de la escuela
+  if (cfg.companyName) {
+    document.getElementById('schoolName').textContent     = cfg.companyName;
+    document.getElementById('successSchool').textContent  = '🥋 ' + cfg.companyName;
+    document.title = cfg.companyName + ' — Inscríbete';
+  }
+  if (cfg.logo) document.getElementById('logoEl').innerHTML = '<img src="'+cfg.logo+'">';
+
+  // Cargar template — usa ?form=ID si existe, si no el primero
+  if (crmData && crmData.formTemplates) {
+    var ftRaw = crmData.formTemplates;
+    var ftArr = Array.isArray(ftRaw) ? ftRaw : Object.values(ftRaw).filter(function(v){ return v && v.name; });
+    if (formId) {
+      tmpl = ftArr.find(function(f){ return f.id === formId; }) || ftArr[0] || null;
+    } else {
+      tmpl = ftArr[0] || null;
+    }
+  }
+
+  // Programas — se usan los botones Niños/Jóvenes/Adultos
+
+  // Cargar info del instructor para notificaciones
+  if (instrId !== 'admin') {
+    try {
+      var usnap = await db.ref('crmUsers').get();
+      if (usnap.exists()) {
+        var udata = usnap.val();
+        var instrs = Array.isArray(udata.instructors) ? udata.instructors : Object.values(udata.instructors || {});
+        console.log('instrId from URL:', instrId);
+        console.log('Instructors found:', instrs.map(function(x){ return {id:x.id, name:x.name, phone:x.phone, email:x.email}; }));
+        var instr = instrs.find(function(x){ return String(x.id) === String(instrId); });
+        console.log('Matched instructor:', instr);
+        if (instr) {
+          if (instr.phone) { instrPhone = instr.phone.replace(/[^0-9]/g,''); instrWhatsApp = '1' + instrPhone; }
+          if (instr.email) instrEmail = instr.email;
+          console.log('Using instrPhone:', instrPhone, 'instrEmail:', instrEmail);
+        } else {
+          console.warn('No instructor matched instrId:', instrId);
+        }
+      } else {
+        console.warn('crmUsers not found in Firebase');
+      }
+    } catch(e) { console.error('Error loading instructor:', e); }
+  }
+
+  // PASO FINAL: primero idioma base, luego template encima
+  applyLang();
+  applyTemplate();
+}
+init();
+
+// ── SELECCIÓN EDAD ───────────────────────────────────────────────
+function selectAge(val) {
+  document.getElementById('inpPromo').value = val;
+  ['ninos','jovenes','adultos'].forEach(function(v) {
+    document.getElementById('btn' + v.charAt(0).toUpperCase() + v.slice(1)).classList.remove('selected');
+  });
+  document.getElementById('btn' + val.charAt(0).toUpperCase() + val.slice(1)).classList.add('selected');
+}
+
+// ── ENVIAR ────────────────────────────────────────────────────────
+async function submitLead() {
+  var name  = document.getElementById('inpName').value.trim();
+  var phone = document.getElementById('inpPhone').value.trim();
+  var email = document.getElementById('inpEmail').value.trim();
+  var promo = document.getElementById('inpPromo').value;
+
+  document.getElementById('errorMsg').textContent = '';
+  if (!name || !phone) {
+    document.getElementById('errorMsg').textContent = t('errorEmpty');
+    return;
+  }
+
+  var btn = document.getElementById('btnSubmit');
+  btn.disabled = true;
+  btn.textContent = t('sending');
+
+  // Guardar en Firebase
+  console.log('Saving lead to storageKey:', storageKey);
+  try {
+    var snap = await db.ref(storageKey).get();
+    console.log('Snap exists:', snap.exists());
+    var crmData = snap.exists() ? snap.val() : {};
+    var existingLeads = [];
+    if (crmData.leads) {
+      existingLeads = Array.isArray(crmData.leads) ? crmData.leads : Object.values(crmData.leads);
+    }
+    console.log('Existing leads count:', existingLeads.length);
+    var newLead = {
+      id:        'lead_' + Date.now(),
+      name:      name,
+      phone:     phone,
+      email:     email,
+      program:   promo,
+      source:    'Formulario Web',
+      stage:     'nuevo',
+      status:    'nuevo',
+      createdAt: new Date().toISOString().split('T')[0],
+      instrId:   instrId
+    };
+    existingLeads.push(newLead);
+    await db.ref(storageKey + '/leads').set(existingLeads);
+    console.log('✅ Lead saved to Firebase:', storageKey);
+  } catch(e) { console.error('❌ Firebase save error:', e.message, e); }
+
+  // Email via Formspree
+  var emailMsg = '🥋 NUEVO LEAD\nNombre: '+name+'\nTeléfono: '+phone+'\nEmail: '+(email||'N/A')+'\nPrograma: '+(promo||'N/A');
+  try {
+  } catch(e) {}
+
+  // Email directo al instructor via EmailJS
+  try {
+    await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        service_id:  'service_qvbvhat',
+        template_id: 'template_xrlcgha',
+        user_id:     'yN6IRgA-WdmQlNWpf',
+        template_params: {
+          to_email: instrEmail,
+          from_name: name,
+          name:    name,
+          phone:   phone,
+          email:   email || 'N/A',
+          program: promo || 'N/A',
+          source:  'Formulario Web'
+        }
+      })
+    });
+  } catch(e) { console.warn('EmailJS error:', e); }
+
+  // WhatsApp automático al instructor via Google Apps Script
+  try {
+    var waPhone  = (typeof instrWhatsApp !== 'undefined') ? instrWhatsApp : '19543801340';
+    var waApiKey = '1707140';
+    var waTxt    = encodeURIComponent('NUEVO LEAD - Nombre: '+name+' - Tel: '+phone+' - Programa: '+(promo||'N/A'));
+    var waFinalUrl = GAS_URL+'?phone='+waPhone+'&text='+waTxt+'&apikey='+waApiKey;
+    console.log('📱 Enviando WhatsApp a:', waPhone, waFinalUrl);
+    var waImg    = new Image();
+    waImg.onload  = function(){ console.log('✅ WhatsApp enviado OK'); };
+    waImg.onerror = function(){ console.log('⚠️ WhatsApp img error (normal si llega igual)'); };
+    waImg.src    = waFinalUrl;
+  } catch(we) { console.warn('WA error:', we); }
+
+  // SMS y WhatsApp buttons
+  var smsBody = '🥋 NUEVO LEAD\nNombre: '+name+'\nTel: '+phone+'\nPrograma: '+(promo||'N/A');
+  var waMsg   = '🥋 *NUEVO LEAD*\n*Nombre:* '+name+'\n*Teléfono:* '+phone+'\n*Email:* '+(email||'N/A')+'\n*Programa:* '+(promo||'N/A');
+  // Usar los valores más actuales de instrPhone/instrWhatsApp
+  var finalPhone    = (typeof instrPhone    !== 'undefined' && instrPhone    !== ADMIN_PHONE)    ? instrPhone    : ADMIN_PHONE;
+  var finalWhatsApp = (typeof instrWhatsApp !== 'undefined' && instrWhatsApp !== ADMIN_WHATSAPP) ? instrWhatsApp : ADMIN_WHATSAPP;
+  console.log('SMS will go to:', finalPhone + '@mymetropcs.com');
+  document.getElementById('smsBtn').href = 'mailto:'+finalPhone+'@mymetropcs.com?subject=Lead: '+encodeURIComponent(name)+'&body='+encodeURIComponent(smsBody);
+  document.getElementById('waBtn').href  = 'https://wa.me/'+finalWhatsApp+'?text='+encodeURIComponent(waMsg);
+
+  document.getElementById('formBox').style.display    = 'none';
+  document.getElementById('successBox').style.display = 'block';
+  document.getElementById('notifyBtns').style.display = 'flex';
+}
+
+// ── RESET ─────────────────────────────────────────────────────────
+function resetForm() {
+  document.getElementById('inpName').value  = '';
+  document.getElementById('inpPhone').value = '';
+  document.getElementById('inpEmail').value = '';
+  document.getElementById('inpPromo').value = '';
+  ['btnNinos','btnJovenes','btnAdultos'].forEach(function(id){ document.getElementById(id).classList.remove('selected'); });
+  document.getElementById('errorMsg').textContent = '';
+  var btn = document.getElementById('btnSubmit');
+  btn.disabled = false;
+  btn.textContent = t('btnSubmit');
+  document.getElementById('successBox').style.display = 'none';
+  document.getElementById('formBox').style.display    = 'block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
