@@ -492,94 +492,9 @@
         font-weight: 700;
         text-align: center;
         line-height: 1;
-    " onclick="toggleLanguage(); return false;" title="Cambiar idioma / Change language" id="langToggleFab">
+    " onclick="toggleLanguage()" title="Cambiar idioma / Change language" id="langToggleFab">
         🇪🇸
     </div>
-
-    <!-- BOTÓN FLOTANTE DRAGGABLE PARA FOTOS -->
-    <div id="floatingPhotosBtn" style="
-        position: fixed;
-        bottom: 110px;
-        right: 30px;
-        z-index: 9998;
-        background: linear-gradient(135deg, #3b82f6, #1e40af);
-        border: 2px solid #60a5fa;
-        border-radius: 50%;
-        width: 70px;
-        height: 70px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: grab;
-        font-size: 32px;
-        box-shadow: 0 4px 20px rgba(59,130,246,0.6);
-        transition: all 0.3s ease;
-        font-weight: 700;
-        text-align: center;
-        line-height: 1;
-        touch-action: none;
-    " onclick="openMediaPanel(); return false;" title="Panel de Multimedia / Media Panel" draggable="true" ondragstart="startDragFloat(event)" ondragover="allowDrop(event)" ondrop="dropFloat(event)">
-        📸
-    </div>
-
-    <!-- BOTÓN FLOTANTE DE SALIR/LOGOUT -->
-    <div id="floatingExitBtn" style="
-        position: fixed;
-        bottom: 190px;
-        right: 30px;
-        z-index: 9997;
-        background: linear-gradient(135deg, #dc2626, #7f1d1d);
-        border: 2px solid #ef4444;
-        border-radius: 50%;
-        width: 70px;
-        height: 70px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: grab;
-        font-size: 32px;
-        box-shadow: 0 4px 20px rgba(220,38,38,0.6);
-        transition: all 0.3s ease;
-        font-weight: 700;
-        text-align: center;
-        line-height: 1;
-        touch-action: none;
-    " onclick="if(confirm(currentLang === 'es' ? '¿Estás seguro de que deseas salir?' : 'Are you sure you want to exit?')) doLogout(); return false;" title="Salir / Exit" draggable="true" ondragstart="startDragFloat(event)" ondragover="allowDrop(event)" ondrop="dropFloat(event)">
-        🚪
-    </div>
-
-    <!-- ESTILO PARA HOVER DEL BOTÓN FLOTANTE DE FOTOS -->
-    <style>
-        #floatingPhotosBtn:hover {
-            transform: scale(1.1) !important;
-            box-shadow: 0 6px 25px rgba(59,130,246,0.8) !important;
-            bottom: 115px !important;
-            cursor: grab;
-        }
-        #floatingPhotosBtn:active {
-            transform: scale(0.95) !important;
-            cursor: grabbing;
-        }
-        #floatingPhotosBtn.dragging {
-            opacity: 0.8;
-            cursor: grabbing;
-        }
-        
-        #floatingExitBtn:hover {
-            transform: scale(1.1) !important;
-            box-shadow: 0 6px 25px rgba(220,38,38,0.8) !important;
-            bottom: 195px !important;
-            cursor: grab;
-        }
-        #floatingExitBtn:active {
-            transform: scale(0.95) !important;
-            cursor: grabbing;
-        }
-        #floatingExitBtn.dragging {
-            opacity: 0.8;
-            cursor: grabbing;
-        }
-    </style>
 
     <!-- ESTILO PARA HOVER DEL BOTÓN FLOTANTE -->
     <style>
@@ -595,7 +510,7 @@
 
     <header class="header">
         <button onclick="refreshData()" style="background:#1e3a5f;border:1px solid #60a5fa;color:#60a5fa;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;margin-right:8px" title="Recargar datos">🔄 Sync</button>
-        <button id="langToggle" onclick="toggleLanguage(); return false;" style="
+        <button id="langToggle" onclick="toggleLanguage()" style="
             background: linear-gradient(135deg,#1e1e3f,#2a2a4f);
             border: 1px solid rgba(255,215,0,0.4); border-radius: 20px;
             color: #ffd700; font-size: 12px; font-weight: 700;
@@ -755,7 +670,7 @@
             <!-- PROMOCIONES EN TIENDA -->
             <div id="storePromoSection" style="margin-top:40px">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-                    <h2 id="promoTitleStore" style="color:#ffd700;margin:0" data-i18n="promo_title">🎁 Paquetes y Promociones</h2>
+                    <h2 style="color:#ffd700;margin:0">🎁 Paquetes y Promociones</h2>
                 </div>
                 <div class="store-grid" id="storePromoGrid"></div>
             </div>
@@ -770,52 +685,31 @@
         <div class="store-modal" id="productModal">
             <div class="store-modal-box">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-                    <h3 id="productModalTitle" data-i18n="modal_new_product">✨ Nuevo Producto</h3>
+                    <h3 id="productModalTitle">✨ Nuevo Producto</h3>
                     <button onclick="closeStoreModal('productModal')" style="background:none;border:none;color:#888;font-size:20px;cursor:pointer">✕</button>
                 </div>
                 <input type="hidden" id="editProductId">
-                
-                <!-- NOMBRE EN DOS IDIOMAS -->
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-                    <div>
-                        <label class="store-label" style="color:#60a5fa;font-weight:700">🇪🇸 Nombre (Español) *</label>
-                        <input class="store-input" id="prodNameES" placeholder="Ej: Uniforme Adulto Blanco">
-                    </div>
-                    <div>
-                        <label class="store-label" style="color:#fbbf24;font-weight:700">🇬🇧 Name (English) *</label>
-                        <input class="store-input" id="prodNameEN" placeholder="Ex: Adult White Uniform">
-                    </div>
-                </div>
-                
-                <!-- DESCRIPCIÓN EN DOS IDIOMAS -->
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-                    <div>
-                        <label class="store-label" style="color:#60a5fa">🇪🇸 Descripción</label>
-                        <input class="store-input" id="prodDescES" placeholder="Describe el producto...">
-                    </div>
-                    <div>
-                        <label class="store-label" style="color:#fbbf24">🇬🇧 Description</label>
-                        <input class="store-input" id="prodDescEN" placeholder="Describe the product...">
-                    </div>
-                </div>
-                
+                <label class="store-label" data-i18n="lbl_prod_name">Nombre del producto *</label>
+                <input class="store-input" id="prodName" placeholder="Ej: Uniforme Adulto Blanco">
+                <label class="store-label" data-i18n="lbl_prod_desc">Descripción</label>
+                <input class="store-input" id="prodDesc" placeholder="Describe el producto...">
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                     <div>
-                        <label class="store-label" data-i18n="lbl_prod_cost">Precio de Costo ($) *</label>
+                        <label class="store-label">Precio de Costo ($) *</label>
                         <input class="store-input" id="prodCost" type="text" placeholder="0.00">
                     </div>
                     <div>
-                        <label class="store-label" data-i18n="lbl_prod_price">Precio de Venta ($) *</label>
+                        <label class="store-label">Precio de Venta ($) *</label>
                         <input class="store-input" id="prodPrice" type="text" placeholder="0.00">
                     </div>
                 </div>
                 <div style="background:#0f172a;padding:10px;border-radius:8px;margin-bottom:12px;display:none" id="gainDisplay">
-                    <div style="font-size:12px;color:#888" data-i18n="lbl_gain_calc">Ganancia calculada:</div>
+                    <div style="font-size:12px;color:#888">Ganancia calculada:</div>
                     <div style="font-size:18px;font-weight:700;color:#22c55e">$<span id="gainAmount">0.00</span> (<span id="gainPercent">0%</span>)</div>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                     <div>
-                        <label class="store-label" data-i18n="lbl_prod_cat">Categoría</label>
+                        <label class="store-label">Categoría</label>
                         <select class="store-input" id="prodCategory">
                             <option value="uniforme">🥋 Uniforme</option>
                             <option value="examen">🎓 Examen</option>
@@ -841,14 +735,14 @@
                     <button class="store-filter-btn" onclick="pickEmoji('🛡️')">🛡️</button>
                     <button class="store-filter-btn" onclick="pickEmoji('🎯')">🎯</button>
                 </div>
-                <label class="store-label" data-i18n="lbl_prod_emoji_selected">Ícono seleccionado</label>
+                <label class="store-label">Ícono seleccionado</label>
                 <input class="store-input" id="prodEmoji" placeholder="🥋" style="font-size:20px;text-align:center">
-                <label class="store-label" data-i18n="lbl_prod_stock">📦 Inventario (unidades)</label>
+                <label class="store-label" style="margin-top:4px">📦 Inventario (unidades)</label>
                 <input class="store-input" id="prodStock" type="number" min="0" placeholder="0" value="0">
                 <input type="hidden" id="prodFeatured" value="0">
                 <div style="display:flex;gap:10px;margin-top:8px">
-                    <button class="btn btn-success" style="flex:1" onclick="saveProduct()" data-i18n="btn_save">💾 Guardar</button>
-                    <button class="btn" style="flex:1;background:#1e1e3f;color:#aaa" onclick="closeStoreModal('productModal')" data-i18n="btn_cancel">Cancelar</button>
+                    <button class="btn btn-success" style="flex:1" onclick="saveProduct()">💾 Guardar</button>
+                    <button class="btn" style="flex:1;background:#1e1e3f;color:#aaa" onclick="closeStoreModal('productModal')">Cancelar</button>
                 </div>
             </div>
         </div>
@@ -1070,77 +964,7 @@
             </div>
         </div>
 
-        <!-- MODAL DE MULTIMEDIA (CÁMARA, ARCHIVOS, GALERÍA) -->
-        <div class="store-modal" id="mediaModal" style="display:none">
-            <div class="store-modal-box" style="max-width:900px">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-                    <h3>📸 Panel de Multimedia</h3>
-                    <button onclick="closeMediaModal()" style="background:none;border:none;color:#888;font-size:20px;cursor:pointer">✕</button>
-                </div>
-
-                <!-- TABS -->
-                <div style="display:flex;gap:10px;margin-bottom:20px;border-bottom:1px solid #333;padding-bottom:10px">
-                    <button onclick="switchMediaTab('camera')" id="tabCamera" style="flex:1;padding:10px;background:#1e3a5f;color:#60a5fa;border:1px solid #333;border-radius:8px;cursor:pointer;font-weight:700">📷 Cámara</button>
-                    <button onclick="switchMediaTab('upload')" id="tabUpload" style="flex:1;padding:10px;background:#1e1e3f;color:#aaa;border:1px solid #333;border-radius:8px;cursor:pointer;font-weight:700">📁 Archivo</button>
-                    <button onclick="switchMediaTab('gallery')" id="tabGallery" style="flex:1;padding:10px;background:#1e1e3f;color:#aaa;border:1px solid #333;border-radius:8px;cursor:pointer;font-weight:700">🗂️ Galería</button>
-                </div>
-
-                <!-- SECCIÓN CÁMARA -->
-                <div id="mediaCamera" style="display:block;background:#0f172a;padding:15px;border-radius:8px">
-                    <video id="videoCapture" style="width:100%;height:300px;background:#000;border:2px solid #60a5fa;border-radius:8px;margin-bottom:15px;object-fit:contain" autoplay playsinline></video>
-                    
-                    <div style="display:flex;gap:10px;margin-bottom:15px">
-                        <button onclick="startCamera()" class="btn btn-primary" style="flex:1;padding:10px">▶️ Iniciar Cámara</button>
-                        <button onclick="captureFromCamera()" class="btn btn-success" style="flex:1;padding:10px">📸 Capturar</button>
-                        <button onclick="stopCamera()" class="btn" style="flex:1;padding:10px;background:#1e1e3f;color:#aaa">⏹️ Detener</button>
-                    </div>
-                    
-                    <!-- PREVIEW DE CAPTURA CON BOTONES DE EDICIÓN Y BASURA -->
-                    <canvas id="captureCanvas" style="display:none"></canvas>
-                    <div id="capturePreview" style="display:none;margin-top:15px;background:#1e3a5f;padding:15px;border-radius:8px;border:1px solid #333">
-                        <p style="color:#888;font-size:12px;margin-bottom:10px">📷 Vista previa de captura:</p>
-                        <img id="captureImage" style="width:100%;max-height:250px;border-radius:8px;margin-bottom:10px;object-fit:contain">
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-                            <button onclick="rotateLastCapture()" class="btn" style="background:#ffd700;color:#000;padding:10px;font-weight:700">🔄 Rotar</button>
-                            <button onclick="discardCapture()" class="btn" style="background:#7f1d1d;color:#fff;padding:10px;font-weight:700">🗑️ Basura</button>
-                        </div>
-                        <button onclick="saveCaptureToDB()" class="btn btn-success" style="width:100%;padding:10px;font-weight:700">✅ Guardar Foto</button>
-                    </div>
-                    
-                    <!-- GALERÍA DE CAPTURAS ANTES DE GUARDAR -->
-                    <div id="cameraGalleryPreview" style="margin-top:15px">
-                        <p style="color:#888;font-size:12px;margin-bottom:10px" id="captureCountLabel"></p>
-                        <div id="captureGallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px">
-                            <!-- Previsualizaciones de capturas -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECCIÓN ARCHIVO -->
-                <div id="mediaUpload" style="display:none;background:#0f172a;padding:15px;border-radius:8px">
-                    <div style="border:2px dashed #60a5fa;padding:20px;border-radius:8px;text-align:center;margin-bottom:15px">
-                        <p style="color:#888;margin-bottom:10px">Arrastra archivos aquí o haz click</p>
-                        <input type="file" id="mediaFileInput" accept="image/*,video/*,.pdf,.doc,.docx" multiple style="display:none" onchange="handleFileSelect(event)">
-                        <button onclick="document.getElementById('mediaFileInput').click()" class="btn btn-primary" style="width:100%">📁 Seleccionar Archivo</button>
-                    </div>
-                    <div id="fileUploadPreview" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px">
-                        <!-- Previsualizaciones -->
-                    </div>
-                </div>
-
-                <!-- SECCIÓN GALERÍA -->
-                <div id="mediaGallery" style="display:none;background:#0f172a;padding:15px;border-radius:8px">
-                    <div id="galleryContent" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;max-height:400px;overflow-y:auto">
-                        <p style="color:#888;grid-column:1/-1;text-align:center;padding:20px">Sin archivos en la galería</p>
-                    </div>
-                </div>
-
-                <!-- BOTONES FINALES -->
-                <div style="display:flex;gap:10px;margin-top:20px">
-                    <button onclick="closeMediaModal()" class="btn" style="flex:1;background:#1e1e3f;color:#aaa">Cerrar</button>
-                </div>
-            </div>
-        </div>
+        <!-- REPORTES -->
         <div id="reports" class="tab-container">
             <div class="report-hero">
                 <div>
@@ -1317,26 +1141,6 @@
                     <tbody id="studentsTable"></tbody>
                 </table>
             </div>
-            
-            <!-- GALERÍA DE MULTIMEDIA DEL ESTUDIANTE -->
-            <div id="studentGallerySection" style="margin-top:30px;display:none">
-                <div class="panel" style="background:#0f172a;border:1px solid #333;border-radius:12px;padding:20px">
-                    <h3 id="galleryTitle" style="color:#60a5fa;margin-top:0">🗂️ Galería de Multimedia</h3>
-                    <p id="galleryStudentName" style="color:#888;font-size:12px;margin-bottom:15px"></p>
-                    
-                    <!-- BOTÓN DE AGREGAR MULTIMEDIA -->
-                    <button onclick="openMediaPanel()" class="btn btn-primary" style="margin-bottom:15px;width:100%">
-                        <span id="btnAddMedia">📸 Agregar Multimedia</span>
-                    </button>
-                    
-                    <!-- CONTENEDOR DE GALERÍA -->
-                    <div id="studentMediaGallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:15px;min-height:150px">
-                        <p id="emptyGalleryMessage" style="color:#888;grid-column:1/-1;text-align:center;padding:40px">
-                            <span id="emptyGalleryText">Sin archivos</span>
-                        </p>
-                    </div>
-                </div>
-            </div>
         </div>
         
         <!-- LEADS -->
@@ -1492,21 +1296,6 @@
             <div class="panel">
                 <h3 data-i18n="events_list">🎪 Lista de Eventos</h3>
                 <div id="eventsList" style="display:grid;gap:15px"></div>
-            </div>
-        </div>
-        
-        <!-- ENTRENAMIENTOS Y EDUCATIVOS -->
-        <div id="trainings" class="tab-container">
-            <div class="section-title">
-                <h2 id="trainingsTitle">🎥 Entrenamientos y Educativos</h2>
-                <button class="btn btn-primary" onclick="openUploadTrainingModal()">+ Agregar Video</button>
-            </div>
-            
-            <div class="panel">
-                <h3 id="trainingListTitle">📹 Videos de Entrenamiento</h3>
-                <div id="trainingsList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:20px">
-                    <p id="noTrainingsMsg" style="color:#888;grid-column:1/-1;text-align:center;padding:40px">Sin videos aún</p>
-                </div>
             </div>
         </div>
         
@@ -1728,15 +1517,15 @@
             <!-- INVENTARIO Y VENTAS -->
             <div class="panel">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-                    <h3 id="promoTitleConfig">🛍️ Paquetes y Promociones</h3>
-                    <button id="btnCreatePackageConfig" class="btn btn-primary btn-sm" onclick="openAddPromoModal()">+ Crear Paquete</button>
+                    <h3 data-i18n="promo_title">🛍️ Paquetes y Promociones</h3>
+                    <button class="btn btn-primary btn-sm" onclick="openAddPromoModal()" data-i18n="promo_new">+ Crear Paquete</button>
                 </div>
                 <div id="promoSection" style="display:grid;grid-template-columns:1fr;gap:12px"></div>
             </div>
 
             <div class="panel">
-                <h3 data-i18n="store_inventory_title">📦 Inventario de Tienda</h3>
-                <p data-i18n="store_inventory_desc" style="font-size:12px;color:#888;margin-bottom:14px">Gestiona tus productos: precio, costo, stock y ganancias</p>
+                <h3>📦 Inventario de Tienda</h3>
+                <p style="font-size:12px;color:#888;margin-bottom:14px">Gestiona tus productos: precio, costo, stock y ganancias</p>
                 <div id="inventorySection" style="display:grid;grid-template-columns:1fr;gap:12px"></div>
             </div>
         </div>
@@ -2484,9 +2273,6 @@
                     document.getElementById('photoPreview').src = e.target.result;
                     document.getElementById('photoPreview').style.display = 'block';
                     document.getElementById('photoPlaceholder').style.display = 'none';
-                    // ARREGLO: Guardar la foto inmediatamente
-                    saveToStorage();
-                    console.log('✅ Foto guardada exitosamente');
                 };
                 reader.readAsDataURL(input.files[0]);
             }
@@ -2760,7 +2546,6 @@
                             <td><span class="status status-${(s.status||'activo').toLowerCase()}">${getStatusLabel(s.status||'Activo')}</span></td>
                             <td class="action-btns">
                                 <button class="btn-edit" onclick="viewStudentHistory('${s.id}')" style="background:#6366f1" title="Historial">📋</button>
-                                <button class="btn-edit" onclick="selectStudentForGallery('${s.id}')" style="background:#3b82f6" title="Galería">🗂️</button>
                                 <button class="btn-edit" onclick="editStudent('${s.id}')">✏️</button>
                                 <button class="btn-delete" onclick="deleteStudentById('${s.id}')">🗑️</button>
                             </td>
@@ -3526,7 +3311,6 @@
         
         // RENDER CONFIG
         function renderConfig() {
-            console.log('🔧 renderConfig() ejecutándose...');
             document.getElementById('configCompanyName').value = config.companyName;
             if (config.logo) {
                 document.getElementById('logoPreview').src = config.logo;
@@ -3536,44 +3320,30 @@
 
             // Programas — con botones editar y eliminar
             const programs = Array.isArray(config.programs) ? config.programs : toArray(config.programs);
-            console.log('📚 Programs array:', programs);
             
-            // Diccionario BIDIRECCIONAL - funciona tanto para ES como para EN
+            // Diccionario de traducción de programas
             const programTranslations = {
-                // Español → English
-                'Niños': 'program_children',
-                'Juventud': 'program_youth',
-                'Adultos': 'program_adults',
-                'Autodefensa': 'program_selfdefense',
-                'Black Belt': 'program_blackbelt',
-                'Familiar': 'program_family',
-                'Jóvenes': 'program_youth',
-                '3 Meses de Clases por Solo $149.00': 'program_3months_classes',
-                // English → Español (BIDIRECCIONAL)
-                'Children': 'program_children',
-                'Youth': 'program_youth',
-                'Adults': 'program_adults',
-                'Self-Defense': 'program_selfdefense',
-                'Family': 'program_family',
-                '3 Months of Classes for Only $149.00': 'program_3months_classes',
-                '3 Months of Classes': 'program_3months_classes'
+                'Niños': { es: 'Niños', en: 'Children' },
+                'Juventud': { es: 'Juventud', en: 'Youth' },
+                'Adultos': { es: 'Adultos', en: 'Adults' },
+                'Autodefensa': { es: 'Autodefensa', en: 'Self-Defense' },
+                'Black Belt': { es: 'Black Belt', en: 'Black Belt' },
+                'Familiar': { es: 'Familiar', en: 'Family' },
+                'Jóvenes': { es: 'Jóvenes', en: 'Youth' }
             };
             
             const translateProgram = (name) => {
-                const key = programTranslations[name];
-                console.log(`🔤 Translating "${name}" -> key: "${key}" -> t(): "${t(key) || name}"`);
-                return key ? t(key) : name;
+                if (programTranslations[name]) {
+                    return currentLang === 'en' ? programTranslations[name].en : programTranslations[name].es;
+                }
+                return name; // Si no está en el diccionario, mostrar como está
             };
             
-            const programsListEl = document.getElementById('programsList');
-            console.log('🎯 programsList element:', programsListEl ? 'FOUND' : 'NOT FOUND');
-            
-            if (programsListEl) {
-                programsListEl.innerHTML = programs.length === 0
-                    ? `<p style="color:#888;font-size:12px">${t('empty_students').replace('estudiantes','programas').replace('students','programs')}</p>`
-                    : programs.map((p, i) => {
-                        const displayName = translateProgram(p);
-                        return `
+            document.getElementById('programsList').innerHTML = programs.length === 0
+                ? `<p style="color:#888;font-size:12px">${t('empty_students').replace('estudiantes','programas').replace('students','programs')}</p>`
+                : programs.map((p, i) => {
+                    const displayName = translateProgram(p);
+                    return `
                     <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#0f0f23;border-radius:8px;margin-bottom:6px;border:1px solid rgba(255,255,255,0.05)">
                         <span style="font-size:13px;color:#fff">📚 ${displayName}</span>
                         <div style="display:flex;gap:6px">
@@ -3581,52 +3351,34 @@
                             <button class="btn-delete btn-sm" onclick="deleteProgram(${i})" title="🗑️">🗑️</button>
                         </div>
                     </div>`;}).join('');
-                console.log('✅ Programas actualizados');
-            }
 
             // Cinturones — con botones editar y eliminar
             const belts = Array.isArray(config.belts) ? config.belts : toArray(config.belts);
-            console.log('🥋 Belts array:', belts);
             
-            // Diccionario BIDIRECCIONAL para cinturones
+            // Diccionario de traducción de cinturones
             const beltTranslations = {
-                // Español → English
-                'Blanco': 'belt_white',
-                'Amarillo': 'belt_yellow',
-                'Naranja': 'belt_orange',
-                'Verde': 'belt_green',
-                'Azul': 'belt_blue',
-                'Rojo': 'belt_red',
-                'Marrón': 'belt_brown',
-                'Negro': 'belt_black',
-                // English → Español (BIDIRECCIONAL)
-                'White': 'belt_white',
-                'Yellow': 'belt_yellow',
-                'Orange': 'belt_orange',
-                'Green': 'belt_green',
-                'Blue': 'belt_blue',
-                'Red': 'belt_red',
-                'Brown': 'belt_brown',
-                'Black': 'belt_black',
-                // Otras variantes
-                'Purple': 'belt_purple'
+                'Blanco': { es: 'Blanco', en: 'White' },
+                'Amarillo': { es: 'Amarillo', en: 'Yellow' },
+                'Naranja': { es: 'Naranja', en: 'Orange' },
+                'Verde': { es: 'Verde', en: 'Green' },
+                'Azul': { es: 'Azul', en: 'Blue' },
+                'Rojo': { es: 'Rojo', en: 'Red' },
+                'Marrón': { es: 'Marrón', en: 'Brown' },
+                'Negro': { es: 'Negro', en: 'Black' }
             };
             
             const translateBelt = (name) => {
-                const key = beltTranslations[name];
-                console.log(`🔤 Translating belt "${name}" -> key: "${key}" -> t(): "${t(key) || name}"`);
-                return key ? t(key) : name;
+                if (beltTranslations[name]) {
+                    return currentLang === 'en' ? beltTranslations[name].en : beltTranslations[name].es;
+                }
+                return name;
             };
             
-            const beltsListEl = document.getElementById('beltsList');
-            console.log('🎯 beltsList element:', beltsListEl ? 'FOUND' : 'NOT FOUND');
-            
-            if (beltsListEl) {
-                beltsListEl.innerHTML = belts.length === 0
-                    ? `<p style="color:#888;font-size:12px">-</p>`
-                    : belts.map((b, i) => {
-                        const displayName = translateBelt(b);
-                        return `
+            document.getElementById('beltsList').innerHTML = belts.length === 0
+                ? `<p style="color:#888;font-size:12px">-</p>`
+                : belts.map((b, i) => {
+                    const displayName = translateBelt(b);
+                    return `
                     <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#0f0f23;border-radius:8px;margin-bottom:6px;border:1px solid rgba(255,255,255,0.05)">
                         <span style="font-size:13px"><span class="belt belt-${b.toLowerCase()}">${displayName}</span></span>
                         <div style="display:flex;gap:6px">
@@ -3634,51 +3386,16 @@
                             <button class="btn-delete btn-sm" onclick="deleteBelt(${i})" title="🗑️">🗑️</button>
                         </div>
                     </div>`;
-                    }).join('');
-                console.log('✅ Cinturones actualizados');
-            }
+                }).join('');
 
             renderBranches();
-            
-            console.log('✅ renderConfig() completado');
             
             // Belt requirements
             const beltsReqDiv = document.getElementById('beltRequirementsList');
             const beltReqs = Array.isArray(config.beltRequirements) ? config.beltRequirements : toArray(config.beltRequirements);
-            
-            // Reutilizar el diccionario de traducción de cinturones
-            const beltTranslationsForReqs = {
-                // Español → English
-                'Blanco': 'belt_white',
-                'Amarillo': 'belt_yellow',
-                'Naranja': 'belt_orange',
-                'Verde': 'belt_green',
-                'Azul': 'belt_blue',
-                'Rojo': 'belt_red',
-                'Marrón': 'belt_brown',
-                'Negro': 'belt_black',
-                // English → Español (BIDIRECCIONAL)
-                'White': 'belt_white',
-                'Yellow': 'belt_yellow',
-                'Orange': 'belt_orange',
-                'Green': 'belt_green',
-                'Blue': 'belt_blue',
-                'Red': 'belt_red',
-                'Brown': 'belt_brown',
-                'Black': 'belt_black',
-                // Otras variantes
-                'Purple': 'belt_purple',
-                'Púrpura': 'belt_purple'
-            };
-            
-            const translateBeltName = (name) => {
-                const key = beltTranslationsForReqs[name];
-                return key ? t(key) : name;
-            };
-            
             beltsReqDiv.innerHTML = beltReqs.map((r, i) => `
                 <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#0f0f23;border-radius:8px;margin-bottom:8px;border:1px solid rgba(255,255,255,0.05)">
-                    <span style="font-size:13px">🥋 <strong style="color:#ffd700">${translateBeltName(r.from)}</strong> → <strong style="color:#fff">${translateBeltName(r.to)}</strong>: <span style="color:#fff">${r.classesNeeded} ${t('txt_belt_classes')}</span></span>
+                    <span style="font-size:13px">🥋 <strong style="color:#ffd700">${r.from}</strong> → <strong style="color:#fff">${r.to}</strong>: <span style="color:#fff">${r.classesNeeded} ${t('txt_belt_classes')}</span></span>
                     <div style="display:flex;gap:6px">
                         <button class="btn-edit btn-sm" onclick="editBeltRequirement(${i})" title="Editar">✏️</button>
                         <button class="btn-delete btn-sm" onclick="deleteBeltRequirement(${i})" title="Eliminar">🗑️</button>
@@ -3706,7 +3423,6 @@
             try { renderPromotions(); } catch(e) { console.error('renderPromotions:', e); }
             try { renderConfigInventory(); } catch(e) { console.error('renderConfigInventory:', e); }
         }
-        
         function populateSelects() {
             const progEl = document.getElementById('studentProgram');
             const progs = Array.isArray(config.programs) ? config.programs : toArray(config.programs);
@@ -4443,7 +4159,7 @@ select option{background:#1a1a2e}
 </head>
 <body>
 <div class="card">
-<button class="lang-btn" onclick="toggleLanguage(); return false;" id="langBtn">🇺🇸 English</button>
+<button class="lang-btn" onclick="toggleLanguage()" id="langBtn">🇺🇸 English</button>
 <div class="logo-area">
 ${logoHTML}
 <h1 id="schoolNameEl">${school}</h1>
@@ -4912,57 +4628,22 @@ async function submitLead(){
         }
 
         function renderPaymentReasonsList() {
-            console.log('💰 renderPaymentReasonsList() ejecutándose...');
             const list = document.getElementById('paymentReasonsList');
-            if (!list) {
-                console.log('❌ paymentReasonsList element NOT FOUND');
-                return;
-            }
-            console.log('✅ paymentReasonsList element FOUND');
-            
+            if (!list) return;
             if (!config.paymentReasons) config.paymentReasons = [];
-            console.log('💳 Payment reasons:', config.paymentReasons);
-            
-            // Diccionario BIDIRECCIONAL para razones de pago
-            const paymentReasonTranslations = {
-                // Español → key
-                'Mensualidad': 'pay_reason_monthly',
-                'Examen de Cinturón': 'pay_reason_belt_exam',
-                'Evento/Torneo': 'pay_reason_event',
-                'Uniforme': 'pay_reason_uniform',
-                'Equipo': 'pay_reason_equipment',
-                'Inscripción': 'pay_reason_registration',
-                // English → key (BIDIRECCIONAL)
-                'Monthly fee': 'pay_reason_monthly',
-                'Monthly Fee': 'pay_reason_monthly',
-                'Belt Exam': 'pay_reason_belt_exam',
-                'Event/Tournament': 'pay_reason_event',
-                'Uniform': 'pay_reason_uniform',
-                'Equipment': 'pay_reason_equipment',
-                'Registration': 'pay_reason_registration'
-            };
-            
-            const translatePaymentReason = (name) => {
-                const key = paymentReasonTranslations[name];
-                console.log(`   🔤 Translating reason "${name}" -> key: "${key}" -> t(): "${t(key) || name}"`);
-                return key ? t(key) : name;
-            };
-            
             if (config.paymentReasons.length === 0) {
                 list.innerHTML = '<p style="color:#555;font-size:12px">Sin razones configuradas</p>';
-                console.log('✅ Sin razones configuradas');
                 updatePaymentReasonDropdowns();
                 return;
             }
             list.innerHTML = config.paymentReasons.map((r,i) => `
                 <div style="display:flex;align-items:center;gap:8px;padding:8px;background:#0f0f23;border-radius:8px;margin-bottom:6px">
-                    <span style="flex:1;color:#fff;font-size:13px">📋 ${translatePaymentReason(r.es)}</span>
-                    <span style="flex:1;color:#888;font-size:12px">${translatePaymentReason(r.en||r.es)}</span>
+                    <span style="flex:1;color:#fff;font-size:13px">📋 ${r.es}</span>
+                    <span style="flex:1;color:#888;font-size:12px">${r.en||''}</span>
                     <button onclick="editPaymentReason(${i})" style="background:#1e3a5f;border:none;color:#60a5fa;cursor:pointer;font-size:12px;padding:4px 8px;border-radius:6px">✏️</button>
                     <button onclick="deletePaymentReason(${i})" style="background:#7f1d1d;border:none;color:#fff;cursor:pointer;font-size:12px;padding:4px 8px;border-radius:6px">🗑️</button>
                 </div>
             `).join('');
-            console.log('✅ Razones de pago actualizadas');
             updatePaymentReasonDropdowns();
         }
 
@@ -5129,7 +4810,7 @@ async function submitLead(){
                 modal_new_student: 'Nuevo Estudiante', modal_edit_student: 'Editar Estudiante',
                 lbl_fullname: 'Nombre completo', lbl_phone: 'Teléfono', lbl_email: 'Email',
                 lbl_program: 'Programa', lbl_address: 'Dirección', lbl_birthday: 'Cumpleaños',
-                lbl_belt: 'Cinturón', lbl_status: 'Estado', btn_save: 'Guardar', btn_cancel: 'Cancelar',
+                lbl_belt: 'Cinturón', lbl_status: 'Estado', btn_save: 'Guardar',
                 empty_students: 'No hay estudiantes. Agrega uno nuevo.',
                 // ── LEADS ──
                 leads_title:   '🎯 Gestión de Leads',
@@ -5186,36 +4867,6 @@ async function submitLead(){
                 pay_reason_desc:    'Configura las razones de pago que aparecen en los dropdowns del CRM',
                 btn_add_item:       '+ Agregar',
                 btn_add_reason:     '+ Agregar',
-                pay_reason_monthly: 'Mensualidad',
-                pay_reason_belt_exam: 'Examen de Cinturón',
-                pay_reason_event: 'Evento/Torneo',
-                pay_reason_uniform: 'Uniforme',
-                pay_reason_equipment: 'Equipo',
-                pay_reason_registration: 'Inscripción',
-                inv_cost: 'Costo',
-                inv_price: 'Venta',
-                inv_gain: 'Ganancia',
-                inv_stock: 'Stock',
-                inv_sold: 'Vendidas',
-                inv_total_gain: 'Total Ganado',
-                store_inventory_title: '📦 Inventario de Tienda',
-                store_inventory_desc: 'Gestiona tus productos: precio, costo, stock y ganancias',
-                program_children: 'Niños',
-                program_youth: 'Juventud',
-                program_adults: 'Adultos',
-                program_selfdefense: 'Autodefensa',
-                program_blackbelt: 'Black Belt',
-                program_family: 'Familiar',
-                program_3months_classes: '3 Meses de Clases por Solo $149.00',
-                belt_white: 'Blanco',
-                belt_yellow: 'Amarillo',
-                belt_orange: 'Naranja',
-                belt_green: 'Verde',
-                belt_blue: 'Azul',
-                belt_red: 'Rojo',
-                belt_brown: 'Marrón',
-                belt_black: 'Negro',
-                belt_purple: 'Púrpura',
                 config_backup:      '💾 Backup & Restaurar',
                 btn_update:         'Actualizar',
                 btn_add:            '+ Agregar',
@@ -5228,10 +4879,8 @@ async function submitLead(){
                 btn_buy: '🛒 Comprar',
                 modal_new_product: '✨ Nuevo Producto', modal_edit_product: '✏️ Editar Producto',
                 lbl_prod_name: 'Nombre del producto *', lbl_prod_desc: 'Descripción',
-                lbl_prod_cost: 'Precio de Costo ($) *', lbl_prod_price: 'Precio de Venta ($) *',
-                lbl_gain_calc: 'Ganancia calculada:', lbl_prod_cat: 'Categoría',
-                lbl_prod_emoji: 'Emoji / Ícono', lbl_prod_emoji_selected: 'Ícono seleccionado',
-                lbl_prod_stock: '📦 Inventario (unidades)', lbl_prod_featured: '¿Destacar producto?',
+                lbl_prod_price: 'Precio ($) *', lbl_prod_cat: 'Categoría',
+                lbl_prod_emoji: 'Emoji / Ícono', lbl_prod_featured: '¿Destacar producto?',
                 lbl_featured_yes: 'Sí — mostrar badge "Destacado"', lbl_featured_no: 'No',
                 modal_checkout: '💳 Completar Compra',
                 lbl_buyer: 'Nombre del comprador', lbl_pay_method: 'Método de pago',
@@ -5645,7 +5294,7 @@ async function submitLead(){
                 modal_new_student: 'New Student', modal_edit_student: 'Edit Student',
                 lbl_fullname: 'Full name', lbl_phone: 'Phone', lbl_email: 'Email',
                 lbl_program: 'Program', lbl_address: 'Address', lbl_birthday: 'Birthday',
-                lbl_belt: 'Belt', lbl_status: 'Status', btn_save: 'Save', btn_cancel: 'Cancel',
+                lbl_belt: 'Belt', lbl_status: 'Status', btn_save: 'Save',
                 empty_students: 'No students yet. Add one!',
                 // ── LEADS ──
                 leads_title:   '🎯 Lead Management',
@@ -5702,36 +5351,6 @@ async function submitLead(){
                 pay_reason_desc:    'Configure the payment reasons that appear in the CRM dropdowns',
                 btn_add_item:       '+ Add',
                 btn_add_reason:     '+ Add',
-                pay_reason_monthly: 'Monthly Fee',
-                pay_reason_belt_exam: 'Belt Exam',
-                pay_reason_event: 'Event/Tournament',
-                pay_reason_uniform: 'Uniform',
-                pay_reason_equipment: 'Equipment',
-                pay_reason_registration: 'Registration',
-                inv_cost: 'Cost',
-                inv_price: 'Price',
-                inv_gain: 'Profit',
-                inv_stock: 'Stock',
-                inv_sold: 'Sold',
-                inv_total_gain: 'Total Earned',
-                store_inventory_title: '📦 Store Inventory',
-                store_inventory_desc: 'Manage your products: price, cost, stock and profits',
-                program_children: 'Children',
-                program_youth: 'Youth',
-                program_adults: 'Adults',
-                program_selfdefense: 'Self-Defense',
-                program_blackbelt: 'Black Belt',
-                program_family: 'Family',
-                program_3months_classes: '3 Months of Classes for Only $149.00',
-                belt_white: 'White',
-                belt_yellow: 'Yellow',
-                belt_orange: 'Orange',
-                belt_green: 'Green',
-                belt_blue: 'Blue',
-                belt_red: 'Red',
-                belt_brown: 'Brown',
-                belt_black: 'Black',
-                belt_purple: 'Purple',
                 config_backup:      '💾 Backup & Restore',
                 btn_update:         'Update',
                 btn_add:            '+ Add',
@@ -5883,10 +5502,8 @@ async function submitLead(){
                 btn_buy: '🛒 Buy Now',
                 modal_new_product: '✨ New Product', modal_edit_product: '✏️ Edit Product',
                 lbl_prod_name: 'Product name *', lbl_prod_desc: 'Description',
-                lbl_prod_cost: 'Cost Price ($) *', lbl_prod_price: 'Sale Price ($) *',
-                lbl_gain_calc: 'Calculated profit:', lbl_prod_cat: 'Category',
-                lbl_prod_emoji: 'Emoji / Icon', lbl_prod_emoji_selected: 'Selected icon',
-                lbl_prod_stock: '📦 Inventory (units)', lbl_prod_featured: 'Feature this product?',
+                lbl_prod_price: 'Price ($) *', lbl_prod_cat: 'Category',
+                lbl_prod_emoji: 'Emoji / Icon', lbl_prod_featured: 'Feature this product?',
                 lbl_featured_yes: 'Yes — show "Featured" badge', lbl_featured_no: 'No',
                 modal_checkout: '💳 Complete Purchase',
                 lbl_buyer: 'Buyer name', lbl_pay_method: 'Payment method',
@@ -6062,13 +5679,11 @@ async function submitLead(){
 
         async function refreshData() {
             await loadData();
-            loadTrainingsFromStorage();
             renderStudents();
             renderLeads();
             renderPayments();
             renderAttendance();
             renderEvents();
-            renderTrainings();
             renderDashboardExtras();
             const btn = document.querySelector('[onclick="refreshData()"]');
             if (btn) { btn.textContent = '✅ Updated'; setTimeout(()=>{ btn.textContent = '🔄 Sync'; }, 2000); }
@@ -6078,748 +5693,33 @@ async function submitLead(){
         // SISTEMA DE IDIOMA MEJORADO
         // ═══════════════════════════════════════════
         
-        // ═══════════════════════════════════════════
-        // BOTÓN FLOTANTE DRAGGABLE DE FOTOS
-        // ═══════════════════════════════════════════
-        
-        let draggedElement = null;
-        let offsetX = 0;
-        let offsetY = 0;
-        
-        function startDragFloat(event) {
-            draggedElement = event.target;
-            draggedElement.classList.add('dragging');
-            const rect = draggedElement.getBoundingClientRect();
-            offsetX = event.clientX - rect.left;
-            offsetY = event.clientY - rect.top;
-            event.dataTransfer.effectAllowed = 'move';
-        }
-        
-        function allowDrop(event) {
-            event.preventDefault();
-        }
-        
-        function dropFloat(event) {
-            event.preventDefault();
-            if (draggedElement) {
-                const x = event.clientX - offsetX;
-                const y = event.clientY - offsetY;
-                draggedElement.style.left = x + 'px';
-                draggedElement.style.right = 'auto';
-                draggedElement.style.bottom = 'auto';
-                draggedElement.style.top = y + 'px';
-                draggedElement.classList.remove('dragging');
-                draggedElement = null;
-            }
-        }
-        
-        // ═══════════════════════════════════════════
-        // FUNCIONES DE MULTIMEDIA COMPLETAS
-        // ═══════════════════════════════════════════
-        
-        let mediaStream = null;
-        let capturedFiles = []; // Almacenamiento temporal de archivos
-        let currentEditingIndex = null;
-        
-        function selectStudentForGallery(id) {
-            currentStudent = students.find(s => s.id === id);
-            if (!currentStudent) return;
-            
-            // Desplazar a la sección de galería
-            document.getElementById('studentGallerySection').style.display = 'block';
-            document.getElementById('galleryStudentName').textContent = (currentLang === 'es' ? 'Estudiante: ' : 'Student: ') + (currentStudent.name || 'Sin nombre');
-            
-            loadStudentGalleryFront();
-            
-            // Desplazar la página hacia la galería
-            setTimeout(() => {
-                document.getElementById('studentGallerySection').scrollIntoView({behavior: 'smooth'});
-            }, 100);
-        }
-        
-        function openMediaPanel() {
-            if (!currentStudent || !currentStudent.id) {
-                alert(currentLang === 'es' ? '❌ Primero selecciona un estudiante de la tabla' : '❌ First select a student from the table');
-                return;
-            }
-            
-            // Asegurar que el estudiante esté en la lista actualizada
-            const student = students.find(s => s.id === currentStudent.id);
-            if (!student) {
-                alert(currentLang === 'es' ? '❌ Estudiante no encontrado' : '❌ Student not found');
-                currentStudent = null;
-                return;
-            }
-            
-            currentStudent = student;
-            console.log('📸 Abriendo panel de multimedia para:', currentStudent.name);
-            
-            document.getElementById('mediaModal').style.display = 'block';
-            switchMediaTab('camera');
-            capturedFiles = [];
-        }
-        
-        function closeMediaModal() {
-            document.getElementById('mediaModal').style.display = 'none';
-            stopCamera();
-        }
-        
-        function switchMediaTab(tab) {
-            // Actualizar botones
-            document.getElementById('tabCamera').style.background = tab === 'camera' ? '#1e3a5f' : '#1e1e3f';
-            document.getElementById('tabCamera').style.color = tab === 'camera' ? '#60a5fa' : '#aaa';
-            document.getElementById('tabUpload').style.background = tab === 'upload' ? '#1e3a5f' : '#1e1e3f';
-            document.getElementById('tabUpload').style.color = tab === 'upload' ? '#60a5fa' : '#aaa';
-            document.getElementById('tabGallery').style.background = tab === 'gallery' ? '#1e3a5f' : '#1e1e3f';
-            document.getElementById('tabGallery').style.color = tab === 'gallery' ? '#60a5fa' : '#aaa';
-            
-            // Ocultar todos
-            document.getElementById('mediaCamera').style.display = 'none';
-            document.getElementById('mediaUpload').style.display = 'none';
-            document.getElementById('mediaGallery').style.display = 'none';
-            
-            // Mostrar seleccionado
-            if (tab === 'camera') {
-                document.getElementById('mediaCamera').style.display = 'block';
-            } else if (tab === 'upload') {
-                document.getElementById('mediaUpload').style.display = 'block';
-            } else if (tab === 'gallery') {
-                document.getElementById('mediaGallery').style.display = 'block';
-                loadGallery();
-            }
-        }
-        
-        // ════════════════════════════════
-        // FUNCIONES DE CÁMARA
-        // ════════════════════════════════
-        
-        function startCamera() {
-            navigator.mediaDevices.getUserMedia({
-                video: {facingMode: 'user', width: {ideal: 1280}, height: {ideal: 720}},
-                audio: false
-            })
-                .then(stream => {
-                    mediaStream = stream;
-                    const video = document.getElementById('videoCapture');
-                    video.srcObject = stream;
-                    console.log('✅ Cámara iniciada');
-                })
-                .catch(err => {
-                    alert(currentLang === 'es' ? '❌ Error al acceder a la cámara' : '❌ Error accessing camera');
-                    console.error(err);
-                });
-        }
-        
-        function stopCamera() {
-            if (mediaStream) {
-                mediaStream.getTracks().forEach(track => track.stop());
-                document.getElementById('videoCapture').srcObject = null;
-                console.log('✅ Cámara detenida');
-            }
-        }
-        
-        function captureFromCamera() {
-            const video = document.getElementById('videoCapture');
-            if (!video.srcObject) {
-                alert(currentLang === 'es' ? 'Inicia la cámara primero' : 'Start camera first');
-                return;
-            }
-            
-            const canvas = document.getElementById('captureCanvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0);
-            
-            const photoData = canvas.toDataURL('image/jpeg', 0.9);
-            
-            // Agregar a lista temporal
-            capturedFiles.push({
-                id: Date.now(),
-                type: 'camera',
-                data: photoData,
-                name: 'Foto_' + new Date().toLocaleTimeString().replace(/:/g, '-'),
-                timestamp: new Date().toLocaleString(),
-                rotation: 0
-            });
-            
-            showCapturePreview();
-            console.log('✅ Foto capturada - Total: ' + capturedFiles.length);
-        }
-        
-        function showCapturePreview() {
-            const preview = document.getElementById('capturePreview');
-            const img = document.getElementById('captureImage');
-            const lastFile = capturedFiles[capturedFiles.length - 1];
-            
-            img.src = lastFile.data;
-            preview.style.display = 'block';
-            
-            // Actualizar galería de previsualizaciones
-            updateCaptureGalleryPreview();
-        }
-        
-        function updateCaptureGalleryPreview() {
-            const gallery = document.getElementById('captureGallery');
-            const countLabel = document.getElementById('captureCountLabel');
-            
-            if (capturedFiles.length === 0) {
-                gallery.innerHTML = '';
-                countLabel.textContent = '';
-                return;
-            }
-            
-            countLabel.textContent = `📸 ${capturedFiles.length} foto(s) capturada(s):`;
-            
-            gallery.innerHTML = capturedFiles.map((file, idx) => `
-                <div style="position:relative;border:2px solid #60a5fa;border-radius:8px;overflow:hidden;cursor:pointer" onclick="selectCapturePreview(${idx})">
-                    <img src="${file.data}" style="width:100%;height:100px;object-fit:cover">
-                    <div style="position:absolute;top:5px;right:5px;background:#000;color:#fff;padding:2px 6px;font-size:10px;border-radius:4px;font-weight:700">${idx + 1}</div>
-                </div>
-            `).join('');
-        }
-        
-        function selectCapturePreview(idx) {
-            const file = capturedFiles[idx];
-            const img = document.getElementById('captureImage');
-            img.src = file.data;
-            img.style.transform = `rotate(${file.rotation}deg)`;
-            console.log('📸 Foto ' + (idx + 1) + ' seleccionada');
-        }
-        
-        function saveCaptureToDB() {
-            console.log('🔍 DEBUG: Intentando guardar foto...');
-            console.log('currentStudent:', currentStudent);
-            console.log('capturedFiles:', capturedFiles);
-            
-            if (!currentStudent || !currentStudent.id) {
-                alert(currentLang === 'es' ? '❌ Debes seleccionar un estudiante primero.\n\n1. Ve a la pestaña "Estudiantes"\n2. Haz click en el botón "🗂️" (Galería) de un estudiante\n3. Luego usa "📸 Agregar Multimedia"' : '❌ Select a student first.\n\n1. Go to "Students" tab\n2. Click "🗂️" (Gallery) button on a student\n3. Then use "📸 Add Multimedia"');
-                return;
-            }
-            
-            if (!capturedFiles || capturedFiles.length === 0) {
-                alert(currentLang === 'es' ? '❌ No hay foto capturada' : '❌ No photo captured');
-                return;
-            }
-            
-            // Buscar el estudiante en la lista actualizada
-            let student = students.find(s => s.id === currentStudent.id);
-            if (!student) {
-                alert(currentLang === 'es' ? '❌ Estudiante no encontrado en la base de datos' : '❌ Student not found in database');
-                return;
-            }
-            
-            if (!student.media) student.media = [];
-            
-            const lastFile = capturedFiles[capturedFiles.length - 1];
-            console.log('📸 Guardando foto:', lastFile.name);
-            console.log('📸 Tipo:', lastFile.type);
-            console.log('📸 Timestamp:', lastFile.timestamp);
-            
-            student.media.push({
-                type: 'photo',
-                data: lastFile.data,
-                name: lastFile.name,
-                timestamp: lastFile.timestamp
-            });
-            
-            console.log('✅ Foto agregada al estudiante. Total fotos:', student.media.length);
-            
-            // Actualizar en la lista de estudiantes
-            const idx = students.findIndex(s => s.id === student.id);
-            if (idx >= 0) {
-                students[idx] = student;
-            }
-            
-            currentStudent = student;
-            
-            // GUARDAR TODO
-            saveToStorage();
-            console.log('💾 Datos guardados en localStorage');
-            
-            alert(currentLang === 'es' ? '✅ Foto guardada en el registro de ' + student.name : '✅ Photo saved to ' + student.name + "'s record");
-            
-            discardCapture();
-            
-            // Cerrar modal Y mostrar galería
-            setTimeout(() => {
-                closeMediaModal();
-                loadStudentGalleryFront();
-                switchMediaTab('gallery');
-                loadGallery();
-            }, 300);
-        }
-        
-        function discardCapture() {
-            capturedFiles.pop();
-            document.getElementById('capturePreview').style.display = 'none';
-            document.getElementById('captureImage').src = '';
-            console.log('❌ Foto descartada');
-        }
-        
-        function rotateLastCapture() {
-            if (capturedFiles.length === 0) return;
-            
-            const lastFile = capturedFiles[capturedFiles.length - 1];
-            lastFile.rotation = (lastFile.rotation + 90) % 360;
-            
-            const img = document.getElementById('captureImage');
-            img.style.transform = `rotate(${lastFile.rotation}deg)`;
-            console.log('🔄 Foto rotada: ' + lastFile.rotation + '°');
-        }
-        
-        // ════════════════════════════════
-        // FUNCIONES DE ARCHIVO
-        // ════════════════════════════════
-        
-        function handleFileSelect(event) {
-            const files = event.target.files;
-            processMediaFiles(files);
-        }
-        
-        function processMediaFiles(files) {
-            for (let file of files) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    capturedFiles.push({
-                        id: Date.now() + Math.random(),
-                        type: getFileType(file.type),
-                        data: e.target.result,
-                        name: file.name,
-                        timestamp: new Date().toLocaleString(),
-                        rotation: 0
-                    });
-                    updateFilePreview();
-                    console.log('✅ Archivo cargado: ' + file.name);
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-        
-        function getFileType(mimeType) {
-            if (mimeType.startsWith('image')) return 'photo';
-            if (mimeType.startsWith('video')) return 'video';
-            return 'document';
-        }
-        
-        function updateFilePreview() {
-            const preview = document.getElementById('fileUploadPreview');
-            preview.innerHTML = capturedFiles.map((file, idx) => `
-                <div style="position:relative;background:#1e1e3f;border:1px solid #333;border-radius:8px;overflow:hidden;cursor:pointer">
-                    ${file.type === 'photo' ? `<img src="${file.data}" style="width:100%;height:120px;object-fit:cover">` : `<div style="width:100%;height:120px;display:flex;align-items:center;justify-content:center;background:#0f172a">📄</div>`}
-                    <div style="position:absolute;top:5px;right:5px;background:#000;color:#fff;padding:3px 8px;font-size:10px;border-radius:4px">${file.type}</div>
-                    <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.7);color:#fff;padding:5px;font-size:10px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${file.name.substring(0,15)}</div>
-                </div>
-            `).join('');
-        }
-        
-        function removeFilePreview(idx) {
-            capturedFiles.splice(idx, 1);
-            updateFilePreview();
-        }
-        
-        // ════════════════════════════════
-        // FUNCIONES DE GALERÍA
-        // ════════════════════════════════
-        
-        // ════════════════════════════════
-        // FUNCIONES DE GALERÍA
-        // ════════════════════════════════
-        
-        function loadGallery() {
-            // Cargar galería en MODAL
-            if (!currentStudent || !currentStudent.media || currentStudent.media.length === 0) {
-                document.getElementById('galleryContent').innerHTML = '<p style="color:#888;grid-column:1/-1;text-align:center;padding:40px;font-size:14px">' + (currentLang === 'es' ? '📭 Sin archivos en la galería' : '📭 No files in gallery') + '</p>';
-                return;
-            }
-            
-            const gallery = currentStudent.media.map((item, idx) => `
-                <div style="position:relative;background:#1e1e3f;border:2px solid #333;border-radius:8px;overflow:hidden;cursor:pointer;aspect-ratio:1;display:flex;align-items:center;justify-content:center;group" onmouseover="this.querySelector('.gallery-overlay').style.display='flex'" onmouseout="this.querySelector('.gallery-overlay').style.display='none'">
-                    ${item.type === 'photo' ? `<img src="${item.data}" style="width:100%;height:100%;object-fit:cover;cursor:pointer" onclick="viewMediaItem(${idx})">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#0f172a;font-size:40px;cursor:pointer" onclick="viewMediaItem(${idx})">📄</div>`}
-                    
-                    <div class="gallery-overlay" style="position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;border-radius:6px">
-                        <div style="display:flex;gap:8px;width:90%;justify-content:center">
-                            <button onclick="event.stopPropagation(); rotateGalleryItem(${idx})" style="background:#ffd700;color:#000;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;font-weight:700;font-size:14px;flex:1;white-space:nowrap">🔄 Rotar</button>
-                            <button onclick="event.stopPropagation(); deleteGalleryItem(${idx})" style="background:#dc2626;color:#fff;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;font-weight:700;font-size:14px;flex:1;white-space:nowrap">🗑️ Basura</button>
-                        </div>
-                        <div style="color:#fff;font-size:11px;text-align:center">
-                            <span style="background:#3b82f6;padding:3px 8px;border-radius:4px">${item.type}</span>
-                        </div>
-                    </div>
-                    
-                    <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.8);color:#fff;padding:5px;font-size:9px;text-align:center">${item.timestamp.split(' ')[0]}</div>
-                </div>
-            `).join('');
-            
-            document.getElementById('galleryContent').innerHTML = gallery;
-            console.log('🗂️ Galería cargada con', currentStudent.media.length, 'archivos');
-        }
-        
-        function rotateGalleryItem(idx) {
-            if (!currentStudent || !currentStudent.media[idx]) return;
-            
-            const item = currentStudent.media[idx];
-            if (item.type !== 'photo') {
-                alert(currentLang === 'es' ? 'Solo se pueden rotar fotos' : 'Only photos can be rotated');
-                return;
-            }
-            
-            item.rotation = (item.rotation || 0) + 90;
-            if (item.rotation >= 360) item.rotation = 0;
-            
-            saveToStorage();
-            loadGallery();
-            console.log('🔄 Foto rotada:', item.rotation + '°');
-        }
-        
-        function loadStudentGalleryFront() {
-            // Cargar galería EN LA VISTA PRINCIPAL (al frente)
-            if (!currentStudent || !currentStudent.media || currentStudent.media.length === 0) {
-                document.getElementById('studentMediaGallery').innerHTML = '<p id="emptyGalleryMessage" style="color:#888;grid-column:1/-1;text-align:center;padding:40px"><span id="emptyGalleryText">Sin archivos</span></p>';
-                document.getElementById('studentGallerySection').style.display = 'none';
-                return;
-            }
-            
-            document.getElementById('studentGallerySection').style.display = 'block';
-            document.getElementById('galleryStudentName').textContent = (currentLang === 'es' ? 'Estudiante: ' : 'Student: ') + (currentStudent.name || 'Sin nombre');
-            
-            const gallery = currentStudent.media.map((item, idx) => `
-                <div style="position:relative;background:#1e1e3f;border:2px solid #333;border-radius:8px;overflow:hidden;cursor:pointer;aspect-ratio:1;display:flex;align-items:center;justify-content:center" onclick="viewMediaItem(${idx})">
-                    ${item.type === 'photo' ? `<img src="${item.data}" style="width:100%;height:100%;object-fit:cover">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#0f172a;font-size:50px">📄</div>`}
-                    <div style="position:absolute;top:5px;left:5px;background:#3b82f6;color:#fff;padding:3px 8px;font-size:10px;border-radius:4px;font-weight:700">${item.type}</div>
-                    <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.8);color:#fff;padding:5px;font-size:9px;text-align:center">${item.timestamp.split(' ')[0]}</div>
-                    <div style="position:absolute;top:5px;right:5px;display:flex;gap:3px">
-                        <button onclick="event.stopPropagation(); deleteGalleryItem(${idx}); loadStudentGalleryFront()" style="background:#dc2626;color:#fff;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;font-weight:700;font-size:12px">🗑️</button>
-                    </div>
-                </div>
-            `).join('');
-            
-            document.getElementById('studentMediaGallery').innerHTML = gallery;
-        }
-        
-        function viewMediaItem(idx) {
-            const item = currentStudent.media[idx];
-            if (item.type === 'photo' || item.type === 'video') {
-                const modal = document.createElement('div');
-                modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:10000;cursor:pointer;padding:20px';
-                modal.onclick = () => modal.remove();
-                
-                if (item.type === 'photo') {
-                    const img = document.createElement('img');
-                    img.src = item.data;
-                    img.style.cssText = 'max-width:90%;max-height:90%;border-radius:8px;box-shadow:0 0 30px rgba(255,255,255,0.2)';
-                    modal.appendChild(img);
-                } else {
-                    const video = document.createElement('video');
-                    video.src = item.data;
-                    video.controls = true;
-                    video.style.cssText = 'max-width:90%;max-height:90%;border-radius:8px;box-shadow:0 0 30px rgba(255,255,255,0.2)';
-                    modal.appendChild(video);
-                }
-                
-                document.body.appendChild(modal);
-            }
-        }
-        
-        function editGalleryItem(idx) {
-            alert(currentLang === 'es' ? 'Función de edición en desarrollo' : 'Edit feature coming soon');
-        }
-        
-        function deleteGalleryItem(idx) {
-            if (confirm(currentLang === 'es' ? '¿Eliminar este archivo?' : 'Delete this file?')) {
-                currentStudent.media.splice(idx, 1);
-                saveToStorage();
-                loadGallery();
-                loadStudentGalleryFront();
-                console.log('🗑️ Archivo eliminado');
-            }
-        }
-        
-        function saveMediaToStudent() {
-            if (!currentStudent || !currentStudent.id) {
-                alert(currentLang === 'es' ? '❌ Debes seleccionar un estudiante primero' : '❌ Select a student first');
-                return;
-            }
-            
-            if (!capturedFiles || capturedFiles.length === 0) {
-                alert(currentLang === 'es' ? '❌ No hay archivos para guardar' : '❌ No files to save');
-                return;
-            }
-            
-            // Buscar el estudiante actualizado
-            let student = students.find(s => s.id === currentStudent.id);
-            if (!student) {
-                alert(currentLang === 'es' ? '❌ Estudiante no encontrado' : '❌ Student not found');
-                return;
-            }
-            
-            if (!student.media) student.media = [];
-            
-            const before = student.media.length;
-            
-            capturedFiles.forEach(file => {
-                student.media.push({
-                    type: file.type,
-                    data: file.data,
-                    name: file.name,
-                    timestamp: file.timestamp
-                });
-            });
-            
-            // Actualizar estudiante en lista
-            const idx = students.findIndex(s => s.id === student.id);
-            if (idx >= 0) {
-                students[idx] = student;
-            }
-            
-            currentStudent = student;
-            
-            saveToStorage();
-            capturedFiles = [];
-            document.getElementById('fileUploadPreview').innerHTML = '';
-            
-            console.log('✅ Guardados', (student.media.length - before), 'archivos');
-            alert(currentLang === 'es' ? '✅ ' + (student.media.length - before) + ' archivo(s) guardado(s) en ' + student.name : '✅ ' + (student.media.length - before) + ' file(s) saved to ' + student.name);
-            
-            setTimeout(() => {
-                closeMediaModal();
-                loadStudentGalleryFront();
-                switchMediaTab('gallery');
-                loadGallery();
-            }, 300);
-        }
-        
-        // ═══════════════════════════════════════════
-        // ENTRENAMIENTOS Y EDUCATIVOS
-        // ═══════════════════════════════════════════
-        
-        let trainings = [];
-        
-        function openUploadTrainingModal() {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'video/*';
-            input.onchange = (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    const training = {
-                        id: Date.now().toString(),
-                        title: prompt(currentLang === 'es' ? 'Título del video' : 'Video title') || 'Video ' + new Date().toLocaleString(),
-                        description: prompt(currentLang === 'es' ? 'Descripción (opcional)' : 'Description (optional)') || '',
-                        data: event.target.result,
-                        uploadedAt: new Date().toLocaleString(),
-                        duration: '0:00'
-                    };
-                    
-                    trainings.push(training);
-                    saveTrainingsToStorage();
-                    renderTrainings();
-                    alert(currentLang === 'es' ? '✅ Video guardado' : '✅ Video saved');
-                    console.log('📹 Video agregado:', training.title);
-                };
-                reader.readAsDataURL(file);
-            };
-            input.click();
-        }
-        
-        function renderTrainings() {
-            const container = document.getElementById('trainingsList');
-            
-            if (trainings.length === 0) {
-                container.innerHTML = `<p id="noTrainingsMsg" style="color:#888;grid-column:1/-1;text-align:center;padding:40px">${currentLang === 'es' ? 'Sin videos aún' : 'No videos yet'}</p>`;
-                return;
-            }
-            
-            container.innerHTML = trainings.map(t => `
-                <div style="background:#0f172a;border:1px solid #333;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:all 0.3s">
-                    <div style="background:#000;height:150px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden" onclick="playTrainingVideo('${t.id}')">
-                        <div style="font-size:50px">🎥</div>
-                        <div style="position:absolute;top:10px;right:10px;background:#c41e3a;color:#fff;padding:5px 10px;border-radius:6px;font-size:12px;font-weight:700">PLAY</div>
-                    </div>
-                    <div style="padding:15px;flex:1;display:flex;flex-direction:column">
-                        <h4 style="color:#fff;margin:0 0 8px 0;font-size:14px">${t.title}</h4>
-                        <p style="color:#888;font-size:12px;margin:0 0 10px 0;flex:1">${t.description || 'Sin descripción'}</p>
-                        <p style="color:#666;font-size:11px;margin:0 0 10px 0">📅 ${t.uploadedAt.split(' ')[0]}</p>
-                        <div style="display:flex;gap:8px">
-                            <button onclick="shareTrainingVideo('${t.id}')" style="flex:1;background:#3b82f6;color:#fff;border:none;padding:8px;border-radius:6px;cursor:pointer;font-weight:700;font-size:12px">📤 Compartir</button>
-                            <button onclick="deleteTrainingVideo('${t.id}')" style="flex:1;background:#dc2626;color:#fff;border:none;padding:8px;border-radius:6px;cursor:pointer;font-weight:700;font-size:12px">🗑️ Eliminar</button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-        
-        function playTrainingVideo(id) {
-            const training = trainings.find(t => t.id === id);
-            if (!training) return;
-            
-            const modal = document.createElement('div');
-            modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10001;padding:20px';
-            
-            const video = document.createElement('video');
-            video.src = training.data;
-            video.controls = true;
-            video.autoplay = true;
-            video.style.cssText = 'max-width:90%;max-height:90%;border-radius:8px';
-            
-            const title = document.createElement('p');
-            title.textContent = training.title;
-            title.style.cssText = 'color:#fff;margin-top:15px;font-size:14px;font-weight:700';
-            
-            const closeBtn = document.createElement('button');
-            closeBtn.textContent = '✕ Cerrar';
-            closeBtn.style.cssText = 'position:absolute;top:20px;right:20px;background:#c41e3a;color:#fff;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-weight:700';
-            closeBtn.onclick = () => modal.remove();
-            
-            modal.appendChild(closeBtn);
-            modal.appendChild(video);
-            modal.appendChild(title);
-            modal.onclick = (e) => {
-                if (e.target === modal) modal.remove();
-            };
-            
-            document.body.appendChild(modal);
-            console.log('▶️ Reproduciendo:', training.title);
-        }
-        
-        function shareTrainingVideo(id) {
-            const training = trainings.find(t => t.id === id);
-            if (!training) return;
-            
-            // Copiar link de descarga en base64
-            const downloadLink = document.createElement('a');
-            downloadLink.href = training.data;
-            downloadLink.download = training.title + '.mp4';
-            
-            alert(currentLang === 'es' ? '📤 Video listo para compartir.\n\nClick OK para descargar o comparte el link.' : '📤 Video ready to share.\n\nClick OK to download or share the link.');
-            downloadLink.click();
-        }
-        
-        function deleteTrainingVideo(id) {
-            if (confirm(currentLang === 'es' ? '¿Eliminar este video?' : 'Delete this video?')) {
-                trainings = trainings.filter(t => t.id !== id);
-                saveTrainingsToStorage();
-                renderTrainings();
-                console.log('🗑️ Video eliminado');
-            }
-        }
-        
-        function saveTrainingsToStorage() {
-            const data = JSON.parse(localStorage.getItem('crmData') || '{}');
-            data.trainings = trainings;
-            localStorage.setItem('crmData', JSON.stringify(data));
-            console.log('💾 Entrenamientos guardados:', trainings.length);
-        }
-        
-        function loadTrainingsFromStorage() {
-            const data = JSON.parse(localStorage.getItem('crmData') || '{}');
-            trainings = data.trainings || [];
-            console.log('📹 Entrenamientos cargados:', trainings.length);
-        }
-        
         function toggleLanguage() {
-            // Paso 1: Cambiar idioma
             currentLang = currentLang === 'es' ? 'en' : 'es';
+            // Guardar preferencia
             try { localStorage.setItem('crmLanguage', currentLang); } catch(e) {}
             
-            // Paso 2: Actualizar botones del header
+            console.log('📢 Idioma cambiado a:', currentLang);
+            console.log('🔄 Iniciando traducción de elementos...');
+            
+            // Cambiar botón del header
             const btn = document.getElementById('langToggle');
             if (btn) btn.textContent = currentLang === 'es' ? '🇺🇸 English' : '🇪🇸 Español';
             
+            // Cambiar botón flotante
             const fabBtn = document.getElementById('floatingLangBtn');
             if (fabBtn) fabBtn.textContent = currentLang === 'es' ? '🇺🇸' : '🇪🇸';
             
-            // Paso 3: ACTUALIZAR BOTÓN "+ CREAR PAQUETE" (ÚNICO)
-            const btnPackage = document.getElementById('btnCreatePackageConfig');
-            if (btnPackage) {
-                btnPackage.textContent = currentLang === 'es' ? '+ Crear Paquete' : '+ Create Package';
-            }
-            
-            // Paso 4: ACTUALIZAR TÍTULO H3 EN CONFIGURACIÓN
-            const promoTitleConfig = document.getElementById('promoTitleConfig');
-            if (promoTitleConfig) {
-                promoTitleConfig.textContent = currentLang === 'es' ? '🛍️ Paquetes y Promociones' : '🛍️ Packages & Promotions';
-            }
-            
-            // Paso 5: ACTUALIZAR TÍTULO H2 EN TIENDA
-            const promoTitleStore = document.getElementById('promoTitleStore');
-            if (promoTitleStore) {
-                promoTitleStore.textContent = currentLang === 'es' ? '🎁 Paquetes y Promociones' : '🎁 Packages & Promotions';
-            }
-            
-            // Paso 6: ACTUALIZAR TÍTULO DEL MODAL
-            const promoModalTitle = document.getElementById('promoModalTitle');
-            if (promoModalTitle) {
-                promoModalTitle.textContent = currentLang === 'es' ? '🎁 Nuevo Paquete' : '🎁 New Package';
-            }
-            
-            // Paso 7: REGENERAR SECCIÓN VACÍA DE PAQUETES
-            const promoSection = document.getElementById('promoSection');
-            if (promoSection && storePromotions.length === 0) {
-                promoSection.innerHTML = `<div style="text-align:center;padding:30px;color:#888">
-                    <div style="font-size:48px;margin-bottom:10px">🎁</div>
-                    <p>${currentLang === 'es' ? 'No hay paquetes creados.' : 'No packages created.'}</p>
-                    <p style="font-size:12px">${currentLang === 'es' ? '¡Agrega tu primer paquete!' : 'Create your first package!'}</p>
-                </div>`;
-            }
-            
-            // Paso 8: Regenerar sección vacía de paquetes
-            const promoSection = document.getElementById('promoSection');
-            if (promoSection && storePromotions.length === 0) {
-                promoSection.innerHTML = `<div style="text-align:center;padding:30px;color:#888">
-                    <div style="font-size:48px;margin-bottom:10px">🎁</div>
-                    <p>${currentLang === 'es' ? 'No hay paquetes creados.' : 'No packages created.'}</p>
-                    <p style="font-size:12px">${currentLang === 'es' ? '¡Agrega tu primer paquete!' : 'Create your first package!'}</p>
-                </div>`;
-            }
-            
-            // Paso 9: Actualizar textos de galería
-            const galleryTitle = document.getElementById('galleryTitle');
-            if (galleryTitle) {
-                galleryTitle.textContent = (currentLang === 'es' ? '🗂️ Galería de Multimedia' : '🗂️ Multimedia Gallery');
-            }
-            
-            const btnAddMedia = document.getElementById('btnAddMedia');
-            if (btnAddMedia) {
-                btnAddMedia.textContent = (currentLang === 'es' ? '📸 Agregar Multimedia' : '📸 Add Multimedia');
-            }
-            
-            const emptyGalleryText = document.getElementById('emptyGalleryText');
-            if (emptyGalleryText) {
-                emptyGalleryText.textContent = (currentLang === 'es' ? 'Sin archivos' : 'No files');
-            }
-            
-            const emptyModalGallery = document.getElementById('emptyModalGallery');
-            if (emptyModalGallery) {
-                emptyModalGallery.textContent = (currentLang === 'es' ? 'Sin archivos en la galería' : 'No files in gallery');
-            }
-            
-            // Paso 11: Actualizar textos de entrenamientos
-            const trainingsTitle = document.getElementById('trainingsTitle');
-            if (trainingsTitle) {
-                trainingsTitle.textContent = (currentLang === 'es' ? '🎥 Entrenamientos y Educativos' : '🎥 Training and Educational');
-            }
-            
-            const trainingListTitle = document.getElementById('trainingListTitle');
-            if (trainingListTitle) {
-                trainingListTitle.textContent = (currentLang === 'es' ? '📹 Videos de Entrenamiento' : '📹 Training Videos');
-            }
-            
-            const noTrainingsMsg = document.getElementById('noTrainingsMsg');
-            if (noTrainingsMsg) {
-                noTrainingsMsg.textContent = (currentLang === 'es' ? 'Sin videos aún' : 'No videos yet');
-            }
-            
-            // Paso 12: Aplicar traducción general para los demás elementos
+            // Aplicar traducción
             applyLanguage();
             
-            // Paso 13: Guardar
-            saveToStorage();
+            // Forzar actualización de todos los elementos después de un pequeño delay
+            setTimeout(() => {
+                forceLanguageUpdate();
+                console.log('✅ Cambio de idioma completado');
+            }, 100);
             
-            return false;
+            // Guardar backup automáticamente
+            saveToStorage();
         }
         
         function forceLanguageUpdate() {
@@ -7029,23 +5929,23 @@ async function submitLead(){
             
             // Botones de Programas y Cinturones
             if (document.getElementById('btnAddProgram')) {
-                document.getElementById('btnAddProgram').textContent = t('btn_add_item');
+                document.getElementById('btnAddProgram').textContent = isEN ? '+ Add' : '+ Agregar';
             }
             if (document.getElementById('btnAddBelt')) {
-                document.getElementById('btnAddBelt').textContent = t('btn_add_item');
+                document.getElementById('btnAddBelt').textContent = isEN ? '+ Add' : '+ Agregar';
             }
             
             // Razones de Pago
             if (document.getElementById('payReasonTitle')) {
-                document.getElementById('payReasonTitle').textContent = t('config_pay_reasons');
+                document.getElementById('payReasonTitle').textContent = isEN ? '📋 Payment Reasons' : '📋 Razones de Pago';
                 elementsUpdated++;
             }
             if (document.getElementById('payReasonDesc')) {
-                document.getElementById('payReasonDesc').textContent = t('pay_reason_desc');
+                document.getElementById('payReasonDesc').textContent = isEN ? 'Configure the payment reasons that appear in the CRM dropdowns' : 'Configura las razones de pago que aparecen en los dropdowns del CRM';
                 elementsUpdated++;
             }
             if (document.getElementById('btnAddPayReason')) {
-                document.getElementById('btnAddPayReason').textContent = t('btn_add_item');
+                document.getElementById('btnAddPayReason').textContent = isEN ? '+ Add' : '+ Agregar';
                 elementsUpdated++;
             }
             
@@ -7205,7 +6105,7 @@ async function submitLead(){
             // ====== 12. TRADUCCIÓN DE PLACEHOLDERS ======
             console.log('📍 Traduciendo placeholders...');
             
-            const placeholderTranslationsLocal = {
+            const placeholderTranslations = {
                 'Usuario': isEN ? 'Username' : 'Usuario',
                 'Contraseña': isEN ? 'Password' : 'Contraseña',
                 'Ej: Uniforme Adulto Blanco': isEN ? 'E.g.: Adult White Uniform' : 'Ej: Uniforme Adulto Blanco',
@@ -7233,8 +6133,8 @@ async function submitLead(){
             
             document.querySelectorAll('[placeholder]').forEach(el => {
                 const placeholder = el.getAttribute('placeholder');
-                if (placeholderTranslationsLocal[placeholder]) {
-                    el.setAttribute('placeholder', placeholderTranslationsLocal[placeholder]);
+                if (placeholderTranslations[placeholder]) {
+                    el.setAttribute('placeholder', placeholderTranslations[placeholder]);
                     elementsUpdated++;
                 }
             });
@@ -7403,92 +6303,11 @@ async function submitLead(){
             // ====== RE-RENDERIZAR CONFIGURACIÓN ======
             console.log('📍 Re-renderizando configuración...');
             try {
-                // Programas y Cinturones
-                if (document.getElementById('programsList') || document.getElementById('beltsList')) {
+                if (document.getElementById('programsList')) {
                     renderConfig();
-                    // Traducir botones "+ Agregar"
-                    const btnAddProgram = document.getElementById('btnAddProgram');
-                    if (btnAddProgram) btnAddProgram.textContent = t('btn_add_item');
-                    
-                    const btnAddBelt = document.getElementById('btnAddBelt');
-                    if (btnAddBelt) btnAddBelt.textContent = t('btn_add_item');
                 }
-                
-                // Razones de Pago
-                if (document.getElementById('paymentReasonsList')) {
-                    renderPaymentReasonsList();
-                    const btnAddPayReason = document.getElementById('btnAddPayReason');
-                    if (btnAddPayReason) btnAddPayReason.textContent = t('btn_add_reason');
-                }
-                
-                // Inventario de Tienda
-                if (document.getElementById('inventorySection')) {
-                    renderConfigInventory();
-                }
-                
-                // Tienda (productos)
-                if (document.getElementById('storeGrid')) {
-                    renderStore();
-                }
-                
-                // ====== ACTUALIZAR TODOS LOS DATA-I18N ======
-                console.log('🌐 Actualizando todos los elementos data-i18n...');
-                document.querySelectorAll('[data-i18n]').forEach(el => {
-                    const key = el.getAttribute('data-i18n');
-                    if (key && t(key)) {
-                        el.textContent = t(key);
-                        if (key === 'promo_new') {
-                            console.log('✅ BOTÓN PAQUETE ACTUALIZADO: ' + t(key));
-                        }
-                    }
-                });
-                console.log('✅ Todos los elementos data-i18n actualizados');
-                
-                // ====== TRADUCIR TODOS LOS PLACEHOLDERS ======
-                console.log('🔤 Traduciendo placeholders...');
-                const currentPlaceholders = placeholderTranslations[currentLang] || placeholderTranslations['es'];
-                document.querySelectorAll('[placeholder]').forEach(el => {
-                    const originalPlaceholder = el.getAttribute('placeholder');
-                    // Buscar en el diccionario de placeholders
-                    for (const [es, en] of Object.entries(placeholderTranslations['es'])) {
-                        if (currentLang === 'en' && originalPlaceholder === es) {
-                            el.setAttribute('placeholder', placeholderTranslations['en'][es]);
-                            console.log(`   🔤 Placeholder: "${es}" → "${placeholderTranslations['en'][es]}"`);
-                        } else if (currentLang === 'es' && originalPlaceholder === placeholderTranslations['en'][es]) {
-                            el.setAttribute('placeholder', es);
-                            console.log(`   🔤 Placeholder: "${placeholderTranslations['en'][es]}" → "${es}"`);
-                        }
-                    }
-                });
-                console.log('✅ Placeholders actualizados');
-                
-                // ====== TRADUCIR OPCIONES DE CATEGORÍA ======
-                console.log('🏷️ Actualizando categorías...');
-                updateCategoryOptions();
-                console.log('✅ Categorías actualizadas');
-                
-                // ====== ACTUALIZAR BOTÓN DE CREAR PAQUETE Y TÍTULOS EXPLÍCITAMENTE ======
-                console.log('🔍 Actualizando botones y títulos de paquetes...');
-                
-                // Buscar TODOS los elementos con data-i18n="promo_new"
-                const allPromoNewElements = document.querySelectorAll('[data-i18n="promo_new"]');
-                console.log(`📊 Encontrados ${allPromoNewElements.length} elementos con promo_new`);
-                allPromoNewElements.forEach((el, idx) => {
-                    const oldText = el.textContent;
-                    el.textContent = t('promo_new');
-                    console.log(`✅ [${idx+1}] Actualizado promo_new: "${oldText}" → "${el.textContent}"`);
-                });
-                
-                // Buscar TODOS los elementos con data-i18n="promo_title" (H3 en config E H2 en tienda)
-                const allPromoTitleElements = document.querySelectorAll('[data-i18n="promo_title"]');
-                console.log(`📊 Encontrados ${allPromoTitleElements.length} elementos con promo_title`);
-                allPromoTitleElements.forEach((el, idx) => {
-                    const oldText = el.textContent;
-                    el.textContent = t('promo_title');
-                    console.log(`✅ [${idx+1}] Actualizado promo_title: "${oldText}" → "${el.textContent}"`);
-                });
             } catch(e) {
-                console.error('Error al actualizar config:', e);
+                console.error('Error al renderizar config:', e);
             }
             
             console.log('✅ Monitoreo de cambios activado');
@@ -8413,88 +7232,6 @@ async function submitLead(){
         let currentBuyPromotion = null;
         let selectedPayMethod = null;
         let storeFilter = 'all';
-        
-        // ====== DICCIONARIO GLOBAL DE TRADUCCIÓN DE PRODUCTOS ======
-        const productNameTranslationsGlobal = {
-            // Español → English
-            'Uniforme V-Negro': 'V-Black Uniform',
-            'Uniforme': 'Uniform',
-            '3 Mese de Clases': '3 Months of Classes',
-            '3 Meses de Clases': '3 Months of Classes',
-            'Meses de Clases': 'Months of Classes',
-            'Taekwondo': 'Taekwondo',
-            // English → Español (BIDIRECCIONAL)
-            'V-Black Uniform': 'Uniforme V-Negro',
-            'Uniform': 'Uniforme',
-            '3 Months of Classes': '3 Meses de Clases',
-            'Months of Classes': 'Meses de Clases',
-            // Descripciones
-            '3 Mese': '3 Months',
-            '3 Meses': '3 Months'
-        };
-        
-        // ====== DICCIONARIO GLOBAL DE PLACEHOLDERS ======
-        const placeholderTranslations = {
-            'es': {
-                'Ej: Uniforme Adulto Blanco': 'Ej: Uniforme Adulto Blanco',
-                'Describe el producto...': 'Describe el producto...',
-                'Describe el paquete... Ej: Ideal para iniciarse en karate': 'Describe el paquete... Ej: Ideal para iniciarse en karate',
-                'Ej: Pack Inicio - Niños': 'Ej: Pack Inicio - Niños',
-                '0.00': '0.00',
-                'https://...': 'https://...',
-                'Ej: Donación, Muestra...': 'Ej: Donación, Muestra...',
-                'Usuario': 'Usuario',
-                'Contraseña': 'Contraseña'
-            },
-            'en': {
-                'Ej: Uniforme Adulto Blanco': 'Ex: Adult White Uniform',
-                'Describe el producto...': 'Describe the product...',
-                'Describe el paquete... Ej: Ideal para iniciarse en karate': 'Describe the package... Ex: Ideal for starting karate',
-                'Ej: Pack Inicio - Niños': 'Ex: Starter Pack - Kids',
-                '0.00': '0.00',
-                'https://...': 'https://...',
-                'Ej: Donación, Muestra...': 'Ex: Donation, Sample...',
-                'Usuario': 'Username',
-                'Contraseña': 'Password'
-            }
-        };
-        
-        // ====== DICCIONARIO GLOBAL DE CATEGORÍAS ======
-        const categoryTranslations = {
-            'es': {
-                'uniforme': '🥋 Uniforme',
-                'examen': '🎓 Examen',
-                'evento': '🎪 Evento',
-                'seminario': '📚 Seminario',
-                'equipo': '🥊 Equipo',
-                'otro': '✨ Otro'
-            },
-            'en': {
-                'uniforme': '🥋 Uniform',
-                'examen': '🎓 Exam',
-                'evento': '🎪 Event',
-                'seminario': '📚 Seminar',
-                'equipo': '🥊 Equipment',
-                'otro': '✨ Other'
-            }
-        };
-
-        // ====== FUNCIÓN PARA OBTENER NOMBRE EN IDIOMA ACTUAL ======
-        function getProductName(product) {
-            if (!product) return '';
-            if (currentLang === 'en') {
-                return product.name_en || product.name || '';
-            }
-            return product.name_es || product.name || '';
-        }
-        
-        function getProductDesc(product) {
-            if (!product) return '';
-            if (currentLang === 'en') {
-                return product.desc_en || product.desc || '';
-            }
-            return product.desc_es || product.desc || '';
-        }
 
         const categoryEmojis = {
             uniforme:'🥋', examen:'🎓', evento:'🎪',
@@ -8522,14 +7259,13 @@ async function submitLead(){
                 </div>`;
                 return;
             }
-            
             grid.innerHTML = filtered.map(p => `
                 <div class="product-card">
                     <div class="product-emoji">${p.emoji || categoryEmojis[p.category] || '✨'}</div>
                     <div class="product-info">
-                        <div class="product-name">${getProductName(p)}</div>
+                        <div class="product-name">${p.name}</div>
                         <div class="product-category">${categoryEmojis[p.category] || '✨'} ${p.category}</div>
-                        <div class="product-desc">${getProductDesc(p)}</div>
+                        <div class="product-desc">${p.desc || ''}</div>
                         <div style="font-size:11px;color:#888;margin:6px 0">
                             💵 ${t('store_cost_label')} $${parseFloat(p.cost||0).toLocaleString()} | 
                             🏷️ ${t('store_sale_label')} $${parseFloat(p.price||0).toLocaleString()}
@@ -8546,7 +7282,7 @@ async function submitLead(){
                         <div class="product-actions">
                             <button class="btn-buy" onclick="openBuyModal(${p.id})">🛒 ${t('btn_buy').replace('🛒 ','')}</button>
                             <button class="btn-edit-product" style="color:#f59e0b" onclick="openStockModal(${p.id})" title="Ajustar stock">📦</button>
-                            <button class="btn-edit-product" onclick="openEditProductModal(${p.id})">✏️ ${t('btn_edit')}</button>
+                            <button class="btn-edit-product" onclick="openEditProductModal(${p.id})">✏️</button>
                             <button class="btn-edit-product" style="color:#c41e3a" onclick="deleteProduct(${p.id})">🗑️</button>
                         </div>
                     </div>
@@ -8637,10 +7373,8 @@ async function submitLead(){
         function openAddProductModal() {
             document.getElementById('productModalTitle').textContent = t('modal_new_product');
             document.getElementById('editProductId').value = '';
-            document.getElementById('prodNameES').value = '';
-            document.getElementById('prodNameEN').value = '';
-            document.getElementById('prodDescES').value = '';
-            document.getElementById('prodDescEN').value = '';
+            document.getElementById('prodName').value = '';
+            document.getElementById('prodDesc').value = '';
             document.getElementById('prodCost').value = '';
             document.getElementById('prodPrice').value = '';
             document.getElementById('prodStock').value = '0';
@@ -8648,8 +7382,6 @@ async function submitLead(){
             document.getElementById('prodEmoji').value = '🥋';
             document.getElementById('prodFeatured').value = '0';
             document.getElementById('productModal').classList.add('active');
-            // Actualizar opciones de categoría
-            updateCategoryOptions();
             // Agregar listeners para calcular ganancia
             setupGainCalculation();
         }
@@ -8659,13 +7391,8 @@ async function submitLead(){
             if (!p) return;
             document.getElementById('productModalTitle').textContent = t('modal_edit_product');
             document.getElementById('editProductId').value = id;
-            
-            // Compatibilidad: si tiene name_es y name_en, usar esos. Si no, usar name en ambos
-            document.getElementById('prodNameES').value = p.name_es || p.name || '';
-            document.getElementById('prodNameEN').value = p.name_en || p.name || '';
-            document.getElementById('prodDescES').value = p.desc_es || p.desc || '';
-            document.getElementById('prodDescEN').value = p.desc_en || p.desc || '';
-            
+            document.getElementById('prodName').value = p.name;
+            document.getElementById('prodDesc').value = p.desc || '';
             document.getElementById('prodCost').value = p.cost || '';
             document.getElementById('prodPrice').value = p.price;
             document.getElementById('prodStock').value = p.stock || 0;
@@ -8673,8 +7400,6 @@ async function submitLead(){
             document.getElementById('prodEmoji').value = p.emoji || '';
             document.getElementById('prodFeatured').value = p.featured ? '1' : '0';
             document.getElementById('productModal').classList.add('active');
-            // Actualizar opciones de categoría
-            updateCategoryOptions();
             // Agregar listeners para calcular ganancia
             setupGainCalculation();
         }
@@ -8682,51 +7407,22 @@ async function submitLead(){
         function pickEmoji(e) {
             document.getElementById('prodEmoji').value = e;
         }
-        
-        // ====== FUNCIÓN PARA ACTUALIZAR OPCIONES DE CATEGORÍA ======
-        function updateCategoryOptions() {
-            console.log('🏷️ Actualizando opciones de categoría...');
-            const categorySelect = document.getElementById('prodCategory');
-            if (!categorySelect) return;
-            
-            const currentValue = categorySelect.value; // Guardar valor actual
-            const categories = ['uniforme', 'examen', 'evento', 'seminario', 'equipo', 'otro'];
-            const translations = categoryTranslations[currentLang] || categoryTranslations['es'];
-            
-            categorySelect.innerHTML = categories.map(cat => 
-                `<option value="${cat}">${translations[cat]}</option>`
-            ).join('');
-            
-            categorySelect.value = currentValue; // Restaurar valor
-            console.log('✅ Categorías actualizadas');
-        }
 
         function saveProduct() {
-            const nameES = document.getElementById('prodNameES').value.trim();
-            const nameEN = document.getElementById('prodNameEN').value.trim();
+            const name = document.getElementById('prodName').value.trim();
             const price = document.getElementById('prodPrice').value;
             const cost = document.getElementById('prodCost').value;
-            
-            if (!nameES || !nameEN || !price || !cost) { 
-                alert('Nombre (ES), Name (EN), precio de costo y precio de venta son requeridos'); 
-                return; 
-            }
-            
+            if (!name || !price || !cost) { alert('Nombre, precio de costo y precio de venta son requeridos'); return; }
             const editId = document.getElementById('editProductId').value;
             const stockEl = document.getElementById('prodStock');
             const costVal = parseFloat((cost+'').replace(/[^0-9.]/g,''));
             const priceVal = parseFloat((price+'').replace(/[^0-9.]/g,''));
             const gainVal = priceVal - costVal;
             const gainPercent = costVal > 0 ? Math.round((gainVal / costVal) * 100) : 0;
-            
             const product = {
                 id: editId ? parseInt(editId) : Date.now(),
-                name_es: nameES,
-                name_en: nameEN,
-                name: nameES, // Para compatibilidad con código anterior
-                desc_es: document.getElementById('prodDescES').value.trim(),
-                desc_en: document.getElementById('prodDescEN').value.trim(),
-                desc: document.getElementById('prodDescES').value.trim(), // Para compatibilidad
+                name,
+                desc: document.getElementById('prodDesc').value.trim(),
                 cost: costVal,
                 price: priceVal,
                 gain: gainVal,
@@ -8738,17 +7434,14 @@ async function submitLead(){
                 totalSold: editId ? (storeProducts.find(p => p.id === parseInt(editId))?.totalSold || 0) : 0,
                 totalGain: editId ? (storeProducts.find(p => p.id === parseInt(editId))?.totalGain || 0) : 0
             };
-            
             if (editId) {
                 const idx = storeProducts.findIndex(x => x.id === parseInt(editId));
                 if (idx !== -1) storeProducts[idx] = product;
             } else {
                 storeProducts.push(product);
             }
-            
             closeStoreModal('productModal');
             renderStore();
-            renderConfigInventory();
             saveToStorage();
         }
 
@@ -9004,8 +7697,9 @@ async function submitLead(){
             if (storePromotions.length === 0) {
                 section.innerHTML = `<div style="text-align:center;padding:30px;color:#888">
                     <div style="font-size:48px;margin-bottom:10px">🎁</div>
-                    <p>No hay paquetes creados.</p>
-                    <p style="font-size:12px">¡Agrega tu primer paquete!</p>
+                    <p>${t('promo_empty')}</p>
+                    <p style="font-size:12px">${t('promo_add_first')}</p>
+                    <button class="btn btn-primary" style="margin-top:10px" onclick="openAddPromoModal()">+ ${t('promo_new')}</button>
                 </div>`;
                 return;
             }
@@ -9059,13 +7753,8 @@ async function submitLead(){
         }
 
         function renderConfigInventory() {
-            console.log('📦 renderConfigInventory() ejecutándose...');
             const section = document.getElementById('inventorySection');
-            if (!section) {
-                console.log('❌ inventorySection NOT FOUND');
-                return;
-            }
-            console.log('✅ inventorySection FOUND');
+            if (!section) return;
             
             if (storeProducts.length === 0) {
                 section.innerHTML = `<div style="text-align:center;padding:30px;color:#888">
@@ -9076,58 +7765,51 @@ async function submitLead(){
                 return;
             }
             
-            const translateProductName = (name) => {
-                const translated = productNameTranslationsGlobal[name];
-                console.log(`   🏷️  Translating product "${name}" -> "${translated || name}"`);
-                return translated || name;
-            };
-            
             section.innerHTML = storeProducts.map(p => `
                 <div style="background:#0f172a;border:1px solid #333;border-radius:12px;padding:16px">
                     <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:12px">
                         <div style="flex:1">
-                            <div style="font-size:16px;font-weight:700;color:#fff">${p.emoji} ${getProductName(p)}</div>
-                            <div style="font-size:11px;color:#888;margin-top:4px">${getProductDesc(p)}</div>
+                            <div style="font-size:16px;font-weight:700;color:#fff">${p.emoji} ${p.name}</div>
+                            <div style="font-size:11px;color:#888;margin-top:4px">${p.desc || ''}</div>
                         </div>
                     </div>
                     
                     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;font-size:11px">
                         <div style="background:#0f0f23;padding:8px;border-radius:6px">
-                            <div style="color:#888">${t('inv_cost')}</div>
+                            <div style="color:#888">Costo</div>
                             <div style="font-size:14px;font-weight:700;color:#60a5fa">$${parseFloat(p.cost||0).toFixed(2)}</div>
                         </div>
                         <div style="background:#0f0f23;padding:8px;border-radius:6px">
-                            <div style="color:#888">${t('inv_price')}</div>
+                            <div style="color:#888">Venta</div>
                             <div style="font-size:14px;font-weight:700;color:#ffd700">$${parseFloat(p.price||0).toFixed(2)}</div>
                         </div>
                         <div style="background:#0f0f23;padding:8px;border-radius:6px">
-                            <div style="color:#888">${t('inv_gain')}</div>
+                            <div style="color:#888">Ganancia</div>
                             <div style="font-size:14px;font-weight:700;color:#22c55e">$${parseFloat(p.gain||0).toFixed(2)} (${p.gainPercent}%)</div>
                         </div>
                     </div>
                     
                     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;font-size:11px">
                         <div style="background:#0f0f23;padding:8px;border-radius:6px">
-                            <div style="color:#888">${t('inv_stock')}</div>
+                            <div style="color:#888">Stock</div>
                             <div style="font-size:14px;font-weight:700;color:${(p.stock||0)===0?'#c41e3a':(p.stock||0)<=3?'#f59e0b':'#22c55e'}">${p.stock||0}</div>
                         </div>
                         <div style="background:#0f0f23;padding:8px;border-radius:6px">
-                            <div style="color:#888">${t('inv_sold')}</div>
+                            <div style="color:#888">Vendidas</div>
                             <div style="font-size:14px;font-weight:700;color:#fff">${p.totalSold||0}</div>
                         </div>
                         <div style="background:#0f0f23;padding:8px;border-radius:6px">
-                            <div style="color:#888">${t('inv_total_gain')}</div>
+                            <div style="color:#888">Total Ganado</div>
                             <div style="font-size:14px;font-weight:700;color:#22c55e">$${parseFloat(p.totalGain||0).toLocaleString()}</div>
                         </div>
                     </div>
                     
                     <div style="display:flex;gap:8px">
-                        <button class="btn-edit-product" style="flex:1;background:#1e3a5f;border:none;color:#60a5fa;cursor:pointer;padding:8px;border-radius:6px;font-size:12px" onclick="openEditProductModal(${p.id})">✏️ ${t('btn_edit')}</button>
-                        <button class="btn-edit-product" style="flex:1;background:#7f1d1d;border:none;color:#fff;cursor:pointer;padding:8px;border-radius:6px;font-size:12px" onclick="deleteProduct(${p.id})">🗑️ ${t('btn_delete')}</button>
+                        <button class="btn-edit-product" style="flex:1;background:#1e3a5f;border:none;color:#60a5fa;cursor:pointer;padding:8px;border-radius:6px;font-size:12px" onclick="openEditProductModal(${p.id})">✏️ Editar</button>
+                        <button class="btn-edit-product" style="flex:1;background:#7f1d1d;border:none;color:#fff;cursor:pointer;padding:8px;border-radius:6px;font-size:12px" onclick="deleteProduct(${p.id})">🗑️ Eliminar</button>
                     </div>
                 </div>
             `).join('');
-            console.log('✅ Inventario actualizado');
         }
 
         function openBuyModal(id) {
@@ -9151,7 +7833,7 @@ async function submitLead(){
             const summary = document.getElementById('buyProductSummary');
             summary.innerHTML = `
                 <div style="font-size:48px;margin-bottom:10px">${currentBuyProduct.emoji || '🛍️'}</div>
-                <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:6px">${getProductName(currentBuyProduct)}</div>
+                <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:6px">${currentBuyProduct.name}</div>
                 <div style="font-size:28px;font-weight:900;color:#ffd700">$${parseFloat(currentBuyProduct.price).toLocaleString()}</div>
             `;
 
@@ -10178,7 +8860,7 @@ async function submitLead(){
 
         function buildPayload() {
             return { students, leads, leadHistory, payments, paymentHistory,
-                     trash, attendance, events, trainings, config, storeProducts, storePromotions, storeSales, formTemplates };
+                     trash, attendance, events, config, storeProducts, storePromotions, storeSales, formTemplates };
         }
 
         // Firebase a veces convierte arrays a objetos — esto los convierte de vuelta
@@ -10198,7 +8880,6 @@ async function submitLead(){
             try { if ('trash' in d)          trash          = toArray(d.trash); } catch(e) {}
             try { if ('attendance' in d)     attendance     = toArray(d.attendance); } catch(e) {}
             try { if ('events' in d)         events         = toArray(d.events); } catch(e) {}
-            try { if ('trainings' in d)      trainings      = toArray(d.trainings); } catch(e) {}
             try {
                 if (d.config) {
                     config = { ...config, ...d.config };
