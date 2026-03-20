@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Master Baez Martial Arts — Inscíbete</title>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script>emailjs.init("yN6IRgA-WdmQlNWpf");</script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script>firebase.initializeApp({apiKey:"AIzaSyC0GZUhbfipXCBeP6LJcXmKcHugNuG2f4E",authDomain:"masterbaez-crm.firebaseapp.com",databaseURL:"https://masterbaez-crm-default-rtdb.firebaseio.com",projectId:"masterbaez-crm",storageBucket:"masterbaez-crm.firebasestorage.app",messagingSenderId:"105620561253",appId:"1:105620561253:web:90516b7e8b25a3a736958c"});const db=firebase.database();</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,sans-serif}
+body{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:linear-gradient(135deg,#1e1e3f,#12122a);border:1px solid rgba(196,30,58,0.4);border-radius:20px;padding:36px 32px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,0.6);position:relative}
+.lang-btn{position:absolute;top:16px;right:16px;background:linear-gradient(135deg,#1e1e3f,#2a2a4f);border:1px solid rgba(255,215,0,0.4);border-radius:20px;color:#ffd700;font-size:12px;font-weight:700;padding:6px 14px;cursor:pointer;z-index:10}
+.logo-area{text-align:center;margin-bottom:24px}
+.logo-circle{width:80px;height:80px;border-radius:50%;background:#fff;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:40px;overflow:hidden}
+.logo-circle img{width:100%;height:100%;object-fit:cover}
+h1{color:#ffd700;font-size:21px;margin-bottom:3px}
+.subtitle-school{color:#888;font-size:12px}
+.tagline{font-size:17px;font-weight:700;margin:14px 0 6px;text-align:center;color:#c41e3a}
+.form-subtitle{text-align:center;font-size:13px;color:#aaa;margin-bottom:18px}
+label{display:block;font-size:11px;color:#888;margin-bottom:4px;margin-top:12px}
+input,select,textarea{width:100%;padding:11px 14px;background:#0f0f23;border:1px solid #333;border-radius:10px;color:#fff;font-size:14px;transition:border-color 0.2s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#c41e3a}
+select option{background:#1a1a2e}
+.submit-btn{width:100%;padding:14px;border:none;border-radius:10px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;margin-top:20px;background:linear-gradient(135deg,#c41e3a,#000)}
+.submit-btn:disabled{opacity:0.6;cursor:not-allowed}
+.success-box{display:none;text-align:center;padding:30px 10px}
+.success-box .check{font-size:60px;margin-bottom:14px}
+.success-box h2{color:#4ade80;font-size:22px;margin-bottom:8px}
+.success-box p{color:#ccc;font-size:14px;line-height:1.6}
+.error-msg{color:#f87171;font-size:12px;text-align:center;margin-top:10px;min-height:16px}
+.privacy{text-align:center;font-size:11px;color:#444;margin-top:12px}
+.promo-box{background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.3);border-radius:10px;padding:10px 14px;margin-bottom:14px;text-align:center;color:#ffd700;font-size:13px;font-weight:600}
+</style>
+</head>
+<body>
+<div class="card">
+<button class="lang-btn" onclick="toggleLang()" id="langBtn">🇺🇸 English</button>
+<div class="logo-area">
+<div class="logo-circle" id="schoolLogo"><span>🥋</span></div>
+<h1 id="schoolNameEl">Master Baez Martial Arts</h1>
+<div class="subtitle-school" id="schoolSubtitle">Sistema de Artes Marciales</div>
+</div>
+<div id="promoBox" class="promo-box" style="display:none"></div>
+<div id="formSection">
+<div class="tagline" id="formTagline">🥋 ¡Primera Clase GRATIS!</div>
+<div class="form-subtitle" id="formSubtitleEl"></div>
+<label id="lblName">Nombre completo *</label>
+<input type="text" id="leadName" placeholder="Tu nombre completo">
+<label id="lblPhone">Teléfono *</label>
+<input type="tel" id="leadPhone" placeholder="(954) 000-0000">
+<div id="fieldEmail"><label id="lblEmail">Email</label><input type="email" id="leadEmail" placeholder="tucorreo@email.com"></div>
+<div id="fieldAge"><label id="lblAge">Edad</label><input type="number" id="leadAge" placeholder="25" min="3" max="99"></div>
+<div id="fieldProgram"><label id="lblProgram">Programa de interés</label><select id="leadProgram"><option value="" id="optSelect">— Selecciona —</option><option id="optKids">Niños (5-12 años)</option><option id="optYouth">Juventud (13-17 años)</option><option id="optAdults">Adultos (18+)</option><option id="optFamily">Familiar</option><option id="optSelfDef">Autodefensa</option></select></div>
+<div id="fieldSource"><label id="lblSource">¿Cómo nos encontraste?</label><select id="leadSource"><option>Instagram</option><option>Facebook</option><option>TikTok</option><option id="optReferral">Referido</option><option>Google</option><option id="optOther">Otro</option></select></div>
+<div id="fieldMessage" style="display:none"><label id="lblMessage">Mensaje / Pregunta</label><textarea id="leadMessage" rows="3"></textarea></div>
+<button class="submit-btn" id="submitBtn" onclick="submitLead()">🥋 ¡Quiero mi Clase Gratis!</button>
+<div class="error-msg" id="errorMsg"></div>
+<div class="privacy" id="privacyTxt">🔒 Tu información es privada y segura</div>
+</div>
+<div class="success-box" id="successBox">
+<div class="check">🎉</div>
+<h2 id="successTitle">¡Gracias!</h2>
+<p id="successMsgEl">Recibimos tu información. ¡Nos pondremos en contacto muy pronto!</p><br>
+<p style="color:#ffd700;font-size:16px;font-weight:700;margin-bottom:20px">🥋 Master Baez Martial Arts</p>
+<div id="notifyBtns" style="display:none;margin-top:10px">
+<div style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.4);border-radius:10px;padding:14px;text-align:center">
+<p style="color:#22c55e;font-size:15px;font-weight:700;margin-bottom:4px">✅ ¡Notificación enviada!</p>
+<p style="color:#ccc;font-size:12px">El instructor fue notificado automáticamente. Te contactará pronto.</p>
+</div></div>
+<button onclick="resetForm()" style="margin-top:16px;background:transparent;border:1px solid #444;color:#888;border-radius:8px;padding:8px 20px;cursor:pointer;font-size:13px" id="btnSendAnother">← Enviar otro</button>
+</div>
+</div>
+<script>
+const ADMIN_PHONE='9543801340',ADMIN_WHATSAPP='19543801340',ADMIN_EMAIL='dbkoryo@gmail.com',FORMSPREE_URL='https://formspree.io/f/myknzkjj';
+let instrPhone=ADMIN_PHONE,instrEmail=ADMIN_EMAIL,instrWhatsApp=ADMIN_WHATSAPP;
+const params=new URLSearchParams(window.location.search);
+const instrId=params.get('instructor')||'admin';
+const formId=params.get('form')||null;
+const storageKey=(instrId==='admin'?'crmData':'crmData_'+instrId).replace(/[.#$\\[\\]]/g,'_');
+let lang='es', loadedFt=null;
+const TXT={
+  es:{name:'Nombre completo *',phone:'Tel\u00e9fono *',email:'Email',age:'Edad',program:'Programa de inter\u00e9s',source:'\u00bfC\u00f3mo nos encontraste?',message:'Mensaje / Pregunta',send:'\u{1F94B} \u00a1Quiero mi Clase Gratis!',sending:'Enviando...',required:'Por favor completa nombre y tel\u00e9fono',subtitle:'Sistema de Artes Marciales',privacy:'\u{1F512} Tu informaci\u00f3n es privada y segura',success:'\u00a1Gracias!',optSelect:'\u2014 Selecciona \u2014',optKids:'Ni\u00f1os (5-12 a\u00f1os)',optYouth:'Juventud (13-17 a\u00f1os)',optAdults:'Adultos (18+)',optFamily:'Familiar',optSelfDef:'Autodefensa',optReferral:'Referido',optOther:'Otro',btnAnother:'\u2190 Enviar otro'},
+  en:{name:'Full name *',phone:'Phone *',email:'Email',age:'Age',program:'Program of interest',source:'How did you find us?',message:'Message / Question',send:'\u{1F94B} I want my Free Class!',sending:'Sending...',required:'Please fill in name and phone',subtitle:'Martial Arts System',privacy:'\u{1F512} Your information is private and secure',success:'Thank you!',optSelect:'\u2014 Select \u2014',optKids:'Kids (5-12 yrs)',optYouth:'Youth (13-17 yrs)',optAdults:'Adults (18+)',optFamily:'Family',optSelfDef:'Self Defense',optReferral:'Referral',optOther:'Other',btnAnother:'\u2190 Send another'}
+};
+function applyLang(){
+  const T=TXT[lang];
+  document.getElementById('langBtn').textContent=lang==='es'?'\u{1F1FA}\u{1F1F8} English':'\u{1F1EA}\u{1F1F8} Espa\u00f1ol';
+  document.getElementById('lblName').textContent=T.name;
+  document.getElementById('lblPhone').textContent=T.phone;
+  document.getElementById('lblEmail').textContent=T.email;
+  document.getElementById('lblAge').textContent=T.age;
+  document.getElementById('lblProgram').textContent=T.program;
+  document.getElementById('lblSource').textContent=T.source;
+  document.getElementById('lblMessage').textContent=T.message;
+  const sb=document.getElementById('submitBtn');
+  if(!sb.disabled) sb.textContent = loadedFt ? (lang==='en'?(loadedFt.buttonEN||loadedFt.button||T.send):(loadedFt.button||T.send)) : T.send;
+  document.getElementById('schoolSubtitle').textContent=T.subtitle;
+  document.getElementById('privacyTxt').textContent=T.privacy;
+  document.getElementById('successTitle').textContent=T.success;
+  document.getElementById('btnSendAnother').textContent=T.btnAnother;
+  document.getElementById('optSelect').textContent=T.optSelect;
+  document.getElementById('optKids').textContent=T.optKids;
+  document.getElementById('optYouth').textContent=T.optYouth;
+  document.getElementById('optAdults').textContent=T.optAdults;
+  document.getElementById('optFamily').textContent=T.optFamily;
+  document.getElementById('optSelfDef').textContent=T.optSelfDef;
+  document.getElementById('optReferral').textContent=T.optReferral;
+  document.getElementById('optOther').textContent=T.optOther;
+  // Aplicar textos del formulario personalizado en el idioma correcto
+  if(loadedFt){
+    const ttl=lang==='en'?(loadedFt.titleEN||loadedFt.title||''):(loadedFt.title||'');
+    if(ttl) document.getElementById('formTagline').textContent=ttl;
+    const sm=lang==='en'?(loadedFt.successMsgEN||loadedFt.successMsg||''):(loadedFt.successMsg||'');
+    if(sm) document.getElementById('successMsgEl').textContent=sm;
+  }
+}
+function toggleLang(){lang=lang==='es'?'en':'es';try{localStorage.setItem('formLang',lang);}catch(e){}applyLang();}
+function hexToRgb(h){try{return parseInt(h.slice(1,3),16)+','+parseInt(h.slice(3,5),16)+','+parseInt(h.slice(5,7),16);}catch(e){return '196,30,58';}}
+async function init(){
+  try{const s=localStorage.getItem('formLang');if(s)lang=s;}catch(e){}
+  try{
+    const snap=await db.ref(storageKey).get();
+    if(snap.exists()){
+      const d=snap.val();
+      if(d?.config?.logo){const lc=document.getElementById('schoolLogo');if(lc)lc.innerHTML='<img src="'+d.config.logo+'" style="width:100%;height:100%;object-fit:cover">';}
+      if(d?.config?.schoolName) document.getElementById('schoolNameEl').textContent=d.config.schoolName;
+      if(formId&&d?.formTemplates){
+        const arr=Array.isArray(d.formTemplates)?d.formTemplates:Object.values(d.formTemplates);
+        const ft=arr.find(f=>f.id===formId);
+        if(ft){
+          loadedFt=ft;
+          const ac=ft.color||'#c41e3a';
+          document.querySelector('.card').style.borderColor='rgba('+hexToRgb(ac)+',0.4)';
+          document.querySelector('.tagline').style.color=ac;
+          document.querySelector('.submit-btn').style.background='linear-gradient(135deg,'+ac+',#000)';
+          if(ft.promos&&ft.promos.length>0){const pb=document.getElementById('promoBox');pb.style.display='block';pb.textContent=ft.promos.join(' \u2022 ');}
+        }
+      }
+    }
+  }catch(e){}
+  if(instrId!=='admin'){try{const s=await db.ref('crmUsers').get();if(s.exists()){const u=s.val();const i=(u.instructors||[]).find(x=>String(x.id)===instrId);if(i){if(i.phone){instrPhone=i.phone.replace(/\D/g,'');instrWhatsApp='1'+instrPhone;}if(i.email)instrEmail=i.email;}}}catch(e){}}
+  applyLang();
+}
+init();
+async function submitLead(){
+  const name=document.getElementById('leadName').value.trim(),phone=document.getElementById('leadPhone').value.trim();
+  const email=(document.getElementById('leadEmail')||{}).value||'',age=(document.getElementById('leadAge')||{}).value||'';
+  const program=(document.getElementById('leadProgram')||{}).value||'',source=(document.getElementById('leadSource')||{}).value||'';
+  const message=(document.getElementById('leadMessage')||{}).value||'';
+  const errEl=document.getElementById('errorMsg');errEl.textContent='';
+  if(!name||!phone){errEl.textContent=TXT[lang].required;return;}
+  const btn=document.getElementById('submitBtn');btn.disabled=true;btn.textContent=TXT[lang].sending;
+  const lead={id:'lead_'+Date.now(),name,phone,email,program,source,age,notes:message?'Mensaje: '+message:'Lead web',stage:'nuevo',status:'nuevo',createdAt:new Date().toISOString().split('T')[0],instrId,formId:formId||null};
+  try{const snap=await db.ref(storageKey).get();let d=snap.exists()?snap.val():{};if(!d.leads)d.leads=[];d.leads.push(lead);await db.ref(storageKey).set(d);}catch(e){}
+  try{await fetch(FORMSPREE_URL,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({name,email:instrEmail,subject:'\u{1F94B} Nuevo Lead: '+name,message:'NUEVO LEAD\nNombre: '+name+'\nTel: '+phone+'\nPrograma: '+program})});}catch(e){}
+  try{await emailjs.send('service_qvbvhat','template_xrlcgha',{name,phone,program:program||'N/A',source:source||'N/A',to_email:instrEmail});}catch(e){}
+  try{fetch('https://script.google.com/macros/s/AKfycbwjNsvIMj--oTncM_dHpGn0Tm1wA9kyflHNd1-x6uf8CsVW4Yl2llafE3xQuSLTqU0/exec?phone='+encodeURIComponent('+19543801340')+'&text='+encodeURIComponent('NUEVO LEAD - Nombre: '+name+' - Tel: '+phone+' - Programa: '+program)+'&apikey=1707140',{mode:'no-cors'}).catch(()=>{});}catch(e){}
+  document.getElementById('notifyBtns').style.display='flex';
+  document.getElementById('formSection').style.display='none';
+  document.getElementById('successBox').style.display='block';
+}
+function resetForm(){document.getElementById('leadName').value='';document.getElementById('leadPhone').value='';try{document.getElementById('leadEmail').value='';}catch(e){}document.getElementById('submitBtn').disabled=false;document.getElementById('successBox').style.display='none';document.getElementById('formSection').style.display='block';applyLang();}
+</script>
+</body>
+</html>
