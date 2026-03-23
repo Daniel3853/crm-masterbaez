@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#c41e3a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="MB Portal">
+<title>🥋 Portal Estudiantes — Master Baez</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyC0GZUhbfipXCBeP6LJcXmKcHugNuG2f4E",
+  authDomain:"masterbaez-crm.firebaseapp.com",
+  databaseURL:"https://masterbaez-crm-default-rtdb.firebaseio.com",
+  projectId:"masterbaez-crm",
+  storageBucket:"masterbaez-crm.firebasestorage.app",
+  messagingSenderId:"105620561253",
+  appId:"1:105620561253:web:90516b7e8b25a3a736958c"
+});
+const db = firebase.database();
+</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --red:#C41E3A;--red-dark:#8B0000;--red-light:rgba(196,30,58,0.08);
+  --gold:#FFD700;--gold-dark:#E6A800;
+  --black:#0d0d0d;--surface:#f5f4f0;--surface2:#eceae3;
+  --text:#1a1a1a;--muted:#777;--border:#e0ddd5;
+  --green:#2D6A1F;--green-bg:#EAF3DE;
+  --white:#ffffff;
+}
+html,body{background:var(--surface);color:var(--text);min-height:100vh;font-family:'Barlow',sans-serif}
+#app{max-width:820px;margin:0 auto;background:#fff;min-height:100vh;box-shadow:0 0 60px rgba(0,0,0,0.1)}
+.screen{display:none}
+.screen.active{display:block}
+
+/* ── LOGIN ── */
+#screen-login{background:var(--black);min-height:100vh;display:none;flex-direction:column;align-items:center;justify-content:center;padding:2rem;position:relative;overflow:hidden}
+#screen-login::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 40%,rgba(196,30,58,0.18) 0%,transparent 60%),radial-gradient(ellipse at 70% 70%,rgba(255,215,0,0.06) 0%,transparent 50%)}
+#screen-login.active{display:flex}
+.login-logo{width:90px;height:90px;border-radius:50%;background:var(--white);margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:42px;box-shadow:0 0 40px rgba(196,30,58,0.5);overflow:hidden;position:relative;z-index:1}
+.login-logo img{width:100%;height:100%;object-fit:cover}
+.login-school{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--white);letter-spacing:8px;text-align:center;position:relative;z-index:1;margin-bottom:4px}
+.login-school span{color:var(--gold)}
+.login-tagline{font-size:11px;color:#555;letter-spacing:3px;text-transform:uppercase;text-align:center;margin-bottom:2.5rem;position:relative;z-index:1}
+.login-box{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:2rem;width:100%;max-width:360px;position:relative;z-index:1}
+.login-box label{display:block;color:#777;font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.login-box input{width:100%;background:#0d0d0d;border:1px solid #333;border-radius:4px;color:var(--gold);font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:10px;text-align:center;padding:14px;outline:none;transition:border .2s;margin-bottom:4px}
+.login-box input:focus{border-color:var(--red)}
+.login-box input::placeholder{color:#333;letter-spacing:4px}
+.login-hint{font-size:11px;color:#444;text-align:center;margin-bottom:1rem;letter-spacing:1px}
+.btn-enter{width:100%;padding:15px;background:var(--red);border:none;color:var(--white);font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:6px;border-radius:4px;cursor:pointer;transition:background .2s}
+.btn-enter:hover{background:var(--red-dark)}
+.login-err{color:#E8A09A;font-size:12px;text-align:center;min-height:18px;margin-bottom:8px}
+.admin-link{text-align:center;margin-top:1.25rem}
+.admin-link button{background:none;border:none;color:#444;font-size:12px;letter-spacing:1px;cursor:pointer;text-decoration:underline}
+.admin-link button:hover{color:#888}
+
+/* ── PORTAL HEADER ── */
+.portal-header{background:var(--black);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.p-logo{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--white);letter-spacing:5px;flex-shrink:0}
+.p-logo span{color:var(--red)}
+.p-student{display:flex;align-items:center;gap:10px}
+.belt-bar{height:8px;width:32px;border-radius:2px;flex-shrink:0}
+.p-name{color:#ccc;font-size:13px;font-weight:500}
+.btn-logout{background:none;border:1px solid #333;color:#666;font-size:11px;padding:6px 14px;border-radius:3px;cursor:pointer;letter-spacing:1px;transition:all .2s;font-family:'Bebas Neue',sans-serif}
+.btn-logout:hover{border-color:#aaa;color:var(--white)}
+
+/* ── NAV ── */
+.nav-tabs{display:flex;background:var(--surface2);border-bottom:2px solid var(--red);overflow-x:auto;scrollbar-width:none}
+.nav-tabs::-webkit-scrollbar{display:none}
+.nav-tab{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:2px;padding:13px 16px;border:none;background:none;cursor:pointer;color:var(--muted);white-space:nowrap;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s;flex-shrink:0}
+.nav-tab.active{color:var(--red);border-bottom-color:var(--red);background:var(--surface)}
+.nav-tab:hover:not(.active){color:var(--text)}
+
+/* ── TAB CONTENT ── */
+.tab-pane{display:none;padding:1.5rem;animation:fadeIn .2s ease}
+.tab-pane.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.sec-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:var(--text);margin-bottom:1.25rem;display:flex;align-items:center;gap:10px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.ra{color:var(--red)}
+
+/* ── CARDS ── */
+.fc{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:1rem}
+.fc label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px}
+
+/* ── BELT CURRICULUM ── */
+.belt-row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);transition:background .15s}
+.belt-row:last-child{border-bottom:none}
+.belt-row:hover{background:#fafaf8;margin:0 -1rem;padding:14px 1rem}
+.belt-swatch{width:48px;height:14px;border-radius:3px;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,0.15)}
+.belt-swatch.white-belt{border:1px solid #ddd}
+.belt-info{flex:1}
+.belt-info strong{display:block;font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px}
+.belt-info span{font-size:12px;color:var(--muted)}
+.bs{font-size:11px;padding:3px 10px;border-radius:12px;font-weight:600;white-space:nowrap;letter-spacing:0.5px}
+.bs-done{background:var(--green-bg);color:var(--green)}
+.bs-cur{background:var(--red-light);color:var(--red)}
+.bs-next{background:#f0eeea;color:#999}
+
+/* ── DOCUMENTS ── */
+.doc-item{display:flex;align-items:center;gap:12px;background:var(--white);border:1px solid var(--border);border-radius:8px;padding:13px 15px;margin-bottom:10px;transition:border .15s}
+.doc-item:hover{border-color:var(--red)}
+.doc-icon{width:40px;height:40px;background:var(--red-light);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.doc-info{flex:1;min-width:0}
+.doc-info strong{display:block;font-size:14px;font-weight:500;color:var(--text);margin-bottom:2px}
+.doc-info span{font-size:12px;color:var(--muted)}
+.doc-tag{font-size:10px;padding:2px 8px;border-radius:3px;background:var(--red-light);color:var(--red);letter-spacing:1px;white-space:nowrap;font-weight:600}
+.doc-btn{background:none;border:1px solid var(--border);color:var(--muted);font-size:12px;padding:5px 12px;border-radius:4px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.doc-btn:hover{border-color:var(--red);color:var(--red)}
+
+/* ── EVENTS ── */
+.ev-card{background:var(--white);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:10px}
+.ev-date{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:2px;color:var(--red);margin-bottom:3px}
+.ev-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px}
+.ev-desc{font-size:12px;color:var(--muted)}
+
+/* ── TRAINING VIDEOS ── */
+.video-card{background:var(--white);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:12px;transition:box-shadow .15s}
+.video-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.08)}
+.video-thumb{height:160px;background:#111;display:flex;align-items:center;justify-content:center;font-size:48px;cursor:pointer;position:relative;overflow:hidden}
+.video-thumb img{width:100%;height:100%;object-fit:cover}
+.play-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s}
+.video-card:hover .play-overlay{opacity:1}
+.play-btn{width:56px;height:56px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--white)}
+.video-info{padding:12px 14px}
+.video-info strong{display:block;font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px}
+.video-info span{font-size:12px;color:var(--muted)}
+.cat-pill{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;margin-top:5px;letter-spacing:0.5px}
+.cat-beginner{background:#EAF3DE;color:var(--green)}
+.cat-intermediate{background:#FFF3E0;color:#E65100}
+.cat-advanced{background:var(--red-light);color:var(--red)}
+.cat-seminar{background:#EDE7F6;color:#4527A0}
+
+/* ── TRIAL ── */
+.trial-hero{background:var(--black);border-radius:8px;padding:2rem;text-align:center;margin-bottom:1.5rem;position:relative;overflow:hidden}
+.trial-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(196,30,58,0.2),transparent 70%)}
+.trial-hero h2{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:6px;color:var(--white);margin-bottom:8px;position:relative}
+.trial-hero p{color:#888;font-size:14px;max-width:280px;margin:0 auto;position:relative}
+.slot{border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;cursor:pointer;transition:all .15s;background:var(--white)}
+.slot:hover{border-color:var(--red)}
+.slot.selected{border-color:var(--red);background:var(--red-light)}
+.slot strong{display:block;font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+.slot span{font-size:11px;color:var(--muted)}
+.slots-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.25rem}
+.btn-book{width:100%;padding:15px;background:var(--red);border:none;color:var(--white);font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:5px;border-radius:4px;cursor:pointer;transition:background .2s}
+.btn-book:hover{background:var(--red-dark)}
+.trial-confirm{display:none;margin-top:1rem;padding:1rem;background:var(--green-bg);border-radius:8px;text-align:center;color:var(--green);font-size:14px;font-weight:500}
+
+/* ── ADMIN LOGIN ── */
+#screen-admin-login{background:var(--black);min-height:100vh;display:none;flex-direction:column;align-items:center;justify-content:center;padding:2rem}
+#screen-admin-login.active{display:flex}
+
+/* ── ADMIN PANEL ── */
+#screen-admin.active{display:block}
+.admin-header{background:var(--black);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
+.admin-logo{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--white);letter-spacing:4px}
+.admin-logo span{color:var(--gold)}
+.admin-nav{display:flex;gap:8px;background:var(--surface2);padding:1rem 1.5rem;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+.admin-nav button{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:2px;padding:8px 14px;border-radius:4px;border:1px solid var(--border);background:var(--white);cursor:pointer;color:var(--muted);transition:all .15s}
+.admin-nav button.active{background:var(--black);color:var(--white);border-color:var(--black)}
+.admin-nav button:hover:not(.active){border-color:var(--red);color:var(--red)}
+.admin-pane{display:none;padding:1.5rem}
+.admin-pane.active{display:block}
+.admin-table{width:100%;border-collapse:collapse;font-size:13px}
+.admin-table th{text-align:left;padding:10px 12px;background:var(--surface2);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border)}
+.admin-table td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text)}
+.admin-table tr:hover td{background:#fafaf8}
+
+/* ── BUTTONS ── */
+.btn{font-family:'Bebas Neue',sans-serif;letter-spacing:2px;border:none;border-radius:3px;cursor:pointer;transition:all .2s;padding:10px 18px;font-size:13px}
+.btn-red{background:var(--red);color:var(--white)}.btn-red:hover{background:var(--red-dark)}
+.btn-dark{background:#222;color:var(--white)}.btn-dark:hover{background:#000}
+.btn-ghost{background:none;border:1px solid var(--border);color:var(--muted)}.btn-ghost:hover{border-color:var(--red);color:var(--red)}
+.btn-sm{padding:6px 12px;font-size:11px}
+
+/* ── FORM ── */
+.fg{display:grid;gap:10px;margin-bottom:1.25rem}
+.fg-2{grid-template-columns:1fr 1fr}
+.span2{grid-column:span 2}
+.fg .fc label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:5px;display:block}
+.fg .fc input,.fg .fc select,.fg .fc textarea{width:100%;border:none;background:none;color:var(--text);font-family:'Barlow',sans-serif;font-size:14px;outline:none;border-bottom:1px solid var(--border);padding-bottom:4px;transition:border .2s}
+.fg .fc input:focus,.fg .fc select:focus{border-bottom-color:var(--red)}
+.fg .fc textarea{resize:vertical;min-height:50px}
+
+/* ── MODAL ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--white);border-radius:10px;padding:1.75rem;width:100%;max-width:460px;max-height:90vh;overflow-y:auto}
+.modal-box h3{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;color:var(--text);margin-bottom:1.25rem}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:1.25rem}
+
+/* ── MISC ── */
+.save-ok{font-size:12px;color:var(--green);margin-left:10px;opacity:0;transition:opacity .3s}
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--muted)}
+.empty-state .ei{font-size:48px;margin-bottom:12px}
+.belt-pill{display:inline-block;width:38px;height:9px;border-radius:2px;vertical-align:middle;margin-right:6px}
+
+/* ── STORE PREVIEW ── */
+.prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.prod-card{background:var(--white);border:1px solid var(--border);border-radius:8px;overflow:hidden;cursor:pointer;transition:all .15s}
+.prod-card:hover{border-color:var(--red);transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,0.08)}
+.prod-img{height:120px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:40px;overflow:hidden}
+.prod-img img{width:100%;height:100%;object-fit:cover}
+.prod-body{padding:10px 12px}
+.prod-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.prod-price{font-size:16px;font-weight:700;color:var(--red)}
+
+@media(max-width:520px){
+  .fg-2{grid-template-columns:1fr}
+  .span2{grid-column:span 1}
+  .slots-grid{grid-template-columns:repeat(2,1fr)}
+  .nav-tab{font-size:12px;padding:11px 12px;letter-spacing:1px}
+  .admin-nav{padding:.75rem 1rem}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ══════════════════ LOGIN ══════════════════ -->
+<div id="screen-login" class="active">
+  <div class="login-logo" id="login-logo"><span>🥋</span></div>
+  <div class="login-school">MASTER <span>BAEZ</span></div>
+  <div class="login-school" style="font-size:16px;letter-spacing:12px;color:#555;margin-top:-4px">MARTIAL ARTS</div>
+  <div class="login-tagline" style="margin-top:8px">Student Portal — Portal del Estudiante</div>
+  <div class="login-box">
+    <label>Código de acceso / Access Code</label>
+    <input type="text" id="code-input" placeholder="••••••" maxlength="12" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')tryLogin()"/>
+    <div class="login-hint">Tu instructor te dará tu código personal</div>
+    <div class="login-err" id="login-err"></div>
+    <button class="btn-enter" onclick="tryLogin()">ENTRAR AL PORTAL</button>
+    <div class="admin-link"><button onclick="goAdminLogin()">⚙ Acceso Administrador</button></div>
+  </div>
+</div>
+
+<!-- ══════════════════ PORTAL ══════════════════ -->
+<div id="screen-portal" class="screen">
+  <div class="portal-header">
+    <div class="p-logo">MASTER <span>BAEZ</span></div>
+    <div class="p-student">
+      <div class="belt-bar" id="belt-bar"></div>
+      <div class="p-name" id="p-name">Estudiante</div>
+      <button class="btn-logout" onclick="goLogin()">SALIR</button>
+    </div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showTab('info',this)">📋 INFO</button>
+    <button class="nav-tab" onclick="showTab('curriculo',this)">🥋 CURRÍCULO</button>
+    <button class="nav-tab" onclick="showTab('videos',this)">🎥 VIDEOS</button>
+    <button class="nav-tab" onclick="showTab('documentos',this)">📁 DOCS</button>
+    <button class="nav-tab" onclick="showTab('eventos',this)">📅 EVENTOS</button>
+    <button class="nav-tab" onclick="showTab('tienda',this)">🛍️ TIENDA</button>
+    <button class="nav-tab" onclick="showTab('trial',this)">⭐ TRIAL</button>
+  </div>
+
+  <!-- INFO -->
+  <div id="tab-info" class="tab-pane active">
+    <div class="sec-title"><span class="ra">01</span> Mi Información</div>
+    <div id="student-info-card" style="background:var(--surface);border-radius:8px;padding:1.25rem;margin-bottom:1.25rem">
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="width:60px;height:60px;border-radius:50%;background:var(--white);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden" id="info-avatar">👤</div>
+        <div>
+          <div style="font-size:18px;font-weight:700;color:var(--text)" id="info-name">—</div>
+          <div style="font-size:13px;color:var(--muted)" id="info-program">—</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+            <div class="belt-bar" style="height:10px;width:40px;border-radius:3px" id="info-belt-bar"></div>
+            <span style="font-size:12px;color:var(--text);font-weight:500" id="info-belt">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sec-title"><span class="ra">02</span> Estado del Programa</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.25rem" id="info-stats">
+      <div class="fc" style="text-align:center">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Inicio</div>
+        <div style="font-size:16px;font-weight:700;color:var(--text)" id="info-start">—</div>
+      </div>
+      <div class="fc" style="text-align:center">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Vence</div>
+        <div style="font-size:16px;font-weight:700;color:var(--red)" id="info-end">—</div>
+      </div>
+      <div class="fc" style="text-align:center">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Estado</div>
+        <div style="font-size:14px;font-weight:700;color:var(--green)" id="info-status">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CURRÍCULO -->
+  <div id="tab-curriculo" class="tab-pane">
+    <div class="sec-title"><span class="ra">道</span> Currículo — Sistema de Cinturones</div>
+    <div style="background:var(--white);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem" id="belt-list">
+      <div class="empty-state"><div class="ei">🥋</div><p>Cargando currículo...</p></div>
+    </div>
+  </div>
+
+  <!-- VIDEOS -->
+  <div id="tab-videos" class="tab-pane">
+    <div class="sec-title"><span class="ra">🎥</span> Videos de Entrenamiento</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem" id="video-cats"></div>
+    <div id="video-list">
+      <div class="empty-state"><div class="ei">🎬</div><p>No hay videos disponibles aún.</p></div>
+    </div>
+  </div>
+
+  <!-- DOCUMENTOS -->
+  <div id="tab-documentos" class="tab-pane">
+    <div class="sec-title"><span class="ra">📁</span> Documentos del Programa</div>
+    <div id="doc-list">
+      <div class="empty-state"><div class="ei">📂</div><p>No hay documentos disponibles aún.</p></div>
+    </div>
+  </div>
+
+  <!-- EVENTOS -->
+  <div id="tab-eventos" class="tab-pane">
+    <div class="sec-title"><span class="ra">📅</span> Próximos Eventos</div>
+    <div id="event-list">
+      <div class="empty-state"><div class="ei">📭</div><p>No hay eventos próximos.</p></div>
+    </div>
+  </div>
+
+  <!-- TIENDA -->
+  <div id="tab-tienda" class="tab-pane">
+    <div class="sec-title"><span class="ra">🛍️</span> Tienda Oficial</div>
+    <div id="store-list">
+      <div class="empty-state"><div class="ei">🛍️</div><p>Cargando productos...</p></div>
+    </div>
+    <div style="margin-top:1.5rem;padding:1rem;background:var(--surface2);border-radius:8px;text-align:center">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px">Para hacer un pedido contáctanos:</p>
+      <a href="https://wa.me/19043849739" target="_blank" style="display:inline-block;padding:10px 24px;background:#25D366;color:#fff;border-radius:4px;font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;text-decoration:none">💬 WHATSAPP</a>
+    </div>
+  </div>
+
+  <!-- TRIAL -->
+  <div id="tab-trial" class="tab-pane">
+    <div class="trial-hero">
+      <h2>TU PRIMERA CLASE</h2>
+      <p>Selecciona un horario para tu clase de prueba gratuita</p>
+    </div>
+    <div class="sec-title"><span class="ra">→</span> Horarios Disponibles</div>
+    <div class="slots-grid" id="slots-list">
+      <div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:1rem">Cargando horarios...</div>
+    </div>
+    <button class="btn-book" onclick="bookTrial()">RESERVAR CLASE TRIAL</button>
+    <div class="trial-confirm" id="trial-confirm">✓ ¡Reservación confirmada! Tu instructor te contactará pronto.</div>
+  </div>
+</div>
+
+<!-- ══════════════════ ADMIN LOGIN ══════════════════ -->
+<div id="screen-admin-login" class="screen">
+  <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold);letter-spacing:6px;margin-bottom:1.5rem">⚙ ADMIN ACCESS</div>
+  <div class="login-box">
+    <label>Contraseña de Administrador</label>
+    <input type="text" id="admin-pw" placeholder="CONTRASEÑA" autocapitalize="characters" autocorrect="off" autocomplete="off" style="font-size:22px;letter-spacing:8px;text-align:center" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')tryAdmin()"/>
+    <div class="login-err" id="admin-err"></div>
+    <button class="btn-enter" onclick="tryAdmin()">ENTRAR</button>
+    <div class="admin-link"><button onclick="goLogin()" style="color:#555">← Volver al Portal</button></div>
+  </div>
+</div>
+
+<!-- ══════════════════ ADMIN PANEL ══════════════════ -->
+<div id="screen-admin" class="screen">
+  <div class="admin-header">
+    <div class="admin-logo">ADMIN <span>PANEL</span></div>
+    <button class="btn-logout" onclick="goLogin()">SALIR</button>
+  </div>
+  <div class="admin-nav">
+    <button class="active" onclick="showAdmin('students',this)">ESTUDIANTES</button>
+    <button onclick="showAdmin('abelts',this)">CINTURONES</button>
+    <button onclick="showAdmin('adocs',this)">DOCUMENTOS</button>
+    <button onclick="showAdmin('aevents',this)">EVENTOS</button>
+    <button onclick="showAdmin('aslots',this)">HORARIOS</button>
+    <button onclick="showAdmin('avideos',this)">VIDEOS</button>
+  </div>
+
+  <!-- STUDENTS -->
+  <div id="admin-students" class="admin-pane active">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <div class="sec-title" style="margin-bottom:0;flex:1"><span class="ra">👥</span> Códigos de Acceso</div>
+      <button class="btn btn-red btn-sm" onclick="openModal('modal-student');editIdx=null">+ AGREGAR</button>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:1rem">Cada estudiante necesita un código único para entrar al portal.</p>
+    <div style="overflow-x:auto">
+      <table class="admin-table" id="students-table">
+        <thead><tr><th>Código</th><th>Nombre</th><th>Cinturón</th><th>Email</th><th></th></tr></thead>
+        <tbody id="students-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- BELTS -->
+  <div id="admin-abelts" class="admin-pane">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <div class="sec-title" style="margin-bottom:0;flex:1"><span class="ra">🥋</span> Currículo de Cinturones</div>
+      <button class="btn btn-red btn-sm" onclick="openModal('modal-belt');editIdx=null">+ AGREGAR</button>
+    </div>
+    <div id="admin-belt-list"></div>
+  </div>
+
+  <!-- DOCS -->
+  <div id="admin-adocs" class="admin-pane">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <div class="sec-title" style="margin-bottom:0;flex:1"><span class="ra">📁</span> Documentos</div>
+      <button class="btn btn-red btn-sm" onclick="openModal('modal-doc');editIdx=null">+ AGREGAR</button>
+    </div>
+    <div id="admin-doc-list"></div>
+  </div>
+
+  <!-- EVENTS -->
+  <div id="admin-aevents" class="admin-pane">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <div class="sec-title" style="margin-bottom:0;flex:1"><span class="ra">📅</span> Eventos</div>
+      <button class="btn btn-red btn-sm" onclick="openModal('modal-event');editIdx=null">+ AGREGAR</button>
+    </div>
+    <div id="admin-event-list"></div>
+  </div>
+
+  <!-- SLOTS -->
+  <div id="admin-aslots" class="admin-pane">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <div class="sec-title" style="margin-bottom:0;flex:1"><span class="ra">⏰</span> Horarios Trial</div>
+      <button class="btn btn-red btn-sm" onclick="openModal('modal-slot');editIdx=null">+ AGREGAR</button>
+    </div>
+    <div id="admin-slot-list" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px"></div>
+  </div>
+
+  <!-- VIDEOS -->
+  <div id="admin-avideos" class="admin-pane">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <div class="sec-title" style="margin-bottom:0;flex:1"><span class="ra">🎥</span> Videos</div>
+      <button class="btn btn-red btn-sm" onclick="openModal('modal-video');editIdx=null">+ AGREGAR</button>
+    </div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:1rem">Agrega links de YouTube — los estudiantes los verán en el portal.</p>
+    <div id="admin-video-list"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ MODALS ══════════════════ -->
+<!-- Student Modal -->
+<div class="modal-overlay" id="modal-student">
+  <div class="modal-box">
+    <h3 id="ms-title">AGREGAR ESTUDIANTE</h3>
+    <div class="fg fg-2">
+      <div class="fc"><label>Código de Acceso</label><input type="text" id="ms-code" placeholder="Ej: BAEZ001" oninput="this.value=this.value.toUpperCase()"/></div>
+      <div class="fc"><label>Nombre</label><input type="text" id="ms-name"/></div>
+      <div class="fc"><label>Cinturón</label><select id="ms-belt"></select></div>
+      <div class="fc"><label>Color</label><input type="color" id="ms-bcolor" value="#FFD700"/></div>
+      <div class="fc span2"><label>Email</label><input type="email" id="ms-email"/></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-student')">CANCELAR</button>
+      <button class="btn btn-red" onclick="saveStudent()">GUARDAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- Belt Modal -->
+<div class="modal-overlay" id="modal-belt">
+  <div class="modal-box">
+    <h3 id="mb-title">AGREGAR CINTURÓN</h3>
+    <div class="fg fg-2">
+      <div class="fc span2"><label>Nombre</label><input type="text" id="mb-name" placeholder="Cinturón Amarillo"/></div>
+      <div class="fc"><label>Color</label><input type="color" id="mb-color" value="#FFD700"/></div>
+      <div class="fc"><label>Estado</label><select id="mb-status"><option value="done">✅ Completado</option><option value="current">🔥 En Progreso</option><option value="next">⏳ Próximo</option></select></div>
+      <div class="fc span2"><label>Descripción / Técnicas</label><input type="text" id="mb-desc" placeholder="Heian Shodan, bloqueos, posiciones..."/></div>
+      <div class="fc span2"><label>Link de Video (YouTube)</label><input type="url" id="mb-video" placeholder="https://youtube.com/..."/></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-belt')">CANCELAR</button>
+      <button class="btn btn-red" onclick="saveBelt()">GUARDAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- Doc Modal -->
+<div class="modal-overlay" id="modal-doc">
+  <div class="modal-box">
+    <h3 id="md-title">AGREGAR DOCUMENTO</h3>
+    <div class="fg">
+      <div class="fc"><label>Nombre</label><input type="text" id="md-name"/></div>
+      <div class="fc"><label>Descripción</label><input type="text" id="md-desc"/></div>
+      <div class="fc"><label>Link (Google Drive, PDF, etc.)</label><input type="url" id="md-url" placeholder="https://drive.google.com/..."/></div>
+      <div class="fc"><label>Tipo</label><input type="text" id="md-tag" placeholder="PDF / WAIVER / HANDBOOK"/></div>
+      <div class="fc"><label>Emoji / Ícono</label><input type="text" id="md-icon" placeholder="📋" style="font-size:20px"/></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-doc')">CANCELAR</button>
+      <button class="btn btn-red" onclick="saveDoc()">GUARDAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- Event Modal -->
+<div class="modal-overlay" id="modal-event">
+  <div class="modal-box">
+    <h3 id="me-title">AGREGAR EVENTO</h3>
+    <div class="fg">
+      <div class="fc"><label>Fecha</label><input type="text" id="me-date" placeholder="SAB 05 ABR 2025"/></div>
+      <div class="fc"><label>Título</label><input type="text" id="me-title-input"/></div>
+      <div class="fc"><label>Descripción / Lugar</label><textarea id="me-desc" placeholder="Dojo principal • 10:00 AM"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-event')">CANCELAR</button>
+      <button class="btn btn-red" onclick="saveEvent()">GUARDAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- Slot Modal -->
+<div class="modal-overlay" id="modal-slot">
+  <div class="modal-box">
+    <h3>AGREGAR HORARIO</h3>
+    <div class="fg fg-2">
+      <div class="fc"><label>Días</label><input type="text" id="msl-days" placeholder="Lun / Mié"/></div>
+      <div class="fc"><label>Hora</label><input type="text" id="msl-time" placeholder="6:00 PM"/></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-slot')">CANCELAR</button>
+      <button class="btn btn-red" onclick="saveSlot()">GUARDAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- Video Modal -->
+<div class="modal-overlay" id="modal-video">
+  <div class="modal-box">
+    <h3 id="mv-title">AGREGAR VIDEO</h3>
+    <div class="fg">
+      <div class="fc"><label>Título del Video</label><input type="text" id="mv-name"/></div>
+      <div class="fc"><label>Link de YouTube</label><input type="url" id="mv-url" placeholder="https://youtube.com/watch?v=..."/></div>
+      <div class="fc"><label>Categoría</label><select id="mv-cat"><option value="Principiante">🟢 Principiante</option><option value="Intermedio">🟡 Intermedio</option><option value="Avanzado">🔴 Avanzado</option><option value="Seminario">⭐ Seminario</option></select></div>
+      <div class="fc"><label>Descripción</label><input type="text" id="mv-desc" placeholder="Ej: Kata Heian Shodan completo"/></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-video')">CANCELAR</button>
+      <button class="btn btn-red" onclick="saveVideo()">GUARDAR</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<script>
+// ══════════════════════════════════════════════════════
+// MASTER BAEZ MARTIAL ARTS — STUDENT PORTAL
+// Reads from Firebase crmData (same as CRM)
+// Admin data stored in portalData (separate, no conflict)
+// ══════════════════════════════════════════════════════
+
+const ADMIN_PASS = 'ADMIN2025';
+const PORTAL_KEY = 'portalData'; // separate from crmData — NO CONFLICT
+let DATA = {
+  students: [], belts: [], docs: [], events: [], slots: [], videos: []
+};
+let currentStudent = null;
+let editIdx = null;
+let selectedSlot = null;
+let selectedVideoCat = 'all';
+let crmStudents = []; // from CRM Firebase
+let storeProducts = []; // from CRM Firebase
+
+// ── FIREBASE LOAD ──────────────────────────────────
+async function init() {
+  try {
+    // Load portal admin data
+    const snap = await db.ref(PORTAL_KEY).get();
+    if (snap.exists()) {
+      const d = snap.val();
+      DATA.students = toArr(d.students);
+      DATA.belts    = toArr(d.belts);
+      DATA.docs     = toArr(d.docs);
+      DATA.events   = toArr(d.events);
+      DATA.slots    = toArr(d.slots);
+      DATA.videos   = toArr(d.videos);
+    } else {
+      // First time — populate with defaults
+      DATA.belts = [
+        {id:1,name:'Cinturón Blanco',  color:'#ffffff',desc:'Kihon básico, posiciones, saludo formal',         status:'done'},
+        {id:2,name:'Cinturón Amarillo',color:'#FFD700',desc:'Heian Shodan, bloqueos, desplazamientos básicos', status:'current'},
+        {id:3,name:'Cinturón Naranja', color:'#FF8C00',desc:'Heian Nidan, combinaciones, kumite básico',       status:'next'},
+        {id:4,name:'Cinturón Verde',   color:'#3CB371',desc:'Heian Sandan, defensa personal, kata avanzado',   status:'next'},
+        {id:5,name:'Cinturón Azul',    color:'#4169E1',desc:'Heian Yondan, sparring controlado',               status:'next'},
+        {id:6,name:'Cinturón Marrón',  color:'#8B4513',desc:'Heian Godan, kata de competencia',               status:'next'},
+        {id:7,name:'Cinturón Negro',   color:'#111111',desc:'Dominio técnico completo, liderazgo',             status:'next'},
+      ];
+      DATA.slots = [
+        {id:1,days:'Lun / Mié',time:'6:00 PM'},
+        {id:2,days:'Mar / Jue',time:'5:30 PM'},
+        {id:3,days:'Sábado',   time:'10:00 AM'},
+      ];
+      await save();
+    }
+
+    // Load CRM students for info tab
+    const crmSnap = await db.ref('crmData').get();
+    if (crmSnap.exists()) {
+      const crm = crmSnap.val();
+      crmStudents  = toArr(crm.students);
+      storeProducts = toArr(crm.storeProducts);
+    }
+
+    // Load CRM logo
+    const crmSnap2 = await db.ref('crmData/config').get();
+    if (crmSnap2.exists()) {
+      const cfg = crmSnap2.val();
+      if (cfg.logo) {
+        const ll = document.getElementById('login-logo');
+        ll.innerHTML = `<img src="${cfg.logo}">`;
+      }
+    }
+  } catch(e) { console.warn('Firebase init:', e); }
+  
+  renderBeltSelects();
+}
+
+function toArr(v) {
+  if (!v) return [];
+  if (Array.isArray(v)) return v;
+  return Object.values(v);
+}
+
+async function save() {
+  try { await db.ref(PORTAL_KEY).set(DATA); } catch(e) { console.warn('Save error:', e); }
+}
+
+// ── NAVIGATION ─────────────────────────────────────
+function goLogin()      { showScreen('screen-login'); }
+function goAdminLogin() { showScreen('screen-admin-login'); }
+
+function showScreen(id) {
+  document.querySelectorAll('.screen, #screen-login, #screen-admin-login').forEach(s => {
+    s.classList.remove('active');
+    s.style.display = 'none';
+  });
+  const el = document.getElementById(id);
+  el.classList.add('active');
+  // screen-login and screen-admin-login need flex
+  if (id === 'screen-login' || id === 'screen-admin-login') {
+    el.style.display = 'flex';
+  } else {
+    el.style.display = 'block';
+  }
+}
+
+function showTab(tab, btn) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  if (btn) btn.classList.add('active');
+  // Render content on demand
+  if (tab === 'curriculo')  renderBelts();
+  if (tab === 'videos')     renderVideos();
+  if (tab === 'documentos') renderDocs();
+  if (tab === 'eventos')    renderEvents();
+  if (tab === 'tienda')     renderStore();
+  if (tab === 'trial')      renderSlots();
+}
+
+function showAdmin(pane, btn) {
+  document.querySelectorAll('.admin-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.admin-nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('admin-'+pane).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (pane === 'students') renderAdminStudents();
+  if (pane === 'abelts')   renderAdminBelts();
+  if (pane === 'adocs')    renderAdminDocs();
+  if (pane === 'aevents')  renderAdminEvents();
+  if (pane === 'aslots')   renderAdminSlots();
+  if (pane === 'avideos')  renderAdminVideos();
+}
+
+// ── LOGIN ──────────────────────────────────────────
+function tryLogin() {
+  const code = document.getElementById('code-input').value.trim().toUpperCase();
+  const errEl = document.getElementById('login-err');
+  if (!code) { errEl.textContent = 'Ingresa tu código de acceso'; return; }
+  
+  const student = DATA.students.find(s => s.code === code);
+  if (!student) {
+    errEl.textContent = 'Código incorrecto. Contacta a tu instructor.';
+    document.getElementById('code-input').style.borderColor = 'var(--red)';
+    setTimeout(() => { document.getElementById('code-input').style.borderColor = ''; }, 2000);
+    return;
+  }
+  
+  currentStudent = student;
+  // Match with CRM student
+  const crmSt = crmStudents.find(s => s.name.toLowerCase() === student.name.toLowerCase());
+  
+  // Set header
+  document.getElementById('p-name').textContent = student.name;
+  document.getElementById('belt-bar').style.background = student.beltColor || '#FFD700';
+  document.getElementById('belt-bar').style.border = student.beltColor === '#ffffff' ? '1px solid #ddd' : '';
+
+  // Info tab
+  document.getElementById('info-name').textContent = student.name;
+  document.getElementById('info-belt').textContent = student.belt || '—';
+  document.getElementById('info-belt-bar').style.background = student.beltColor || '#FFD700';
+  
+  if (crmSt) {
+    document.getElementById('info-program').textContent = crmSt.program || '—';
+    document.getElementById('info-start').textContent   = crmSt.startDate ? formatDate(crmSt.startDate) : '—';
+    document.getElementById('info-end').textContent     = crmSt.endDate   ? formatDate(crmSt.endDate)   : '—';
+    document.getElementById('info-status').textContent  = crmSt.status    || '—';
+    if (crmSt.photo) {
+      document.getElementById('info-avatar').innerHTML = `<img src="${crmSt.photo}" style="width:100%;height:100%;object-fit:cover">`;
+    }
+  }
+
+  document.getElementById('code-input').value = '';
+  document.getElementById('login-err').textContent = '';
+  showScreen('screen-portal');
+  renderBelts();
+}
+
+function tryAdmin() {
+  const pw = document.getElementById('admin-pw').value;
+  if (pw === ADMIN_PASS) {
+    document.getElementById('admin-pw').value = '';
+    showScreen('screen-admin');
+    renderAdminStudents();
+  } else {
+    document.getElementById('admin-err').textContent = 'Contraseña incorrecta';
+    setTimeout(() => document.getElementById('admin-err').textContent = '', 2000);
+  }
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  const p = d.split('-');
+  if (p.length === 3) return p[1]+'/'+p[2]+'/'+p[0];
+  return d;
+}
+
+// ── RENDER PORTAL ──────────────────────────────────
+function renderBelts() {
+  const el = document.getElementById('belt-list');
+  if (!DATA.belts.length) { el.innerHTML = '<div class="empty-state"><div class="ei">🥋</div><p>No hay cinturones configurados aún.</p></div>'; return; }
+  el.innerHTML = DATA.belts.map(b => {
+    const statusMap = {done:'bs-done',current:'bs-cur',next:'bs-next'};
+    const labelMap  = {done:'✅ Completado',current:'🔥 En Progreso',next:'⏳ Próximo'};
+    const isWhite   = b.color === '#ffffff' || b.color === '#fff';
+    return `<div class="belt-row">
+      <div class="belt-swatch${isWhite?' white-belt':''}" style="background:${b.color}"></div>
+      <div class="belt-info">
+        <strong>${b.name}</strong>
+        <span>${b.desc||''}</span>
+        ${b.video ? `<br><a href="${b.video}" target="_blank" style="font-size:11px;color:var(--red);text-decoration:none;font-weight:600">▶ Ver Video</a>` : ''}
+      </div>
+      <span class="bs ${statusMap[b.status]||'bs-next'}">${labelMap[b.status]||'⏳ Próximo'}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderVideos(cat) {
+  selectedVideoCat = cat || selectedVideoCat;
+  const cats = ['all',...new Set(DATA.videos.map(v=>v.category))];
+  const catEl = document.getElementById('video-cats');
+  catEl.innerHTML = cats.map(c => `
+    <button onclick="renderVideos('${c}')" style="padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid ${c===selectedVideoCat?'var(--red)':'var(--border)'};background:${c===selectedVideoCat?'var(--red)':'var(--white)'};color:${c===selectedVideoCat?'#fff':'var(--muted)'};cursor:pointer">
+      ${c==='all'?'🎬 Todos':c}
+    </button>`).join('');
+  const filtered = selectedVideoCat === 'all' ? DATA.videos : DATA.videos.filter(v=>v.category===selectedVideoCat);
+  const el = document.getElementById('video-list');
+  if (!filtered.length) { el.innerHTML = '<div class="empty-state"><div class="ei">🎬</div><p>No hay videos en esta categoría.</p></div>'; return; }
+  const catClass = {Principiante:'cat-beginner',Intermedio:'cat-intermediate',Avanzado:'cat-advanced',Seminario:'cat-seminar'};
+  el.innerHTML = filtered.map(v => {
+    const ytId = getYouTubeId(v.url);
+    const thumb = ytId ? `https://img.youtube.com/vi/${ytId}/mqdefault.jpg` : '';
+    return `<div class="video-card" onclick="window.open('${v.url}','_blank')">
+      <div class="video-thumb">
+        ${thumb ? `<img src="${thumb}">` : '<span>🎥</span>'}
+        <div class="play-overlay"><div class="play-btn">▶</div></div>
+      </div>
+      <div class="video-info">
+        <strong>${v.name}</strong>
+        <span>${v.desc||''}</span>
+        <br><span class="cat-pill ${catClass[v.category]||'cat-beginner'}">${v.category||'General'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function getYouTubeId(url) {
+  if (!url) return null;
+  const m = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
+function renderDocs() {
+  const el = document.getElementById('doc-list');
+  if (!DATA.docs.length) { el.innerHTML = '<div class="empty-state"><div class="ei">📂</div><p>No hay documentos disponibles aún.</p></div>'; return; }
+  el.innerHTML = DATA.docs.map(d => `
+    <div class="doc-item">
+      <div class="doc-icon">${d.icon||'📄'}</div>
+      <div class="doc-info">
+        <strong>${d.name}</strong>
+        <span>${d.desc||''}</span>
+      </div>
+      <span class="doc-tag">${d.tag||'DOC'}</span>
+      ${d.url ? `<a href="${d.url}" target="_blank" class="doc-btn">VER</a>` : ''}
+    </div>`).join('');
+}
+
+function renderEvents() {
+  const el = document.getElementById('event-list');
+  if (!DATA.events.length) { el.innerHTML = '<div class="empty-state"><div class="ei">📭</div><p>No hay eventos próximos.</p></div>'; return; }
+  el.innerHTML = DATA.events.map(e => `
+    <div class="ev-card">
+      <div class="ev-date">${e.date||''}</div>
+      <div class="ev-title">${e.title||''}</div>
+      <div class="ev-desc">${e.desc||''}</div>
+    </div>`).join('');
+}
+
+function renderStore() {
+  const el = document.getElementById('store-list');
+  const prods = storeProducts.filter(p => p.stock > 0 || p.stock === undefined);
+  if (!prods.length) { el.innerHTML = '<div class="empty-state"><div class="ei">🛍️</div><p>Productos disponibles próximamente.</p></div>'; return; }
+  el.innerHTML = `<div class="prod-grid">${prods.map(p => `
+    <div class="prod-card">
+      <div class="prod-img">${p.photo?`<img src="${p.photo}">`:(p.emoji||'🛍️')}</div>
+      <div class="prod-body">
+        <div class="prod-name">${p.name||p.name_es||'Producto'}</div>
+        <div class="prod-price">$${parseFloat(p.price||0).toFixed(2)}</div>
+        ${p.stock !== undefined ? `<div style="font-size:11px;color:var(--muted);margin-top:3px">Stock: ${p.stock}</div>` : ''}
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+function renderSlots() {
+  const el = document.getElementById('slots-list');
+  if (!DATA.slots.length) { el.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:1rem">No hay horarios disponibles aún.</div>'; return; }
+  el.innerHTML = DATA.slots.map((s,i) => `
+    <div class="slot ${selectedSlot===i?'selected':''}" onclick="selectSlot(${i})">
+      <strong>${s.days}</strong>
+      <span>${s.time}</span>
+    </div>`).join('');
+}
+
+function selectSlot(i) {
+  selectedSlot = i;
+  renderSlots();
+}
+
+function bookTrial() {
+  if (selectedSlot === null) { alert('Selecciona un horario primero'); return; }
+  const slot = DATA.slots[selectedSlot];
+  const conf = document.getElementById('trial-confirm');
+  conf.style.display = 'block';
+  conf.textContent = `✓ ¡Reservado! ${slot.days} a las ${slot.time} — Tu instructor te contactará pronto.`;
+  selectedSlot = null;
+  renderSlots();
+}
+
+// ── BELT SELECTS ────────────────────────────────────
+function renderBeltSelects() {
+  const belts = DATA.belts.length ? DATA.belts : [{name:'Blanco'},{name:'Amarillo'},{name:'Naranja'},{name:'Verde'},{name:'Azul'},{name:'Marrón'},{name:'Negro'}];
+  ['r-belt','ms-belt'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = belts.map(b => `<option value="${b.name}">${b.name}</option>`).join('');
+  });
+}
+
+// ── ADMIN RENDERS ───────────────────────────────────
+function renderAdminStudents() {
+  const tb = document.getElementById('students-tbody');
+  if (!tb) return;
+  tb.innerHTML = DATA.students.length ? DATA.students.map((s,i) => `
+    <tr>
+      <td><strong style="font-family:'Bebas Neue';letter-spacing:2px;color:var(--red)">${s.code}</strong></td>
+      <td>${s.name}</td>
+      <td><span class="belt-pill" style="background:${s.beltColor};border:${s.beltColor==='#ffffff'?'1px solid #ddd':'none'}"></span>${s.belt||'—'}</td>
+      <td style="color:var(--muted)">${s.email||'—'}</td>
+      <td style="white-space:nowrap">
+        <button onclick="editStudent(${i})" style="background:none;border:none;cursor:pointer;font-size:14px;padding:2px 6px">✏️</button>
+        <button onclick="deleteStudent(${i})" style="background:none;border:none;cursor:pointer;font-size:14px;padding:2px 6px">🗑️</button>
+      </td>
+    </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1rem">Sin estudiantes. Agrega el primero.</td></tr>';
+}
+
+function renderAdminBelts() {
+  const el = document.getElementById('admin-belt-list');
+  if (!el) return;
+  el.innerHTML = DATA.belts.map((b,i) => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px;border:1px solid var(--border);border-radius:6px;margin-bottom:8px;background:#fff">
+      <div style="width:40px;height:12px;border-radius:2px;background:${b.color};border:${b.color==='#ffffff'?'1px solid #ddd':'none'};flex-shrink:0"></div>
+      <div style="flex:1"><strong style="font-size:14px">${b.name}</strong><br><span style="font-size:12px;color:var(--muted)">${b.desc||''}</span></div>
+      <button onclick="editBelt(${i})" style="background:none;border:none;cursor:pointer">✏️</button>
+      <button onclick="deleteBelt(${i})" style="background:none;border:none;cursor:pointer">🗑️</button>
+    </div>`).join('') || '<p style="color:var(--muted);font-size:13px">Sin cinturones configurados.</p>';
+}
+
+function renderAdminDocs() {
+  const el = document.getElementById('admin-doc-list');
+  if (!el) return;
+  el.innerHTML = DATA.docs.map((d,i) => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:6px;margin-bottom:8px;background:#fff">
+      <span style="font-size:20px">${d.icon||'📄'}</span>
+      <div style="flex:1"><strong style="font-size:13px">${d.name}</strong><br><span style="font-size:11px;color:var(--muted)">${d.desc||''}</span></div>
+      <button onclick="editDoc(${i})" style="background:none;border:none;cursor:pointer">✏️</button>
+      <button onclick="deleteDoc(${i})" style="background:none;border:none;cursor:pointer">🗑️</button>
+    </div>`).join('') || '<p style="color:var(--muted);font-size:13px">Sin documentos.</p>';
+}
+
+function renderAdminEvents() {
+  const el = document.getElementById('admin-event-list');
+  if (!el) return;
+  el.innerHTML = DATA.events.map((e,i) => `
+    <div style="padding:10px;border:1px solid var(--border);border-left:3px solid var(--red);border-radius:0 6px 6px 0;margin-bottom:8px;background:#fff;display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+      <div><div style="font-size:11px;color:var(--red);font-weight:700;letter-spacing:1px">${e.date}</div><div style="font-size:13px;font-weight:600">${e.title}</div></div>
+      <div style="white-space:nowrap">
+        <button onclick="editEvent(${i})" style="background:none;border:none;cursor:pointer">✏️</button>
+        <button onclick="deleteEvent(${i})" style="background:none;border:none;cursor:pointer">🗑️</button>
+      </div>
+    </div>`).join('') || '<p style="color:var(--muted);font-size:13px">Sin eventos.</p>';
+}
+
+function renderAdminSlots() {
+  const el = document.getElementById('admin-slot-list');
+  if (!el) return;
+  el.innerHTML = DATA.slots.map((s,i) => `
+    <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;position:relative">
+      <strong style="display:block;font-size:13px">${s.days}</strong>
+      <span style="font-size:12px;color:var(--muted)">${s.time}</span>
+      <div style="position:absolute;top:6px;right:6px;display:flex;gap:2px">
+        <button onclick="editSlot(${i})" style="background:none;border:none;cursor:pointer;font-size:12px">✏️</button>
+        <button onclick="deleteSlot(${i})" style="background:none;border:none;cursor:pointer;font-size:12px">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderAdminVideos() {
+  const el = document.getElementById('admin-video-list');
+  if (!el) return;
+  el.innerHTML = DATA.videos.map((v,i) => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:6px;margin-bottom:8px;background:#fff">
+      <span style="font-size:20px">🎥</span>
+      <div style="flex:1"><strong style="font-size:13px">${v.name}</strong><br><span style="font-size:11px;color:var(--muted)">${v.category||''} ${v.desc?'• '+v.desc:''}</span></div>
+      <button onclick="editVideo(${i})" style="background:none;border:none;cursor:pointer">✏️</button>
+      <button onclick="deleteVideo(${i})" style="background:none;border:none;cursor:pointer">🗑️</button>
+    </div>`).join('') || '<p style="color:var(--muted);font-size:13px">Sin videos. Agrega links de YouTube.</p>';
+}
+
+// ── CRUD ────────────────────────────────────────────
+function editStudent(i) {
+  editIdx = i; const s = DATA.students[i];
+  document.getElementById('ms-title').textContent = 'EDITAR ESTUDIANTE';
+  document.getElementById('ms-code').value  = s.code;
+  document.getElementById('ms-name').value  = s.name;
+  document.getElementById('ms-belt').value  = s.belt;
+  document.getElementById('ms-bcolor').value = s.beltColor||'#FFD700';
+  document.getElementById('ms-email').value = s.email||'';
+  openModal('modal-student');
+}
+function saveStudent() {
+  const obj = { code:document.getElementById('ms-code').value.trim().toUpperCase(), name:document.getElementById('ms-name').value.trim(), belt:document.getElementById('ms-belt').value, beltColor:document.getElementById('ms-bcolor').value, email:document.getElementById('ms-email').value.trim() };
+  if (!obj.code||!obj.name){alert('Código y nombre son requeridos.');return;}
+  if (editIdx!==null) DATA.students[editIdx]=obj; else DATA.students.push(obj);
+  save(); renderAdminStudents(); renderBeltSelects(); closeModal('modal-student');
+}
+function deleteStudent(i) {
+  if (!confirm('¿Borrar acceso de "'+DATA.students[i].name+'"?')) return;
+  DATA.students.splice(i,1); save(); renderAdminStudents();
+}
+
+function editBelt(i) {
+  editIdx=i; const b=DATA.belts[i];
+  document.getElementById('mb-title').textContent='EDITAR CINTURÓN';
+  document.getElementById('mb-name').value  = b.name;
+  document.getElementById('mb-color').value = b.color;
+  document.getElementById('mb-desc').value  = b.desc||'';
+  document.getElementById('mb-status').value= b.status||'next';
+  document.getElementById('mb-video').value = b.video||'';
+  openModal('modal-belt');
+}
+function saveBelt() {
+  const obj={id:Date.now(),name:document.getElementById('mb-name').value.trim(),color:document.getElementById('mb-color').value,desc:document.getElementById('mb-desc').value.trim(),status:document.getElementById('mb-status').value,video:document.getElementById('mb-video').value.trim()};
+  if(!obj.name){alert('Nombre requerido.');return;}
+  if(editIdx!==null) DATA.belts[editIdx]=obj; else DATA.belts.push(obj);
+  save(); renderAdminBelts(); renderBeltSelects(); closeModal('modal-belt');
+}
+function deleteBelt(i){if(!confirm('¿Borrar?'))return;DATA.belts.splice(i,1);save();renderAdminBelts();}
+
+function editDoc(i){
+  editIdx=i;const d=DATA.docs[i];
+  document.getElementById('md-title').textContent='EDITAR DOCUMENTO';
+  document.getElementById('md-name').value=d.name;document.getElementById('md-desc').value=d.desc||'';
+  document.getElementById('md-url').value=d.url||'';document.getElementById('md-tag').value=d.tag||'';document.getElementById('md-icon').value=d.icon||'📄';
+  openModal('modal-doc');
+}
+function saveDoc(){
+  const obj={id:Date.now(),icon:document.getElementById('md-icon').value||'📄',name:document.getElementById('md-name').value.trim(),desc:document.getElementById('md-desc').value.trim(),url:document.getElementById('md-url').value.trim(),tag:document.getElementById('md-tag').value.trim()};
+  if(!obj.name){alert('Nombre requerido.');return;}
+  if(editIdx!==null)DATA.docs[editIdx]=obj;else DATA.docs.push(obj);
+  save();renderAdminDocs();closeModal('modal-doc');
+}
+function deleteDoc(i){if(!confirm('¿Borrar?'))return;DATA.docs.splice(i,1);save();renderAdminDocs();}
+
+function editEvent(i){
+  editIdx=i;const e=DATA.events[i];
+  document.getElementById('me-title').textContent='EDITAR EVENTO';
+  document.getElementById('me-date').value=e.date;document.getElementById('me-title-input').value=e.title;document.getElementById('me-desc').value=e.desc||'';
+  openModal('modal-event');
+}
+function saveEvent(){
+  const obj={id:Date.now(),date:document.getElementById('me-date').value,title:document.getElementById('me-title-input').value.trim(),desc:document.getElementById('me-desc').value.trim()};
+  if(!obj.title){alert('Título requerido.');return;}
+  if(editIdx!==null)DATA.events[editIdx]=obj;else DATA.events.push(obj);
+  save();renderAdminEvents();closeModal('modal-event');
+}
+function deleteEvent(i){if(!confirm('¿Borrar?'))return;DATA.events.splice(i,1);save();renderAdminEvents();}
+
+function editSlot(i){
+  editIdx=i;const s=DATA.slots[i];
+  document.getElementById('msl-days').value=s.days;document.getElementById('msl-time').value=s.time;
+  openModal('modal-slot');
+}
+function saveSlot(){
+  const obj={id:Date.now(),days:document.getElementById('msl-days').value.trim(),time:document.getElementById('msl-time').value.trim()};
+  if(!obj.days||!obj.time){alert('Días y hora requeridos.');return;}
+  if(editIdx!==null)DATA.slots[editIdx]=obj;else DATA.slots.push(obj);
+  save();renderAdminSlots();closeModal('modal-slot');
+}
+function deleteSlot(i){if(!confirm('¿Borrar?'))return;DATA.slots.splice(i,1);save();renderAdminSlots();}
+
+function editVideo(i){
+  editIdx=i;const v=DATA.videos[i];
+  document.getElementById('mv-title').textContent='EDITAR VIDEO';
+  document.getElementById('mv-name').value=v.name;document.getElementById('mv-url').value=v.url||'';
+  document.getElementById('mv-cat').value=v.category||'Principiante';document.getElementById('mv-desc').value=v.desc||'';
+  openModal('modal-video');
+}
+function saveVideo(){
+  const obj={id:Date.now(),name:document.getElementById('mv-name').value.trim(),url:document.getElementById('mv-url').value.trim(),category:document.getElementById('mv-cat').value,desc:document.getElementById('mv-desc').value.trim()};
+  if(!obj.name||!obj.url){alert('Nombre y URL son requeridos.');return;}
+  if(editIdx!==null)DATA.videos[editIdx]=obj;else DATA.videos.push(obj);
+  save();renderAdminVideos();closeModal('modal-video');
+}
+function deleteVideo(i){if(!confirm('¿Borrar?'))return;DATA.videos.splice(i,1);save();renderAdminVideos();}
+
+// ── MODAL HELPERS ───────────────────────────────────
+function openModal(id){editIdx=null;document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');editIdx=null;}
+document.querySelectorAll('.modal-overlay').forEach(m=>{
+  m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});
+});
+
+// ── START ──
+// Fix initial display
+document.getElementById('screen-login').style.display = 'flex';
+init();
+</script>
+</body>
+</html>
