@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title id="pageTitle">Centro Educativo â€” InscripciÃ³n</title>
+<title id="pageTitle">Centro Educativo — Inscripción</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script>
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-//  âš™ï¸  WHITE-LABEL CONFIG â€” EDIT EVERYTHING HERE
-//  Cada vez que clonas esta pÃ¡gina, solo edita esta secciÃ³n
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ════════════════════════════════════════════════════════════════
+//  ⚙️  WHITE-LABEL CONFIG — EDIT EVERYTHING HERE
+//  Cada vez que clonas esta página, solo edita esta sección
+// ════════════════════════════════════════════════════════════════
 var WL = {
-  // â”€â”€ IDENTIDAD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── IDENTIDAD ──────────────────────────────────────────────
   academyName:    'Master Baez Martial Arts',
   tagline_es:     'Inscribe a tu familia en el programa perfecto para ellos.',
   tagline_en:     'Enroll your family in the perfect program for them.',
@@ -21,13 +21,13 @@ var WL = {
   address:        '9450 Griffin Rd, Cooper City FL 33328',
   logoUrl:        '',           // URL de imagen o base64
 
-  // â”€â”€ COLORES (hex) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── COLORES (hex) ──────────────────────────────────────────
   colorPrimary:   '#E02020',    // Rojo principal
   colorSecondary: '#1A3FA6',    // Azul secundario
   colorAccent:    '#F5C800',    // Amarillo acento
   colorDark:      '#111111',    // Fondo oscuro
 
-  // â”€â”€ CONTACTO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── CONTACTO ───────────────────────────────────────────────
   phone:          '(954) 380-1340',
   whatsapp:       '19543801340',
   email:          'info@masterbaez.com',
@@ -37,14 +37,14 @@ var WL = {
   telegramChatId:   '5680584878',
   website:        'masterbaez.com',
 
-  // â”€â”€ BREVO / EMAIL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── BREVO / EMAIL ──────────────────────────────────────────
   brevoWorker:    'https://long-breeze-7e8a.dbkoryo.workers.dev/',
   senderName:     'Master Baez Martial Arts',
   senderEmail:    'info@masterbaez.com',
 
-  // â”€â”€ FIREBASE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── FIREBASE ───────────────────────────────────────────────
   firebase: {
-    // â† Firebase del Master Panel (crm-leads-baez)
+    // ← Firebase del Master Panel (crm-leads-baez)
     apiKey:            'AIzaSyDpjqJFZxh1ErjbfTJ8nq-uzB3oHXDo-iA',
     authDomain:        'crm-leads-baez.firebaseapp.com',
     databaseURL:       'https://crm-leads-baez-default-rtdb.firebaseio.com',
@@ -54,24 +54,24 @@ var WL = {
     appId:             '1:583732725999:web:b38aa0a3ffc9e809c3b31a'
   },
 
-  // â”€â”€ FIREBASE NODE (para separar clientes) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── FIREBASE NODE (para separar clientes) ─────────────────
   // Cambia esto por el nombre del cliente, ej: 'afterschool_coopercity'
   fbConfigKey:    'leadPageConfig',
-  fbLeadsPath:    'masterMods',  // â† conectado con el Master Panel
+  fbLeadsPath:    'masterMods',  // ← conectado con el Master Panel
 
-  // â”€â”€ ADMIN PANEL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  adminPassword:  'MasterBaez2025',   // â† CAMBIA ESTO por cliente
+  // ── ADMIN PANEL ────────────────────────────────────────────
+  adminPassword:  'MasterBaez2025',   // ← CAMBIA ESTO por cliente
 
-  // â”€â”€ TENANT ID (para multi-cliente en mismo Firebase) â”€â”€â”€â”€â”€â”€
+  // ── TENANT ID (para multi-cliente en mismo Firebase) ──────
   // Ej: 'masterbaez', 'karate_miami', 'afterschool_miramar'
   tenantId:       'masterbaez',
 
-  // â”€â”€ MODO PROGRAMA ÃšNICO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── MODO PROGRAMA ÚNICO ──────────────────────────────────────
   // Pon el id del programa para landing enfocada (ej: 'after', 'adultos').
-  // DÃ©jalo en '' para mostrar todos los programas.
+  // Déjalo en '' para mostrar todos los programas.
   singleProgram:  ''
 };
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ════════════════════════════════════════════════════════════════
 </script>
 <style>
 :root{
@@ -91,7 +91,7 @@ var WL = {
 body{font-family:'Nunito',sans-serif;background:var(--black);min-height:100vh;overflow-x:hidden}
 
 
-/* â”€â”€ FLOAT CLUSTER â”€â”€ */
+/* ── FLOAT CLUSTER ── */
 .float-cluster{position:fixed;bottom:24px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;align-items:flex-end}
 .float-btn{display:flex;align-items:center;gap:8px;padding:11px 18px;border-radius:50px;border:2.5px solid;font-weight:800;font-size:14px;cursor:pointer;font-family:'Nunito',sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.45);transition:all .25s;white-space:nowrap}
 .float-btn:hover{transform:translateY(-2px)}
@@ -100,11 +100,11 @@ body{font-family:'Nunito',sans-serif;background:var(--black);min-height:100vh;ov
 .float-admin{border-color:#444;background:#1a1a1a;color:#888;font-size:12px;padding:8px 14px}
 .float-admin:hover{border-color:#666;color:#ccc}
 
-/* â”€â”€ STRIPES â”€â”€ */
+/* ── STRIPES ── */
 .stripe{height:7px;background:linear-gradient(90deg,var(--red) 0 33%,var(--blue) 33% 66%,var(--yellow) 66% 100%)}
 .stripe-bottom{height:7px;background:linear-gradient(90deg,var(--yellow) 0 33%,var(--blue) 33% 66%,var(--red) 66% 100%)}
 
-/* â”€â”€ MODAL OVERLAY â”€â”€ */
+/* ── MODAL OVERLAY ── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:10000;align-items:center;justify-content:center;padding:16px}
 .modal-overlay.open{display:flex}
 .modal-box{background:var(--white);border-radius:22px;padding:30px 28px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.6)}
@@ -116,7 +116,7 @@ body{font-family:'Nunito',sans-serif;background:var(--black);min-height:100vh;ov
 .modal-title{font-size:20px;font-weight:900}
 .modal-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
 
-/* â”€â”€ HERO â”€â”€ */
+/* ── HERO ── */
 .hero{background:var(--black);padding:40px 20px 50px;text-align:center;position:relative;overflow:hidden}
 .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(224,32,32,.18) 0%,transparent 70%),radial-gradient(ellipse 60% 40% at 80% 80%,rgba(26,63,166,.15) 0%,transparent 70%);pointer-events:none}
 .hero h1{font-family:'Bebas Neue',sans-serif;color:var(--white);font-size:clamp(38px,8vw,72px);letter-spacing:2px;line-height:1}
@@ -131,7 +131,7 @@ body{font-family:'Nunito',sans-serif;background:var(--black);min-height:100vh;ov
 .prog-tag.blue  {border-color:#6b9fff;      background:rgba(107,159,255,.12)}
 .prog-tag.yellow{border-color:var(--yellow);background:rgba(245,200,0,.10)}
 
-/* â”€â”€ FORM CARD â”€â”€ */
+/* ── FORM CARD ── */
 .form-wrap{max-width:660px;margin:0 auto;padding:0 16px 100px}
 .form-card{background:var(--white);border-radius:24px;padding:36px 32px;box-shadow:0 24px 80px rgba(0,0,0,.5);border-top:6px solid var(--red);animation:slideUp .5s ease both}
 @keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
@@ -227,7 +227,7 @@ select:focus{border-color:var(--red);background:#fff}
 .waiver-submit-btn{width:100%;padding:14px;border-radius:12px;border:none;background:var(--red);color:#fff;font-weight:900;font-size:16px;cursor:pointer;font-family:'Nunito',sans-serif;transition:all .2s;margin-top:10px}
 .waiver-minor-box{background:#fff9d6;border:2px solid var(--yellow);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:#7a5f00;font-weight:700}
 
-/* â”€â”€ ADMIN PANEL STYLES â”€â”€ */
+/* ── ADMIN PANEL STYLES ── */
 .admin-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:20000;overflow-y:auto}
 .admin-overlay.open{display:block}
 .admin-wrap{max-width:900px;margin:0 auto;padding:24px 16px 80px}
@@ -296,85 +296,85 @@ select:focus{border-color:var(--red);background:#fff}
 </head>
 <body>
 
-<!-- â”€â”€ FLOAT CLUSTER â”€â”€ -->
+<!-- ── FLOAT CLUSTER ── -->
 <div class="float-cluster">
-  <button class="float-btn float-lang" onclick="toggleLang()" id="langBtn">ðŸŒ ðŸ‡ºðŸ‡¸ EN</button>
-  <button class="float-btn float-admin" onclick="openAdminLogin()">âš™ï¸ Admin</button>
+  <button class="float-btn float-lang" onclick="toggleLang()" id="langBtn">🌐 🇺🇸 EN</button>
+  <button class="float-btn float-admin" onclick="openAdminLogin()">⚙️ Admin</button>
 </div>
 
-<!-- â”€â”€ PROGRAM DETAIL MODAL â”€â”€ -->
+<!-- ── PROGRAM DETAIL MODAL ── -->
 <div class="modal-overlay" id="progDetailModal">
   <div class="modal-box wide" style="background:#fff">
     <div class="modal-header">
-      <span class="modal-title" id="pdTitle">ðŸŽ“ Programa</span>
+      <span class="modal-title" id="pdTitle">🎓 Programa</span>
       <div style="display:flex;align-items:center;gap:8px">
-        <button id="pdLangBtn" onclick="toggleLang()" style="padding:5px 12px;border-radius:20px;border:2px solid var(--blue);background:#fff;color:var(--blue);font-weight:800;font-size:12px;cursor:pointer;font-family:'Nunito',sans-serif">ðŸŒ EN</button>
-        <button class="modal-close" onclick="closeProgDetail()">âœ•</button>
+        <button id="pdLangBtn" onclick="toggleLang()" style="padding:5px 12px;border-radius:20px;border:2px solid var(--blue);background:#fff;color:var(--blue);font-weight:800;font-size:12px;cursor:pointer;font-family:'Nunito',sans-serif">🌐 EN</button>
+        <button class="modal-close" onclick="closeProgDetail()">✕</button>
       </div>
     </div>
     <div id="pdBody"></div>
-    <button class="prog-detail-select-btn" id="pdSelectBtn" onclick="selectProgFromDetail()">âœ… Seleccionar este Programa</button>
+    <button class="prog-detail-select-btn" id="pdSelectBtn" onclick="selectProgFromDetail()">✅ Seleccionar este Programa</button>
   </div>
 </div>
 
-<!-- â”€â”€ WAIVER MODAL â”€â”€ -->
+<!-- ── WAIVER MODAL ── -->
 <div class="modal-overlay" id="waiverModal">
   <div class="waiver-modal-box">
     <div class="waiver-header">
       <div class="modal-header">
-        <span class="modal-title" id="waiverModalTitle">ðŸ“„ Acuerdo de ParticipaciÃ³n</span>
+        <span class="modal-title" id="waiverModalTitle">📄 Acuerdo de Participación</span>
         <div style="display:flex;align-items:center;gap:8px">
-          <button onclick="toggleLangWaiver()" style="padding:5px 12px;border-radius:20px;border:2px solid var(--yellow);background:transparent;color:#9a7700;font-weight:800;font-size:12px;cursor:pointer;font-family:'Nunito',sans-serif" id="waiverLangBtn">ðŸŒ EN</button>
-          <button class="modal-close" onclick="closeModal('waiverModal')">âœ•</button>
+          <button onclick="toggleLangWaiver()" style="padding:5px 12px;border-radius:20px;border:2px solid var(--yellow);background:transparent;color:#9a7700;font-weight:800;font-size:12px;cursor:pointer;font-family:'Nunito',sans-serif" id="waiverLangBtn">🌐 EN</button>
+          <button class="modal-close" onclick="closeModal('waiverModal')">✕</button>
         </div>
       </div>
-      <p class="modal-sub" id="waiverModalSub">Lee y firma el acuerdo antes de confirmar tu inscripciÃ³n.</p>
+      <p class="modal-sub" id="waiverModalSub">Lee y firma el acuerdo antes de confirmar tu inscripción.</p>
     </div>
     <div class="waiver-body" id="waiverBody"></div>
   </div>
 </div>
 
-<!-- â”€â”€ ADMIN LOGIN MODAL â”€â”€ -->
+<!-- ── ADMIN LOGIN MODAL ── -->
 <div class="modal-overlay" id="adminLoginModal">
   <div class="modal-box" style="max-width:360px;text-align:center">
-    <div style="font-size:48px;margin-bottom:12px">ðŸ”</div>
+    <div style="font-size:48px;margin-bottom:12px">🔐</div>
     <h2 style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;margin-bottom:6px">ADMIN PANEL</h2>
-    <p style="font-size:13px;color:#888;margin-bottom:20px">Ingresa la contraseÃ±a de administrador</p>
-    <input type="password" id="adminPwInput" class="admin-input" style="background:#f5f5f5;color:#111;border:2px solid #e0e0e0;margin-bottom:12px" placeholder="ContraseÃ±a..." onkeydown="if(event.key==='Enter')checkAdminPw()"/>
-    <div id="adminPwError" style="color:#e02020;font-size:13px;font-weight:700;margin-bottom:10px;display:none">âŒ ContraseÃ±a incorrecta</div>
+    <p style="font-size:13px;color:#888;margin-bottom:20px">Ingresa la contraseña de administrador</p>
+    <input type="password" id="adminPwInput" class="admin-input" style="background:#f5f5f5;color:#111;border:2px solid #e0e0e0;margin-bottom:12px" placeholder="Contraseña..." onkeydown="if(event.key==='Enter')checkAdminPw()"/>
+    <div id="adminPwError" style="color:#e02020;font-size:13px;font-weight:700;margin-bottom:10px;display:none">❌ Contraseña incorrecta</div>
     <div style="display:flex;gap:10px">
       <button class="admin-btn ghost" style="flex:1" onclick="closeModal('adminLoginModal')">Cancelar</button>
-      <button class="admin-btn primary" style="flex:2" onclick="checkAdminPw()">ðŸ”“ Entrar</button>
+      <button class="admin-btn primary" style="flex:2" onclick="checkAdminPw()">🔓 Entrar</button>
     </div>
   </div>
 </div>
 
-<!-- â”€â”€ ADMIN PANEL â”€â”€ -->
+<!-- ── ADMIN PANEL ── -->
 <div class="admin-overlay" id="adminPanel">
   <div class="admin-wrap">
     <div class="admin-header">
-      <div class="admin-title">âš™ï¸ PANEL DE CONFIGURACIÃ“N <span style="font-size:18px;color:#666" id="adminTenantBadge"></span></div>
+      <div class="admin-title">⚙️ PANEL DE CONFIGURACIÓN <span style="font-size:18px;color:#666" id="adminTenantBadge"></span></div>
       <div style="display:flex;gap:8px">
-        <button class="admin-close-btn" onclick="logoutAdmin()" style="color:#f87171;border-color:#4a2a2a" title="Cerrar sesiÃ³n y bloquear">ðŸ”’ Cerrar SesiÃ³n</button>
-        <button class="admin-close-btn" onclick="closeAdmin()">âœ• Cerrar Panel</button>
+        <button class="admin-close-btn" onclick="logoutAdmin()" style="color:#f87171;border-color:#4a2a2a" title="Cerrar sesión y bloquear">🔒 Cerrar Sesión</button>
+        <button class="admin-close-btn" onclick="closeAdmin()">✕ Cerrar Panel</button>
       </div>
     </div>
 
     <!-- TABS -->
     <div class="admin-tabs">
-      <button class="admin-tab active" onclick="adminTab('branding',this)">ðŸŽ¨ Branding</button>
-      <button class="admin-tab" onclick="adminTab('programas',this)">ðŸŽ“ Programas</button>
-      <button class="admin-tab" onclick="adminTab('horarios',this)">ðŸ“… Horarios</button>
-      <button class="admin-tab" onclick="adminTab('textos',this)">âœï¸ Textos</button>
-      <button class="admin-tab" onclick="adminTab('contacto',this)">ðŸ“ž Contacto</button>
-      <button class="admin-tab" onclick="adminTab('integraciones',this)">ðŸ”Œ Integraciones</button>
-      <button class="admin-tab" onclick="adminTab('waiver',this)">ðŸ“„ Waiver</button>
+      <button class="admin-tab active" onclick="adminTab('branding',this)">🎨 Branding</button>
+      <button class="admin-tab" onclick="adminTab('programas',this)">🎓 Programas</button>
+      <button class="admin-tab" onclick="adminTab('horarios',this)">📅 Horarios</button>
+      <button class="admin-tab" onclick="adminTab('textos',this)">✏️ Textos</button>
+      <button class="admin-tab" onclick="adminTab('contacto',this)">📞 Contacto</button>
+      <button class="admin-tab" onclick="adminTab('integraciones',this)">🔌 Integraciones</button>
+      <button class="admin-tab" onclick="adminTab('waiver',this)">📄 Waiver</button>
     </div>
 
     <!-- TAB: BRANDING -->
     <div class="admin-section active" id="tab-branding">
       <div class="admin-card">
-        <h3>ðŸ« Identidad del Negocio</h3>
+        <h3>🏫 Identidad del Negocio</h3>
         <div class="admin-field">
           <label>Nombre del Negocio</label>
           <input class="admin-input" id="cfg-name" placeholder="Master Baez Martial Arts"/>
@@ -385,14 +385,14 @@ select:focus{border-color:var(--red);background:#fff}
             <input class="admin-input" id="cfg-city" placeholder="Cooper City, FL"/>
           </div>
           <div class="admin-field">
-            <label>DirecciÃ³n</label>
+            <label>Dirección</label>
             <input class="admin-input" id="cfg-address" placeholder="123 Main St, City FL 33000"/>
           </div>
         </div>
       </div>
 
       <div class="admin-card">
-        <h3>ðŸŽ¨ Colores</h3>
+        <h3>🎨 Colores</h3>
         <div class="admin-row">
           <div class="admin-field">
             <label>Color Principal <span id="prev-primary" class="color-preview"></span></label>
@@ -411,22 +411,22 @@ select:focus{border-color:var(--red);background:#fff}
             <input class="admin-input small" id="cfg-colorDark" type="color" oninput="liveColorPreview()"/>
           </div>
         </div>
-        <div class="disclaimer-box">ðŸ’¡ Los cambios de color se aplican en tiempo real en la pÃ¡gina pÃºblica.</div>
+        <div class="disclaimer-box">💡 Los cambios de color se aplican en tiempo real en la página pública.</div>
       </div>
 
       <div class="admin-card">
-        <h3>ðŸ–¼ï¸ Logo</h3>
+        <h3>🖼️ Logo</h3>
         <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
           <img id="logoPreviewAdmin" class="logo-preview" src="" alt="logo" style="display:none"/>
           <div>
             <div class="admin-field">
               <label>URL del Logo (o sube imagen abajo)</label>
-              <input class="admin-input" id="cfg-logoUrl" placeholder="https://... o deja vacÃ­o"/>
+              <input class="admin-input" id="cfg-logoUrl" placeholder="https://... o deja vacío"/>
             </div>
             <label class="admin-btn ghost" style="display:inline-block;cursor:pointer;margin-top:4px">
-              ðŸ“ Subir Imagen <input type="file" accept="image/*" style="display:none" onchange="handleLogoUpload(this)"/>
+              📁 Subir Imagen <input type="file" accept="image/*" style="display:none" onchange="handleLogoUpload(this)"/>
             </label>
-            <button class="admin-btn danger" style="margin-left:8px" onclick="removeLogo()">ðŸ—‘ï¸ Quitar Logo</button>
+            <button class="admin-btn danger" style="margin-left:8px" onclick="removeLogo()">🗑️ Quitar Logo</button>
           </div>
         </div>
       </div>
@@ -435,8 +435,8 @@ select:focus{border-color:var(--red);background:#fff}
     <!-- TAB: PROGRAMAS -->
     <div class="admin-section" id="tab-programas">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-        <div style="color:#888;font-size:13px">Edita, agrega o elimina programas. MÃ¡x. 6 visibles.</div>
-        <button class="admin-btn green" onclick="addProgram()">âž• Nuevo Programa</button>
+        <div style="color:#888;font-size:13px">Edita, agrega o elimina programas. Máx. 6 visibles.</div>
+        <button class="admin-btn green" onclick="addProgram()">➕ Nuevo Programa</button>
       </div>
       <div id="programsAdminList"></div>
     </div>
@@ -444,24 +444,24 @@ select:focus{border-color:var(--red);background:#fff}
     <!-- TAB: HORARIOS -->
     <div class="admin-section" id="tab-horarios">
       <div class="admin-card">
-        <h3>â° Horarios Disponibles</h3>
+        <h3>⏰ Horarios Disponibles</h3>
         <div style="margin-bottom:12px">
           <div id="timesChips"></div>
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
           <input class="admin-input" style="max-width:160px" id="newTimeInput" placeholder="ej. 5:00 PM" onkeydown="if(event.key==='Enter')addTime()"/>
-          <button class="admin-btn primary" onclick="addTime()">âž• Agregar</button>
+          <button class="admin-btn primary" onclick="addTime()">➕ Agregar</button>
         </div>
-        <div class="disclaimer-box" style="margin-top:12px">ðŸ’¡ Estos horarios aparecen cuando el cliente selecciona una fecha disponible.</div>
+        <div class="disclaimer-box" style="margin-top:12px">💡 Estos horarios aparecen cuando el cliente selecciona una fecha disponible.</div>
       </div>
 
       <div class="admin-card">
-        <h3>ðŸ“… DÃ­as Disponibles</h3>
-        <div style="color:#666;font-size:13px;margin-bottom:12px">Haz click en los dÃ­as para activar/desactivar disponibilidad. Los dÃ­as en <span style="color:#F5C800;font-weight:800">amarillo</span> estÃ¡n disponibles.</div>
+        <h3>📅 Días Disponibles</h3>
+        <div style="color:#666;font-size:13px;margin-bottom:12px">Haz click en los días para activar/desactivar disponibilidad. Los días en <span style="color:#F5C800;font-weight:800">amarillo</span> están disponibles.</div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <button class="admin-btn ghost" onclick="adminCalPrev()">â€¹</button>
+          <button class="admin-btn ghost" onclick="adminCalPrev()">‹</button>
           <span style="font-weight:800;color:#ccc" id="adminCalLabel"></span>
-          <button class="admin-btn ghost" onclick="adminCalNext()">â€º</button>
+          <button class="admin-btn ghost" onclick="adminCalNext()">›</button>
         </div>
         <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px">
           <div style="text-align:center;font-size:11px;color:#555;font-weight:800">Do</div>
@@ -470,12 +470,12 @@ select:focus{border-color:var(--red);background:#fff}
           <div style="text-align:center;font-size:11px;color:#555;font-weight:800">Mi</div>
           <div style="text-align:center;font-size:11px;color:#555;font-weight:800">Ju</div>
           <div style="text-align:center;font-size:11px;color:#555;font-weight:800">Vi</div>
-          <div style="text-align:center;font-size:11px;color:#555;font-weight:800">SÃ¡</div>
+          <div style="text-align:center;font-size:11px;color:#555;font-weight:800">Sá</div>
         </div>
         <div class="cal-admin-grid" id="adminCalGrid"></div>
         <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
-          <button class="admin-btn ghost" onclick="enableWeekdays()">âœ… Activar todos los dÃ­as de semana</button>
-          <button class="admin-btn danger" onclick="clearAllDays()">ðŸ—‘ï¸ Limpiar todo</button>
+          <button class="admin-btn ghost" onclick="enableWeekdays()">✅ Activar todos los días de semana</button>
+          <button class="admin-btn danger" onclick="clearAllDays()">🗑️ Limpiar todo</button>
         </div>
       </div>
     </div>
@@ -483,9 +483,9 @@ select:focus{border-color:var(--red);background:#fff}
     <!-- TAB: TEXTOS -->
     <div class="admin-section" id="tab-textos">
       <div class="admin-card">
-        <h3>ðŸ“ Tagline / SubtÃ­tulo del Hero</h3>
+        <h3>📝 Tagline / Subtítulo del Hero</h3>
         <div class="admin-field">
-          <label>EspaÃ±ol</label>
+          <label>Español</label>
           <textarea class="admin-textarea" id="cfg-tagline-es" placeholder="Inscribe a tu familia en el programa perfecto para ellos."></textarea>
         </div>
         <div class="admin-field">
@@ -494,10 +494,10 @@ select:focus{border-color:var(--red);background:#fff}
         </div>
       </div>
       <div class="admin-card">
-        <h3>ðŸ“£ Fuentes de Referido (Â¿CÃ³mo nos conociste?)</h3>
+        <h3>📣 Fuentes de Referido (¿Cómo nos conociste?)</h3>
         <div class="admin-field">
-          <label>Una opciÃ³n por lÃ­nea</label>
-          <textarea class="admin-textarea" id="cfg-sources" style="min-height:160px" placeholder="Facebook&#10;Instagram&#10;Google&#10;RecomendaciÃ³n"></textarea>
+          <label>Una opción por línea</label>
+          <textarea class="admin-textarea" id="cfg-sources" style="min-height:160px" placeholder="Facebook&#10;Instagram&#10;Google&#10;Recomendación"></textarea>
         </div>
       </div>
     </div>
@@ -505,14 +505,14 @@ select:focus{border-color:var(--red);background:#fff}
     <!-- TAB: CONTACTO -->
     <div class="admin-section" id="tab-contacto">
       <div class="admin-card">
-        <h3>ðŸ“ž InformaciÃ³n de Contacto</h3>
+        <h3>📞 Información de Contacto</h3>
         <div class="admin-row">
           <div class="admin-field">
-            <label>TelÃ©fono (display)</label>
+            <label>Teléfono (display)</label>
             <input class="admin-input" id="cfg-phone" placeholder="(954) 380-1340"/>
           </div>
           <div class="admin-field">
-            <label>WhatsApp (solo nÃºmeros, con cÃ³digo de paÃ­s)</label>
+            <label>WhatsApp (solo números, con código de país)</label>
             <input class="admin-input" id="cfg-whatsapp" placeholder="19543801340"/>
           </div>
         </div>
@@ -528,10 +528,10 @@ select:focus{border-color:var(--red);background:#fff}
         </div>
       </div>
       <div class="admin-card">
-        <h3>ðŸ”” CallMeBot (WhatsApp Notificaciones)</h3>
+        <h3>🔔 CallMeBot (WhatsApp Notificaciones)</h3>
         <div class="admin-row">
           <div class="admin-field">
-            <label>TelÃ©fono CallMeBot</label>
+            <label>Teléfono CallMeBot</label>
             <input class="admin-input" id="cfg-callmebotPhone" placeholder="19543801340"/>
           </div>
           <div class="admin-field">
@@ -539,22 +539,22 @@ select:focus{border-color:var(--red);background:#fff}
             <input class="admin-input" id="cfg-callmebotKey" placeholder="1707140"/>
           </div>
         </div>
-        <div class="disclaimer-box">ðŸ’¡ Para obtener tu API Key de CallMeBot, envÃ­a un mensaje a +34 644 59 31 48 en WhatsApp con el texto: <b>I allow callmebot to send me messages</b></div>
+        <div class="disclaimer-box">💡 Para obtener tu API Key de CallMeBot, envía un mensaje a +34 644 59 31 48 en WhatsApp con el texto: <b>I allow callmebot to send me messages</b></div>
       </div>
     </div>
 
     <!-- TAB: INTEGRACIONES -->
     <div class="admin-section" id="tab-integraciones">
       <div class="admin-card" style="border:2px solid #F5C800">
-        <h3>âš ï¸ Control de Guardado en Firebase (Punto 4)</h3>
+        <h3>⚠️ Control de Guardado en Firebase (Punto 4)</h3>
         <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-          <div id="fbReadyBadge" style="padding:8px 16px;border-radius:10px;font-weight:800;font-size:14px;background:#2a1a1a;color:#f87171;border:2px solid #4a2a2a">ðŸ”´ Firebase Guardado: DESACTIVADO</div>
+          <div id="fbReadyBadge" style="padding:8px 16px;border-radius:10px;font-weight:800;font-size:14px;background:#2a1a1a;color:#f87171;border:2px solid #4a2a2a">🔴 Firebase Guardado: DESACTIVADO</div>
           <button class="admin-btn primary" onclick="toggleFirebaseReady()">Activar / Desactivar</button>
         </div>
-        <div class="disclaimer-box" style="margin-top:10px">âš ï¸ Mientras estÃ© <b>DESACTIVADO</b>, los leads NO se guardarÃ¡n en Firebase. ActÃ­valo solo cuando hayas verificado que todo el sistema funciona correctamente.</div>
+        <div class="disclaimer-box" style="margin-top:10px">⚠️ Mientras esté <b>DESACTIVADO</b>, los leads NO se guardarán en Firebase. Actívalo solo cuando hayas verificado que todo el sistema funciona correctamente.</div>
       </div>
       <div class="admin-card">
-        <h3>ðŸ”¥ Firebase</h3>
+        <h3>🔥 Firebase</h3>
         <div class="admin-row">
           <div class="admin-field">
             <label>API Key</label>
@@ -589,10 +589,10 @@ select:focus{border-color:var(--red);background:#fff}
             <input class="admin-input" type="password" id="cfg-adminPw" placeholder="NuevaPassword2025"/>
           </div>
         </div>
-        <div class="disclaimer-box">âš ï¸ Cambiar Firebase requiere recargar la pÃ¡gina. El Tenant ID separa los leads de cada cliente en el mismo Firebase.</div>
+        <div class="disclaimer-box">⚠️ Cambiar Firebase requiere recargar la página. El Tenant ID separa los leads de cada cliente en el mismo Firebase.</div>
       </div>
       <div class="admin-card">
-        <h3>ðŸ“§ Brevo (Emails)</h3>
+        <h3>📧 Brevo (Emails)</h3>
         <div class="admin-row">
           <div class="admin-field">
             <label>Brevo Worker URL</label>
@@ -613,16 +613,16 @@ select:focus{border-color:var(--red);background:#fff}
     <!-- TAB: WAIVER -->
     <div class="admin-section" id="tab-waiver">
       <div class="admin-card">
-        <h3>ðŸ“„ Texto del Waiver / Acuerdo de ParticipaciÃ³n</h3>
+        <h3>📄 Texto del Waiver / Acuerdo de Participación</h3>
         <div class="admin-field">
-          <label>EspaÃ±ol <span style="color:#555;font-weight:400;text-transform:none">(usa [NOMBRE_ACADEMIA] para insertar el nombre)</span></label>
+          <label>Español <span style="color:#555;font-weight:400;text-transform:none">(usa [NOMBRE_ACADEMIA] para insertar el nombre)</span></label>
           <textarea class="admin-textarea" id="cfg-waiverEs" style="min-height:200px"></textarea>
         </div>
         <div class="admin-field">
           <label>English</label>
           <textarea class="admin-textarea" id="cfg-waiverEn" style="min-height:200px"></textarea>
         </div>
-        <div class="disclaimer-box">ðŸ’¡ Si dejas ambos campos vacÃ­os, el waiver no aparece en el proceso de inscripciÃ³n.</div>
+        <div class="disclaimer-box">💡 Si dejas ambos campos vacíos, el waiver no aparece en el proceso de inscripción.</div>
       </div>
     </div>
 
@@ -630,24 +630,24 @@ select:focus{border-color:var(--red);background:#fff}
 
   <!-- SAVE BAR -->
   <div class="admin-save-bar">
-    <span class="admin-save-status" id="adminSaveStatus">â¬†ï¸ Cambios sin guardar</span>
+    <span class="admin-save-status" id="adminSaveStatus">⬆️ Cambios sin guardar</span>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <button class="admin-btn ghost" onclick="loadAdminForm()">â†º Recargar</button>
-      <button class="admin-btn primary" onclick="saveConfig()">ðŸ’¾ Guardar</button>
-      <button class="admin-btn" style="background:#0f4c81;color:#fff;border:none" onclick="exportHTML()">â¬‡ï¸ Descargar Archivo</button>
-      <button class="admin-btn green" onclick="finishAdmin()">âœ… Listo</button>
+      <button class="admin-btn ghost" onclick="loadAdminForm()">↺ Recargar</button>
+      <button class="admin-btn primary" onclick="saveConfig()">💾 Guardar</button>
+      <button class="admin-btn" style="background:#0f4c81;color:#fff;border:none" onclick="exportHTML()">⬇️ Descargar Archivo</button>
+      <button class="admin-btn green" onclick="finishAdmin()">✅ Listo</button>
     </div>
   </div>
 </div><!-- /admin-overlay -->
 
-<!-- â”€â”€ PAGE LOADER â”€â”€ -->
+<!-- ── PAGE LOADER ── -->
 <div id="pageLoader">
-  <div class="loader-logo" id="loaderIcon">ðŸ¥‹</div>
+  <div class="loader-logo" id="loaderIcon">🥋</div>
   <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
   <div class="loader-txt" id="loaderTxt">Cargando...</div>
 </div>
 
-<!-- â”€â”€ MAIN CONTENT â”€â”€ -->
+<!-- ── MAIN CONTENT ── -->
 <div id="mainContent">
 <div class="stripe"></div>
 <div class="hero">
@@ -659,19 +659,19 @@ select:focus{border-color:var(--red);background:#fff}
 <div class="form-wrap">
   <div class="form-card" id="formCard"></div>
 </div>
-<div class="footer"><span id="footerBrand">Centro Educativo</span> â€” <span id="footerRights">Todos los derechos reservados</span></div>
+<div class="footer"><span id="footerBrand">Centro Educativo</span> — <span id="footerRights">Todos los derechos reservados</span></div>
 <div class="stripe-bottom"></div>
 </div>
 
 <script>
-// â”€â”€ FIREBASE READY FLAG (Punto 4: no guardar hasta confirmar) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-var FIREBASE_READY = true;  // âœ… Sistema verificado â€” leads se guardan en Firebase
+// ── FIREBASE READY FLAG (Punto 4: no guardar hasta confirmar) ─────────────────
+var FIREBASE_READY = true;  // ✅ Sistema verificado — leads se guardan en Firebase
 
-// â”€â”€ INIT FIREBASE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── INIT FIREBASE ─────────────────────────────────────────────────────────────
 var _fbApp  = firebase.initializeApp(WL.firebase);
 var _fbdb   = firebase.database();
 
-// â”€â”€ RUNTIME STATE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── RUNTIME STATE ─────────────────────────────────────────────────────────────
 var lang          = 'es';
 var academyName   = WL.academyName;
 var heroSubES     = WL.tagline_es;
@@ -690,23 +690,23 @@ var senderName    = WL.senderName;
 var senderEmail   = WL.senderEmail;
 var tenantId      = WL.tenantId;
 var videoFirst    = true;
-var sourceOptions_es = ['Facebook','Instagram','YouTube','TikTok','Google My Business','BÃºsqueda en Google','RecomendaciÃ³n de amigo/familiar','Otro'];
+var sourceOptions_es = ['Facebook','Instagram','YouTube','TikTok','Google My Business','Búsqueda en Google','Recomendación de amigo/familiar','Otro'];
 var sourceOptions_en = ['Facebook','Instagram','YouTube','TikTok','Google My Business','Google Search','Friend/Family Referral','Other'];
 
-var waiverTextES = 'ACUERDO DE PARTICIPACIÃ“N Y EXENCIÃ“N DE RESPONSABILIDAD\n\n[NOMBRE_ACADEMIA]\n\nYo, el firmante, entiendo y acepto los siguientes tÃ©rminos al inscribirme en los programas de [NOMBRE_ACADEMIA]:\n\n1. RIESGO INHERENTE: Reconozco que las actividades fÃ­sicas conllevan riesgos de lesiÃ³n.\n\n2. EXENCIÃ“N DE RESPONSABILIDAD: En nombre mÃ­o y de mis herederos, libero a [NOMBRE_ACADEMIA], sus instructores y personal de cualquier responsabilidad por lesiones o daÃ±os que puedan ocurrir durante la participaciÃ³n.\n\n3. AUTORIZACIÃ“N MÃ‰DICA: En caso de emergencia, autorizo a [NOMBRE_ACADEMIA] a obtener atenciÃ³n mÃ©dica necesaria.\n\n4. FOTOGRAFÃA Y VIDEO: Doy mi consentimiento para que [NOMBRE_ACADEMIA] use imÃ¡genes y videos del participante con fines promocionales.\n\n5. COMPROMISO: Me comprometo a seguir las reglas de conducta y respeto establecidas por [NOMBRE_ACADEMIA].';
+var waiverTextES = 'ACUERDO DE PARTICIPACIÓN Y EXENCIÓN DE RESPONSABILIDAD\n\n[NOMBRE_ACADEMIA]\n\nYo, el firmante, entiendo y acepto los siguientes términos al inscribirme en los programas de [NOMBRE_ACADEMIA]:\n\n1. RIESGO INHERENTE: Reconozco que las actividades físicas conllevan riesgos de lesión.\n\n2. EXENCIÓN DE RESPONSABILIDAD: En nombre mío y de mis herederos, libero a [NOMBRE_ACADEMIA], sus instructores y personal de cualquier responsabilidad por lesiones o daños que puedan ocurrir durante la participación.\n\n3. AUTORIZACIÓN MÉDICA: En caso de emergencia, autorizo a [NOMBRE_ACADEMIA] a obtener atención médica necesaria.\n\n4. FOTOGRAFÍA Y VIDEO: Doy mi consentimiento para que [NOMBRE_ACADEMIA] use imágenes y videos del participante con fines promocionales.\n\n5. COMPROMISO: Me comprometo a seguir las reglas de conducta y respeto establecidas por [NOMBRE_ACADEMIA].';
 var waiverTextEN = 'PARTICIPATION AGREEMENT AND LIABILITY WAIVER\n\n[NOMBRE_ACADEMIA]\n\nI, the undersigned, understand and agree to the following terms when enrolling in programs at [NOMBRE_ACADEMIA]:\n\n1. INHERENT RISK: I acknowledge that physical activities carry a risk of injury.\n\n2. LIABILITY RELEASE: On behalf of myself and my heirs, I release [NOMBRE_ACADEMIA], its instructors and staff from any liability for injuries or damages that may occur during participation.\n\n3. MEDICAL AUTHORIZATION: In case of emergency, I authorize [NOMBRE_ACADEMIA] to obtain necessary medical care.\n\n4. PHOTO AND VIDEO: I consent to [NOMBRE_ACADEMIA] using images and videos of the participant for promotional purposes.\n\n5. COMMITMENT: I agree to follow the rules of conduct and respect established by [NOMBRE_ACADEMIA].';
 var waiverPdfData = '';
 
 var customProgs = [
-  {id:'ninos',    labelES:'NiÃ±os',        labelEN:'Children',    icon:'ðŸ§’', age:'4â€“10',  color:'#E02020', light:'#fde8e8', descES:'', descEN:'', photo:'', videos:[], docs:[], forWhoES:'Para niÃ±os de 4 a 10 aÃ±os',           forWhoEN:'For children ages 4 to 10',     hidden:false},
-  {id:'jovenes',  labelES:'JÃ³venes',      labelEN:'Youth',       icon:'ðŸ§‘', age:'11â€“17', color:'#1A3FA6', light:'#e8edfb', descES:'', descEN:'', photo:'', videos:[], docs:[], forWhoES:'Para jÃ³venes de 11 a 17 aÃ±os',         forWhoEN:'For youth ages 11 to 17',       hidden:false},
-  {id:'adultos',  labelES:'Adultos',      labelEN:'Adults',      icon:'ðŸ‘¤', age:'18+',   color:'#444444', light:'#ebebeb', descES:'', descEN:'', photo:'', videos:[], docs:[], forWhoES:'Para adultos de 18 aÃ±os en adelante', forWhoEN:'For adults 18 and older',       hidden:false},
-  {id:'after',    labelES:'After School', labelEN:'After School',icon:'ðŸ«', age:'5â€“14',  color:'#E02020', light:'#fde8e8', descES:'', descEN:'', photo:'', videos:[], docs:[], forWhoES:'Para niÃ±os de 5 a 14 aÃ±os',           forWhoEN:'For children ages 5 to 14',     hidden:false},
-  {id:'camp',     labelES:'Summer Camp',  labelEN:'Summer Camp', icon:'â›º', age:'Todos', color:'#9a7700', light:'#fff9d6', descES:'', descEN:'', photo:'', videos:[], docs:[], forWhoES:'Para todas las edades',               forWhoEN:'For all ages',                  hidden:false},
-  {id:'eventos',  labelES:'Eventos',      labelEN:'Events',      icon:'ðŸŽ‰', age:'Todos', color:'#1A3FA6', light:'#e8edfb', descES:'', descEN:'', photo:'', videos:[], docs:[], forWhoES:'Para todas las edades',               forWhoEN:'For all ages',                  hidden:true},
+  {id:'ninos',    labelES:'Niños',        labelEN:'Children',    icon:'🧒', age:'4–10',  color:'#E02020', light:'#fde8e8', descES:'', descEN:'', photo:'', videos:[], docs:[], forWhoES:'Para niños de 4 a 10 años',           forWhoEN:'For children ages 4 to 10',     hidden:false},
+  {id:'jovenes',  labelES:'Jóvenes',      labelEN:'Youth',       icon:'🧑', age:'11–17', color:'#1A3FA6', light:'#e8edfb', descES:'', descEN:'', photo:'', videos:[], docs:[], forWhoES:'Para jóvenes de 11 a 17 años',         forWhoEN:'For youth ages 11 to 17',       hidden:false},
+  {id:'adultos',  labelES:'Adultos',      labelEN:'Adults',      icon:'👤', age:'18+',   color:'#444444', light:'#ebebeb', descES:'', descEN:'', photo:'', videos:[], docs:[], forWhoES:'Para adultos de 18 años en adelante', forWhoEN:'For adults 18 and older',       hidden:false},
+  {id:'after',    labelES:'After School', labelEN:'After School',icon:'🏫', age:'5–14',  color:'#E02020', light:'#fde8e8', descES:'', descEN:'', photo:'', videos:[], docs:[], forWhoES:'Para niños de 5 a 14 años',           forWhoEN:'For children ages 5 to 14',     hidden:false},
+  {id:'camp',     labelES:'Summer Camp',  labelEN:'Summer Camp', icon:'⛺', age:'Todos', color:'#9a7700', light:'#fff9d6', descES:'', descEN:'', photo:'', videos:[], docs:[], forWhoES:'Para todas las edades',               forWhoEN:'For all ages',                  hidden:false},
+  {id:'eventos',  labelES:'Eventos',      labelEN:'Events',      icon:'🎉', age:'Todos', color:'#1A3FA6', light:'#e8edfb', descES:'', descEN:'', photo:'', videos:[], docs:[], forWhoES:'Para todas las edades',               forWhoEN:'For all ages',                  hidden:true},
 ];
 
-// â”€â”€ SINGLE PROGRAM MODE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── SINGLE PROGRAM MODE ─────────────────────────────────────────────────────
 var _singleProgId = WL.singleProgram || '';
 if(_singleProgId){
   customProgs.forEach(function(p){ p.hidden = (p.id !== _singleProgId); });
@@ -718,42 +718,42 @@ var state = {
   calYear:new Date().getFullYear(), calMonth:new Date().getMonth()
 };
 
-// â”€â”€ TRANSLATIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── TRANSLATIONS ──────────────────────────────────────────────────────────────
 var TX = {
   es:{
-    langBtn:'ðŸŒ ðŸ‡ºðŸ‡¸ EN',
-    step1:'InformaciÃ³n', step2:'Fecha', step3:'Confirmar',
-    secTitle1:'InformaciÃ³n Personal', secSub1:'Completa tus datos para agendar tu cita.',
-    firstName:'Nombre', lastName:'Apellido', email:'Email', phone:'TelÃ©fono / WhatsApp',
-    program:'Programa de InterÃ©s', notes:'ðŸ“£ Â¿CÃ³mo supiste de nosotros?', notesPH:'Selecciona una opciÃ³n...',
-    btnNext1:'Siguiente: Seleccionar Fecha â†’',
-    secTitle2:'Selecciona tu Cita', secSub2:'Los dÃ­as en rojo estÃ¡n disponibles.',
-    selectTime:'Horarios disponibles', noAvail:'âš ï¸ No hay fechas habilitadas. Por favor contÃ¡ctanos.',
-    back:'â† AtrÃ¡s', btnNext2:'Revisar Cita â†’',
+    langBtn:'🌐 🇺🇸 EN',
+    step1:'Información', step2:'Fecha', step3:'Confirmar',
+    secTitle1:'Información Personal', secSub1:'Completa tus datos para agendar tu cita.',
+    firstName:'Nombre', lastName:'Apellido', email:'Email', phone:'Teléfono / WhatsApp',
+    program:'Programa de Interés', notes:'📣 ¿Cómo supiste de nosotros?', notesPH:'Selecciona una opción...',
+    btnNext1:'Siguiente: Seleccionar Fecha →',
+    secTitle2:'Selecciona tu Cita', secSub2:'Los días en rojo están disponibles.',
+    selectTime:'Horarios disponibles', noAvail:'⚠️ No hay fechas habilitadas. Por favor contáctanos.',
+    back:'← Atrás', btnNext2:'Revisar Cita →',
     secTitle3:'Confirmar Cita', secSub3:'Revisa los detalles antes de confirmar.',
-    lName:'ðŸ‘¤ Nombre', lEmail:'ðŸ“§ Email', lPhone:'ðŸ“± TelÃ©fono',
-    lProg:'ðŸŽ“ Programa', lDate:'ðŸ“… Fecha', lTime:'â° Horario', lNotes:'ðŸ“£ Fuente',
-    successTitle:'Â¡CITA CONFIRMADA!', successSub:'Tu solicitud fue registrada exitosamente.',
-    successDetailTitle:'Detalles de tu cita:', btnNew:'ðŸ”„ Registrar Otra Cita',
+    lName:'👤 Nombre', lEmail:'📧 Email', lPhone:'📱 Teléfono',
+    lProg:'🎓 Programa', lDate:'📅 Fecha', lTime:'⏰ Horario', lNotes:'📣 Fuente',
+    successTitle:'¡CITA CONFIRMADA!', successSub:'Tu solicitud fue registrada exitosamente.',
+    successDetailTitle:'Detalles de tu cita:', btnNew:'🔄 Registrar Otra Cita',
     footerRights:'Todos los derechos reservados',
     months:['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
-    days:['Dom','Lun','Mar','MiÃ©','Jue','Vie','SÃ¡b']
+    days:['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']
   },
   en:{
-    langBtn:'ðŸŒ ðŸ‡ªðŸ‡¸ ES',
+    langBtn:'🌐 🇪🇸 ES',
     step1:'Information', step2:'Date', step3:'Confirm',
     secTitle1:'Personal Information', secSub1:'Fill in your details to schedule your appointment.',
     firstName:'First Name', lastName:'Last Name', email:'Email', phone:'Phone / WhatsApp',
-    program:'Program of Interest', notes:'ðŸ“£ How did you hear about us?', notesPH:'Select an option...',
-    btnNext1:'Next: Select Date â†’',
+    program:'Program of Interest', notes:'📣 How did you hear about us?', notesPH:'Select an option...',
+    btnNext1:'Next: Select Date →',
     secTitle2:'Select Your Appointment', secSub2:'Red days are available.',
-    selectTime:'Available Times', noAvail:'âš ï¸ No dates available yet. Please contact us.',
-    back:'â† Back', btnNext2:'Review Appointment â†’',
+    selectTime:'Available Times', noAvail:'⚠️ No dates available yet. Please contact us.',
+    back:'← Back', btnNext2:'Review Appointment →',
     secTitle3:'Confirm Appointment', secSub3:'Review details before confirming.',
-    lName:'ðŸ‘¤ Name', lEmail:'ðŸ“§ Email', lPhone:'ðŸ“± Phone',
-    lProg:'ðŸŽ“ Program', lDate:'ðŸ“… Date', lTime:'â° Time', lNotes:'ðŸ“£ Source',
+    lName:'👤 Name', lEmail:'📧 Email', lPhone:'📱 Phone',
+    lProg:'🎓 Program', lDate:'📅 Date', lTime:'⏰ Time', lNotes:'📣 Source',
     successTitle:'APPOINTMENT CONFIRMED!', successSub:'Your request was successfully registered.',
-    successDetailTitle:'Your appointment details:', btnNew:'ðŸ”„ Register Another',
+    successDetailTitle:'Your appointment details:', btnNew:'🔄 Register Another',
     footerRights:'All rights reserved',
     months:['January','February','March','April','May','June','July','August','September','October','November','December'],
     days:['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
@@ -761,7 +761,7 @@ var TX = {
 };
 function t(){ return TX[lang]; }
 
-// â”€â”€ HELPERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── HELPERS ───────────────────────────────────────────────────────────────────
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function pad(n){ return String(n).padStart(2,'0'); }
 function toKey(y,m,d){ return y+'-'+pad(m+1)+'-'+pad(d); }
@@ -786,7 +786,7 @@ document.querySelectorAll('.modal-overlay').forEach(function(el){
   el.addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open'); });
 });
 
-// â”€â”€ COLORS LIVE APPLY â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── COLORS LIVE APPLY ─────────────────────────────────────────────────────────
 function applyColors(p,s,a,d){
   var r=document.documentElement.style;
   if(p) r.setProperty('--red',p);
@@ -807,7 +807,7 @@ function liveColorPreview(){
   document.getElementById('prev-dark').style.background=d;
 }
 
-// â”€â”€ LOGO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── LOGO ──────────────────────────────────────────────────────────────────────
 function applyLogoToHero(){
   var wrap=document.getElementById('logoWrap');
   if(!wrap) return;
@@ -841,15 +841,15 @@ function removeLogo(){
   markUnsaved();
 }
 
-// â”€â”€ HERO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── HERO ──────────────────────────────────────────────────────────────────────
 function updateHeroName(){
   var n=getDisplayName(), parts=n.split(' '), first=parts[0], rest=parts.slice(1).join(' ');
   document.getElementById('heroTitle').innerHTML=first+(rest?' <span>'+rest+'</span>':'');
   document.getElementById('footerBrand').textContent=academyName||'Centro Educativo';
-  document.getElementById('pageTitle').textContent=(academyName||'Centro Educativo')+' â€” InscripciÃ³n';
+  document.getElementById('pageTitle').textContent=(academyName||'Centro Educativo')+' — Inscripción';
 }
 
-// â”€â”€ LANG â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── LANG ──────────────────────────────────────────────────────────────────────
 function toggleLang(){
   lang=lang==='es'?'en':'es';
   document.getElementById('langBtn').textContent=t().langBtn;
@@ -859,7 +859,7 @@ function toggleLang(){
   var modal=document.getElementById('progDetailModal');
   if(modal&&modal.classList.contains('open')&&_pdProgIdx>=0) openProgDetail(_pdProgIdx);
   var pdLangBtn=document.getElementById('pdLangBtn');
-  if(pdLangBtn) pdLangBtn.textContent=lang==='es'?'ðŸŒ EN':'ðŸŒ ES';
+  if(pdLangBtn) pdLangBtn.textContent=lang==='es'?'🌐 EN':'🌐 ES';
 }
 function toggleLangWaiver(){
   lang=lang==='es'?'en':'es';
@@ -868,7 +868,7 @@ function toggleLangWaiver(){
   openWaiverModal();
 }
 
-// â”€â”€ HERO PROGRAMS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── HERO PROGRAMS ─────────────────────────────────────────────────────────────
 function renderHeroPrograms(){
   var colorMap={'#E02020':'red','#1A3FA6':'blue','#F5C800':'yellow'};
   document.getElementById('heroPrograms').innerHTML=customProgs.filter(function(p){return !p.hidden;}).map(function(p){
@@ -882,7 +882,7 @@ function renderHeroPrograms(){
   }).join('');
 }
 
-// â”€â”€ FORM â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── FORM ──────────────────────────────────────────────────────────────────────
 function renderForm(){
   var tx=t();
   document.getElementById('langBtn').textContent=tx.langBtn;
@@ -930,15 +930,15 @@ function renderStep1(tx){
     +'<p class="section-sub">'+tx.secSub1+'</p>'
     +'<div class="field-row">'
       +'<div class="field"><label>'+tx.firstName+' *</label><input value="'+esc(state.firstName)+'" oninput="state.firstName=this.value" placeholder="Juan"/></div>'
-      +'<div class="field"><label>'+tx.lastName+' *</label><input value="'+esc(state.lastName)+'" oninput="state.lastName=this.value" placeholder="PÃ©rez"/></div>'
+      +'<div class="field"><label>'+tx.lastName+' *</label><input value="'+esc(state.lastName)+'" oninput="state.lastName=this.value" placeholder="Pérez"/></div>'
     +'</div>'
     +'<div class="field"><label>'+tx.email+' *</label><input type="email" value="'+esc(state.email)+'" oninput="state.email=this.value" placeholder="juan@email.com"/></div>'
     +'<div class="field"><label>'+tx.phone+' *</label><input id="phoneInp" type="tel" value="'+esc(state.phone)+'" placeholder="(305) 000-0000" maxlength="18"/></div>'
     +(_singleProgId ? '' : '<div class="field">'
       +'<div style="text-align:center;margin-bottom:14px;padding:14px;background:linear-gradient(135deg,rgba(224,32,32,.07),rgba(26,63,166,.07));border-radius:14px;border:2px dashed rgba(224,32,32,.25)">'
-        +'<div style="font-size:26px;margin-bottom:4px">ðŸŽ¯</div>'
-        +'<div style="font-weight:900;font-size:16px;color:var(--text);margin-bottom:3px">'+(lang==='en'?'Explore our programs!':'Â¡Explora nuestros programas!')+'</div>'
-        +'<div style="font-size:13px;color:var(--muted)">'+(lang==='en'?'Select the program that interests you the most':'Selecciona el programa que mÃ¡s te interesa')+'</div>'
+        +'<div style="font-size:26px;margin-bottom:4px">🎯</div>'
+        +'<div style="font-weight:900;font-size:16px;color:var(--text);margin-bottom:3px">'+(lang==='en'?'Explore our programs!':'¡Explora nuestros programas!')+'</div>'
+        +'<div style="font-size:13px;color:var(--muted)">'+(lang==='en'?'Select the program that interests you the most':'Selecciona el programa que más te interesa')+'</div>'
       +'</div>'
       +'<div class="prog-grid">'
       +customProgs.filter(function(p){return !p.hidden;}).map(function(p){
@@ -1003,14 +1003,14 @@ function renderStep2(tx){
   return '<div class="section-title">'+tx.secTitle2+'</div>'
     +'<p class="section-sub">'+tx.secSub2+'</p>'
     +'<div class="cal-wrap">'
-      +'<div class="cal-header"><button class="cal-nav" onclick="pubPrev()">â€¹</button><span class="cal-month-lbl">'+tx.months[m]+' '+y+'</span><button class="cal-nav" onclick="pubNext()">â€º</button></div>'
+      +'<div class="cal-header"><button class="cal-nav" onclick="pubPrev()">‹</button><span class="cal-month-lbl">'+tx.months[m]+' '+y+'</span><button class="cal-nav" onclick="pubNext()">›</button></div>'
       +'<div class="cal-grid">'+dnames+blanks+cells+'</div>'
       +(enabledDays.size===0?'<p class="no-dates">'+tx.noAvail+'</p>':'')
     +'</div>'
     +timesHTML
     +'<div class="btn-row" style="margin-top:24px">'
       +'<button class="btn-secondary" onclick="goStep(1)">'+tx.back+'</button>'
-      +'<button class="btn-primary btn-next" onclick="goSchedule()" '+(state.date&&state.time?'':'disabled')+' style="background:var(--green)">ðŸ“… '+(lang==='es'?'Programar':'Schedule')+'</button>'
+      +'<button class="btn-primary btn-next" onclick="goSchedule()" '+(state.date&&state.time?'':'disabled')+' style="background:var(--green)">📅 '+(lang==='es'?'Programar':'Schedule')+'</button>'
     +'</div>';
 }
 
@@ -1025,18 +1025,18 @@ function renderStep3(tx){
     +rows.map(function(r){return '<div class="summary-row"><span class="s-key">'+r[0]+'</span><span class="s-val">'+esc(r[1])+'</span></div>';}).join('')
     +'</div>'
     +'<div style="background:linear-gradient(135deg,#0f2c5c,#1a3fa6);border-radius:16px;padding:20px;margin-bottom:20px">'
-      +'<div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:6px">'+(isEs?'ðŸŽ‰ Â¡Ya casi terminas!':'ðŸŽ‰ Almost done!')+'</div>'
+      +'<div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:6px">'+(isEs?'🎉 ¡Ya casi terminas!':'🎉 Almost done!')+'</div>'
       +'<div style="color:#c8d8ff;font-size:13px;line-height:1.7;margin-bottom:14px">'
         +(isEs?'Una vez que confirmes, te contactaremos por Email y WhatsApp.':'Once you confirm, we will contact you via Email and WhatsApp.')
       +'</div>'
       +'<div style="display:flex;flex-wrap:wrap;gap:7px">'
-        +'<span style="display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:20px;background:rgba(234,67,53,.25);border:1.5px solid #EA4335;color:#ffb3ae;font-size:12px;font-weight:800">ðŸ“§ Email</span>'
-        +'<span style="display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:20px;background:rgba(37,211,102,.2);border:1.5px solid #25D366;color:#86efac;font-size:12px;font-weight:800">ðŸ“² WhatsApp</span>'
+        +'<span style="display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:20px;background:rgba(234,67,53,.25);border:1.5px solid #EA4335;color:#ffb3ae;font-size:12px;font-weight:800">📧 Email</span>'
+        +'<span style="display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:20px;background:rgba(37,211,102,.2);border:1.5px solid #25D366;color:#86efac;font-size:12px;font-weight:800">📲 WhatsApp</span>'
       +'</div>'
     +'</div>'
     +'<div class="btn-row">'
       +'<button class="btn-secondary" onclick="goStep(2)">'+tx.back+'</button>'
-      +'<button class="btn-primary btn-next" style="background:var(--blue)" onclick="submitForm()">ðŸš€ '+(isEs?'Confirmar y Enviar':'Confirm & Send')+'</button>'
+      +'<button class="btn-primary btn-next" style="background:var(--blue)" onclick="submitForm()">🚀 '+(isEs?'Confirmar y Enviar':'Confirm & Send')+'</button>'
     +'</div>';
 }
 
@@ -1045,35 +1045,35 @@ function renderSuccess(card,tx){
   var lead=state._lastLead||state;
   var isEs=lang==='es';
   card.innerHTML='<div class="success-wrap">'
-    +'<div class="success-icon">ðŸŽ‰</div>'
+    +'<div class="success-icon">🎉</div>'
     +'<div class="success-title">'+tx.successTitle+'</div>'
     +'<p class="success-sub">'+tx.successSub+'</p>'
     +'<div class="success-detail"><h4>'+tx.successDetailTitle+'</h4>'
-      +'<p>ðŸ“… '+state.date+' â€” '+state.time+'</p>'
-      +'<p>ðŸŽ“ '+(prog?progLabel(prog):state.program)+'</p>'
-      +'<p>ðŸ‘¤ '+esc(state.firstName+' '+state.lastName)+'</p>'
-      +'<p>ðŸ“§ '+esc(lead.email)+'</p>'
-      +'<p>ðŸ“± '+esc(state.phone)+'</p>'
+      +'<p>📅 '+state.date+' — '+state.time+'</p>'
+      +'<p>🎓 '+(prog?progLabel(prog):state.program)+'</p>'
+      +'<p>👤 '+esc(state.firstName+' '+state.lastName)+'</p>'
+      +'<p>📧 '+esc(lead.email)+'</p>'
+      +'<p>📱 '+esc(state.phone)+'</p>'
     +'</div>'
     +'<div style="background:linear-gradient(135deg,#0f2c5c,#1a3fa6);border-radius:16px;padding:22px;text-align:center;margin-bottom:20px">'
-      +'<div style="font-size:32px;margin-bottom:10px">ðŸŒŸ</div>'
+      +'<div style="font-size:32px;margin-bottom:10px">🌟</div>'
       +'<div style="font-family:\'Bebas Neue\',sans-serif;font-size:22px;color:var(--yellow);letter-spacing:1px;margin-bottom:8px">'
-        +(isEs?'Â¡EL PRIMER PASO YA LO DISTE!':'YOU ALREADY TOOK THE FIRST STEP!')
+        +(isEs?'¡EL PRIMER PASO YA LO DISTE!':'YOU ALREADY TOOK THE FIRST STEP!')
       +'</div>'
       +'<div style="color:#c8d8ff;font-size:13px;line-height:1.7;max-width:340px;margin:0 auto">'
-        +(isEs?'Cada gran logro comienza con una decisiÃ³n. Â¡Nos vemos pronto! ðŸ’ª':'Every great achievement starts with a decision. See you soon! ðŸ’ª')
+        +(isEs?'Cada gran logro comienza con una decisión. ¡Nos vemos pronto! 💪':'Every great achievement starts with a decision. See you soon! 💪')
       +'</div>'
     +'</div>'
     +'<div style="text-align:center">'
       +'<div class="countdown-ring" id="cdRing">15</div>'
-      +'<div id="cdMsg" style="color:#888;font-size:13px;font-weight:700">'+(isEs?'Esta pÃ¡gina se reinicia en 15 segundos...':'Page resets in 15 seconds...')+'</div>'
+      +'<div id="cdMsg" style="color:#888;font-size:13px;font-weight:700">'+(isEs?'Esta página se reinicia en 15 segundos...':'Page resets in 15 seconds...')+'</div>'
     +'</div>'
   +'</div>';
   card.style.borderTopColor='var(--yellow)';
   startCountdown();
 }
 
-// â”€â”€ FORM ACTIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── FORM ACTIONS ──────────────────────────────────────────────────────────────
 function goStep(n){ state.step=n; renderForm(); window.scrollTo({top:0,behavior:'smooth'}); }
 function goSchedule(){
   if(!state.date||!state.time){ alert(lang==='en'?'Please select a date and time.':'Por favor selecciona fecha y horario.'); return; }
@@ -1099,13 +1099,13 @@ function startCountdown(){
     var msg=document.getElementById('cdMsg');
     if(!el){clearCountdown();return;}
     el.textContent=sec;
-    if(msg) msg.textContent=(lang==='en'?'Page resets in '+sec+' seconds...':'La pÃ¡gina se reinicia en '+sec+' segundos...');
+    if(msg) msg.textContent=(lang==='en'?'Page resets in '+sec+' seconds...':'La página se reinicia en '+sec+' segundos...');
     if(sec<=0){ clearCountdown(); resetForm(); }
   },1000);
 }
 function clearCountdown(){ if(cdTimer){clearInterval(cdTimer);cdTimer=null;} }
 
-// â”€â”€ SUBMIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── SUBMIT ────────────────────────────────────────────────────────────────────
 function submitForm(){
   var now=new Date();
   var lead={
@@ -1116,20 +1116,20 @@ function submitForm(){
     read:false, attended:false, classes:0, currentProgram:state.program, history:[],
     ref_id:(new URLSearchParams(window.location.search)).get('ref')||'',
     source:tenantId,
-    lang:lang,  // â† idioma guardado al momento del submit
+    lang:lang,  // ← idioma guardado al momento del submit
     submittedAt:now.toLocaleDateString(lang==='es'?'es-US':'en-US')+' '+now.toLocaleTimeString(lang==='es'?'es-US':'en-US',{hour:'2-digit',minute:'2-digit'})
   };
   playNotificationSound();
   saveLeadToFirebase(lead);
   var prog=customProgs.find(function(p){return p.id===lead.program;});
   var progName=prog?progLabel(prog):lead.program;
-  var tgMsg='ðŸ”” *Nuevo Lead â€” '+getDisplayName()+'*\n'
-    +'ðŸ‘¤ '+lead.firstName+' '+lead.lastName+'\n'
-    +'ðŸ“§ '+lead.email+'\n'
-    +'ðŸ“± '+lead.phone+'\n'
-    +'ðŸŽ“ '+progName+'\n'
-    +'ðŸ“… '+lead.date+' â€” '+lead.time+'\n'
-    +'ðŸ·ï¸ '+tenantId;
+  var tgMsg='🔔 *Nuevo Lead — '+getDisplayName()+'*\n'
+    +'👤 '+lead.firstName+' '+lead.lastName+'\n'
+    +'📧 '+lead.email+'\n'
+    +'📱 '+lead.phone+'\n'
+    +'🎓 '+progName+'\n'
+    +'📅 '+lead.date+' — '+lead.time+'\n'
+    +'🏷️ '+tenantId;
   fetch('https://api.telegram.org/bot'+telegramBotToken+'/sendMessage',{
     method:'POST',
     headers:{'Content-Type':'application/json'},
@@ -1144,14 +1144,14 @@ function submitForm(){
   renderForm(); window.scrollTo({top:0,behavior:'smooth'});
 }
 
-// â”€â”€ FIREBASE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── FIREBASE ──────────────────────────────────────────────────────────────────
 // FB_CONFIG_KEY is now a getter so it always reflects the current tenantId
 function getFbConfigKey(){ return 'leadPageConfig_' + tenantId; }
 var FB_CONFIG_KEY = WL.fbConfigKey; // kept for legacy, use getFbConfigKey() for reads/writes
 
 async function saveLeadToFirebase(lead){
   if(!FIREBASE_READY){
-    console.warn('âš ï¸ FIREBASE_READY=false â€” Lead NO guardado en Firebase. Activa el flag cuando el sistema estÃ© verificado.');
+    console.warn('⚠️ FIREBASE_READY=false — Lead NO guardado en Firebase. Activa el flag cuando el sistema esté verificado.');
     return;
   }
   try{
@@ -1163,20 +1163,20 @@ async function saveLeadToFirebase(lead){
       name:lead.firstName+' '+lead.lastName,
       phone:lead.phone,
       email:lead.email,
-      program:lead.program,           // id del programa â€” el Master Panel lo mapea a labelES
+      program:lead.program,           // id del programa — el Master Panel lo mapea a labelES
       date:lead.date,
       time:lead.time,
       notes:lead.notes||'',
       lang:lead.lang||'es',
-      source:'PÃ¡gina Web â€” '+tenantId,
+      source:'Página Web — '+tenantId,
       ref_id:lead.ref_id||'',
       tenantId:tenantId,
       _read:false,                    // el Master Panel lo usa para badge de "nuevo"
       createdAt:new Date().toISOString().split('T')[0],
       submittedAt:lead.submittedAt||''
     };
-    // Guarda el lead como nodo individual â€” no sobreescribe los otros leads
-    // masterMods/leads/lead_XXXXX  â† cada lead tiene su propia ruta
+    // Guarda el lead como nodo individual — no sobreescribe los otros leads
+    // masterMods/leads/lead_XXXXX  ← cada lead tiene su propia ruta
     await _fbdb.ref(WL.fbLeadsPath + '/leads/' + fbLead.id).set(fbLead);
   }catch(e){ console.error('Firebase lead error:',e); }
 }
@@ -1212,7 +1212,7 @@ async function fbLoad(){
       if(d.sourceOptions_en!==undefined) sourceOptions_en=d.sourceOptions_en;
       if(d.customProgs!==undefined){
         customProgs=d.customProgs.map(function(p){
-          return {id:p.id||'prog_'+Date.now(),labelES:p.labelES||'',labelEN:p.labelEN||'',icon:p.icon||'â­',age:p.age||'',color:p.color||'#E02020',light:p.light||'#fde8e8',descES:p.descES||'',descEN:p.descEN||'',photo:p.photo||'',videos:p.videos||[],docs:p.docs||[],forWhoES:p.forWhoES||'',forWhoEN:p.forWhoEN||'',hidden:p.hidden||false};
+          return {id:p.id||'prog_'+Date.now(),labelES:p.labelES||'',labelEN:p.labelEN||'',icon:p.icon||'⭐',age:p.age||'',color:p.color||'#E02020',light:p.light||'#fde8e8',descES:p.descES||'',descEN:p.descEN||'',photo:p.photo||'',videos:p.videos||[],docs:p.docs||[],forWhoES:p.forWhoES||'',forWhoEN:p.forWhoEN||'',hidden:p.hidden||false};
         });
       }
       if(_singleProgId){
@@ -1240,7 +1240,7 @@ function skipIntro(){
   if(content) content.classList.add('visible');
 }
 
-// â”€â”€ PROGRAM DETAIL MODAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── PROGRAM DETAIL MODAL ──────────────────────────────────────────────────────
 var _pdProgIdx=-1;
 function openProgDetail(i){
   var p=customProgs[i]; _pdProgIdx=i;
@@ -1249,13 +1249,13 @@ function openProgDetail(i){
   var forWho=isEn?(p.forWhoEN||p.forWhoES||''):(p.forWhoES||p.forWhoEN||'');
   document.getElementById('pdTitle').textContent=p.icon+' '+progLabel(p);
   var btn=document.getElementById('pdSelectBtn');
-  btn.textContent=isEn?'âœ… Select this Program':'âœ… Seleccionar este Programa';
+  btn.textContent=isEn?'✅ Select this Program':'✅ Seleccionar este Programa';
   btn.style.background=p.color;
   var videos=p.videos||[];
   var videoBlock='';
   var videos=(p.videos||[]).filter(function(v){return !v.hidden && v.url;});
   if(videos.length>0){
-    videoBlock+='<div style="margin-bottom:4px;font-size:12px;font-weight:800;color:#888">ðŸŽ¬ Videos:</div>';
+    videoBlock+='<div style="margin-bottom:4px;font-size:12px;font-weight:800;color:#888">🎬 Videos:</div>';
     videoBlock+='<div class="prog-detail-video-wrap">'+buildVideoEmbed(videos[0].url,'v0',true)+'</div>';
     videos.slice(1).forEach(function(v,vi){
       videoBlock+='<div class="prog-detail-video-wrap" style="margin-top:8px">'+buildVideoEmbed(v.url,'v'+(vi+1),false)+'</div>';
@@ -1263,12 +1263,12 @@ function openProgDetail(i){
   }
   var descBlock='';
   if(p.photo) descBlock+='<img src="'+p.photo+'" class="prog-detail-photo" alt="'+esc(progLabel(p))+'"/>';
-  if(forWho)  descBlock+='<div style="color:#888;font-size:13px;font-weight:700;margin-bottom:10px">ðŸ‘¥ '+esc(forWho)+'</div>';
+  if(forWho)  descBlock+='<div style="color:#888;font-size:13px;font-weight:700;margin-bottom:10px">👥 '+esc(forWho)+'</div>';
   if(desc)    descBlock+='<div class="prog-detail-desc">'+esc(desc)+'</div>';
-  if(p.age)   descBlock+='<div style="color:#888;font-size:13px;font-weight:700;margin-bottom:12px">ðŸ‘¤ '+(isEn?'Ages:':'Edades:')+' <strong>'+esc(p.age)+'</strong></div>';
+  if(p.age)   descBlock+='<div style="color:#888;font-size:13px;font-weight:700;margin-bottom:12px">👤 '+(isEn?'Ages:':'Edades:')+' <strong>'+esc(p.age)+'</strong></div>';
   document.getElementById('pdBody').innerHTML=videoFirst?videoBlock+descBlock:descBlock+videoBlock;
   var pdLangBtn=document.getElementById('pdLangBtn');
-  if(pdLangBtn) pdLangBtn.textContent=isEn?'ðŸŒ ES':'ðŸŒ EN';
+  if(pdLangBtn) pdLangBtn.textContent=isEn?'🌐 ES':'🌐 EN';
   openModal('progDetailModal');
 }
 function closeProgDetail(){
@@ -1296,36 +1296,36 @@ function buildVideoEmbed(url,uid,autoplay){
   return '<video src="'+esc(url)+'" controls '+(autoplay?'autoplay muted':'')+' playsinline preload="metadata" style="width:100%;height:100%;border:none;border-radius:14px;object-fit:contain;background:#000"></video>';
 }
 
-// â”€â”€ WAIVER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── WAIVER ────────────────────────────────────────────────────────────────────
 var _waiverSigData=''; var _waiverGuardianSigData='';
 function getWaiverText(){ return ((lang==='en'?waiverTextEN:waiverTextES)||'').replace(/\[NOMBRE_ACADEMIA\]/g,getDisplayName()); }
 function openWaiverModal(){
   var isEn=lang==='en';
   var prog=customProgs.find(function(p){return p.id===state.program;});
   var progLbl=prog?(lang==='en'?(prog.labelEN||prog.labelES):(prog.labelES||prog.labelEN)):state.program;
-  document.getElementById('waiverModalTitle').textContent=isEn?'ðŸ“„ Participation Agreement':'ðŸ“„ Acuerdo de ParticipaciÃ³n';
+  document.getElementById('waiverModalTitle').textContent=isEn?'📄 Participation Agreement':'📄 Acuerdo de Participación';
   document.getElementById('waiverModalSub').textContent=isEn?'Please read and sign before confirming.':'Lee y firma el acuerdo antes de confirmar.';
-  document.getElementById('waiverLangBtn').textContent=isEn?'ðŸŒ ES':'ðŸŒ EN';
+  document.getElementById('waiverLangBtn').textContent=isEn?'🌐 ES':'🌐 EN';
   var html='<div style="background:#fafafa;border-radius:10px;padding:12px;margin-bottom:16px">';
-  html+='<div class="waiver-info-row"><span style="color:#888;font-weight:700">ðŸ‘¤ '+(isEn?'Name':'Nombre')+'</span><span style="font-weight:800">'+esc(state.firstName+' '+state.lastName)+'</span></div>';
-  html+='<div class="waiver-info-row"><span style="color:#888;font-weight:700">ðŸŽ“ '+(isEn?'Program':'Programa')+'</span><span style="font-weight:800">'+esc(progLbl)+'</span></div>';
-  html+='<div class="waiver-info-row"><span style="color:#888;font-weight:700">ðŸ“… '+(isEn?'Date':'Fecha')+'</span><span style="font-weight:800">'+esc(state.date)+'</span></div>';
+  html+='<div class="waiver-info-row"><span style="color:#888;font-weight:700">👤 '+(isEn?'Name':'Nombre')+'</span><span style="font-weight:800">'+esc(state.firstName+' '+state.lastName)+'</span></div>';
+  html+='<div class="waiver-info-row"><span style="color:#888;font-weight:700">🎓 '+(isEn?'Program':'Programa')+'</span><span style="font-weight:800">'+esc(progLbl)+'</span></div>';
+  html+='<div class="waiver-info-row"><span style="color:#888;font-weight:700">📅 '+(isEn?'Date':'Fecha')+'</span><span style="font-weight:800">'+esc(state.date)+'</span></div>';
   html+='</div>';
   html+='<div class="waiver-field"><label>'+(isEn?'Participant Full Name *':'Nombre completo del participante *')+'</label><input id="wvParticipant" type="text" placeholder="'+(isEn?'Participant name':'Nombre del participante')+'" oninput="checkWaiverMinor()"/></div>';
   html+='<div class="waiver-field"><label>'+(isEn?'Age *':'Edad *')+'</label><input id="wvAge" type="number" min="1" max="99" placeholder="'+(isEn?'Age':'Edad')+'" style="max-width:100px" oninput="checkWaiverMinor()"/></div>';
-  html+='<div id="wvMinorBox" class="waiver-minor-box" style="display:none">âš ï¸ '+(isEn?'Minor â€” parent/guardian signature required.':'Menor de edad â€” se requiere firma del tutor.')+'</div>';
+  html+='<div id="wvMinorBox" class="waiver-minor-box" style="display:none">⚠️ '+(isEn?'Minor — parent/guardian signature required.':'Menor de edad — se requiere firma del tutor.')+'</div>';
   html+='<div id="wvGuardianWrap" style="display:none">';
   html+='<div class="waiver-field"><label>'+(isEn?'Parent/Guardian Name *':'Nombre del padre/tutor *')+'</label><input id="wvGuardian" type="text" placeholder="'+(isEn?'Guardian name':'Nombre del tutor')+'"/></div>';
   html+='<div style="font-weight:900;font-size:14px;margin:14px 0 8px">'+(isEn?'Guardian Signature':'Firma del Tutor')+'</div>';
-  html+='<div class="waiver-sig-wrap"><canvas class="waiver-sig-canvas" id="wvGuardianSigCanvas"></canvas><button class="waiver-sig-clear" onclick="clearSig(\'guardian\')">âœ•</button></div>';
+  html+='<div class="waiver-sig-wrap"><canvas class="waiver-sig-canvas" id="wvGuardianSigCanvas"></canvas><button class="waiver-sig-clear" onclick="clearSig(\'guardian\')">✕</button></div>';
   html+='<p class="waiver-sig-hint">'+(isEn?'Sign with finger or mouse':'Firma con el dedo o el mouse')+'</p>';
   html+='</div>';
   var wt=getWaiverText();
   if(wt){ html+='<div style="font-weight:900;font-size:14px;margin:14px 0 8px">'+(isEn?'Agreement':'Acuerdo')+'</div><div class="waiver-doc-area">'+esc(wt)+'</div>'; }
   html+='<div style="font-weight:900;font-size:14px;margin:14px 0 8px">'+(isEn?'Signature *':'Firma *')+'</div>';
-  html+='<div class="waiver-sig-wrap"><canvas class="waiver-sig-canvas" id="wvSigCanvas"></canvas><button class="waiver-sig-clear" onclick="clearSig(\'main\')">âœ•</button></div>';
+  html+='<div class="waiver-sig-wrap"><canvas class="waiver-sig-canvas" id="wvSigCanvas"></canvas><button class="waiver-sig-clear" onclick="clearSig(\'main\')">✕</button></div>';
   html+='<p class="waiver-sig-hint">'+(isEn?'Sign with finger or mouse':'Firma con el dedo o el mouse')+'</p>';
-  html+='<button class="waiver-submit-btn" onclick="submitWaiver()">'+(isEn?'âœ… Sign & Confirm':'âœ… Firmar y Confirmar')+'</button>';
+  html+='<button class="waiver-submit-btn" onclick="submitWaiver()">'+(isEn?'✅ Sign & Confirm':'✅ Firmar y Confirmar')+'</button>';
   document.getElementById('waiverBody').innerHTML=html;
   openModal('waiverModal');
   setTimeout(function(){ initSigCanvas('wvSigCanvas','main'); initSigCanvas('wvGuardianSigCanvas','guardian'); },80);
@@ -1380,7 +1380,7 @@ function submitWaiver(){
   goStep(3);
 }
 
-// â”€â”€ BREVO EMAILS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── BREVO EMAILS ──────────────────────────────────────────────────────────────
 async function brevoSend(to,toName,subject,html){
   try{
     await fetch(brevoWorker,{
@@ -1405,86 +1405,86 @@ function brevoWrap(headerEmoji,headerTitle,headerSub,bodyHtml,footerNote){
     +'<tr><td style="padding:32px 40px">'+bodyHtml+'</td></tr>'
     +'<tr><td style="padding:0 40px 24px;text-align:center">'
     +'<p style="font-size:13px;color:#888;margin:0 0 6px">'+footerNote+'</p>'
-    +'<p style="font-size:15px;font-weight:800;color:#1A3FA6;margin:0">ðŸ“ž '+contactInfo.phone+'</p></td></tr>'
+    +'<p style="font-size:15px;font-weight:800;color:#1A3FA6;margin:0">📞 '+contactInfo.phone+'</p></td></tr>'
     +'<tr><td style="background:#111;padding:16px 40px;text-align:center">'
-    +'<p style="margin:0;font-size:12px;color:#555">Â© '+new Date().getFullYear()+' '+academyName+' â€” '+contactInfo.website+'</p></td></tr>'
+    +'<p style="margin:0;font-size:12px;color:#555">© '+new Date().getFullYear()+' '+academyName+' — '+contactInfo.website+'</p></td></tr>'
     +'</table></td></tr></table></body></html>';
 }
 async function sendBrevoConfirmation(lead,progName){
   var isEs=(lead.lang||lang)==='es';
-  var subject=isEs?'âœ… Â¡Tu cita en '+academyName+' estÃ¡ confirmada! â€” '+lead.date+' '+lead.time:'âœ… Your appointment at '+academyName+' is confirmed! â€” '+lead.date+' '+lead.time;
-  var body='<p style="font-size:18px;font-weight:800;color:#111;margin:0 0 8px">'+(isEs?'Â¡Hola ':'Hello ')+lead.firstName+'! ðŸ‘‹</p>'
-    +'<p style="font-size:15px;color:#555;line-height:1.7;margin:0 0 24px">'+(isEs?'Tu cita ha sido registrada. AquÃ­ estÃ¡n los detalles:':'Your appointment has been registered. Here are the details:')+'</p>'
+  var subject=isEs?'✅ ¡Tu cita en '+academyName+' está confirmada! — '+lead.date+' '+lead.time:'✅ Your appointment at '+academyName+' is confirmed! — '+lead.date+' '+lead.time;
+  var body='<p style="font-size:18px;font-weight:800;color:#111;margin:0 0 8px">'+(isEs?'¡Hola ':'Hello ')+lead.firstName+'! 👋</p>'
+    +'<p style="font-size:15px;color:#555;line-height:1.7;margin:0 0 24px">'+(isEs?'Tu cita ha sido registrada. Aquí están los detalles:':'Your appointment has been registered. Here are the details:')+'</p>'
     +'<table width="100%" cellpadding="0" cellspacing="0" style="background:#fff9d6;border:2px solid #F5C800;border-radius:12px;margin-bottom:20px"><tr><td style="padding:16px 20px">'
-    +'<p style="margin:0 0 8px;font-size:14px;color:#333">ðŸ“… <b>'+lead.date+' â€” '+lead.time+'</b></p>'
-    +'<p style="margin:0 0 8px;font-size:14px;color:#333">ðŸŽ“ <b>'+progName+'</b></p>'
-    +'<p style="margin:0;font-size:14px;color:#333">ðŸ“ <b>'+WL.address+'</b></p>'
+    +'<p style="margin:0 0 8px;font-size:14px;color:#333">📅 <b>'+lead.date+' — '+lead.time+'</b></p>'
+    +'<p style="margin:0 0 8px;font-size:14px;color:#333">🎓 <b>'+progName+'</b></p>'
+    +'<p style="margin:0;font-size:14px;color:#333">📍 <b>'+WL.address+'</b></p>'
     +'</td></tr></table>';
   await brevoSend(lead.email,lead.firstName+' '+lead.lastName,subject,
-    brevoWrap('ðŸ¥‹',academyName,isEs?'Â¡Tu cita estÃ¡ confirmada!':'Your appointment is confirmed!',body,isEs?'Â¿Tienes preguntas? ContÃ¡ctanos:':'Have questions? Contact us:'));
+    brevoWrap('🥋',academyName,isEs?'¡Tu cita está confirmada!':'Your appointment is confirmed!',body,isEs?'¿Tienes preguntas? Contáctanos:':'Have questions? Contact us:'));
 }
 function scheduleReminderEmail(lead,progName){
-  // â° PRODUCCIÃ“N: este timer debe ejecutarse desde Cloud Functions de Firebase,
-  // no desde el browser. AquÃ­ se envÃ­a ~30s despuÃ©s como demo.
-  // En producciÃ³n: enviar 24 horas antes de la cita.
+  // ⏰ PRODUCCIÓN: este timer debe ejecutarse desde Cloud Functions de Firebase,
+  // no desde el browser. Aquí se envía ~30s después como demo.
+  // En producción: enviar 24 horas antes de la cita.
   setTimeout(function(){
     var isEs=(lead.lang||lang)==='es';
-    var body='<p style="font-size:18px;font-weight:800;color:#111;margin:0 0 8px">'+(isEs?'Â¡Hola ':'Hello ')+lead.firstName+'! ðŸ‘‹</p>'
-      +'<p style="font-size:15px;color:#555;line-height:1.7;margin:0 0 20px">'+(isEs?'Te recordamos que <b>maÃ±ana es tu cita</b>.':'Just a reminder that <b>tomorrow is your appointment</b>.')+'</p>'
+    var body='<p style="font-size:18px;font-weight:800;color:#111;margin:0 0 8px">'+(isEs?'¡Hola ':'Hello ')+lead.firstName+'! 👋</p>'
+      +'<p style="font-size:15px;color:#555;line-height:1.7;margin:0 0 20px">'+(isEs?'Te recordamos que <b>mañana es tu cita</b>.':'Just a reminder that <b>tomorrow is your appointment</b>.')+'</p>'
       +'<table width="100%" cellpadding="0" cellspacing="0" style="background:#fff9d6;border:2px solid #F5C800;border-radius:12px;margin-bottom:20px"><tr><td style="padding:16px 20px">'
-      +'<p style="margin:0 0 8px;font-size:14px;color:#333">ðŸ“… <b>'+lead.date+' â€” '+lead.time+'</b></p>'
-      +'<p style="margin:0 0 8px;font-size:14px;color:#333">ðŸŽ“ <b>'+progName+'</b></p>'
-      +'<p style="margin:0;font-size:14px;color:#333">ðŸ“ <b>'+WL.address+'</b></p></td></tr></table>'
-      +'<p style="font-size:14px;color:#333">âœ… '+(isEs?'Ropa cÃ³moda':'Comfortable clothes')+' Â· âœ… '+(isEs?'Agua':'Water')+' Â· âœ… '+(isEs?'Â¡Muchas ganas!':'Great attitude!')+'</p>';
-    var subj=isEs?'â° Recordatorio â€” Tu cita maÃ±ana en '+academyName:'â° Reminder â€” Your appointment tomorrow at '+academyName;
-    brevoSend(lead.email,lead.firstName+' '+lead.lastName,subj,brevoWrap('â°',academyName,isEs?'Â¡Tu cita es maÃ±ana!':'Your appointment is tomorrow!',body,isEs?'Â¿Necesitas cambiar algo?':'Need to make changes?'));
+      +'<p style="margin:0 0 8px;font-size:14px;color:#333">📅 <b>'+lead.date+' — '+lead.time+'</b></p>'
+      +'<p style="margin:0 0 8px;font-size:14px;color:#333">🎓 <b>'+progName+'</b></p>'
+      +'<p style="margin:0;font-size:14px;color:#333">📍 <b>'+WL.address+'</b></p></td></tr></table>'
+      +'<p style="font-size:14px;color:#333">✅ '+(isEs?'Ropa cómoda':'Comfortable clothes')+' · ✅ '+(isEs?'Agua':'Water')+' · ✅ '+(isEs?'¡Muchas ganas!':'Great attitude!')+'</p>';
+    var subj=isEs?'⏰ Recordatorio — Tu cita mañana en '+academyName:'⏰ Reminder — Your appointment tomorrow at '+academyName;
+    brevoSend(lead.email,lead.firstName+' '+lead.lastName,subj,brevoWrap('⏰',academyName,isEs?'¡Tu cita es mañana!':'Your appointment is tomorrow!',body,isEs?'¿Necesitas cambiar algo?':'Need to make changes?'));
   },30000);
 }
 function scheduleFollowUpEmail(lead,progName){
-  // â° PRODUCCIÃ“N: enviar 2-3 dÃ­as despuÃ©s si no asistiÃ³.
-  // En producciÃ³n usar Cloud Functions, no setTimeout.
+  // ⏰ PRODUCCIÓN: enviar 2-3 días después si no asistió.
+  // En producción usar Cloud Functions, no setTimeout.
   setTimeout(function(){
     var isEs=(lead.lang||lang)==='es';
-    var body='<p style="font-size:18px;font-weight:800;color:#111;margin:0 0 8px">'+(isEs?'Â¡Hola ':'Hello ')+lead.firstName+'! ðŸ¥‹</p>'
-      +'<p style="font-size:15px;color:#555;line-height:1.7;margin:0 0 20px">'+(isEs?'Â¿Todo bien? Tu lugar sigue reservado.':'Everything okay? Your spot is still reserved.')+'</p>';
-    brevoSend(lead.email,lead.firstName+' '+lead.lastName,isEs?'ðŸ¤ Â¿Podemos reagendar?':'ðŸ¤ Can we reschedule?',brevoWrap('ðŸ¤',academyName,isEs?'Â¿Podemos reagendar?':'Can we reschedule?',body,''));
+    var body='<p style="font-size:18px;font-weight:800;color:#111;margin:0 0 8px">'+(isEs?'¡Hola ':'Hello ')+lead.firstName+'! 🥋</p>'
+      +'<p style="font-size:15px;color:#555;line-height:1.7;margin:0 0 20px">'+(isEs?'¿Todo bien? Tu lugar sigue reservado.':'Everything okay? Your spot is still reserved.')+'</p>';
+    brevoSend(lead.email,lead.firstName+' '+lead.lastName,isEs?'🤝 ¿Podemos reagendar?':'🤝 Can we reschedule?',brevoWrap('🤝',academyName,isEs?'¿Podemos reagendar?':'Can we reschedule?',body,''));
   },60000);
 }
 function scheduleMotivationEmail(lead,progName){
-  // â° PRODUCCIÃ“N: enviar 5-7 dÃ­as despuÃ©s como motivaciÃ³n.
-  // En producciÃ³n usar Cloud Functions, no setTimeout.
+  // ⏰ PRODUCCIÓN: enviar 5-7 días después como motivación.
+  // En producción usar Cloud Functions, no setTimeout.
   setTimeout(function(){
     var isEs=(lead.lang||lang)==='es';
-    var body='<p style="font-size:18px;font-weight:800;color:#111;margin:0 0 8px">'+(isEs?'Â¡Hola ':'Hello ')+lead.firstName+'! ðŸŒŸ</p>'
+    var body='<p style="font-size:18px;font-weight:800;color:#111;margin:0 0 8px">'+(isEs?'¡Hola ':'Hello ')+lead.firstName+'! 🌟</p>'
       +'<div style="background:linear-gradient(135deg,#E02020,#1A3FA6);border-radius:12px;padding:28px;text-align:center;margin:20px 0">'
-      +'<div style="font-size:36px;margin-bottom:10px">ðŸ¥‹</div>'
-      +'<div style="font-size:20px;font-weight:900;color:#F5C800;letter-spacing:1px">'+(isEs?'Â¡TU PRIMERA CLASE ES GRATIS!':'YOUR FIRST CLASS IS FREE!')+'</div>'
+      +'<div style="font-size:36px;margin-bottom:10px">🥋</div>'
+      +'<div style="font-size:20px;font-weight:900;color:#F5C800;letter-spacing:1px">'+(isEs?'¡TU PRIMERA CLASE ES GRATIS!':'YOUR FIRST CLASS IS FREE!')+'</div>'
       +'</div>';
-    brevoSend(lead.email,lead.firstName+' '+lead.lastName,isEs?'ðŸ¥‹ Primera clase GRATIS en '+academyName:'ðŸ¥‹ FREE first class at '+academyName,brevoWrap('ðŸ¥‹',academyName,isEs?'Â¡Primera clase gratis!':'First class free!',body,''));
+    brevoSend(lead.email,lead.firstName+' '+lead.lastName,isEs?'🥋 Primera clase GRATIS en '+academyName:'🥋 FREE first class at '+academyName,brevoWrap('🥋',academyName,isEs?'¡Primera clase gratis!':'First class free!',body,''));
   },90000);
 }
 
-// â”€â”€ ADMIN NOTIFICATION EMAIL (Punto 7) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── ADMIN NOTIFICATION EMAIL (Punto 7) ───────────────────────────────────────
 async function sendAdminNotificationEmail(lead, progName){
   if(!senderEmail) return;
-  var subject='ðŸ”” Nuevo Lead â€” '+lead.firstName+' '+lead.lastName+' ['+tenantId+']';
-  var body='<p style="font-size:18px;font-weight:800;color:#111;margin:0 0 16px">ðŸ”” Nuevo lead registrado</p>'
+  var subject='🔔 Nuevo Lead — '+lead.firstName+' '+lead.lastName+' ['+tenantId+']';
+  var body='<p style="font-size:18px;font-weight:800;color:#111;margin:0 0 16px">🔔 Nuevo lead registrado</p>'
     +'<table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;border-radius:12px;border:2px solid #ddd;margin-bottom:20px"><tr><td style="padding:16px 20px">'
-    +'<p style="margin:0 0 8px;font-size:14px;color:#333">ðŸ‘¤ <b>'+lead.firstName+' '+lead.lastName+'</b></p>'
-    +'<p style="margin:0 0 8px;font-size:14px;color:#333">ðŸ“§ <b>'+lead.email+'</b></p>'
-    +'<p style="margin:0 0 8px;font-size:14px;color:#333">ðŸ“± <b>'+lead.phone+'</b></p>'
-    +'<p style="margin:0 0 8px;font-size:14px;color:#333">ðŸŽ“ <b>'+progName+'</b></p>'
-    +'<p style="margin:0 0 8px;font-size:14px;color:#333">ðŸ“… <b>'+lead.date+' â€” '+lead.time+'</b></p>'
-    +'<p style="margin:0 0 8px;font-size:14px;color:#555">ðŸ“£ '+lead.notes+'</p>'
-    +'<p style="margin:0;font-size:12px;color:#999">ðŸ·ï¸ Tenant: '+tenantId+' Â· '+lead.submittedAt+'</p>'
+    +'<p style="margin:0 0 8px;font-size:14px;color:#333">👤 <b>'+lead.firstName+' '+lead.lastName+'</b></p>'
+    +'<p style="margin:0 0 8px;font-size:14px;color:#333">📧 <b>'+lead.email+'</b></p>'
+    +'<p style="margin:0 0 8px;font-size:14px;color:#333">📱 <b>'+lead.phone+'</b></p>'
+    +'<p style="margin:0 0 8px;font-size:14px;color:#333">🎓 <b>'+progName+'</b></p>'
+    +'<p style="margin:0 0 8px;font-size:14px;color:#333">📅 <b>'+lead.date+' — '+lead.time+'</b></p>'
+    +'<p style="margin:0 0 8px;font-size:14px;color:#555">📣 '+lead.notes+'</p>'
+    +'<p style="margin:0;font-size:12px;color:#999">🏷️ Tenant: '+tenantId+' · '+lead.submittedAt+'</p>'
     +'</td></tr></table>';
   try{
     await brevoSend(senderEmail, academyName, subject,
-      brevoWrap('ðŸ””', academyName, 'NotificaciÃ³n de nuevo lead', body, 'Este mensaje fue enviado automÃ¡ticamente al registrarse un nuevo lead.'));
+      brevoWrap('🔔', academyName, 'Notificación de nuevo lead', body, 'Este mensaje fue enviado automáticamente al registrarse un nuevo lead.'));
   }catch(e){ console.error('Admin notification email error:',e); }
 }
 
-// â”€â”€ NOTIFICATION SOUND â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── NOTIFICATION SOUND ────────────────────────────────────────────────────────
 function playNotificationSound(){
   try{
     var ctx=new(window.AudioContext||window.webkitAudioContext)();
@@ -1500,9 +1500,9 @@ function playNotificationSound(){
   }catch(e){}
 }
 
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-//  âš™ï¸  ADMIN PANEL
-// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ══════════════════════════════════════════════════════════════════
+//  ⚙️  ADMIN PANEL
+// ══════════════════════════════════════════════════════════════════
 var adminCalYear=new Date().getFullYear();
 var adminCalMonth=new Date().getMonth();
 
@@ -1536,7 +1536,7 @@ function logoutAdmin(){ sessionStorage.removeItem('adminAuth'); closeAdmin(); }
 function finishAdmin(){
   var status=document.getElementById('adminSaveStatus').textContent;
   if(status.indexOf('sin guardar')>-1){
-    if(!confirm('Tienes cambios sin guardar. Â¿Deseas salir sin guardar?')) return;
+    if(!confirm('Tienes cambios sin guardar. ¿Deseas salir sin guardar?')) return;
   }
   closeAdmin();
 }
@@ -1548,17 +1548,17 @@ function adminTab(name, btn){
   if(btn) btn.classList.add('active');
 }
 
-function markUnsaved(){ document.getElementById('adminSaveStatus').textContent='â¬†ï¸ Cambios sin guardar'; }
+function markUnsaved(){ document.getElementById('adminSaveStatus').textContent='⬆️ Cambios sin guardar'; }
 
 function toggleFirebaseReady(){
   FIREBASE_READY = !FIREBASE_READY;
   var badge = document.getElementById('fbReadyBadge');
   if(badge){
     if(FIREBASE_READY){
-      badge.textContent='ðŸŸ¢ Firebase Guardado: ACTIVADO';
+      badge.textContent='🟢 Firebase Guardado: ACTIVADO';
       badge.style.background='#1a2a1a'; badge.style.color='#4ade80'; badge.style.borderColor='#2a4a2a';
     } else {
-      badge.textContent='ðŸ”´ Firebase Guardado: DESACTIVADO';
+      badge.textContent='🔴 Firebase Guardado: DESACTIVADO';
       badge.style.background='#2a1a1a'; badge.style.color='#f87171'; badge.style.borderColor='#4a2a2a';
     }
   }
@@ -1607,10 +1607,10 @@ function loadAdminForm(){
   // Horarios
   renderTimesAdmin();
   renderAdminCal();
-  document.getElementById('adminSaveStatus').textContent='âœ… Todo guardado';
+  document.getElementById('adminSaveStatus').textContent='✅ Todo guardado';
 }
 
-// â”€â”€ PROGRAMS ADMIN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── PROGRAMS ADMIN ────────────────────────────────────────────────────────────
 var _editProgIdx = -1;
 function renderProgramsAdmin(){
   var list=document.getElementById('programsAdminList'); if(!list) return;
@@ -1619,11 +1619,11 @@ function renderProgramsAdmin(){
       +'<div class="prog-admin-card-header">'
         +'<span class="prog-admin-name">'+p.icon+' '+esc(p.labelES||p.labelEN)+'</span>'
         +'<div class="prog-admin-btns">'
-          +'<button class="admin-btn ghost" style="padding:6px 10px;font-size:14px;line-height:1" title="Subir" onclick="moveProgram('+i+',-1'+')" '+(i===0?'disabled style="opacity:.3"':'')+'">â–²</button>'
-          +'<button class="admin-btn ghost" style="padding:6px 10px;font-size:14px;line-height:1" title="Bajar" onclick="moveProgram('+i+',1'+')" '+(i===customProgs.length-1?'disabled style="opacity:.3"':'')+'">â–¼</button>'
-          +'<button class="admin-btn ghost" style="padding:6px 12px;font-size:12px" onclick="editProgram('+i+')">âœï¸ Editar</button>'
-          +'<button class="admin-btn" style="padding:6px 12px;font-size:12px;background:'+(p.hidden?'#1a2a1a':'#2a1a1a')+';color:'+(p.hidden?'#4ade80':'#f87171')+';border:1px solid '+(p.hidden?'#2a4a2a':'#4a2a2a')+'" onclick="toggleProgHidden('+i+')">'+(p.hidden?'ðŸ‘ï¸ Mostrar':'ðŸš« Ocultar')+'</button>'
-          +'<button class="admin-btn danger" style="padding:6px 12px;font-size:12px" onclick="deleteProgram('+i+')">ðŸ—‘ï¸</button>'
+          +'<button class="admin-btn ghost" style="padding:6px 10px;font-size:14px;line-height:1" title="Subir" onclick="moveProgram('+i+',-1'+')" '+(i===0?'disabled style="opacity:.3"':'')+'">▲</button>'
+          +'<button class="admin-btn ghost" style="padding:6px 10px;font-size:14px;line-height:1" title="Bajar" onclick="moveProgram('+i+',1'+')" '+(i===customProgs.length-1?'disabled style="opacity:.3"':'')+'">▼</button>'
+          +'<button class="admin-btn ghost" style="padding:6px 12px;font-size:12px" onclick="editProgram('+i+')">✏️ Editar</button>'
+          +'<button class="admin-btn" style="padding:6px 12px;font-size:12px;background:'+(p.hidden?'#1a2a1a':'#2a1a1a')+';color:'+(p.hidden?'#4ade80':'#f87171')+';border:1px solid '+(p.hidden?'#2a4a2a':'#4a2a2a')+'" onclick="toggleProgHidden('+i+')">'+(p.hidden?'👁️ Mostrar':'🚫 Ocultar')+'</button>'
+          +'<button class="admin-btn danger" style="padding:6px 12px;font-size:12px" onclick="deleteProgram('+i+')">🗑️</button>'
         +'</div>'
       +'</div>'
       +'<div style="display:flex;gap:16px;font-size:12px;color:#666">'
@@ -1643,7 +1643,7 @@ function moveProgram(i, dir){
   renderProgramsAdmin(); renderHeroPrograms(); renderForm(); markUnsaved();
 }
 
-// â”€â”€ EDIT PROGRAM MODAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── EDIT PROGRAM MODAL ────────────────────────────────────────────────────────
 var _epVideos = [];   // working copy of videos array while editing
 var _epPhotoData = ''; // base64 if uploaded
 
@@ -1660,8 +1660,8 @@ function epRenderVideos(){
         +'<input class="admin-input" id="ep-video-url-'+vi+'" value="'+esc(v.url||'')+'" placeholder="https://youtube.com/watch?v=... o URL de video" style="background:#0d0d0d;color:#eee;border-color:#333;font-size:13px" oninput="_epVideos['+vi+'].url=this.value"/>'
       +'</div>'
       +'<div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">'
-        +'<button class="admin-btn ghost" style="padding:5px 10px;font-size:11px;white-space:nowrap" onclick="epToggleVideo('+vi+')">'+(v.hidden?'ðŸ‘ï¸ Mostrar':'ðŸš« Ocultar')+'</button>'
-        +'<button class="admin-btn danger" style="padding:5px 10px;font-size:11px" onclick="epRemoveVideo('+vi+')">ðŸ—‘ï¸</button>'
+        +'<button class="admin-btn ghost" style="padding:5px 10px;font-size:11px;white-space:nowrap" onclick="epToggleVideo('+vi+')">'+(v.hidden?'👁️ Mostrar':'🚫 Ocultar')+'</button>'
+        +'<button class="admin-btn danger" style="padding:5px 10px;font-size:11px" onclick="epRemoveVideo('+vi+')">🗑️</button>'
       +'</div>'
     +'</div>';
   }).join('');
@@ -1693,57 +1693,57 @@ function editProgram(i){
   var lStyle='display:block;font-size:11px;font-weight:800;color:#555;text-transform:uppercase;margin-bottom:4px';
 
   var html='<div style="padding:24px;background:#fff;border-radius:22px">'
-    // â”€â”€ Header
+    // ── Header
     +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px">'
-      +'<h3 style="font-size:18px;font-weight:900;color:#111">âœï¸ Editar Programa</h3>'
-      +'<button onclick="closeModal(\'editProgModal\')" style="background:none;border:none;font-size:22px;cursor:pointer;color:#888;padding:4px">âœ•</button>'
+      +'<h3 style="font-size:18px;font-weight:900;color:#111">✏️ Editar Programa</h3>'
+      +'<button onclick="closeModal(\'editProgModal\')" style="background:none;border:none;font-size:22px;cursor:pointer;color:#888;padding:4px">✕</button>'
     +'</div>'
-    // â”€â”€ Nombres
+    // ── Nombres
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">'
       +'<div><label style="'+lStyle+'">Nombre ES</label><input class="admin-input" id="ep-labelES" value="'+esc(p.labelES)+'" style="'+iStyle+'"/></div>'
       +'<div><label style="'+lStyle+'">Nombre EN</label><input class="admin-input" id="ep-labelEN" value="'+esc(p.labelEN)+'" style="'+iStyle+'"/></div>'
     +'</div>'
-    // â”€â”€ Ãcono / Edad / Color
+    // ── Ícono / Edad / Color
     +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">'
-      +'<div><label style="'+lStyle+'">Ãcono</label><input class="admin-input" id="ep-icon" value="'+esc(p.icon)+'" style="'+iStyle+';font-size:22px"/></div>'
+      +'<div><label style="'+lStyle+'">Ícono</label><input class="admin-input" id="ep-icon" value="'+esc(p.icon)+'" style="'+iStyle+';font-size:22px"/></div>'
       +'<div><label style="'+lStyle+'">Edad</label><input class="admin-input" id="ep-age" value="'+esc(p.age)+'" placeholder="4-10" style="'+iStyle+'"/></div>'
       +'<div><label style="'+lStyle+'">Color</label><input type="color" class="admin-input" id="ep-color" value="'+p.color+'" style="'+iStyle+';height:42px"/></div>'
     +'</div>'
-    // â”€â”€ Para quiÃ©n
+    // ── Para quién
     +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">'
-      +'<div><label style="'+lStyle+'">Â¿Para quiÃ©n? ES</label><input class="admin-input" id="ep-forES" value="'+esc(p.forWhoES)+'" style="'+iStyle+'"/></div>'
+      +'<div><label style="'+lStyle+'">¿Para quién? ES</label><input class="admin-input" id="ep-forES" value="'+esc(p.forWhoES)+'" style="'+iStyle+'"/></div>'
       +'<div><label style="'+lStyle+'">For who? EN</label><input class="admin-input" id="ep-forEN" value="'+esc(p.forWhoEN)+'" style="'+iStyle+'"/></div>'
     +'</div>'
-    // â”€â”€ DescripciÃ³n
-    +'<div style="margin-bottom:12px"><label style="'+lStyle+'">DescripciÃ³n ES</label><textarea class="admin-textarea" id="ep-descES" style="background:#f5f5f5;color:#111;border-color:#ddd;min-height:70px">'+esc(p.descES)+'</textarea></div>'
+    // ── Descripción
+    +'<div style="margin-bottom:12px"><label style="'+lStyle+'">Descripción ES</label><textarea class="admin-textarea" id="ep-descES" style="background:#f5f5f5;color:#111;border-color:#ddd;min-height:70px">'+esc(p.descES)+'</textarea></div>'
     +'<div style="margin-bottom:16px"><label style="'+lStyle+'">Description EN</label><textarea class="admin-textarea" id="ep-descEN" style="background:#f5f5f5;color:#111;border-color:#ddd;min-height:70px">'+esc(p.descEN)+'</textarea></div>'
-    // â”€â”€ Foto
+    // ── Foto
     +'<div style="margin-bottom:16px;background:#f9f9f9;border-radius:12px;padding:14px;border:1.5px solid #e0e0e0">'
-      +'<label style="'+lStyle+'">ðŸ–¼ï¸ Foto del Programa</label>'
+      +'<label style="'+lStyle+'">🖼️ Foto del Programa</label>'
       +'<div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">'
         +'<img id="ep-photo-preview" src="'+((_epPhotoData||(p.photo&&!p.photo.startsWith('data:')?'':_epPhotoData))||'')+'" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:2px solid #ddd;display:'+( (p.photo)?'block':'none')+'"/>'
         +'<div style="flex:1;min-width:180px">'
           +'<input class="admin-input" id="ep-photo" value="'+(p.photo&&!p.photo.startsWith('data:')?esc(p.photo):'')+'" placeholder="https://... URL de imagen" style="'+iStyle+';margin-bottom:8px"/>'
           +'<label style="display:inline-block;cursor:pointer;background:#eee;border:1.5px solid #ddd;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:800;color:#555">'
-            +'ðŸ“ Subir foto <input type="file" accept="image/*" style="display:none" onchange="epHandlePhotoUpload(this)"/>'
+            +'📁 Subir foto <input type="file" accept="image/*" style="display:none" onchange="epHandlePhotoUpload(this)"/>'
           +'</label>'
-          +'<button onclick="_epPhotoData=\'\';document.getElementById(\'ep-photo\').value=\'\';document.getElementById(\'ep-photo-preview\').style.display=\'none\'" style="margin-left:8px;background:none;border:1.5px solid #f87171;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:800;color:#f87171;cursor:pointer">ðŸ—‘ï¸ Quitar</button>'
+          +'<button onclick="_epPhotoData=\'\';document.getElementById(\'ep-photo\').value=\'\';document.getElementById(\'ep-photo-preview\').style.display=\'none\'" style="margin-left:8px;background:none;border:1.5px solid #f87171;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:800;color:#f87171;cursor:pointer">🗑️ Quitar</button>'
         +'</div>'
       +'</div>'
     +'</div>'
-    // â”€â”€ Videos
+    // ── Videos
     +'<div style="margin-bottom:20px;background:#f9f9f9;border-radius:12px;padding:14px;border:1.5px solid #e0e0e0">'
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
-        +'<label style="'+lStyle+';margin:0">ðŸŽ¬ Videos (YouTube, Vimeo o URL directa)</label>'
-        +'<button class="admin-btn green" style="padding:6px 14px;font-size:12px" onclick="epAddVideo()">âž• Agregar Video</button>'
+        +'<label style="'+lStyle+';margin:0">🎬 Videos (YouTube, Vimeo o URL directa)</label>'
+        +'<button class="admin-btn green" style="padding:6px 14px;font-size:12px" onclick="epAddVideo()">➕ Agregar Video</button>'
       +'</div>'
       +'<div id="ep-videos-list"></div>'
-      +'<div style="font-size:11px;color:#aaa;margin-top:6px">ðŸ’¡ Puedes ocultar un video sin borrarlo. El primero se reproduce automÃ¡ticamente.</div>'
+      +'<div style="font-size:11px;color:#aaa;margin-top:6px">💡 Puedes ocultar un video sin borrarlo. El primero se reproduce automáticamente.</div>'
     +'</div>'
-    // â”€â”€ Botones
+    // ── Botones
     +'<div style="display:flex;gap:10px">'
       +'<button class="admin-btn ghost" style="flex:1;color:#111;border-color:#ddd" onclick="closeModal(\'editProgModal\')">Cancelar</button>'
-      +'<button class="admin-btn primary" style="flex:2" onclick="saveCurrentProgram()">ðŸ’¾ Guardar Programa</button>'
+      +'<button class="admin-btn primary" style="flex:2" onclick="saveCurrentProgram()">💾 Guardar Programa</button>'
     +'</div>'
   +'</div>';
 
@@ -1770,7 +1770,7 @@ function editProgram(i){
 
 function saveCurrentProgram(){
   var i = _editProgIdx;
-  if(i < 0 || i >= customProgs.length){ alert('Error: Ã­ndice de programa invÃ¡lido.'); return; }
+  if(i < 0 || i >= customProgs.length){ alert('Error: índice de programa inválido.'); return; }
   saveProgram(i);
 }
 
@@ -1800,21 +1800,21 @@ function saveProgram(i){
 function toggleProgHidden(i){ customProgs[i].hidden=!customProgs[i].hidden; renderProgramsAdmin(); renderHeroPrograms(); renderForm(); markUnsaved(); }
 
 function deleteProgram(i){
-  if(!confirm('Â¿Eliminar este programa?')) return;
+  if(!confirm('¿Eliminar este programa?')) return;
   customProgs.splice(i,1); renderProgramsAdmin(); renderHeroPrograms(); renderForm(); markUnsaved();
 }
 
 function addProgram(){
-  customProgs.push({id:'prog_'+Date.now(),labelES:'Nuevo Programa',labelEN:'New Program',icon:'â­',age:'',color:'#E02020',light:'#fde8e8',descES:'',descEN:'',photo:'',videos:[],docs:[],forWhoES:'',forWhoEN:'',hidden:false});
+  customProgs.push({id:'prog_'+Date.now(),labelES:'Nuevo Programa',labelEN:'New Program',icon:'⭐',age:'',color:'#E02020',light:'#fde8e8',descES:'',descEN:'',photo:'',videos:[],docs:[],forWhoES:'',forWhoEN:'',hidden:false});
   renderProgramsAdmin(); markUnsaved();
   editProgram(customProgs.length-1);
 }
 
-// â”€â”€ TIMES ADMIN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── TIMES ADMIN ───────────────────────────────────────────────────────────────
 function renderTimesAdmin(){
   var el=document.getElementById('timesChips'); if(!el) return;
   el.innerHTML=customTimes.map(function(t,i){
-    return '<span class="time-chip">'+esc(t)+'<button class="time-chip-del" onclick="removeTime('+i+')">âœ•</button></span>';
+    return '<span class="time-chip">'+esc(t)+'<button class="time-chip-del" onclick="removeTime('+i+')">✕</button></span>';
   }).join('');
 }
 function addTime(){
@@ -1825,7 +1825,7 @@ function addTime(){
 }
 function removeTime(i){ customTimes.splice(i,1); renderTimesAdmin(); markUnsaved(); }
 
-// â”€â”€ CALENDAR ADMIN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── CALENDAR ADMIN ────────────────────────────────────────────────────────────
 function renderAdminCal(){
   var y=adminCalYear, m=adminCalMonth;
   var months=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -1861,35 +1861,35 @@ function enableWeekdays(){
   renderAdminCal(); renderForm(); markUnsaved();
 }
 function clearAllDays(){
-  if(!confirm('Â¿Limpiar todos los dÃ­as habilitados de este mes?')) return;
+  if(!confirm('¿Limpiar todos los días habilitados de este mes?')) return;
   var y=adminCalYear, m=adminCalMonth;
   var days=getDays(y,m);
   for(var d=1;d<=days;d++) enabledDays.delete(toKey(y,m,d));
   renderAdminCal(); renderForm(); markUnsaved();
 }
 
-// â”€â”€ SAVE CONFIG TO FIREBASE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── SAVE CONFIG TO FIREBASE ───────────────────────────────────────────────────
 function validateConfig(){
   var errors=[];
   var name=document.getElementById('cfg-name').value.trim();
   var email=document.getElementById('cfg-email').value.trim();
   var brevo=document.getElementById('cfg-brevoWorker').value.trim();
   var tenant=document.getElementById('cfg-tenantId').value.trim();
-  if(!name) errors.push('âŒ Nombre del negocio vacÃ­o');
-  if(!email||!/^[^@]+@[^@]+\.[^@]+$/.test(email)) errors.push('âŒ Email invÃ¡lido o vacÃ­o');
-  if(brevo&&!brevo.startsWith('https://')) errors.push('âŒ Brevo Worker URL debe comenzar con https://');
-  if(!tenant) errors.push('âŒ Tenant ID vacÃ­o');
-  if(customProgs.length===0) errors.push('âŒ No hay programas definidos');
+  if(!name) errors.push('❌ Nombre del negocio vacío');
+  if(!email||!/^[^@]+@[^@]+\.[^@]+$/.test(email)) errors.push('❌ Email inválido o vacío');
+  if(brevo&&!brevo.startsWith('https://')) errors.push('❌ Brevo Worker URL debe comenzar con https://');
+  if(!tenant) errors.push('❌ Tenant ID vacío');
+  if(customProgs.length===0) errors.push('❌ No hay programas definidos');
   return errors;
 }
 async function saveConfig(){
   var validationErrors=validateConfig();
   if(validationErrors.length>0){
-    alert('âš ï¸ Errores de configuraciÃ³n:\n\n'+validationErrors.join('\n')+'\n\nCorrige estos errores antes de guardar.');
+    alert('⚠️ Errores de configuración:\n\n'+validationErrors.join('\n')+'\n\nCorrige estos errores antes de guardar.');
     return;
   }
   var statusEl=document.getElementById('adminSaveStatus');
-  statusEl.textContent='ðŸ’¾ Guardando...';
+  statusEl.textContent='💾 Guardando...';
 
   // Read all values from form
   var newName=document.getElementById('cfg-name').value.trim();
@@ -1939,16 +1939,16 @@ async function saveConfig(){
 
   try{
     await _fbdb.ref(getFbConfigKey()).set(config);
-    statusEl.textContent='âœ… Guardado en Firebase ['+getFbConfigKey()+'] â€” '+new Date().toLocaleTimeString();
+    statusEl.textContent='✅ Guardado en Firebase ['+getFbConfigKey()+'] — '+new Date().toLocaleTimeString();
     updateHeroName(); renderHeroPrograms(); renderForm();
     document.getElementById('adminTenantBadge').textContent='['+tenantId+']';
   }catch(e){
     console.error('Save error:',e);
-    statusEl.textContent='âŒ Error al guardar: '+e.message;
+    statusEl.textContent='❌ Error al guardar: '+e.message;
   }
 }
 
-// â”€â”€ EXPORT / DOWNLOAD HTML â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── EXPORT / DOWNLOAD HTML ────────────────────────────────────────────────────
 function exportHTML(){
   var colorP = document.documentElement.style.getPropertyValue('--red')   || WL.colorPrimary;
   var colorS = document.documentElement.style.getPropertyValue('--blue')  || WL.colorSecondary;
@@ -1998,8 +1998,8 @@ function exportHTML(){
   var html = document.documentElement.outerHTML;
 
   // Replace everything between "var WL = {" and the closing "};" of the WL block
-  var startMarker = '// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n//  âš™ï¸  WHITE-LABEL CONFIG â€” EDIT EVERYTHING HERE\n//  Cada vez que clonas esta pÃ¡gina, solo edita esta secciÃ³n\n// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•';
-  var endMarker   = '// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•\n<\/script>';
+  var startMarker = '// ════════════════════════════════════════════════════════════════\n//  ⚙️  WHITE-LABEL CONFIG — EDIT EVERYTHING HERE\n//  Cada vez que clonas esta página, solo edita esta sección\n// ════════════════════════════════════════════════════════════════';
+  var endMarker   = '// ════════════════════════════════════════════════════════════════\n<\/script>';
 
   // Simpler replace: find "var WL = {" block and replace it
   html = html.replace(/var WL\s*=\s*\{[\s\S]*?\n\};/m, wlString);
@@ -2017,25 +2017,24 @@ function exportHTML(){
 
   // Show confirmation in admin status
   var statusEl = document.getElementById('adminSaveStatus');
-  if(statusEl) statusEl.textContent = 'â¬‡ï¸ Archivo descargado: leadpage-' + safeName + '.html';
+  if(statusEl) statusEl.textContent = '⬇️ Archivo descargado: leadpage-' + safeName + '.html';
 }
 
-// â”€â”€ REFERRAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── REFERRAL ──────────────────────────────────────────────────────────────────
 (function(){
   var params=new URLSearchParams(window.location.search);
   var ref=params.get('ref'); var nombre=params.get('nombre');
   if(ref&&nombre){
     var banner=document.createElement('div');
     banner.style.cssText='background:linear-gradient(135deg,#0f2c5c,#1a3fa6);color:#fff;text-align:center;padding:10px 16px;font-family:Nunito,sans-serif;font-size:13px;font-weight:800;position:relative;z-index:100';
-    banner.innerHTML='ðŸŽ¯ Referido por: <span style="color:var(--yellow)">'+esc(decodeURIComponent(nombre))+'</span> â€” Â¡Gracias por compartir!';
+    banner.innerHTML='🎯 Referido por: <span style="color:var(--yellow)">'+esc(decodeURIComponent(nombre))+'</span> — ¡Gracias por compartir!';
     var mc=document.getElementById('mainContent');
     if(mc) mc.insertBefore(banner,mc.firstChild);
   }
 })();
 
-// â”€â”€ INIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── INIT ──────────────────────────────────────────────────────────────────────
 fbLoad();
 </script>
 </body>
 </html>
-
