@@ -6023,7 +6023,7 @@ function _getDisplayNameMaster(){
 
 function buildLeadEmailHref(lead){
   var prog = customProgs.find(function(p){return p.id===lead.program;});
-  var subj = 'Cita Confirmada \u2014 '+lead.date+' '+(lead.time||'');
+  var subj = 'Cita Confirmada — '+lead.date+' '+(lead.time||'');
   var body = 'Hola '+lead.firstName+',\n\nTu cita est\xe1 confirmada:\n\nPrograma: '+(prog?_progLabelMaster(prog):(lead.program||''))+'\nFecha: '+lead.date+'\nHora: '+(lead.time||'')+'\n\nGracias!';
   return 'https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(lead.email||'')+'&su='+encodeURIComponent(subj)+'&body='+encodeURIComponent(body);
 }
@@ -6044,7 +6044,7 @@ function buildLeadWAHref(lead){
   var prog = customProgs.find(function(p){return p.id===lead.program;});
   var ph = ((lead.phone||'')).replace(/\D/g,'');
   if(ph.length===10) ph='1'+ph;
-  var msg = 'Hola '+lead.firstName+'! \U0001f44b\nTu cita en *'+_getDisplayNameMaster()+'* est\xe1 confirmada:\n\U0001f4c5 '+lead.date+' \u2014 '+(lead.time||'')+'\n\U0001f393 '+(prog?_progLabelMaster(prog):(lead.program||''))+'\n\n\xa1Te esperamos!';
+  var msg = 'Hola '+lead.firstName+'! 👋\nTu cita en *'+_getDisplayNameMaster()+'* est\xe1 confirmada:\n📅 '+lead.date+' — '+(lead.time||'')+'\n🎓 '+(prog?_progLabelMaster(prog):(lead.program||''))+'\n\n\xa1Te esperamos!';
   return 'https://wa.me/'+ph+'?text='+encodeURIComponent(msg);
 }
 function getLeadTrialStatus(lead){
@@ -6059,16 +6059,16 @@ function getLeadTrialStatus(lead){
 function buildLeadTrialBadge(lead){
   var ts = getLeadTrialStatus(lead);
   if(!ts) return '';
-  if(ts.status==='expired')  return '<span class="trial-badge-expired" style="margin-top:4px;display:inline-block">\u23f0 Trial VENCI\xd3</span>';
-  if(ts.status==='expiring') return '<span class="trial-badge-expiring" style="margin-top:4px;display:inline-block">\u26a0\ufe0f Trial: '+(ts.daysLeft===0?'\xa1Vence HOY!':ts.daysLeft+' d\xeda(s)')+'</span>';
-  return '<span class="trial-badge-active" style="margin-top:4px;display:inline-block">\U0001f3af Trial: '+ts.daysLeft+' d\xeda(s)</span>';
+  if(ts.status==='expired')  return '<span class="trial-badge-expired" style="margin-top:4px;display:inline-block">⏰ Trial VENCI\xd3</span>';
+  if(ts.status==='expiring') return '<span class="trial-badge-expiring" style="margin-top:4px;display:inline-block">⚠️ Trial: '+(ts.daysLeft===0?'\xa1Vence HOY!':ts.daysLeft+' d\xeda(s)')+'</span>';
+  return '<span class="trial-badge-active" style="margin-top:4px;display:inline-block">🎯 Trial: '+ts.daysLeft+' d\xeda(s)</span>';
 }
 function buildLeadTrialSection(lead){
   var ts = getLeadTrialStatus(lead);
   var expBtn = (ts && (ts.status==='expired'||ts.status==='expiring'))
-    ? '<button class="trial-email-btn" onclick="sendLeadTrialEmail(\''+lead.id+'\')">\U0001f4e7 Email seguimiento</button>' : '';
+    ? '<button class="trial-email-btn" onclick="sendLeadTrialEmail(\''+lead.id+'\')">📧 Email seguimiento</button>' : '';
   return '<div class="trial-section">'
-    +'<div class="trial-section-title">\U0001f3af Programa Trial</div>'
+    +'<div class="trial-section-title">🎯 Programa Trial</div>'
     +'<div class="trial-row" style="align-items:center">'
       +'<label>Trial:</label>'
       +'<label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:#a78bfa;font-weight:800;font-size:13px">'
@@ -6080,7 +6080,7 @@ function buildLeadTrialSection(lead){
     +(lead.isTrial
       ? '<div class="trial-row"><label>Inicio:</label><input class="trial-inp" type="date" id="ltstart_'+lead.id+'" value="'+(lead.trialStartDate||'')+'"/></div>'
         +'<div class="trial-row"><label>Fin:</label><input class="trial-inp" type="date" id="ltend_'+lead.id+'" value="'+(lead.trialEndDate||'')+'"/></div>'
-        +'<button class="trial-save-btn" onclick="saveLeadTrialDates(\''+lead.id+'\')">\U0001f4be Guardar Trial</button>'
+        +'<button class="trial-save-btn" onclick="saveLeadTrialDates(\''+lead.id+'\')">💾 Guardar Trial</button>'
       : '')
     +'</div>';
 }
@@ -6091,19 +6091,19 @@ function buildLeadMembershipSection(lead){
     return '<button class="membership-plan-btn'+(isSel?' sel':'')+'" onclick="selectLeadMembershipPlan(\''+lead.id+'\',\''+pl.id+'\')">'+pl.labelES+'</button>';
   }).join('');
   var payBtn = selectedPlan
-    ? '<a class="membership-pay-btn" href="https://masterbaez.com/admin?lead='+encodeURIComponent(lead.firstName+' '+lead.lastName)+'&plan='+selectedPlan+'" target="_blank">\U0001f4b3 Proceder al Pago</a>'
-    : '<button class="membership-pay-btn" style="opacity:.4;cursor:not-allowed" disabled>\U0001f4b3 Selecciona un plan primero</button>';
+    ? '<a class="membership-pay-btn" href="https://masterbaez.com/admin?lead='+encodeURIComponent(lead.firstName+' '+lead.lastName)+'&plan='+selectedPlan+'" target="_blank">💳 Proceder al Pago</a>'
+    : '<button class="membership-pay-btn" style="opacity:.4;cursor:not-allowed" disabled>💳 Selecciona un plan primero</button>';
   return '<div class="membership-section">'
-    +'<div class="membership-section-title">\U0001f4b3 Membres\xeda'+(lead.membershipPlan?' <span class="membership-badge">\u2705 Activa</span>':'')+'</div>'
+    +'<div class="membership-section-title">💳 Membres\xeda'+(lead.membershipPlan?' <span class="membership-badge">✅ Activa</span>':'')+'</div>'
     +'<div style="color:var(--success);font-size:11px;font-weight:800;margin-bottom:8px">Selecciona el plan:</div>'
     +'<div class="membership-plan-grid">'+planBtns+'</div>'
     +payBtn
     +'<div class="membership-cards" style="margin-top:8px">'
       +'<span style="color:var(--success);font-size:11px;font-weight:800">Acepta:</span>'
-      +'<span>\U0001f4b3</span>'
+      +'<span>💳</span>'
       +'<span style="color:var(--muted);font-size:11px">Visa \xb7 Mastercard \xb7 Amex \xb7 Stripe</span>'
     +'</div>'
-    +'<div class="membership-note">\U0001f4a1 Ser\xe1s redirigido a masterbaez.com/admin. Ingresa con tu usuario y contrase\xf1a, selecciona el usuario, el plan y procede con el pago.</div>'
+    +'<div class="membership-note">💡 Ser\xe1s redirigido a masterbaez.com/admin. Ingresa con tu usuario y contrase\xf1a, selecciona el usuario, el plan y procede con el pago.</div>'
     +'</div>';
 }
 
@@ -6115,10 +6115,10 @@ function renderLeadsInbox(){
 
   var filters = [
     {id:'all',   label:'Todos'},
-    {id:'new',   label:'\U0001f7e2 Nuevos'},
-    {id:'read',  label:'\u2705 Revisados'},
-    {id:'trial', label:'\U0001f3af Trial'},
-    {id:'trash', label:'\U0001f5d1 Papelera ('+_trashLeads.length+')'}
+    {id:'new',   label:'🟢 Nuevos'},
+    {id:'read',  label:'✅ Revisados'},
+    {id:'trial', label:'🎯 Trial'},
+    {id:'trash', label:'🗑 Papelera ('+_trashLeads.length+')'}
   ];
   if(filtersEl) filtersEl.innerHTML = filters.map(function(f){
     return '<button class="inf-btn'+(f.id===_leadsFilter?' active':'')+'" onclick="_leadsFilter=\''+f.id+'\';renderLeadsInbox()">'+f.label+'</button>';
@@ -6126,22 +6126,22 @@ function renderLeadsInbox(){
 
   if(_leadsFilter==='trash'){
     if(!_trashLeads.length){
-      listEl.innerHTML = '<div style="text-align:center;padding:48px 0;color:var(--muted);font-size:15px">\U0001f5d1 Papelera vac\xeda</div>';
+      listEl.innerHTML = '<div style="text-align:center;padding:48px 0;color:var(--muted);font-size:15px">🗑 Papelera vac\xeda</div>';
       return;
     }
     listEl.innerHTML = _trashLeads.map(function(lead){
       var prog = customProgs.find(function(pr){ return pr.id===lead.program; });
       var progName = prog ? _progLabelMaster(prog) : (lead.program||'');
       return '<div class="lead-card" style="opacity:.75;border-left-color:var(--danger)">'
-        +'<div class="lead-avatar" style="background:rgba(255,68,68,.12);color:var(--danger)">\U0001f5d1</div>'
+        +'<div class="lead-avatar" style="background:rgba(255,68,68,.12);color:var(--danger)">🗑</div>'
         +'<div class="lead-info">'
           +'<div class="lead-name">'+esc(lead.firstName||'')+' '+esc(lead.lastName||'')+'</div>'
           +'<div class="lead-meta">'+esc(lead.email||'')+(lead.phone?' \xb7 '+esc(lead.phone):'')+'</div>'
           +'<div class="lead-tags"><span class="lead-tag" style="background:rgba(255,68,68,.15);color:var(--danger)">'+esc(progName)+'</span></div>'
         +'</div>'
         +'<div class="lead-actions">'
-          +'<button class="lead-act-btn" style="background:var(--success);color:#fff" onclick="restoreLeadFromTrash(\''+lead.id+'\')">\u267b\ufe0f Restaurar</button>'
-          +'<button class="lead-act-btn btn-del-s" onclick="permanentDeleteLead(\''+lead.id+'\')">\U0001f5d1 Eliminar</button>'
+          +'<button class="lead-act-btn" style="background:var(--success);color:#fff" onclick="restoreLeadFromTrash(\''+lead.id+'\')">♻️ Restaurar</button>'
+          +'<button class="lead-act-btn btn-del-s" onclick="permanentDeleteLead(\''+lead.id+'\')">🗑 Eliminar</button>'
         +'</div>'
         +'</div>';
     }).join('');
@@ -6156,7 +6156,7 @@ function renderLeadsInbox(){
   });
 
   if(filtered.length === 0){
-    listEl.innerHTML = '<div style="text-align:center;padding:48px 0;color:var(--muted);font-size:15px">\U0001f4ed '+(leads.length===0?'Sin leads a\xfan. Los ver\xe1s aqu\xed cuando alguien llene el formulario.':'Sin resultados para este filtro.')+'</div>';
+    listEl.innerHTML = '<div style="text-align:center;padding:48px 0;color:var(--muted);font-size:15px">📭 '+(leads.length===0?'Sin leads a\xfan. Los ver\xe1s aqu\xed cuando alguien llene el formulario.':'Sin resultados para este filtro.')+'</div>';
     return;
   }
 
@@ -6176,22 +6176,22 @@ function renderLeadsInbox(){
       +'<div class="lead-avatar" style="background:'+p.bg+';color:'+p.fg+'">'+initials+'</div>'
       +'<div class="lead-info" style="flex:1">'
         +'<div class="lead-name">'+esc(lead.firstName||'')+' '+esc(lead.lastName||'')
-          +(lead.isStudent?' <span class="student-tag">\U0001f3c5 Estudiante</span>':'')+'</div>'
+          +(lead.isStudent?' <span class="student-tag">🏅 Estudiante</span>':'')+'</div>'
         +'<div class="lead-meta">'+esc(lead.email||'')+(lead.phone?' \xb7 '+esc(lead.phone):'')+'</div>'
         +(lead.submittedAt?'<div class="lead-meta" style="font-size:11px;color:var(--muted2)">'+esc(lead.submittedAt)+'</div>':'')
         +'<div class="lead-tags">'
-          +(!lead._read?'<span class="lead-tag tag-new">\U0001f195 Nuevo</span>':'')
+          +(!lead._read?'<span class="lead-tag tag-new">🆕 Nuevo</span>':'')
           +(progName?'<span class="lead-tag tag-serv">'+esc(progName)+'</span>':'')
-          +(lead.date?'<span class="lead-tag tag-date">\U0001f4c5 '+esc(lead.date)+'</span>':'')
-          +(lead.time?'<span class="lead-tag tag-time">\u23f0 '+esc(lead.time)+'</span>':'')
-          +(lead.notes?'<span class="lead-tag" style="background:rgba(245,200,0,.15);color:#e8ff3c;border:1px solid rgba(245,200,0,.3)">\U0001f4e3 '+esc(lead.notes)+'</span>':'')
+          +(lead.date?'<span class="lead-tag tag-date">📅 '+esc(lead.date)+'</span>':'')
+          +(lead.time?'<span class="lead-tag tag-time">⏰ '+esc(lead.time)+'</span>':'')
+          +(lead.notes?'<span class="lead-tag" style="background:rgba(245,200,0,.15);color:#e8ff3c;border:1px solid rgba(245,200,0,.3)">📣 '+esc(lead.notes)+'</span>':'')
         +'</div>'
         +buildLeadTrialBadge(lead)
         +'<div class="track-section">'
-          +'<div class="track-title">\U0001f4cb Seguimiento</div>'
+          +'<div class="track-title">📋 Seguimiento</div>'
           +'<label class="track-check'+(lead.attended?' checked':'')+'" onclick="toggleLeadAttended(\''+lead.id+'\')">'
             +'<input type="checkbox" '+(lead.attended?'checked':'')+' onclick="event.stopPropagation()"/>'
-            +'<span>\u2705 Asisti\xf3 a la cita</span>'
+            +'<span>✅ Asisti\xf3 a la cita</span>'
           +'</label>'
           +'<div class="track-row"><label>Clases tomadas:</label>'
             +'<input type="number" min="0" value="'+(lead.classes||0)+'" id="lcls_'+lead.id+'" style="width:70px;flex:none"/>'
@@ -6204,25 +6204,25 @@ function renderLeadsInbox(){
           +'<div class="track-row"><label>Notas:</label>'
             +'<input type="text" id="lnote_'+lead.id+'" value="'+esc(lead.trackNote||'')+'" placeholder="Agregar nota..."/>'
           +'</div>'
-          +'<button class="track-save-btn" onclick="saveLeadTracking(\''+lead.id+'\')">\U0001f4be Guardar seguimiento</button>'
-          +(!lead.isStudent?'<button class="convert-student-btn" onclick="convertLeadToStudent(\''+lead.id+'\')">\U0001f3c5 Convertir a Estudiante</button>':'')
+          +'<button class="track-save-btn" onclick="saveLeadTracking(\''+lead.id+'\')">💾 Guardar seguimiento</button>'
+          +(!lead.isStudent?'<button class="convert-student-btn" onclick="convertLeadToStudent(\''+lead.id+'\')">🏅 Convertir a Estudiante</button>':'')
           +'<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">'
-            +'<button class="act-btn" style="color:var(--accent2);border-color:var(--accent2);flex:1" onclick="openPartnerModalFromLead(\''+lead.id+'\')">\U0001f3e2 \u2192 Partner</button>'
-            +'<button class="act-btn" style="color:#f97316;border-color:#f97316;flex:1" onclick="openReferidorModalFromLead(\''+lead.id+'\')">\U0001f465 \u2192 Referidor</button>'
+            +'<button class="act-btn" style="color:var(--accent2);border-color:var(--accent2);flex:1" onclick="openPartnerModalFromLead(\''+lead.id+'\')">🏢 → Partner</button>'
+            +'<button class="act-btn" style="color:#f97316;border-color:#f97316;flex:1" onclick="openReferidorModalFromLead(\''+lead.id+'\')">👥 → Referidor</button>'
           +'</div>'
           +buildLeadTrialSection(lead)
           +buildLeadMembershipSection(lead)
         +'</div>'
       +'</div>'
       +'<div class="lead-actions">'
-        +(lead.email?'<a class="lead-act-btn btn-email-s" href="'+buildLeadEmailHref(lead)+'" target="_blank" style="text-decoration:none;display:flex;align-items:center;justify-content:center">\U0001f4e7 Email</a>':'')
-        +(lead.phone?'<a class="lead-act-btn" style="background:var(--accent2);color:#000;text-decoration:none;display:flex;align-items:center;justify-content:center" href="'+buildLeadSMSGVHref(lead)+'" target="_blank">\U0001f4ac Mensaje GV</a>':'')
-        +(lead.phone?'<a class="lead-act-btn" style="background:#0078d4;color:#fff;text-decoration:none;display:flex;align-items:center;justify-content:center" href="'+buildLeadSMSMSHref(lead)+'">\U0001f4ac SMS MS</a>':'')
-        +(lead.phone?'<a class="lead-act-btn btn-wa-s" href="'+buildLeadWAHref(lead)+'" target="_blank" style="text-decoration:none;display:flex;align-items:center;justify-content:center">\U0001f4f2 WA</a>':'')
+        +(lead.email?'<a class="lead-act-btn btn-email-s" href="'+buildLeadEmailHref(lead)+'" target="_blank" style="text-decoration:none;display:flex;align-items:center;justify-content:center">📧 Email</a>':'')
+        +(lead.phone?'<a class="lead-act-btn" style="background:var(--accent2);color:#000;text-decoration:none;display:flex;align-items:center;justify-content:center" href="'+buildLeadSMSGVHref(lead)+'" target="_blank">💬 Mensaje GV</a>':'')
+        +(lead.phone?'<a class="lead-act-btn" style="background:#0078d4;color:#fff;text-decoration:none;display:flex;align-items:center;justify-content:center" href="'+buildLeadSMSMSHref(lead)+'">💬 SMS MS</a>':'')
+        +(lead.phone?'<a class="lead-act-btn btn-wa-s" href="'+buildLeadWAHref(lead)+'" target="_blank" style="text-decoration:none;display:flex;align-items:center;justify-content:center">📲 WA</a>':'')
         +(!lead._read
-          ?'<button class="lead-act-btn" style="background:var(--surface2);color:var(--accent)" onclick="markLeadRead(\''+lead.id+'\'">\u2713 Marcar le\xeddo</button>'
-          :'<button class="lead-act-btn" style="background:var(--surface2);color:var(--muted)" onclick="markLeadRead(\''+lead.id+'\'">\u21a9 No le\xeddo</button>')
-        +'<button class="lead-act-btn btn-del-s" onclick="deleteLeadToTrash(\''+lead.id+'\')">\U0001f5d1 Eliminar</button>'
+          ?'<button class="lead-act-btn" style="background:var(--surface2);color:var(--accent)" onclick="markLeadRead(\''+lead.id+'\'">✓ Marcar le\xeddo</button>'
+          :'<button class="lead-act-btn" style="background:var(--surface2);color:var(--muted)" onclick="markLeadRead(\''+lead.id+'\'">↩ No le\xeddo</button>')
+        +'<button class="lead-act-btn btn-del-s" onclick="deleteLeadToTrash(\''+lead.id+'\')">🗑 Eliminar</button>'
       +'</div>'
       +'</div>';
   }).join('');
@@ -6254,14 +6254,14 @@ function saveLeadTracking(id){
   var prog=customProgs.find(function(p){return p.id===l.currentProgram;});
   l.history.push({date:new Date().toLocaleDateString('es-US'),note:'Guardado: '+(l.trackNote||'')+' | Clases: '+l.classes+(prog?' | Prog: '+_progLabelMaster(prog):''),progColor:prog?prog.color:'#aaa'});
   if(!_demoMode && _fbdb) _fbdb.ref('masterMods/leads/'+id).update({classes:l.classes,currentProgram:l.currentProgram,trackNote:l.trackNote,history:l.history});
-  showToast('\u2705','Seguimiento guardado');
+  showToast('✅','Seguimiento guardado');
 }
 function convertLeadToStudent(id){
   var l = leads.find(function(x){ return x.id===id; });
   if(!l) return;
   l.isStudent=true; l.convertedAt=new Date().toLocaleDateString('es-US');
   if(!_demoMode && _fbdb) _fbdb.ref('masterMods/leads/'+id).update({isStudent:true,convertedAt:l.convertedAt});
-  renderLeadsInbox(); showToast('\U0001f3c5','Lead convertido a Estudiante');
+  renderLeadsInbox(); showToast('🏅','Lead convertido a Estudiante');
 }
 function openPartnerModalFromLead(id){
   var l=leads.find(function(x){return x.id===id;});
@@ -6287,7 +6287,7 @@ function saveLeadTrialDates(id){
   var s=document.getElementById('ltstart_'+id);var e=document.getElementById('ltend_'+id);
   if(s) l.trialStartDate=s.value; if(e) l.trialEndDate=e.value;
   if(!_demoMode&&_fbdb) _fbdb.ref('masterMods/leads/'+id).update({trialStartDate:l.trialStartDate,trialEndDate:l.trialEndDate});
-  renderLeadsInbox(); showToast('\u2705','Trial guardado');
+  renderLeadsInbox(); showToast('✅','Trial guardado');
 }
 function sendLeadTrialEmail(id){
   var l=leads.find(function(x){return x.id===id;});
@@ -6307,7 +6307,7 @@ function deleteLeadToTrash(id){
   _trashLeads.push(l);
   leads=leads.filter(function(x){return x.id!==id;});
   if(!_demoMode&&_fbdb){_fbdb.ref('masterMods/leads/'+id).remove();_fbdb.ref('masterMods/leadsTrash/'+id).set(l);}
-  updateLeadsBadge(); renderLeadsInbox(); showToast('\U0001f5d1','Lead movido a papelera');
+  updateLeadsBadge(); renderLeadsInbox(); showToast('🗑','Lead movido a papelera');
 }
 function restoreLeadFromTrash(id){
   var l=_trashLeads.find(function(x){return x.id===id;});
@@ -6315,13 +6315,13 @@ function restoreLeadFromTrash(id){
   delete l._deletedAt; leads.push(l);
   _trashLeads=_trashLeads.filter(function(x){return x.id!==id;});
   if(!_demoMode&&_fbdb){_fbdb.ref('masterMods/leads/'+id).set(l);_fbdb.ref('masterMods/leadsTrash/'+id).remove();}
-  updateLeadsBadge(); renderLeadsInbox(); showToast('\u2705','Lead restaurado');
+  updateLeadsBadge(); renderLeadsInbox(); showToast('✅','Lead restaurado');
 }
 function permanentDeleteLead(id){
   if(!confirm('\xbfEliminar permanentemente? No se puede deshacer.')) return;
   _trashLeads=_trashLeads.filter(function(x){return x.id!==id;});
   if(!_demoMode&&_fbdb) _fbdb.ref('masterMods/leadsTrash/'+id).remove();
-  renderLeadsInbox(); showToast('\U0001f5d1','Eliminado permanentemente');
+  renderLeadsInbox(); showToast('🗑','Eliminado permanentemente');
 }
 function updateLeadsBadge(){
   var n = leads.filter(function(l){ return !l._read; }).length;
