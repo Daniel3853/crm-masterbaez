@@ -1505,8 +1505,26 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
       </div>
       <div class="mfield-row">
         <div class="mfield">
-          <label id="ecLblPrice">Precio / Price</label>
-          <input type="text" id="ecPlanPrice" placeholder="Ej: $99/mes"/>
+          <label id="ecLblPrice">Precio por Pago / Price per Payment</label>
+          <input type="number" id="ecPlanPrice" placeholder="99" min="0" step="0.01"/>
+        </div>
+        <div class="mfield">
+          <label>Frecuencia / Frequency</label>
+          <select id="ecPlanFreq">
+            <option value="weekly">Semanal / Weekly</option>
+            <option value="monthly" selected>Mensual / Monthly</option>
+            <option value="quarterly">Trimestral / Quarterly (3 meses)</option>
+            <option value="biannual">Semestral / Biannual (6 meses)</option>
+            <option value="annual">Anual / Annual (12 meses)</option>
+            <option value="18months">18 Meses / 18 Months</option>
+            <option value="36months">36 Meses / 36 Months</option>
+          </select>
+        </div>
+      </div>
+      <div class="mfield-row">
+        <div class="mfield">
+          <label>Total de Pagos / Total Payments</label>
+          <input type="number" id="ecTotalPayments" placeholder="Ej: 12" min="1"/>
         </div>
         <div class="mfield">
           <label id="ecLblStatus" data-i18n="lbl_status">Estado</label>
@@ -1518,9 +1536,19 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
           </select>
         </div>
       </div>
-      <div class="mfield" style="margin-top:0">
-        <button onclick="sendPlanEmailToClient()" style="width:100%;padding:10px;border-radius:8px;border:1.5px solid var(--accent2);background:transparent;color:var(--accent2);font-weight:700;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif">📧 Enviar Plan por Email al Cliente</button>
+      <!-- Payment Summary -->
+      <div id="ecPaymentSummary" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:12px;font-size:13px;display:none">
+        <div style="font-weight:700;color:var(--accent);margin-bottom:6px">💰 Resumen del Plan</div>
+        <div id="ecPaymentSummaryText" style="color:var(--muted);line-height:1.8"></div>
       </div>
+      <!-- Payment Schedule -->
+      <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:16px 0 8px">💳 Calendario de Pagos</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <button onclick="generatePaymentSchedule()" style="padding:8px 14px;border-radius:8px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);font-weight:700;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif">⚡ Generar Automático</button>
+        <button onclick="addManualPayment()" style="padding:8px 14px;border-radius:8px;border:1.5px solid var(--accent2);background:transparent;color:var(--accent2);font-weight:700;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif">➕ Agregar Manual</button>
+        <button onclick="sendPlanEmailToClient()" style="padding:8px 14px;border-radius:8px;border:1.5px solid #7fb3ff;background:transparent;color:#7fb3ff;font-weight:700;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif">📧 Enviar por Email</button>
+      </div>
+      <div id="ecPaymentList" style="display:flex;flex-direction:column;gap:6px;max-height:260px;overflow-y:auto"></div>
       <!-- Trial dates -->
       <div class="mfield-row">
         <div class="mfield"><label id="ecLblTrialStart" data-i18n="lbl_trialStart">Inicio Trial</label><input type="date" id="ecTrialStart"/></div>
@@ -3673,20 +3701,121 @@ function stat(label, val, sub, type){
 }
 
 // ── CLIENTS ─────────────────────────────────────
+// ── PAYMENT MANAGEMENT ─────────────────────────────────────────
+var _ecPayments = []; // current payment schedule being edited
+
+var freqDays = {
+  weekly: 7, monthly: 30, quarterly: 90,
+  biannual: 180, annual: 365, '18months': 548, '36months': 1095
+};
+var freqLabel = {
+  weekly:'Semanal', monthly:'Mensual', quarterly:'Trimestral (3m)',
+  biannual:'Semestral (6m)', annual:'Anual (12m)', '18months':'18 Meses', '36months':'36 Meses'
+};
+
+function updatePaymentSummary(){
+  var price  = parseFloat(document.getElementById('ecPlanPrice').value)||0;
+  var total  = parseInt(document.getElementById('ecTotalPayments').value)||0;
+  var freq   = document.getElementById('ecPlanFreq').value;
+  var sumEl  = document.getElementById('ecPaymentSummary');
+  var txtEl  = document.getElementById('ecPaymentSummaryText');
+  if(!price||!total){ sumEl.style.display='none'; return; }
+  var grand  = (price*total).toFixed(2);
+  var paid   = _ecPayments.filter(function(p){ return p.status==='paid'; }).length;
+  var hold   = _ecPayments.filter(function(p){ return p.status==='hold'; }).length;
+  var deduct = _ecPayments.filter(function(p){ return p.status==='deducted'; }).length;
+  sumEl.style.display='block';
+  txtEl.innerHTML =
+    '📅 Frecuencia: <b>'+freqLabel[freq]+'</b><br>'+
+    '💵 Precio por pago: <b>$'+price+'</b><br>'+
+    '🔢 Total pagos: <b>'+total+'</b><br>'+
+    '💰 Total del plan: <b>$'+grand+'</b><br>'+
+    '✅ Pagados: <b>'+paid+'</b> &nbsp;⏸ Hold: <b>'+hold+'</b> &nbsp;➖ Deducidos: <b>'+deduct+'</b>';
+}
+
+function generatePaymentSchedule(){
+  var price  = parseFloat(document.getElementById('ecPlanPrice').value)||0;
+  var total  = parseInt(document.getElementById('ecTotalPayments').value)||0;
+  var freq   = document.getElementById('ecPlanFreq').value;
+  if(!price||!total){ showToast('⚠️','Ingresa precio y total de pagos'); return; }
+  var days   = freqDays[freq]||30;
+  var start  = new Date();
+  _ecPayments = [];
+  for(var i=0;i<total;i++){
+    var d = new Date(start.getTime()+(i*days*86400000));
+    _ecPayments.push({
+      id:'PAY-'+Date.now()+'-'+i,
+      num: i+1,
+      date: d.toISOString().split('T')[0],
+      amount: price,
+      status: 'pending', // pending | paid | hold | deducted
+      note: ''
+    });
+  }
+  renderPaymentList();
+  updatePaymentSummary();
+}
+
+function addManualPayment(){
+  var price = parseFloat(document.getElementById('ecPlanPrice').value)||0;
+  var today = new Date().toISOString().split('T')[0];
+  _ecPayments.push({
+    id:'PAY-'+Date.now(),
+    num: _ecPayments.length+1,
+    date: today,
+    amount: price,
+    status: 'pending',
+    note: ''
+  });
+  renderPaymentList();
+  updatePaymentSummary();
+}
+
+function renderPaymentList(){
+  var el = document.getElementById('ecPaymentList');
+  if(!el) return;
+  if(_ecPayments.length===0){
+    el.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px">Sin pagos. Genera automático o agrega manual.</div>';
+    return;
+  }
+  el.innerHTML = _ecPayments.map(function(p,i){
+    var statusColors = {pending:'#666', paid:'#22c55e', hold:'#f59e0b', deducted:'#6366f1'};
+    var statusLabels = {pending:'⏳ Pendiente', paid:'✅ Pagado', hold:'⏸ Hold', deducted:'➖ Deducido'};
+    var col = statusColors[p.status]||'#666';
+    return '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">'+
+      '<span style="color:var(--muted);font-size:11px;min-width:24px">#'+p.num+'</span>'+
+      '<input type="date" value="'+p.date+'" onchange="_ecPayments['+i+'].date=this.value" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:12px;font-family:\'DM Sans\',sans-serif"/>'+
+      '<input type="number" value="'+p.amount+'" onchange="_ecPayments['+i+'].amount=parseFloat(this.value)||0;updatePaymentSummary()" style="width:70px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:12px;font-family:\'DM Sans\',sans-serif"/>'+
+      '<select onchange="_ecPayments['+i+'].status=this.value;renderPaymentList();updatePaymentSummary()" style="background:var(--surface);border:1px solid '+col+';border-radius:6px;padding:4px 8px;color:'+col+';font-size:12px;font-family:\'DM Sans\',sans-serif">'+
+        ['pending','paid','hold','deducted'].map(function(s){
+          return '<option value="'+s+'"'+(p.status===s?' selected':'')+'>'+statusLabels[s]+'</option>';
+        }).join('')+
+      '</select>'+
+      '<input type="text" value="'+esc(p.note)+'" placeholder="Nota..." onchange="_ecPayments['+i+'].note=this.value" style="flex:1;min-width:80px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:12px;font-family:\'DM Sans\',sans-serif"/>'+
+      '<button onclick="_ecPayments.splice('+i+',1);renderPaymentList();updatePaymentSummary()" style="padding:4px 8px;border-radius:6px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:11px;cursor:pointer">🗑</button>'+
+    '</div>';
+  }).join('');
+}
+
 function sendPlanEmailToClient(){
   var r = registrations.find(function(x){ return x.id===_editClientId; });
   if(!r){ showToast('❌','Guarda los cambios primero'); return; }
   var isEN = _masterLang==='en';
   var planName = isEN ? (r.planNameEN||r.planNameES||r.plan||'') : (r.planNameES||r.planNameEN||r.plan||'');
-  var price = r.planPrice || '';
-  var subject = isEN
-    ? 'Your Plan at '+_getDisplayNameMaster()+': '+planName
-    : 'Tu Plan en '+_getDisplayNameMaster()+': '+planName;
+  var price    = r.planPrice || '';
+  var freq     = freqLabel[r.planFreq||'monthly']||'';
+  var total    = r.totalPayments||0;
+  var payments = (r.payments||[]);
+  var paid     = payments.filter(function(p){return p.status==='paid';}).length;
+  var subject  = isEN ? 'Your Plan at '+_getDisplayNameMaster()+': '+planName : 'Tu Plan en '+_getDisplayNameMaster()+': '+planName;
+  var scheduleLines = payments.map(function(p){
+    var statusMap = {pending:'Pendiente',paid:'Pagado',hold:'Hold',deducted:'Deducido'};
+    return '#'+p.num+' | '+p.date+' | $'+p.amount+' | '+(statusMap[p.status]||p.status)+(p.note?' — '+p.note:'');
+  }).join('\n');
   var body = isEN
-    ? 'Hello '+r.firstName+',\n\nHere are your plan details:\n\nPlan: '+planName+'\nPrice: '+price+'\nStatus: '+r.status+'\n\nThank you!'
-    : 'Hola '+r.firstName+',\n\nAquí están los detalles de tu plan:\n\nPlan: '+planName+'\nPrecio: '+price+'\nEstado: '+r.status+'\n\n¡Gracias!';
-  var mailto = 'mailto:'+encodeURIComponent(r.email)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
-  window.open(mailto);
+    ? 'Hello '+r.firstName+',\n\nYour plan details:\n\nPlan: '+planName+'\nFrequency: '+freq+'\nPrice per payment: $'+price+'\nTotal payments: '+total+'\nPaid: '+paid+'\n\n--- Payment Schedule ---\n'+scheduleLines+'\n\nThank you!'
+    : 'Hola '+r.firstName+',\n\nDetalles de tu plan:\n\nPlan: '+planName+'\nFrecuencia: '+freq+'\nPrecio por pago: $'+price+'\nTotal pagos: '+total+'\nPagados: '+paid+'\n\n--- Calendario de Pagos ---\n'+scheduleLines+'\n\n¡Gracias!';
+  window.open('mailto:'+encodeURIComponent(r.email)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body));
 }
 
 function updateNavBadge(){
@@ -3854,11 +3983,21 @@ function openEditClient(id){
   document.getElementById('ecPlanNameES').value = r.planNameES || r.plan || '';
   document.getElementById('ecPlanNameEN').value = r.planNameEN || r.plan || '';
   document.getElementById('ecPlanPrice').value  = r.planPrice  || '';
+  document.getElementById('ecPlanFreq').value   = r.planFreq   || 'monthly';
+  document.getElementById('ecTotalPayments').value = r.totalPayments || '';
   document.getElementById('ecStatus').value     = r.status     || 'trial';
   document.getElementById('ecTrialStart').value = r.trialStart || '';
   document.getElementById('ecTrialEnd').value   = r.trialEnd   || '';
   document.getElementById('ecRefId').value      = r.ref_id     || '';
   document.getElementById('ecNotes').value      = r.notes      || '';
+  _ecPayments = (r.payments && Array.isArray(r.payments)) ? JSON.parse(JSON.stringify(r.payments)) : [];
+  renderPaymentList();
+  updatePaymentSummary();
+  // Live update summary on change
+  ['ecPlanPrice','ecTotalPayments','ecPlanFreq'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el){ el.onchange = function(){ updatePaymentSummary(); }; }
+  });
 
   openModal('editClientModal');
 }
@@ -3887,7 +4026,10 @@ async function saveEditClient(){
   r.planNameES = document.getElementById('ecPlanNameES').value.trim();
   r.planNameEN = document.getElementById('ecPlanNameEN').value.trim();
   r.planPrice  = document.getElementById('ecPlanPrice').value.trim();
+  r.planFreq   = document.getElementById('ecPlanFreq').value;
+  r.totalPayments = parseInt(document.getElementById('ecTotalPayments').value)||0;
   r.plan       = r.planNameES || r.planNameEN || 'custom';
+  r.payments   = _ecPayments;
   r.status     = document.getElementById('ecStatus').value;
   r.trialStart = document.getElementById('ecTrialStart').value;
   r.trialEnd   = document.getElementById('ecTrialEnd').value;
