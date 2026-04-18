@@ -6262,19 +6262,46 @@ function convertLeadToStudent(id){
   var overlay = document.getElementById('convertLeadModal');
   if(overlay){ overlay.classList.add('open'); }
 }
-function confirmConvertLead(profileType){
+async function confirmConvertLead(profileType){
   var id = _convertPendingLeadId; if(!id) return;
   var l = leads.find(function(x){ return x.id===id; });
   if(!l) return;
+  // Update lead
   l.isStudent=true;
   l.profileType=profileType;
   l.convertedAt=new Date().toLocaleDateString('es-US');
   if(!_demoMode && _fbdb) _fbdb.ref('masterMods/leads/'+id).update({isStudent:true, profileType:profileType, convertedAt:l.convertedAt});
+  // Create registration in clients section
+  var newReg = {
+    id:         'CLI-'+Date.now().toString(36).toUpperCase(),
+    firstName:  l.firstName||'',
+    lastName:   l.lastName||'',
+    email:      l.email||'',
+    phone:      l.phone||'',
+    bizName:    (l.firstName||'')+' '+(l.lastName||''),
+    bizType:    l.program||'',
+    plan:       profileType==='trial'?'trial':'starter',
+    status:     profileType==='trial'?'trial':'active',
+    trialDays:  profileType==='trial'?14:0,
+    trialStart: profileType==='trial'?fmtDate(new Date()):'',
+    trialEnd:   profileType==='trial'?fmtDate(new Date(Date.now()+14*864e5)):'',
+    profileType:profileType,
+    ref_id:     l.ref_id||'',
+    source:     l.source||'',
+    convertedFromLead: id,
+    createdAt:  new Date().toISOString()
+  };
+  registrations.unshift(newReg);
+  if(!_demoMode && _fbdb){
+    try{ await _fbdb.ref('registrations/'+newReg.id).set(newReg); }catch(e){}
+  }
   var overlay = document.getElementById('convertLeadModal');
   if(overlay){ overlay.classList.remove('open'); }
   _convertPendingLeadId = null;
   renderLeadsInbox();
-  showToast('🏅','Lead convertido — '+profileType);
+  renderClients();
+  renderDashboard();
+  showToast('🏅','Lead convertido a '+profileType+' — aparece en Clientes');
 }
 function closeConvertLeadModal(){
   var overlay = document.getElementById('convertLeadModal');
