@@ -1361,10 +1361,33 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
           </select>
         </div>
       </div>
-      <div class="mfield"><label data-i18n="lbl_uniqueIdAuto">ID Único (auto si vacío)</label>
-        <input type="text" id="rf_cid" placeholder="Ej: REF-JUAN01" style="text-transform:uppercase"/>
+      <!-- ── ID UNICO + QR PREVIEW ── -->
+      <div style="display:grid;grid-template-columns:1fr 88px;gap:12px;align-items:start;margin-bottom:16px">
+        <div>
+          <label style="display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;font-weight:500">🪪 ID Único del Referidor</label>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="rf_cid" placeholder="Ej: REF-JUAN01"
+              style="text-transform:uppercase;flex:1;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-family:DM Sans,sans-serif;font-size:14px;outline:none;transition:border-color .2s"
+              oninput="rfUpdateQRPreview()" onfocus="rfAutoSuggestId()"/>
+            <button type="button" onclick="rfAutoId()"
+              style="flex-shrink:0;padding:0 14px;border-radius:9px;border:1.5px solid var(--accent);background:rgba(232,255,60,.08);color:var(--accent);font-size:12px;cursor:pointer;font-weight:800;font-family:Syne,sans-serif;white-space:nowrap;transition:all .15s"
+              onmouseover="this.style.background='rgba(232,255,60,.2)'" onmouseout="this.style.background='rgba(232,255,60,.08)'">
+              ⚡ Auto
+            </button>
+          </div>
+          <div id="rfCidPreview" style="font-size:11px;color:#f97316;margin-top:5px;font-weight:700;font-family:Syne,sans-serif;min-height:16px;letter-spacing:.02em"></div>
+        </div>
+        <!-- Mini QR preview -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:24px">
+          <div id="rfQrBox" style="background:#fff;border-radius:10px;padding:5px;width:82px;height:82px;display:flex;align-items:center;justify-content:center;border:2px solid var(--border);transition:border-color .3s">
+            <div id="rfQrPlaceholder" style="width:72px;height:72px;background:#f5f5f5;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:22px">📱</div>
+            <img id="rfQrPreviewImg" src="" style="width:72px;height:72px;border-radius:6px;display:none" alt="QR"/>
+          </div>
+          <div style="font-size:9px;color:var(--muted);text-align:center">QR Preview</div>
+        </div>
       </div>
-      <div class="mfield"><label data-i18n="lbl_incentiveType">Tipo de Incentivo</label>
+
+      <div class="mfield"><label data-i18n="lbl_incentiveType">Tipo de Incentivo / Benefit</label>
         <select id="rf_incentiveType" onchange="toggleRfIncentive()">
           <option value="">Sin definir</option>
           <option value="freemonth">🎁 Mes(es) Gratis</option>
@@ -1375,15 +1398,25 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         </select>
       </div>
       <div class="mfield" id="rfIncentiveValueField" style="display:none">
-        <label id="rfIncentiveValueLabel" data-i18n="lbl_compValue">Valor / Detalle</label>
-        <input type="text" id="rf_incentiveValue" placeholder="Ej: 1 mes gratis, $25, 10%..."/>
+        <label id="rfIncentiveValueLabel" data-i18n="lbl_compValue">Valor / Detalle del Beneficio</label>
+        <input type="text" id="rf_incentiveValue" placeholder="Ej: 1 mes gratis por cada 3 referidos activos, $25 en efectivo, 15%..."/>
       </div>
       <div class="mfield"><label data-i18n="lbl_notes">Notas</label>
         <textarea id="rf_notes" rows="2" placeholder="Ej: Refirió a su hermano en enero..." style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-family:DM Sans,sans-serif;font-size:14px;outline:none;resize:vertical"></textarea>
       </div>
+
+      <!-- Contract notice -->
+      <div style="background:rgba(232,255,60,.04);border:1px solid rgba(232,255,60,.2);border-radius:10px;padding:12px 14px;margin-bottom:4px;display:flex;align-items:center;gap:10px">
+        <div style="font-size:20px">📄</div>
+        <div style="flex:1;font-size:12px;color:var(--muted);line-height:1.5">
+          Usa <strong style="color:var(--accent)">"Guardar + Contrato"</strong> para generar el acuerdo de beneficios listo para imprimir y firmar.
+        </div>
+      </div>
+
       <div class="btn-row-modal">
         <button class="btn btn-ghost" onclick="closeModal('referidorModal')" data-i18n="btnCancel">Cancelar</button>
-        <button class="btn btn-accent" onclick="saveReferidor()" data-i18n="btnSaveReferidor">💾 Guardar Referidor</button>
+        <button class="btn btn-ghost" onclick="saveReferidorAndContract()" style="border-color:#f97316;color:#f97316;font-weight:800;font-family:Syne,sans-serif">📄 Guardar + Contrato</button>
+        <button class="btn btn-accent" onclick="saveReferidor()" data-i18n="btnSaveReferidor">💾 Guardar</button>
       </div>
     </div>
   </div>
@@ -2847,6 +2880,237 @@ function toggleRfIncentive(){
   label.textContent = labels[v] || 'Valor / Detalle';
 }
 
+// ── REFERIDOR FORM: AUTO-ID + QR PREVIEW ────────────────────────
+var _rfQrTimer = null;
+
+function rfAutoSuggestId(){
+  // Only auto-suggest if field is still empty
+  var cidEl = document.getElementById('rf_cid');
+  if(cidEl && !cidEl.value.trim()){
+    rfAutoId();
+  }
+}
+
+function rfAutoId(){
+  var first = (document.getElementById('rf_firstName').value.trim().split(' ')[0]||'REF').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,5);
+  var last  = (document.getElementById('rf_lastName').value.trim().split(' ')[0]||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4);
+  var num   = String(Math.floor(Math.random()*90)+10);
+  var suggested = 'REF-' + first + (last ? '-'+last : '') + num;
+  // Check uniqueness, add extra digit if collision
+  if(referidores.find(function(x){ return x.cid === suggested; })){
+    suggested = 'REF-' + first + (last ? '-'+last : '') + String(Math.floor(Math.random()*900)+100);
+  }
+  var cidEl = document.getElementById('rf_cid');
+  if(cidEl){ cidEl.value = suggested; }
+  rfUpdateQRPreview();
+}
+
+function rfUpdateQRPreview(){
+  clearTimeout(_rfQrTimer);
+  _rfQrTimer = setTimeout(function(){
+    var cid = (document.getElementById('rf_cid')||{value:''}).value.trim().toUpperCase();
+    var previewEl = document.getElementById('rfCidPreview');
+    var boxEl     = document.getElementById('rfQrBox');
+    var placeholder = document.getElementById('rfQrPlaceholder');
+    var imgEl     = document.getElementById('rfQrPreviewImg');
+    if(!cid){
+      if(previewEl) previewEl.textContent = '';
+      if(placeholder){ placeholder.style.display='flex'; }
+      if(imgEl){ imgEl.style.display='none'; imgEl.src=''; }
+      if(boxEl){ boxEl.style.borderColor='var(--border)'; }
+      return;
+    }
+    var baseUrl = 'https://daniel3853.github.io/registro/';
+    var url = baseUrl + '?ref=' + cid;
+    if(previewEl) previewEl.textContent = '🔗 ?' + 'ref=' + cid;
+    if(placeholder){ placeholder.style.display='none'; }
+    if(imgEl){
+      imgEl.style.display='block';
+      imgEl.src = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=000000&bgcolor=ffffff&margin=6&data='+encodeURIComponent(url);
+    }
+    if(boxEl){ boxEl.style.borderColor='#f97316'; }
+  }, 400);
+}
+
+// ── GUARDAR + GENERAR CONTRATO ───────────────────────────────────
+async function saveReferidorAndContract(){
+  var isEN = _masterLang === 'en';
+  var firstName = document.getElementById('rf_firstName').value.trim();
+  var lastName  = document.getElementById('rf_lastName').value.trim();
+  if(!firstName || !lastName){
+    showToast(isEN ? '❌ First and last name are required' : '❌ Nombre y apellido son requeridos', 'var(--danger)');
+    return;
+  }
+  var rawCid = document.getElementById('rf_cid').value.trim().toUpperCase().replace(/\s+/g,'-');
+  var cid = rawCid || referidorUid();
+  if(!_editReferidorId && referidores.find(function(x){ return x.cid===cid; })){
+    showToast(isEN ? '❌ That ID already exists' : '❌ Ese ID ya existe', 'var(--danger)'); return;
+  }
+  var ref = {
+    id:             _editReferidorId || referidorUid(),
+    cid:            cid,
+    firstName:      firstName,
+    lastName:       lastName,
+    phone:          document.getElementById('rf_phone').value.trim(),
+    email:          document.getElementById('rf_email').value.trim(),
+    type:           document.getElementById('rf_type').value,
+    status:         document.getElementById('rf_status').value || 'active',
+    incentiveType:  document.getElementById('rf_incentiveType').value,
+    incentiveValue: document.getElementById('rf_incentiveValue').value.trim(),
+    notes:          document.getElementById('rf_notes').value.trim(),
+    createdAt:      _editReferidorId ? (referidores.find(function(x){return x.id===_editReferidorId;})||{}).createdAt||new Date().toISOString() : new Date().toISOString()
+  };
+  if(_editReferidorId){
+    referidores = referidores.map(function(x){ return x.id===_editReferidorId ? ref : x; });
+  } else {
+    referidores.unshift(ref);
+  }
+  if(!_demoMode && _fbdb){
+    try{ await _fbdb.ref('referidores/'+ref.id).set(ref); }
+    catch(e){ showToast(isEN?'❌ Firebase error':'❌ Error Firebase','var(--danger)'); return; }
+  }
+  closeModal('referidorModal');
+  updateNavBadgeReferidores();
+  renderReferidores();
+  showToast(isEN ? '✅ Referrer saved — opening contract...' : '✅ Referidor guardado — abriendo contrato...');
+  setTimeout(function(){ generarContratoReferidor(ref); }, 600);
+}
+
+// ── CONTRATO DE BENEFICIOS (abre ventana de impresión) ───────────
+function generarContratoReferidor(ref){
+  var isEN = _masterLang === 'en';
+  var bizName = (typeof _getDisplayNameMaster === 'function') ? _getDisplayNameMaster() : 'El Negocio';
+  var today = new Date().toLocaleDateString('es-US',{year:'numeric',month:'long',day:'numeric'});
+  var incentLabels = {freemonth:'Mes(es) Gratis / Free Month(s)',discount:'Descuento en Servicio / Service Discount',credit:'Crédito / Bono / Credit',cash:'Pago en Efectivo / Cash Payment',other:'Otro / Other'};
+  var incentType = incentLabels[ref.incentiveType] || ref.incentiveType || 'Por definir / TBD';
+  var incentVal  = ref.incentiveValue || 'A coordinar con el negocio / To be coordinated';
+  var baseUrl = 'https://daniel3853.github.io/registro/';
+  var refUrl  = baseUrl + '?ref=' + ref.cid;
+  var qrUrl   = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&color=000000&bgcolor=ffffff&margin=12&data='+encodeURIComponent(refUrl);
+  var typeLabels = {cliente:'Cliente Activo / Active Client', estudiante:'Estudiante / Student', excliente:'Ex-Cliente / Former Client', otro:'Otro / Other'};
+
+  var win = window.open('','_blank','width=850,height:960,scrollbars=yes,resizable=yes');
+  if(!win){ showToast('❌ El navegador bloqueó el popup. Permite popups para este sitio.','var(--danger)'); return; }
+
+  var html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"/>' +
+  '<title>Contrato Referidor — ' + ref.firstName + ' ' + ref.lastName + '</title>' +
+  '<style>' +
+  '*{box-sizing:border-box;margin:0;padding:0;}' +
+  'body{font-family:Georgia,serif;background:#fff;color:#111;padding:40px 52px;max-width:800px;margin:auto;font-size:14px;line-height:1.6}' +
+  'h1{font-size:28px;font-weight:900;margin-bottom:2px;letter-spacing:-.5px}' +
+  '.doc-sub{font-size:12px;color:#888;margin-bottom:28px;letter-spacing:.06em;text-transform:uppercase}' +
+  'hr{border:none;border-top:2px solid #111;margin:22px 0;}' +
+  '.hr-light{border:none;border-top:1px solid #ddd;margin:18px 0;}' +
+  '.section-label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#888;font-weight:700;margin-bottom:12px;font-family:Arial,sans-serif}' +
+  '.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}' +
+  '.info-item{background:#f7f7f7;border:1px solid #e0e0e0;border-radius:8px;padding:12px 16px}' +
+  '.info-item .k{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#999;margin-bottom:3px;font-family:Arial,sans-serif}' +
+  '.info-item .v{font-size:15px;font-weight:700;color:#111}' +
+  '.benefit-box{background:#fff8f0;border:2px solid #f97316;border-radius:12px;padding:20px 24px;margin-bottom:22px}' +
+  '.benefit-box .bt{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#f97316;font-weight:700;margin-bottom:6px;font-family:Arial,sans-serif}' +
+  '.benefit-box .btype{font-size:13px;color:#f97316;margin-bottom:4px}' +
+  '.benefit-box .bval{font-size:20px;font-weight:900;color:#111}' +
+  '.steps{background:#f5f5f5;border-radius:10px;padding:16px 20px;margin-bottom:22px}' +
+  '.step{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px}' +
+  '.step:last-child{margin-bottom:0}' +
+  '.sn{background:#111;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;font-family:Arial,sans-serif}' +
+  '.st{font-size:13px;color:#333}' +
+  '.terms{font-size:11.5px;color:#666;line-height:1.75;margin-bottom:24px}' +
+  '.terms ol{padding-left:18px}' +
+  '.terms li{margin-bottom:6px}' +
+  '.qr-wrap{text-align:center;margin:24px 0;padding:20px;border:2px dashed #ddd;border-radius:14px;background:#fafafa}' +
+  '.qr-wrap img{width:170px;height:170px;border:4px solid #111;border-radius:10px;padding:6px;background:#fff}' +
+  '.qr-id{display:inline-block;background:#111;color:#fff;font-family:monospace;font-size:15px;font-weight:700;padding:5px 18px;border-radius:20px;margin:10px 0 6px}' +
+  '.qr-url{font-size:10px;color:#aaa;word-break:break-all;font-family:monospace;margin-top:4px}' +
+  '.sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:10px}' +
+  '.sig-box{border-top:2px solid #111;padding-top:10px}' +
+  '.sig-space{height:64px}' +
+  '.sig-label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#888;font-family:Arial,sans-serif}' +
+  '.sig-name{font-size:13px;font-weight:700;margin-top:3px}' +
+  '.sig-date{font-size:11px;color:#aaa;margin-top:3px}' +
+  '.footer{text-align:center;font-size:10px;color:#bbb;margin-top:20px;padding-top:14px;border-top:1px solid #eee}' +
+  '.print-btn{position:fixed;top:18px;right:18px;padding:11px 22px;background:#f97316;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;font-family:Arial,sans-serif;box-shadow:0 4px 14px rgba(249,115,22,.4);z-index:999}' +
+  '.print-btn:hover{background:#e06010}' +
+  '@media print{.print-btn{display:none}body{padding:20px 28px}}' +
+  '</style></head><body>' +
+
+  '<button class="print-btn" onclick="window.print()">🖨 Imprimir / Guardar PDF</button>' +
+
+  '<h1>Acuerdo de Referidos</h1>' +
+  '<div class="doc-sub">Referral Partner Agreement &nbsp;·&nbsp; ' + today + '</div>' +
+  '<hr/>' +
+
+  '<div class="section-label">📋 Datos del Referidor / Referrer Information</div>' +
+  '<div class="info-grid">' +
+    '<div class="info-item"><div class="k">Nombre / Full Name</div><div class="v">' + ref.firstName + ' ' + ref.lastName + '</div></div>' +
+    '<div class="info-item"><div class="k">ID Único / Unique ID</div><div class="v" style="color:#f97316;font-family:monospace">' + ref.cid + '</div></div>' +
+    '<div class="info-item"><div class="k">Teléfono / Phone</div><div class="v">' + (ref.phone||'—') + '</div></div>' +
+    '<div class="info-item"><div class="k">Email</div><div class="v">' + (ref.email||'—') + '</div></div>' +
+  '</div>' +
+
+  '<div class="section-label">🤝 Partes del Acuerdo / Parties</div>' +
+  '<div class="info-grid">' +
+    '<div class="info-item"><div class="k">Negocio / Business</div><div class="v">' + bizName + '</div></div>' +
+    '<div class="info-item"><div class="k">Tipo / Type</div><div class="v">' + (typeLabels[ref.type]||ref.type||'—') + '</div></div>' +
+  '</div>' +
+
+  '<div class="benefit-box">' +
+    '<div class="bt">🎁 Beneficio Acordado / Agreed Benefit</div>' +
+    '<div class="btype">' + incentType + '</div>' +
+    '<div class="bval">' + incentVal + '</div>' +
+  '</div>' +
+
+  '<div class="section-label">📱 Tu QR Único / Your Personal QR Code</div>' +
+  '<div class="qr-wrap">' +
+    '<div>Escanea para registrarte como referido · Scan to register as a referral</div>' +
+    '<br/><img src="' + qrUrl + '" alt="QR Referidor"/>' +
+    '<div class="qr-id">' + ref.cid + '</div>' +
+    '<div class="qr-url">' + refUrl + '</div>' +
+  '</div>' +
+
+  '<div class="section-label">⚙️ Cómo Funciona / How It Works</div>' +
+  '<div class="steps">' +
+    '<div class="step"><div class="sn">1</div><div class="st">El Referidor comparte su <strong>QR único</strong> o link personal con familiares, amigos o en redes sociales.</div></div>' +
+    '<div class="step"><div class="sn">2</div><div class="st">Cada persona que escanee el QR y complete el registro queda <strong>vinculada automáticamente</strong> al Referidor en el sistema.</div></div>' +
+    '<div class="step"><div class="sn">3</div><div class="st">Cuando un referido se convierte en <strong>cliente activo</strong>, el Referidor gana el beneficio acordado arriba.</div></div>' +
+    '<div class="step"><div class="sn">4</div><div class="st">El negocio verificará cada conversión y entregará el beneficio en un plazo máximo de <strong>30 días calendario</strong>.</div></div>' +
+  '</div>' +
+
+  '<div class="section-label">📜 Términos y Condiciones / Terms</div>' +
+  '<div class="terms"><ol>' +
+    '<li>El Referidor acepta participar voluntariamente en el programa de referidos de <strong>' + bizName + '</strong>.</li>' +
+    '<li>El beneficio aplica <em>únicamente</em> por referidos que completen el registro y se conviertan en clientes activos de pago.</li>' +
+    '<li>El negocio se reserva el derecho de modificar o cancelar el programa con aviso previo de <strong>15 días</strong>.</li>' +
+    '<li>El Referidor no puede usar prácticas engañosas, spam o presión indebida para generar referidos.</li>' +
+    '<li>Los beneficios no son transferibles ni canjeables por efectivo, salvo que el tipo de incentivo lo indique expresamente.</li>' +
+    '<li>La información del Referidor será tratada con confidencialidad conforme a las leyes de privacidad aplicables.</li>' +
+    '<li>Este acuerdo entra en vigencia en la fecha de firma y permanece activo hasta cancelación por cualquiera de las partes.</li>' +
+  '</ol></div>' +
+  '<hr/>' +
+
+  '<div class="section-label">✍️ Firmas / Signatures</div>' +
+  '<div class="sig-grid">' +
+    '<div class="sig-box">' +
+      '<div class="sig-space"></div>' +
+      '<div class="sig-label">Firma del Referidor / Referrer Signature</div>' +
+      '<div class="sig-name">' + ref.firstName + ' ' + ref.lastName + '</div>' +
+      '<div class="sig-date">Fecha / Date: ______________________</div>' +
+    '</div>' +
+    '<div class="sig-box">' +
+      '<div class="sig-space"></div>' +
+      '<div class="sig-label">Representante del Negocio / Business Rep</div>' +
+      '<div class="sig-name">' + bizName + '</div>' +
+      '<div class="sig-date">Fecha / Date: ______________________</div>' +
+    '</div>' +
+  '</div>' +
+
+  '<div class="footer">Documento generado el ' + today + ' &nbsp;·&nbsp; ID: ' + ref.cid + ' &nbsp;·&nbsp; ' + bizName + '</div>' +
+  '</body></html>';
+
+  win.document.write(html);
+  win.document.close();
+}
+
 function openReferidorModal(id){
   _editReferidorId = id || null;
   var isEN = _masterLang === 'en';
@@ -2860,6 +3124,11 @@ function openReferidorModal(id){
   document.getElementById('rf_status').value = 'active';
   document.getElementById('rf_incentiveType').value = '';
   document.getElementById('rfIncentiveValueField').style.display = 'none';
+  // Reset QR preview
+  var _qpPH=document.getElementById('rfQrPlaceholder'); if(_qpPH){_qpPH.style.display='flex';}
+  var _qpIM=document.getElementById('rfQrPreviewImg'); if(_qpIM){_qpIM.style.display='none';_qpIM.src='';}
+  var _qpPV=document.getElementById('rfCidPreview'); if(_qpPV){_qpPV.textContent='';}
+  var _qpBX=document.getElementById('rfQrBox'); if(_qpBX){_qpBX.style.borderColor='var(--border)';}
   if(id){
     var ref = referidores.find(function(x){ return x.id===id; });
     if(ref){
@@ -3081,6 +3350,13 @@ function openReferidorDetail(id){
   btnEdit.textContent = '✏️ Editar';
   btnEdit.onclick = function(){ closeModal('referidorDetailModal'); openReferidorModal(ref.id); };
   btnRow.appendChild(btnEdit);
+
+  var btnContrato = document.createElement('button');
+  btnContrato.className = 'btn btn-ghost';
+  btnContrato.style.cssText = 'border-color:var(--accent);color:var(--accent);font-weight:800;font-family:Syne,sans-serif';
+  btnContrato.textContent = '📄 Contrato';
+  btnContrato.onclick = function(){ generarContratoReferidor(ref); };
+  btnRow.appendChild(btnContrato);
 
   if(leads.length > 0){
     var btnLeads = document.createElement('button');
