@@ -3903,11 +3903,47 @@ function renderClients(){
 function setStatus(id, status){
   var r = registrations.find(function(x){ return x.id===id; });
   if(!r) return;
+  var wasTrial = (r.status === 'trial');
   r.status = status;
   if(status==='active') r.activatedAt = new Date().toISOString();
   saveReg(r);
   renderClients(); renderDashboard(); updateNavBadge();
   showToast(status==='active'?(tx().toastActivated):(tx().toastSuspended));
+  // When a trial gets activated → show referral partner invite popup
+  if(status === 'active' && wasTrial){
+    setTimeout(function(){ openReferralInviteModal(r); }, 800);
+  }
+}
+
+// ── REFERRAL PARTNER INVITE MODAL ───────────────────────────────
+var _referralInviteClient = null;
+function openReferralInviteModal(r){
+  _referralInviteClient = r;
+  var isEN = _masterLang === 'en';
+  var el = document.getElementById('referralInviteModal');
+  if(!el) return;
+
+  var alreadyRef = referidores.find(function(x){ return x.cid && (x.email===r.email || x.phone===r.phone); });
+
+  document.getElementById('riClientName').textContent = r.firstName + ' ' + r.lastName;
+
+  var statusHtml = alreadyRef
+    ? '<div style="background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);border-radius:10px;padding:10px 14px;font-size:13px;color:#f97316;font-weight:700;margin-bottom:14px">✅ '+(isEN?'Already a referrer! ID: ':'¡Ya es referidor! ID: ')+alreadyRef.cid+'</div>'
+    : '';
+
+  document.getElementById('riStatusBox').innerHTML = statusHtml;
+  document.getElementById('riJoinBtn').textContent = alreadyRef
+    ? (isEN ? '📱 View their QR' : '📱 Ver su QR')
+    : (isEN ? '🌟 Yes! Join the Partner Program' : '🌟 ¡Sí! Unirse al Programa de Referidos');
+  document.getElementById('riJoinBtn').onclick = alreadyRef
+    ? function(){ closeModal('referralInviteModal'); showReferidorQR(alreadyRef.cid, alreadyRef.firstName+' '+alreadyRef.lastName); }
+    : function(){ closeModal('referralInviteModal'); openReferidorModalFromClient(_referralInviteClient); };
+
+  openModal('referralInviteModal');
+}
+
+function closeReferralInviteModal(){
+  closeModal('referralInviteModal');
 }
 
 function extendTrial(id){
@@ -4665,6 +4701,30 @@ function openClient(id){
       '</div>'+
     '</div>'+
 
+    // ── Tarjeta: REFERRAL PARTNER PROGRAM (destacada para clientes activos) ──
+    (s === 'active' ?
+    '<div id="convCardReferralProgram" style="background:linear-gradient(135deg,rgba(249,115,22,.08),rgba(255,68,68,.06));border:2px solid rgba(249,115,22,.4);border-radius:14px;padding:16px 18px;margin-bottom:10px;cursor:pointer;transition:border-color .2s;position:relative;overflow:hidden" '+
+      'onmouseover="this.style.borderColor=\'#f97316\'" onmouseout="this.style.borderColor=\'rgba(249,115,22,.4)\'">'+ 
+      '<div style="position:absolute;top:8px;right:12px;background:#f97316;color:#000;font-family:Syne,sans-serif;font-weight:800;font-size:9px;padding:2px 8px;border-radius:20px;letter-spacing:.08em">'+(isEN?'★ EARN REWARDS':'★ GANA RECOMPENSAS')+'</div>'+
+      '<div style="display:flex;align-items:flex-start;gap:14px">'+
+        '<div style="font-size:32px;flex-shrink:0">🤝</div>'+
+        '<div style="flex:1">'+
+          '<div style="font-family:Syne,sans-serif;font-weight:800;font-size:15px;color:#f97316;margin-bottom:6px">'+(isEN?'Referral Partner Program':'Programa de Referidos')+'</div>'+
+          '<div style="font-size:12px;color:var(--text);line-height:1.6;margin-bottom:10px">'+(isEN?'Invite friends & earn rewards for every person who joins through your unique QR code.':'Invita amigos y gana recompensas por cada persona que se una a través de tu QR único.')+'</div>'+
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">'+
+            '<div style="background:rgba(249,115,22,.1);border-radius:8px;padding:8px 10px;font-size:11px;color:#f97316;font-weight:700">🎁 '+(isEN?'Free month / discount':'Mes gratis / descuento')+'</div>'+
+            '<div style="background:rgba(249,115,22,.1);border-radius:8px;padding:8px 10px;font-size:11px;color:#f97316;font-weight:700">📱 '+(isEN?'Personal QR code':'QR code personal')+'</div>'+
+            '<div style="background:rgba(249,115,22,.1);border-radius:8px;padding:8px 10px;font-size:11px;color:#f97316;font-weight:700">📊 '+(isEN?'Track your referrals':'Rastrea tus referidos')+'</div>'+
+            '<div style="background:rgba(249,115,22,.1);border-radius:8px;padding:8px 10px;font-size:11px;color:#f97316;font-weight:700">💳 '+(isEN?'Cash / credit / gift':'Efectivo / crédito')+'</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+      '<button class="btn" style="width:100%;background:#f97316;color:#000;font-family:Syne,sans-serif;font-weight:800;font-size:13px;border:none;padding:11px" id="btnConvReferidorProgram">'+
+        '🌟 '+(isEN?'Join the Referral Partner Program':'Unirse al Programa de Referidos')+
+      '</button>'+
+    '</div>'
+    : '')+
+
     // ── Tarjeta: Referidor (Cliente / Estudiante) ──
     '<div id="convCardRef" style="background:rgba(249,115,22,.04);border:1.5px solid rgba(249,115,22,.18);border-radius:14px;padding:16px 18px;margin-bottom:10px;cursor:pointer;transition:border-color .2s" '+
       'onmouseover="this.style.borderColor=\'#f97316\'" onmouseout="this.style.borderColor=\'rgba(249,115,22,.18)\'">'+ 
@@ -4713,6 +4773,15 @@ function openClient(id){
     closeModal('clientModal');
     openReferidorModalFromClient(r);
   };
+
+  // ── Listener: Referral Partner Program button (active clients only) ──
+  var btnRProg = document.getElementById('btnConvReferidorProgram');
+  if(btnRProg){
+    btnRProg.onclick = function(){
+      closeModal('clientModal');
+      openReferidorModalFromClient(r);
+    };
+  }
 
   // ── Listener: QR rápido de cliente ──
   document.getElementById('btnConvQR').onclick = function(){
@@ -6951,8 +7020,7 @@ async function fbLoadMasterMods(){
   </div>
 </div>
 
-</body>
-</html>
+<!-- CONVERT LEAD MODAL -->
 <div class="modal-overlay" id="convertLeadModal" style="z-index:10002">
   <div class="modal-box" style="max-width:380px;background:#141414;border:1px solid #2a2a2a">
     <div class="modal-header">
@@ -6985,5 +7053,92 @@ async function fbLoadMasterMods(){
     <button onclick="closeConvertLeadModal()" style="width:100%;padding:11px;border-radius:10px;border:2px solid #333;background:transparent;color:#888;font-weight:700;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:12px">Cancelar</button>
   </div>
 </div>
+
+<!-- REFERRAL INVITE MODAL — shown when trial is converted to active client -->
+<div class="modal-overlay" id="referralInviteModal" style="z-index:10010">
+  <div style="background:#141414;border:1px solid #2a2a2a;border-radius:20px;width:100%;max-width:460px;overflow:hidden;position:relative">
+
+    <!-- Header gradient -->
+    <div style="background:linear-gradient(135deg,rgba(249,115,22,.18),rgba(255,68,68,.1));padding:24px 24px 20px;border-bottom:1px solid rgba(249,115,22,.2);text-align:center">
+      <div style="font-size:44px;margin-bottom:10px">🎉</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:#f0f0f0;margin-bottom:4px">
+        ¡Cliente Activado! / Client Activated!
+      </div>
+      <div id="riClientName" style="font-size:14px;color:#f97316;font-weight:700;font-family:'Syne',sans-serif"></div>
+    </div>
+
+    <!-- Body -->
+    <div style="padding:22px 24px">
+      <div id="riStatusBox"></div>
+
+      <!-- Invite pitch -->
+      <div style="background:rgba(249,115,22,.06);border:1.5px solid rgba(249,115,22,.25);border-radius:14px;padding:16px 18px;margin-bottom:16px">
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#f97316;margin-bottom:10px">🤝 Programa de Referidos / Referral Partner Program</div>
+        <div style="font-size:13px;color:#ccc;line-height:1.7;margin-bottom:12px">
+          ¿Te gustaría invitar a este cliente a ser parte del programa de referidos y ganar recompensas por cada persona que traiga?<br/>
+          <span style="color:#888;font-size:12px">Would you like to invite this client to join the referral partner program?</span>
+        </div>
+
+        <!-- Benefits grid -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="background:rgba(249,115,22,.1);border-radius:10px;padding:10px 12px">
+            <div style="font-size:18px;margin-bottom:4px">📱</div>
+            <div style="font-size:11px;font-weight:700;color:#f97316;font-family:'Syne',sans-serif">QR Único</div>
+            <div style="font-size:11px;color:#888;margin-top:2px">QR code personal para rastrear quién trae</div>
+          </div>
+          <div style="background:rgba(249,115,22,.1);border-radius:10px;padding:10px 12px">
+            <div style="font-size:18px;margin-bottom:4px">🎁</div>
+            <div style="font-size:11px;font-weight:700;color:#f97316;font-family:'Syne',sans-serif">Recompensas</div>
+            <div style="font-size:11px;color:#888;margin-top:2px">Mes gratis, descuento o crédito por referido</div>
+          </div>
+          <div style="background:rgba(249,115,22,.1);border-radius:10px;padding:10px 12px">
+            <div style="font-size:18px;margin-bottom:4px">📊</div>
+            <div style="font-size:11px;font-weight:700;color:#f97316;font-family:'Syne',sans-serif">Rastreo 100%</div>
+            <div style="font-size:11px;color:#888;margin-top:2px">Cada referido queda registrado automáticamente</div>
+          </div>
+          <div style="background:rgba(249,115,22,.1);border-radius:10px;padding:10px 12px">
+            <div style="font-size:18px;margin-bottom:4px">💵</div>
+            <div style="font-size:11px;font-weight:700;color:#f97316;font-family:'Syne',sans-serif">Sin límite</div>
+            <div style="font-size:11px;color:#888;margin-top:2px">Gana por cada referido que se convierta</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- How it works -->
+      <div style="background:#1e1e1e;border-radius:12px;padding:14px 16px;margin-bottom:18px">
+        <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#666;font-weight:700;margin-bottom:10px">¿Cómo funciona? / How it works</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px;font-size:12px;color:#ccc">
+            <div style="background:#f97316;color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:10px;flex-shrink:0">1</div>
+            <span>El cliente se registra como referidor y recibe su <strong style="color:#f97316">QR único</strong></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:12px;color:#ccc">
+            <div style="background:#f97316;color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:10px;flex-shrink:0">2</div>
+            <span>Comparte el QR con amigos, familia o en redes sociales</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:12px;color:#ccc">
+            <div style="background:#f97316;color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:10px;flex-shrink:0">3</div>
+            <span>Cada referido queda <strong style="color:#f97316">rastreado automáticamente</strong> en el sistema</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:12px;color:#ccc">
+            <div style="background:#22c55e;color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:10px;flex-shrink:0">✓</div>
+            <span>El referidor <strong style="color:#22c55e">gana su recompensa</strong> cuando el referido se convierte</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <button id="riJoinBtn" style="width:100%;padding:14px;border-radius:12px;border:none;background:#f97316;color:#000;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;cursor:pointer;margin-bottom:8px;transition:all .15s"
+        onmouseover="this.style.background='#ea6d0e'" onmouseout="this.style.background='#f97316'">
+        🌟 ¡Sí! Unirse al Programa de Referidos
+      </button>
+      <button onclick="closeReferralInviteModal()" style="width:100%;padding:12px;border-radius:12px;border:2px solid #2a2a2a;background:transparent;color:#666;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;cursor:pointer;transition:all .15s"
+        onmouseover="this.style.borderColor='#444';this.style.color='#aaa'" onmouseout="this.style.borderColor='#2a2a2a';this.style.color='#666'">
+        Ahora no / Maybe later
+      </button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
