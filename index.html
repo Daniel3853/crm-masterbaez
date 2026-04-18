@@ -6256,12 +6256,30 @@ function saveLeadTracking(id){
   if(!_demoMode && _fbdb) _fbdb.ref('masterMods/leads/'+id).update({classes:l.classes,currentProgram:l.currentProgram,trackNote:l.trackNote,history:l.history});
   showToast('✅','Seguimiento guardado');
 }
+var _convertPendingLeadId = null;
 function convertLeadToStudent(id){
+  _convertPendingLeadId = id;
+  var overlay = document.getElementById('convertLeadModal');
+  if(overlay){ overlay.classList.add('open'); }
+}
+function confirmConvertLead(profileType){
+  var id = _convertPendingLeadId; if(!id) return;
   var l = leads.find(function(x){ return x.id===id; });
   if(!l) return;
-  l.isStudent=true; l.convertedAt=new Date().toLocaleDateString('es-US');
-  if(!_demoMode && _fbdb) _fbdb.ref('masterMods/leads/'+id).update({isStudent:true,convertedAt:l.convertedAt});
-  renderLeadsInbox(); showToast('🏅','Lead convertido a Estudiante');
+  l.isStudent=true;
+  l.profileType=profileType;
+  l.convertedAt=new Date().toLocaleDateString('es-US');
+  if(!_demoMode && _fbdb) _fbdb.ref('masterMods/leads/'+id).update({isStudent:true, profileType:profileType, convertedAt:l.convertedAt});
+  var overlay = document.getElementById('convertLeadModal');
+  if(overlay){ overlay.classList.remove('open'); }
+  _convertPendingLeadId = null;
+  renderLeadsInbox();
+  showToast('🏅','Lead convertido — '+profileType);
+}
+function closeConvertLeadModal(){
+  var overlay = document.getElementById('convertLeadModal');
+  if(overlay){ overlay.classList.remove('open'); }
+  _convertPendingLeadId = null;
 }
 function openPartnerModalFromLead(id){
   var l=leads.find(function(x){return x.id===id;});
@@ -6547,5 +6565,38 @@ async function fbLoadMasterMods(){
 }
 
 </script>
+<!-- CONVERT LEAD MODAL -->
+<div class="modal-overlay" id="convertLeadModal" style="z-index:10002">
+  <div class="modal-box" style="max-width:380px;background:#141414;border:1px solid #2a2a2a">
+    <div class="modal-header">
+      <span class="modal-title" style="color:#f0f0f0">🏅 Convertir Lead</span>
+      <button class="modal-close" onclick="closeConvertLeadModal()" style="color:#f0f0f0">✕</button>
+    </div>
+    <p style="font-size:13px;color:#666;margin-bottom:16px">Selecciona el tipo de perfil para este contacto.</p>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button onclick="confirmConvertLead('cliente')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;border:2px solid #333;background:#1e1e1e;cursor:pointer;text-align:left;transition:all .2s;font-family:'DM Sans',sans-serif" onmouseover="this.style.borderColor='#22c55e'" onmouseout="this.style.borderColor='#333'">
+        <span style="font-size:24px">👤</span>
+        <div><div style="font-weight:700;color:#fff;font-size:14px">Cliente</div><div style="font-size:12px;color:#888">Lead que se convirtió en cliente activo</div></div>
+      </button>
+      <button onclick="confirmConvertLead('referido')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;border:2px solid #333;background:#1e1e1e;cursor:pointer;text-align:left;transition:all .2s;font-family:'DM Sans',sans-serif" onmouseover="this.style.borderColor='#7fb3ff'" onmouseout="this.style.borderColor='#333'">
+        <span style="font-size:24px">🔗</span>
+        <div><div style="font-weight:700;color:#fff;font-size:14px">Referido</div><div style="font-size:12px;color:#888">Llegó por recomendación de otro cliente</div></div>
+      </button>
+      <button onclick="confirmConvertLead('prospector')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;border:2px solid #333;background:#1e1e1e;cursor:pointer;text-align:left;transition:all .2s;font-family:'DM Sans',sans-serif" onmouseover="this.style.borderColor='#f59e0b'" onmouseout="this.style.borderColor='#333'">
+        <span style="font-size:24px">🔍</span>
+        <div><div style="font-weight:700;color:#fff;font-size:14px">Prospector</div><div style="font-size:12px;color:#888">Trae clientes a cambio de comisión</div></div>
+      </button>
+      <button onclick="confirmConvertLead('trial')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;border:2px solid #333;background:#1e1e1e;cursor:pointer;text-align:left;transition:all .2s;font-family:'DM Sans',sans-serif" onmouseover="this.style.borderColor='#e879f9'" onmouseout="this.style.borderColor='#333'">
+        <span style="font-size:24px">🎯</span>
+        <div><div style="font-weight:700;color:#fff;font-size:14px">Trial</div><div style="font-size:12px;color:#888">Período de prueba — aún no es cliente</div></div>
+      </button>
+      <button onclick="confirmConvertLead('partner')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;border:2px solid #333;background:#1e1e1e;cursor:pointer;text-align:left;transition:all .2s;font-family:'DM Sans',sans-serif" onmouseover="this.style.borderColor='#34d399'" onmouseout="this.style.borderColor='#333'">
+        <span style="font-size:24px">🤝</span>
+        <div><div style="font-weight:700;color:#fff;font-size:14px">Partner de Negocio</div><div style="font-size:12px;color:#888">Alianza estratégica o socio comercial</div></div>
+      </button>
+    </div>
+    <button onclick="closeConvertLeadModal()" style="width:100%;padding:11px;border-radius:10px;border:2px solid #333;background:transparent;color:#888;font-weight:700;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:12px">Cancelar</button>
+  </div>
+</div>
 </body>
 </html>
