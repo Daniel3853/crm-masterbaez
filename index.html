@@ -1495,12 +1495,18 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
       <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--warn);font-weight:700;margin:16px 0 12px">📦 Plan y Estado</div>
       <div class="mfield-row">
         <div class="mfield">
-          <label id="ecLblPlan" data-i18n="lbl_plan">Plan</label>
-          <select id="ecPlan">
-            <option value="starter">Starter — $49/mo</option>
-            <option value="pro">Professional — $97/mo</option>
-            <option value="business">Business — $147/mo</option>
-          </select>
+          <label id="ecLblPlanES">Nombre del Plan (ES)</label>
+          <input type="text" id="ecPlanNameES" placeholder="Ej: Mensual, Anual..."/>
+        </div>
+        <div class="mfield">
+          <label id="ecLblPlanEN">Plan Name (EN)</label>
+          <input type="text" id="ecPlanNameEN" placeholder="Ex: Monthly, Annual..."/>
+        </div>
+      </div>
+      <div class="mfield-row">
+        <div class="mfield">
+          <label id="ecLblPrice">Precio / Price</label>
+          <input type="text" id="ecPlanPrice" placeholder="Ej: $99/mes"/>
         </div>
         <div class="mfield">
           <label id="ecLblStatus" data-i18n="lbl_status">Estado</label>
@@ -1511,6 +1517,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
             <option value="expired">Expirado</option>
           </select>
         </div>
+      </div>
+      <div class="mfield" style="margin-top:0">
+        <button onclick="sendPlanEmailToClient()" style="width:100%;padding:10px;border-radius:8px;border:1.5px solid var(--accent2);background:transparent;color:var(--accent2);font-weight:700;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif">📧 Enviar Plan por Email al Cliente</button>
       </div>
       <!-- Trial dates -->
       <div class="mfield-row">
@@ -3664,6 +3673,22 @@ function stat(label, val, sub, type){
 }
 
 // ── CLIENTS ─────────────────────────────────────
+function sendPlanEmailToClient(){
+  var r = registrations.find(function(x){ return x.id===_editClientId; });
+  if(!r){ showToast('❌','Guarda los cambios primero'); return; }
+  var isEN = _masterLang==='en';
+  var planName = isEN ? (r.planNameEN||r.planNameES||r.plan||'') : (r.planNameES||r.planNameEN||r.plan||'');
+  var price = r.planPrice || '';
+  var subject = isEN
+    ? 'Your Plan at '+_getDisplayNameMaster()+': '+planName
+    : 'Tu Plan en '+_getDisplayNameMaster()+': '+planName;
+  var body = isEN
+    ? 'Hello '+r.firstName+',\n\nHere are your plan details:\n\nPlan: '+planName+'\nPrice: '+price+'\nStatus: '+r.status+'\n\nThank you!'
+    : 'Hola '+r.firstName+',\n\nAquí están los detalles de tu plan:\n\nPlan: '+planName+'\nPrecio: '+price+'\nEstado: '+r.status+'\n\n¡Gracias!';
+  var mailto = 'mailto:'+encodeURIComponent(r.email)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+  window.open(mailto);
+}
+
 function updateNavBadge(){
   var n = registrations.filter(function(r){ return getStatus(r)==='expired'; }).length;
   var b = document.getElementById('navBadge');
@@ -3826,7 +3851,9 @@ function openEditClient(id){
   document.getElementById('ecPhone').value      = r.phone      || '';
   document.getElementById('ecBizName').value    = r.bizName    || '';
   document.getElementById('ecBizType').value    = r.bizType    || '';
-  document.getElementById('ecPlan').value       = r.plan       || 'starter';
+  document.getElementById('ecPlanNameES').value = r.planNameES || r.plan || '';
+  document.getElementById('ecPlanNameEN').value = r.planNameEN || r.plan || '';
+  document.getElementById('ecPlanPrice').value  = r.planPrice  || '';
   document.getElementById('ecStatus').value     = r.status     || 'trial';
   document.getElementById('ecTrialStart').value = r.trialStart || '';
   document.getElementById('ecTrialEnd').value   = r.trialEnd   || '';
@@ -3857,7 +3884,10 @@ async function saveEditClient(){
   r.phone      = document.getElementById('ecPhone').value.trim();
   r.bizName    = document.getElementById('ecBizName').value.trim();
   r.bizType    = document.getElementById('ecBizType').value;
-  r.plan       = document.getElementById('ecPlan').value;
+  r.planNameES = document.getElementById('ecPlanNameES').value.trim();
+  r.planNameEN = document.getElementById('ecPlanNameEN').value.trim();
+  r.planPrice  = document.getElementById('ecPlanPrice').value.trim();
+  r.plan       = r.planNameES || r.planNameEN || 'custom';
   r.status     = document.getElementById('ecStatus').value;
   r.trialStart = document.getElementById('ecTrialStart').value;
   r.trialEnd   = document.getElementById('ecTrialEnd').value;
@@ -6301,6 +6331,7 @@ async function confirmConvertLead(profileType){
   renderLeadsInbox();
   renderClients();
   renderDashboard();
+  updateNavBadge();
   showToast('🏅','Lead convertido a '+profileType+' — aparece en Clientes');
 }
 function closeConvertLeadModal(){
