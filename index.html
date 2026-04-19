@@ -8782,12 +8782,12 @@ function wiGenerateEnrollmentDoc(r){
   // Member Info
   +'<div class="section"><div class="sec-title">'+(isEN?'Member Information':'Información del Miembro')+'</div>'
   +'<div class="grid2">'
-    +'<div class="field"><label>'+(isEN?'First Name / Nombre')+'</label><div class="val prefilled">'+( r.firstName||'')+'</div></div>'
-    +'<div class="field"><label>'+(isEN?'Last Name / Apellido')+'</label><div class="val prefilled">'+( r.lastName||'')+'</div></div>'
-    +'<div class="field"><label>Email</label><div class="val prefilled">'+( r.email||'')+'</div></div>'
-    +'<div class="field"><label>'+(isEN?'Phone / Teléfono')+'</label><div class="val prefilled">'+( r.phone||'')+'</div></div>'
-    +'<div class="field"><label>'+(isEN?'Date of Birth / Fecha de Nacimiento')+'</label><div class="val"></div></div>'
-    +'<div class="field"><label>'+(isEN?'Emergency Contact / Contacto de Emergencia')+'</label><div class="val"></div></div>'
+    +'<div class="field"><label>'+(isEN?'First Name':'Nombre')+'</label><div class="val prefilled">'+(r.firstName||'')+'</div></div>'
+    +'<div class="field"><label>'+(isEN?'Last Name':'Apellido')+'</label><div class="val prefilled">'+(r.lastName||'')+'</div></div>'
+    +'<div class="field"><label>Email</label><div class="val prefilled">'+(r.email||'')+'</div></div>'
+    +'<div class="field"><label>'+(isEN?'Phone':'Teléfono')+'</label><div class="val prefilled">'+(r.phone||'')+'</div></div>'
+    +'<div class="field"><label>'+(isEN?'Date of Birth':'Fecha de Nacimiento')+'</label><div class="val"></div></div>'
+    +'<div class="field"><label>'+(isEN?'Emergency Contact':'Contacto de Emergencia')+'</label><div class="val"></div></div>'
   +'</div></div>'
 
   // Program Selection
@@ -8808,8 +8808,8 @@ function wiGenerateEnrollmentDoc(r){
   // Health
   +'<div class="section"><div class="sec-title">'+(isEN?'Health & Medical':'Salud y Médico')+'</div>'
   +'<div class="grid2">'
-    +'<div class="field"><label>'+(isEN?'Known medical conditions / Condiciones médicas')+'</label><div class="val" style="min-height:36px;"></div></div>'
-    +'<div class="field"><label>'+(isEN?'Physician / Doctor & Phone':'Médico y Teléfono')+'</label><div class="val" style="min-height:36px;"></div></div>'
+    +'<div class="field"><label>'+(isEN?'Known medical conditions':'Condiciones médicas conocidas')+'</label><div class="val" style="min-height:36px;"></div></div>'
+    +'<div class="field"><label>'+(isEN?'Physician & Phone':'Médico y Teléfono')+'</label><div class="val" style="min-height:36px;"></div></div>'
   +'</div></div>'
 
   // Authorization
@@ -8820,10 +8820,10 @@ function wiGenerateEnrollmentDoc(r){
     :'Yo, el abajo firmante, me inscribo voluntariamente en el programa indicado y acepto cumplir con todas las normas. Entiendo que la participación implica actividad física y acepto los riesgos asociados. Autorizo a la organización a usar mi información para comunicación y gestión de membresía. Autorizo cargos recurrentes según el calendario acordado, incluyendo el cargo de procesamiento del 3.50%. Este acuerdo permanece vigente hasta su cancelación por escrito con 30 días de anticipación.')
   +'</div>'
   +'<div class="sig-grid">'
-    +'<div><div class="sig-line"></div><div class="sig-label">'+(isEN?'Member Signature / Firma del Miembro')+'</div></div>'
-    +'<div><div class="sig-line"></div><div class="sig-label">'+(isEN?'Printed Name / Nombre en Letra de Molde')+'</div></div>'
-    +'<div><div class="sig-line"></div><div class="sig-label">'+(isEN?'Date / Fecha')+'</div></div>'
-    +'<div><div class="sig-line"></div><div class="sig-label">'+(isEN?'Parent/Guardian (if under 18) / Padre o Tutor')+'</div></div>'
+    +'<div><div class="sig-line"></div><div class="sig-label">'+(isEN?'Member Signature':'Firma del Miembro')+'</div></div>'
+    +'<div><div class="sig-line"></div><div class="sig-label">'+(isEN?'Printed Name':'Nombre en Letra de Molde')+'</div></div>'
+    +'<div><div class="sig-line"></div><div class="sig-label">'+(isEN?'Date':'Fecha')+'</div></div>'
+    +'<div><div class="sig-line"></div><div class="sig-label">'+(isEN?'Parent / Guardian (if under 18)':'Padre o Tutor (si es menor de 18)')+'</div></div>'
   +'</div></div>'
 
   +'<div class="footer">'+
