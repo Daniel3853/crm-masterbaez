@@ -284,7 +284,9 @@ select:focus{border-color:var(--red);background:#fff}
 .toggle-switch input:checked+.toggle-slider{background:#16a34a}
 .toggle-switch input:checked+.toggle-slider:before{background:#fff;transform:translateX(22px)}
 .disclaimer-box{background:#1a1400;border:1px solid #3a2c00;border-radius:10px;padding:14px;font-size:13px;color:#a89050;line-height:1.6;margin-top:8px}
-.admin-badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:800;background:#1f2a1f;color:#4ade80;border:1px solid #2a4a2a;margin-left:8px}
+#editProgModal{z-index:30000 !important}
+#editProgModal .modal-box{background:#fff !important;border-radius:22px;overflow-y:auto;max-height:90vh}
+
 
 @media(max-width:500px){
   .field-row{grid-template-columns:1fr}
@@ -1135,6 +1137,25 @@ function submitForm(){
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({chat_id:telegramChatId, text:tgMsg, parse_mode:'Markdown'})
   }).catch(function(){});
+  // WhatsApp al admin (CallMeBot plan gratis)
+  var adminWaMsg='🔔 Nuevo Lead — '+getDisplayName()+'\n'
+    +'👤 '+lead.firstName+' '+lead.lastName+'\n'
+    +'📧 '+lead.email+'\n'
+    +'📱 '+lead.phone+'\n'
+    +'🎓 '+progName+'\n'
+    +'📅 '+lead.date+' — '+lead.time+'\n'
+    +'🏷️ '+tenantId;
+  fetch('https://api.callmebot.com/whatsapp.php?phone=19543801340&text='+encodeURIComponent(adminWaMsg)+'&apikey=1707140',{mode:'no-cors'}).catch(function(){});
+  // WhatsApp al cliente
+  var clientPhone=(lead.phone||'').replace(/\D/g,'');
+  if(clientPhone.length===10) clientPhone='1'+clientPhone;
+  if(clientPhone){
+    var _isEsWa=lead.lang==='es';
+    var waMsgClient=_isEsWa
+      ?'Hola '+lead.firstName+'! 👋\nTu cita en *'+getDisplayName()+'* está confirmada:\n📅 '+lead.date+' — '+lead.time+'\n🎓 '+progName+'\n\n¡Te esperamos!'
+      :'Hello '+lead.firstName+'! 👋\nYour appointment at *'+getDisplayName()+'* is confirmed:\n📅 '+lead.date+' — '+lead.time+'\n🎓 '+progName+'\n\nSee you soon!';
+    fetch('https://api.callmebot.com/whatsapp.php?phone='+encodeURIComponent(clientPhone)+'&text='+encodeURIComponent(waMsgClient)+'&apikey=1707140',{mode:'no-cors'}).catch(function(){});
+  }
   sendBrevoConfirmation(lead, progName);
   scheduleReminderEmail(lead, progName);
   scheduleFollowUpEmail(lead, progName);
@@ -1679,6 +1700,7 @@ function epHandlePhotoUpload(input){
     var urlInp=document.getElementById('ep-photo');
     if(prev){ prev.src=_epPhotoData; prev.style.display='block'; }
     if(urlInp){ urlInp.value=''; urlInp.placeholder='(imagen subida)'; }
+    markUnsaved();
   };
   r.readAsDataURL(file);
 }
@@ -1721,13 +1743,13 @@ function editProgram(i){
     +'<div style="margin-bottom:16px;background:#f9f9f9;border-radius:12px;padding:14px;border:1.5px solid #e0e0e0">'
       +'<label style="'+lStyle+'">🖼️ Foto del Programa</label>'
       +'<div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">'
-        +'<img id="ep-photo-preview" src="'+((_epPhotoData||(p.photo&&!p.photo.startsWith('data:')?'':_epPhotoData))||'')+'" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:2px solid #ddd;display:'+( (p.photo)?'block':'none')+'"/>'
+        +'<img id="ep-photo-preview" src="" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:2px solid #ddd;display:none"/>'
         +'<div style="flex:1;min-width:180px">'
-          +'<input class="admin-input" id="ep-photo" value="'+(p.photo&&!p.photo.startsWith('data:')?esc(p.photo):'')+'" placeholder="https://... URL de imagen" style="'+iStyle+';margin-bottom:8px"/>'
+          +'<input class="admin-input" id="ep-photo" value="'+(p.photo&&!p.photo.startsWith('data:')?esc(p.photo):'')+'" placeholder="https://... URL de imagen" style="'+iStyle+';margin-bottom:8px" oninput="var prev=document.getElementById(\'ep-photo-preview\');if(this.value){prev.src=this.value;prev.style.display=\'block\';}else if(!_epPhotoData){prev.style.display=\'none\';}"/>'
           +'<label style="display:inline-block;cursor:pointer;background:#eee;border:1.5px solid #ddd;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:800;color:#555">'
             +'📁 Subir foto <input type="file" accept="image/*" style="display:none" onchange="epHandlePhotoUpload(this)"/>'
           +'</label>'
-          +'<button onclick="_epPhotoData=\'\';document.getElementById(\'ep-photo\').value=\'\';document.getElementById(\'ep-photo-preview\').style.display=\'none\'" style="margin-left:8px;background:none;border:1.5px solid #f87171;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:800;color:#f87171;cursor:pointer">🗑️ Quitar</button>'
+          +'<button onclick="_epPhotoData=\'\';document.getElementById(\'ep-photo\').value=\'\';var prev=document.getElementById(\'ep-photo-preview\');prev.src=\'\';prev.style.display=\'none\';" style="margin-left:8px;background:none;border:1.5px solid #f87171;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:800;color:#f87171;cursor:pointer">🗑️ Quitar</button>'
         +'</div>'
       +'</div>'
     +'</div>'
@@ -1752,19 +1774,22 @@ function editProgram(i){
     modal=document.createElement('div');
     modal.className='modal-overlay';
     modal.id='editProgModal';
-    modal.innerHTML='<div class="modal-box wide" style="padding:0;background:transparent;box-shadow:none">'+html+'</div>';
+    modal.style.cssText='z-index:30000';
+    modal.innerHTML='<div class="modal-box wide" style="padding:0;background:transparent;box-shadow:none;max-width:660px"></div>';
     modal.addEventListener('click',function(e){if(e.target===modal) closeModal('editProgModal');});
     document.body.appendChild(modal);
-  } else {
-    modal.querySelector('.modal-box').innerHTML=html;
   }
+  modal.querySelector('.modal-box').innerHTML=html;
   openModal('editProgModal');
-  // render videos after DOM is ready
+  // render videos and photo after DOM is ready
   setTimeout(function(){
     epRenderVideos();
-    // show photo preview if URL-based
     var prev=document.getElementById('ep-photo-preview');
-    if(prev && p.photo){ prev.src=_epPhotoData||p.photo; prev.style.display='block'; }
+    var photoSrc=_epPhotoData||(p.photo&&p.photo.length?p.photo:'');
+    if(prev){
+      if(photoSrc){ prev.src=photoSrc; prev.style.display='block'; }
+      else { prev.src=''; prev.style.display='none'; }
+    }
   }, 30);
 }
 
