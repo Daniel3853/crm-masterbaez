@@ -1233,7 +1233,7 @@ async function fbLoad(){
       if(d.sourceOptions_en!==undefined) sourceOptions_en=d.sourceOptions_en;
       if(d.customProgs!==undefined){
         customProgs=d.customProgs.map(function(p){
-          return {id:p.id||'prog_'+Date.now(),labelES:p.labelES||'',labelEN:p.labelEN||'',icon:p.icon||'⭐',age:p.age||'',color:p.color||'#E02020',light:p.light||'#fde8e8',descES:p.descES||'',descEN:p.descEN||'',photo:p.photo||'',videos:p.videos||[],docs:p.docs||[],forWhoES:p.forWhoES||'',forWhoEN:p.forWhoEN||'',hidden:p.hidden||false};
+          return {id:p.id||'prog_'+Date.now(),labelES:p.labelES||'',labelEN:p.labelEN||'',icon:p.icon||'⭐',age:p.age||'',color:p.color||'#E02020',light:p.light||'#fde8e8',descES:p.descES||'',descEN:p.descEN||'',photo:p.photo||'',photoDetail:p.photoDetail||'',videos:p.videos||[],docs:p.docs||[],forWhoES:p.forWhoES||'',forWhoEN:p.forWhoEN||'',hidden:p.hidden||false};
         });
       }
       if(_singleProgId){
@@ -1283,18 +1283,8 @@ function openProgDetail(i){
       videoBlock+='<div class="prog-detail-video-wrap" style="margin-top:8px">'+buildVideoEmbed(v.url,'v'+(vi+1),false)+'</div>';
     });
   }
-  var clientPhotoBlock=''
-    +'<div id="pd-photo-wrap" style="width:100%;max-height:220px;border-radius:14px;overflow:hidden;background:#f0f0f0;margin-bottom:14px;position:relative;cursor:pointer;border:2.5px dashed #ccc;display:flex;align-items:center;justify-content:center;min-height:140px" onclick="document.getElementById(\'pd-photo-input\').click()">'
-      +'<img id="pd-photo-preview" src="" style="width:100%;max-height:220px;object-fit:cover;display:none;border-radius:11px"/>'
-      +'<div id="pd-photo-placeholder" style="text-align:center;padding:24px;pointer-events:none">'
-        +'<div style="font-size:36px;margin-bottom:8px">📷</div>'
-        +'<div style="font-weight:800;font-size:14px;color:#555">'+(isEn?'Tap to add your photo':'Toca para agregar tu foto')+'</div>'
-        +'<div style="font-size:12px;color:#aaa;margin-top:4px">'+(isEn?'Optional · JPG, PNG':'Opcional · JPG, PNG')+'</div>'
-      +'</div>'
-    +'</div>'
-    +'<input type="file" id="pd-photo-input" accept="image/*" capture="user" style="display:none" onchange="pdHandlePhoto(this)"/>';
   var descBlock='';
-  descBlock+=clientPhotoBlock;
+  if(p.photoDetail) descBlock+='<img src="'+p.photoDetail+'" class="prog-detail-photo" alt="'+esc(progLabel(p))+'"/>';
   if(forWho)  descBlock+='<div style="color:#888;font-size:13px;font-weight:700;margin-bottom:10px">👥 '+esc(forWho)+'</div>';
   if(desc)    descBlock+='<div class="prog-detail-desc">'+esc(desc)+'</div>';
   if(p.age)   descBlock+='<div style="color:#888;font-size:13px;font-weight:700;margin-bottom:12px">👤 '+(isEn?'Ages:':'Edades:')+' <strong>'+esc(p.age)+'</strong></div>';
@@ -1692,7 +1682,8 @@ function moveProgram(i, dir){
 
 // ── EDIT PROGRAM MODAL ────────────────────────────────────────────────────────
 var _epVideos = [];   // working copy of videos array while editing
-var _epPhotoData = ''; // base64 if uploaded
+var _epPhotoData = ''; // base64 cover photo
+var _epPhotoDetailData = ''; // base64 explanation photo
 
 function epRenderVideos(){
   var wrap=document.getElementById('ep-videos-list'); if(!wrap) return;
@@ -1731,11 +1722,26 @@ function epHandlePhotoUpload(input){
   r.readAsDataURL(file);
 }
 
+function epHandlePhotoDetailUpload(input){
+  var file=input.files[0]; if(!file) return;
+  var r=new FileReader();
+  r.onload=function(e){
+    _epPhotoDetailData=e.target.result;
+    var prev=document.getElementById('ep-photodetail-preview');
+    var urlInp=document.getElementById('ep-photodetail');
+    if(prev){ prev.src=_epPhotoDetailData; prev.style.display='block'; }
+    if(urlInp){ urlInp.value=''; urlInp.placeholder='(imagen subida)'; }
+    markUnsaved();
+  };
+  r.readAsDataURL(file);
+}
+
 function editProgram(i){
   _editProgIdx = i;
   var p=customProgs[i];
   _epVideos = (p.videos||[]).map(function(v){ return {url:v.url||'',hidden:v.hidden||false}; });
   _epPhotoData = (p.photo && p.photo.startsWith('data:')) ? p.photo : '';
+  _epPhotoDetailData = (p.photoDetail && p.photoDetail.startsWith('data:')) ? p.photoDetail : '';
 
   var iStyle='background:#f5f5f5;color:#111;border-color:#ddd';
   var lStyle='display:block;font-size:11px;font-weight:800;color:#555;text-transform:uppercase;margin-bottom:4px';
@@ -1765,17 +1771,31 @@ function editProgram(i){
     // ── Descripción
     +'<div style="margin-bottom:12px"><label style="'+lStyle+'">Descripción ES</label><textarea class="admin-textarea" id="ep-descES" style="background:#f5f5f5;color:#111;border-color:#ddd;min-height:70px">'+esc(p.descES)+'</textarea></div>'
     +'<div style="margin-bottom:16px"><label style="'+lStyle+'">Description EN</label><textarea class="admin-textarea" id="ep-descEN" style="background:#f5f5f5;color:#111;border-color:#ddd;min-height:70px">'+esc(p.descEN)+'</textarea></div>'
-    // ── Foto
-    +'<div style="margin-bottom:16px;background:#f9f9f9;border-radius:12px;padding:14px;border:1.5px solid #e0e0e0">'
-      +'<label style="'+lStyle+'">🖼️ Foto del Programa</label>'
+    // ── Foto de Portada (tarjeta del formulario)
+    +'<div style="margin-bottom:12px;background:#f9f9f9;border-radius:12px;padding:14px;border:1.5px solid #e0e0e0">'
+      +'<label style="'+lStyle+'">🖼️ Foto de Portada <span style="font-weight:400;text-transform:none;color:#aaa;font-size:10px">(tarjeta del formulario)</span></label>'
       +'<div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">'
         +'<img id="ep-photo-preview" src="" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:2px solid #ddd;display:none"/>'
         +'<div style="flex:1;min-width:180px">'
-          +'<input class="admin-input" id="ep-photo" value="'+(p.photo&&!p.photo.startsWith('data:')?esc(p.photo):'')+'" placeholder="https://... URL de imagen" style="'+iStyle+';margin-bottom:8px" oninput="var prev=document.getElementById(\'ep-photo-preview\');if(this.value){prev.src=this.value;prev.style.display=\'block\';}else if(!_epPhotoData){prev.style.display=\'none\';}"/>'
+          +'<input class="admin-input" id="ep-photo" value="'+(p.photo&&!p.photo.startsWith(\'data:\')?esc(p.photo):\'\')+'" placeholder="https://... URL de imagen" style="'+iStyle+';margin-bottom:8px" oninput="var prev=document.getElementById(\'ep-photo-preview\');if(this.value){prev.src=this.value;prev.style.display=\'block\';}else if(!_epPhotoData){prev.style.display=\'none\';}"/>'
           +'<label style="display:inline-block;cursor:pointer;background:#eee;border:1.5px solid #ddd;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:800;color:#555">'
-            +'📁 Subir foto <input type="file" accept="image/*" style="display:none" onchange="epHandlePhotoUpload(this)"/>'
+            +'📁 Subir <input type="file" accept="image/*" style="display:none" onchange="epHandlePhotoUpload(this)"/>'
           +'</label>'
-          +'<button onclick="_epPhotoData=\'\';document.getElementById(\'ep-photo\').value=\'\';var prev=document.getElementById(\'ep-photo-preview\');prev.src=\'\';prev.style.display=\'none\';" style="margin-left:8px;background:none;border:1.5px solid #f87171;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:800;color:#f87171;cursor:pointer">🗑️ Quitar</button>'
+          +'<button onclick="_epPhotoData=\'\';document.getElementById(\'ep-photo\').value=\'\';var p2=document.getElementById(\'ep-photo-preview\');p2.src=\'\';p2.style.display=\'none\';" style="margin-left:8px;background:none;border:1.5px solid #f87171;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:800;color:#f87171;cursor:pointer">🗑️</button>'
+        +'</div>'
+      +'</div>'
+    +'</div>'
+    // ── Foto de Explicación (popup de detalle del programa)
+    +'<div style="margin-bottom:12px;background:#e8f4fd;border-radius:12px;padding:14px;border:1.5px solid #b3d9f2">'
+      +'<label style="'+lStyle+'">📸 Foto de Explicación <span style="font-weight:400;text-transform:none;color:#5a8fa8;font-size:10px">(popup de detalle del programa)</span></label>'
+      +'<div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">'
+        +'<img id="ep-photodetail-preview" src="" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:2px solid #b3d9f2;display:none"/>'
+        +'<div style="flex:1;min-width:180px">'
+          +'<input class="admin-input" id="ep-photodetail" value="'+(p.photoDetail&&!p.photoDetail.startsWith(\'data:\')?esc(p.photoDetail):\'\')+'" placeholder="https://... URL de imagen" style="'+iStyle+';margin-bottom:8px" oninput="var prev=document.getElementById(\'ep-photodetail-preview\');if(this.value){prev.src=this.value;prev.style.display=\'block\';}else if(!_epPhotoDetailData){prev.style.display=\'none\';}"/>'
+          +'<label style="display:inline-block;cursor:pointer;background:#eee;border:1.5px solid #ddd;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:800;color:#555">'
+            +'📁 Subir <input type="file" accept="image/*" style="display:none" onchange="epHandlePhotoDetailUpload(this)"/>'
+          +'</label>'
+          +'<button onclick="_epPhotoDetailData=\'\';document.getElementById(\'ep-photodetail\').value=\'\';var p3=document.getElementById(\'ep-photodetail-preview\');p3.src=\'\';p3.style.display=\'none\';" style="margin-left:8px;background:none;border:1.5px solid #f87171;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:800;color:#f87171;cursor:pointer">🗑️</button>'
         +'</div>'
       +'</div>'
     +'</div>'
@@ -1810,11 +1830,19 @@ function editProgram(i){
   // render videos and photo after DOM is ready
   setTimeout(function(){
     epRenderVideos();
+    // cover photo
     var prev=document.getElementById('ep-photo-preview');
     var photoSrc=_epPhotoData||(p.photo&&p.photo.length?p.photo:'');
     if(prev){
       if(photoSrc){ prev.src=photoSrc; prev.style.display='block'; }
       else { prev.src=''; prev.style.display='none'; }
+    }
+    // detail photo
+    var prev2=document.getElementById('ep-photodetail-preview');
+    var detailSrc=_epPhotoDetailData||(p.photoDetail&&p.photoDetail.length?p.photoDetail:'');
+    if(prev2){
+      if(detailSrc){ prev2.src=detailSrc; prev2.style.display='block'; }
+      else { prev2.src=''; prev2.style.display='none'; }
     }
   }, 30);
 }
@@ -1843,6 +1871,8 @@ function saveProgram(i){
   customProgs[i].descES=document.getElementById('ep-descES').value;
   customProgs[i].descEN=document.getElementById('ep-descEN').value;
   customProgs[i].photo=_epPhotoData||photoUrl;
+  var photoDetailUrl=document.getElementById('ep-photodetail').value.trim();
+  customProgs[i].photoDetail=_epPhotoDetailData||photoDetailUrl;
   customProgs[i].videos=_epVideos.filter(function(v){return v.url.trim();});
   closeModal('editProgModal');
   renderProgramsAdmin(); renderHeroPrograms(); renderForm(); markUnsaved();
@@ -1856,7 +1886,7 @@ function deleteProgram(i){
 }
 
 function addProgram(){
-  customProgs.push({id:'prog_'+Date.now(),labelES:'Nuevo Programa',labelEN:'New Program',icon:'⭐',age:'',color:'#E02020',light:'#fde8e8',descES:'',descEN:'',photo:'',videos:[],docs:[],forWhoES:'',forWhoEN:'',hidden:false});
+  customProgs.push({id:'prog_'+Date.now(),labelES:'Nuevo Programa',labelEN:'New Program',icon:'⭐',age:'',color:'#E02020',light:'#fde8e8',descES:'',descEN:'',photo:'',photoDetail:'',videos:[],docs:[],forWhoES:'',forWhoEN:'',hidden:false});
   renderProgramsAdmin(); markUnsaved();
   editProgram(customProgs.length-1);
 }
