@@ -719,7 +719,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
       <!-- PLANS -->
       <div class="section-card">
-        <div class="section-card-head"><h4 id="plansHead">📦 Planes y Precios</h4></div>
+        <div class="section-card-head" style="display:flex;align-items:center;justify-content:space-between;">
+          <h4 id="plansHead">📦 Planes y Precios</h4>
+          <button class="btn btn-accent" onclick="openPlanModal(null)" style="font-size:12px;padding:7px 14px" id="btnAddPlan">+ Agregar Plan</button>
+        </div>
         <div class="section-card-body" id="plansConfig"></div>
       </div>
 
@@ -1714,6 +1717,7 @@ var plans = {
   pro:      {nameES:'Profesional',   nameEN:'Professional', priceES:'$97',  priceEN:'$97'},
   business: {nameES:'Empresarial',   nameEN:'Business',     priceES:'$147', priceEN:'$147'}
 };
+var planTrash = {}; // key → {key, nameES, nameEN, priceES, priceEN, deletedAt}
 
 // ── NOTIFICATION CONFIG ─────────────────────────
 var notifConfig = {
@@ -1962,6 +1966,7 @@ async function loadData(){
         if(cd.masterPin) MASTER_PIN = cd.masterPin;
         if(cd.notifConfig) notifConfig = Object.assign(notifConfig, cd.notifConfig);
         if(cd.plans) Object.assign(plans, cd.plans);
+        if(cd.planTrash) Object.assign(planTrash, cd.planTrash);
         if(cd.payServerLinks) payServerLinks = cd.payServerLinks;
         if(cd.registroConfig) registroConfig = cd.registroConfig;
         if(cd.videoConfig) loadVideoConfig(cd.videoConfig);
@@ -2024,7 +2029,7 @@ async function saveReg(reg){
 
 async function saveConfig(){
   saveNotifConfig();
-  var cfg = {payMethods: payMethods, plans: plans, masterPin: MASTER_PIN, notifConfig: notifConfig, payServerLinks: payServerLinks, registroConfig: registroConfig, videoConfig: videoConfig};
+  var cfg = {payMethods: payMethods, plans: plans, planTrash: planTrash, masterPin: MASTER_PIN, notifConfig: notifConfig, payServerLinks: payServerLinks, registroConfig: registroConfig, videoConfig: videoConfig};
   if(!_demoMode){
     try{ await _fbdb.ref('masterConfig').set(cfg); }
     catch(e){ showToast(_masterLang==='en'?'❌ Error saving':'❌ Error al guardar','var(--danger)'); return; }
@@ -4526,24 +4531,28 @@ function eliminarPermanente(id){
 
 function vaciarPapelera(){
   var isEN = _masterLang === 'en';
-  if(papelera.length===0){ showToast(tx().toastEmpty); return; }
+  var totalItems = papelera.length + Object.keys(planTrash).length;
+  if(totalItems === 0){ showToast(tx().toastEmpty); return; }
   showDeleteConfirm({
     icon: '🗑️',
     title: isEN ? 'Empty Entire Trash?' : '¿Vaciar Toda la Papelera?',
     sub: isEN
-      ? 'All clients in trash will be permanently deleted. This CANNOT be undone.'
-      : 'Todos los clientes en la papelera serán eliminados para siempre. Esta acción NO se puede deshacer.',
+      ? 'All items in trash will be permanently deleted. This CANNOT be undone.'
+      : 'Todos los elementos en la papelera serán eliminados para siempre. Esta acción NO se puede deshacer.',
     rows: [
-      {key: isEN?'Clients to delete':'Clientes a eliminar', val: String(papelera.length), cls:'danger'}
+      {key: isEN?'Clients/Partners/etc to delete':'Clientes/Partners/etc a eliminar', val: String(papelera.length), cls:'danger'},
+      {key: isEN?'Plans to delete':'Planes a eliminar', val: String(Object.keys(planTrash).length), cls:'danger'}
     ],
     confirmLabel: isEN
-      ? '🗑 Empty trash — delete '+papelera.length+' client(s) forever'
-      : '🗑 Vaciar papelera — eliminar '+papelera.length+' cliente(s) para siempre',
+      ? '🗑 Empty trash — delete '+totalItems+' item(s) forever'
+      : '🗑 Vaciar papelera — eliminar '+totalItems+' elemento(s) para siempre',
     onConfirm: function(){
       if(!_demoMode && _fbdb){
         papelera.forEach(function(r){ _fbdb.ref('papelera/'+r.id).remove(); });
       }
       papelera = [];
+      planTrash = {};
+      saveConfig();
       renderPapelera(); updatePapeleraBadge();
       showToast(tx().toastEmptied);
     }
@@ -4553,9 +4562,10 @@ function vaciarPapelera(){
 function updatePapeleraBadge(){
   var badge = document.getElementById('navBadgePapelera');
   if(!badge) return;
-  if(papelera.length > 0){
+  var total = papelera.length + Object.keys(planTrash).length;
+  if(total > 0){
     badge.style.display = 'inline-block';
-    badge.textContent = papelera.length;
+    badge.textContent = total;
   } else {
     badge.style.display = 'none';
   }
@@ -4565,8 +4575,47 @@ function renderPapelera(){
   var t = tx(); var isEN = _masterLang === 'en';
   var el = document.getElementById('papeleraList');
   if(!el) return;
-  if(papelera.length === 0){
+  if(papelera.length === 0 && Object.keys(planTrash).length === 0){
     el.innerHTML = '<div class="empty-state"><div class="es-icon">🗑️</div><div class="es-title">'+t.emptyTrashTitle+'</div><div class="es-sub">'+t.emptyTrashSub+'</div></div>';
+    return;
+  }
+  if(papelera.length === 0){
+    // Only plan trash — skip the table, go straight to plan section below
+    el.innerHTML = '';
+    // plan section will be appended further down
+    var planTrashKeys0 = Object.keys(planTrash);
+    var planSec0 = document.createElement('div');
+    planSec0.style.cssText = 'padding:8px;';
+    var planSec0Title = document.createElement('div');
+    planSec0Title.style.cssText = 'font-family:Syne,sans-serif;font-weight:800;font-size:13px;color:var(--accent);margin-bottom:12px;letter-spacing:.05em;text-transform:uppercase;padding:8px 0 0;';
+    planSec0Title.textContent = '📦 '+(isEN ? 'Plans in Trash' : 'Planes en Papelera');
+    planSec0.appendChild(planSec0Title);
+    planTrashKeys0.forEach(function(pKey){
+      var p = planTrash[pKey];
+      var card = document.createElement('div');
+      card.style.cssText = 'display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;';
+      card.innerHTML =
+        '<span style="font-size:22px">📦</span>'+
+        '<div style="flex:1">'+
+          '<strong style="font-family:Syne,sans-serif;font-size:14px">'+esc(isEN?p.nameEN:p.nameES)+'</strong>'+
+          '<span style="font-size:11px;color:var(--muted);margin-left:8px">/ '+esc(isEN?p.nameES:p.nameEN)+'</span>'+
+          '<br/><span style="font-size:12px;color:var(--accent);font-weight:700">'+esc(p.priceES||p.priceEN||'')+'</span>'+
+          '<span style="font-size:11px;color:var(--muted);margin-left:6px">'+(isEN?'Deleted:':'Eliminado:')+' '+(p.deletedAt?p.deletedAt.split('T')[0]:'—')+'</span>'+
+        '</div><div style="display:flex;gap:8px">';
+      var btnR0 = document.createElement('button');
+      btnR0.className = 'act-btn success-btn';
+      btnR0.textContent = isEN ? '↩ Restore' : '↩ Restaurar';
+      btnR0.onclick = (function(k){ return function(){ restaurarPlan(k); }; })(pKey);
+      var btnD0 = document.createElement('button');
+      btnD0.className = 'act-btn danger';
+      btnD0.textContent = isEN ? '🗑 Delete' : '🗑 Borrar';
+      btnD0.onclick = (function(k){ return function(){ eliminarPlanPermanente(k); }; })(pKey);
+      var actDiv0 = card.querySelector('div[style*="display:flex;gap:8px"]');
+      actDiv0.appendChild(btnR0);
+      actDiv0.appendChild(btnD0);
+      planSec0.appendChild(card);
+    });
+    el.appendChild(planSec0);
     return;
   }
 
@@ -4777,6 +4826,158 @@ function renderPapelera(){
   table.appendChild(tbody);
   el.innerHTML = '';
   el.appendChild(table);
+
+  // ── Plan Trash Section ──────────────────────────────
+  var planTrashKeys = Object.keys(planTrash);
+  if(planTrashKeys.length > 0){
+    var planSection = document.createElement('div');
+    planSection.style.cssText = 'margin-top:20px;border-top:2px solid var(--border);padding-top:16px;';
+    var planSectionTitle = document.createElement('div');
+    planSectionTitle.style.cssText = 'font-family:Syne,sans-serif;font-weight:800;font-size:13px;color:var(--accent);margin-bottom:12px;letter-spacing:.05em;text-transform:uppercase;';
+    planSectionTitle.textContent = '📦 '+(isEN ? 'Plans in Trash' : 'Planes en Papelera');
+    planSection.appendChild(planSectionTitle);
+
+    planTrashKeys.forEach(function(pKey){
+      var p = planTrash[pKey];
+      var card = document.createElement('div');
+      card.style.cssText = 'display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;';
+      card.innerHTML =
+        '<span style="font-size:22px">📦</span>'+
+        '<div style="flex:1">'+
+          '<strong style="font-family:Syne,sans-serif;font-size:14px">'+esc(isEN?p.nameEN:p.nameES)+'</strong>'+
+          '<span style="font-size:11px;color:var(--muted);margin-left:8px">/ '+esc(isEN?p.nameES:p.nameEN)+'</span>'+
+          '<br/><span style="font-size:12px;color:var(--accent);font-weight:700">'+esc(p.priceES||p.priceEN||'')+'</span>'+
+          '<span style="font-size:11px;color:var(--muted);margin-left:6px">'+(isEN?'Deleted:':'Eliminado:')+' '+(p.deletedAt?p.deletedAt.split('T')[0]:'—')+'</span>'+
+        '</div>'+
+        '<div style="display:flex;gap:8px">';
+
+      var btnRestPlan = document.createElement('button');
+      btnRestPlan.className = 'act-btn success-btn';
+      btnRestPlan.textContent = isEN ? '↩ Restore' : '↩ Restaurar';
+      btnRestPlan.onclick = (function(k){ return function(){ restaurarPlan(k); }; })(pKey);
+
+      var btnDelPlan = document.createElement('button');
+      btnDelPlan.className = 'act-btn danger';
+      btnDelPlan.textContent = isEN ? '🗑 Delete' : '🗑 Borrar';
+      btnDelPlan.onclick = (function(k){ return function(){ eliminarPlanPermanente(k); }; })(pKey);
+
+      var actDiv = card.querySelector('div[style*="display:flex;gap:8px"]');
+      actDiv.appendChild(btnRestPlan);
+      actDiv.appendChild(btnDelPlan);
+      planSection.appendChild(card);
+    });
+
+    el.appendChild(planSection);
+  }
+}
+
+
+// ── PLAN MANAGEMENT ─────────────────────────────────────
+
+var _planModalKey = null; // null = new plan, string = editing existing key
+
+function openPlanModal(key){
+  _planModalKey = key || null;
+  var isEN = _masterLang === 'en';
+  var p = key ? (plans[key] || {}) : {};
+  document.getElementById('planModalTitle').textContent = key
+    ? (isEN ? '✏️ Edit Plan' : '✏️ Editar Plan')
+    : (isEN ? '📦 New Plan' : '📦 Nuevo Plan');
+  document.getElementById('planKeyField').value    = key || '';
+  document.getElementById('planKeyField').disabled = !!key;
+  document.getElementById('planNameES').value  = p.nameES  || '';
+  document.getElementById('planNameEN').value  = p.nameEN  || '';
+  document.getElementById('planPriceES').value = p.priceES || '';
+  document.getElementById('planPriceEN').value = p.priceEN || '';
+  document.getElementById('planModalErr').textContent = '';
+  document.getElementById('planModal').classList.add('open');
+}
+
+function closePlanModal(){
+  document.getElementById('planModal').classList.remove('open');
+}
+
+function savePlanModal(){
+  var isEN = _masterLang === 'en';
+  var key     = document.getElementById('planKeyField').value.trim().toLowerCase().replace(/\s+/g,'_');
+  var nameES  = document.getElementById('planNameES').value.trim();
+  var nameEN  = document.getElementById('planNameEN').value.trim();
+  var priceES = document.getElementById('planPriceES').value.trim();
+  var priceEN = document.getElementById('planPriceEN').value.trim();
+  var errEl   = document.getElementById('planModalErr');
+
+  if(!key)    { errEl.textContent = isEN?'Plan key/ID is required.':'El ID del plan es requerido.'; return; }
+  if(!nameES) { errEl.textContent = isEN?'Spanish name is required.':'El nombre en español es requerido.'; return; }
+  if(!priceES){ errEl.textContent = isEN?'Price is required.':'El precio es requerido.'; return; }
+
+  // If new plan and key already taken
+  if(!_planModalKey && plans[key]){
+    errEl.textContent = isEN ? 'A plan with that ID already exists.' : 'Ya existe un plan con ese ID.';
+    return;
+  }
+
+  plans[key] = {
+    nameES: nameES,
+    nameEN: nameEN || nameES,
+    priceES: priceES,
+    priceEN: priceEN || priceES
+  };
+
+  closePlanModal();
+  saveConfig();
+  renderConfigPanel();
+  showToast(isEN ? '✅ Plan saved' : '✅ Plan guardado');
+}
+
+function trashPlan(key){
+  var isEN = _masterLang === 'en';
+  if(!plans[key]) return;
+  var p = Object.assign({}, plans[key], { key: key, deletedAt: new Date().toISOString(), _trashType: 'plan' });
+  planTrash[key] = p;
+  delete plans[key];
+  saveConfig();
+  renderConfigPanel();
+  updatePapeleraBadge();
+  showToast(isEN ? '🗑 Plan moved to trash' : '🗑 Plan movido a papelera');
+}
+
+function restaurarPlan(key){
+  var isEN = _masterLang === 'en';
+  if(!planTrash[key]) return;
+  var p = Object.assign({}, planTrash[key]);
+  delete p.key; delete p.deletedAt; delete p._trashType;
+  plans[key] = p;
+  delete planTrash[key];
+  saveConfig();
+  renderPapelera();
+  renderConfigPanel();
+  updatePapeleraBadge();
+  showToast(isEN ? '✅ Plan restored' : '✅ Plan restaurado');
+}
+
+function eliminarPlanPermanente(key){
+  var isEN = _masterLang === 'en';
+  var p = planTrash[key];
+  if(!p) return;
+  showDeleteConfirm({
+    icon: '📦',
+    title: isEN ? 'Delete Plan Forever?' : '¿Eliminar Plan para Siempre?',
+    sub: isEN
+      ? 'This plan will be permanently removed. This CANNOT be undone.'
+      : 'Este plan será eliminado para siempre. Esta acción NO se puede deshacer.',
+    rows: [
+      { key: isEN?'Plan':'Plan',   val: esc(isEN?p.nameEN:p.nameES), cls:'' },
+      { key: isEN?'Price':'Precio',val: esc(p.priceES||'—'),          cls:'' }
+    ],
+    confirmLabel: isEN ? '🗑 Delete forever' : '🗑 Borrar para siempre',
+    onConfirm: function(){
+      delete planTrash[key];
+      saveConfig();
+      renderPapelera();
+      updatePapeleraBadge();
+      showToast(isEN ? '🗑 Plan permanently deleted' : '🗑 Plan eliminado permanentemente');
+    }
+  });
 }
 
 
@@ -5149,15 +5350,25 @@ function renderConfig(){
     }).join('')||'<div style="color:var(--muted);font-size:13px;padding:8px 0">'+t.noPayMethods+'</div>';
 
   // Plans
+  var planKeys = Object.keys(plans);
+  var isEN2 = isEN;
   document.getElementById('plansConfig').innerHTML =
-    Object.keys(plans).map(function(key){
-      var p = plans[key];
-      return '<div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--border)">'+
-        '<div style="flex:1"><strong style="font-family:Syne,sans-serif">'+esc(isEN?p.nameEN:p.nameES)+'</strong></div>'+
-        '<div class="mfield" style="margin:0;width:100px"><input type="text" value="'+esc(isEN?p.priceEN:p.priceES)+'" placeholder="$49" onchange="plans[\''+key+'\'].priceES=plans[\''+key+'\'].priceEN=this.value" style="text-align:center"/></div>'+
-        '<span style="color:var(--muted);font-size:12px">'+t.perMonth+'</span>'+
-      '</div>';
-    }).join('');
+    (planKeys.length === 0
+      ? '<div style="color:var(--muted);font-size:13px;padding:8px 0;text-align:center">'+( isEN2?'No plans configured. Add one above.':'Sin planes configurados. Agrega uno arriba.')+'</div>'
+      : planKeys.map(function(key){
+          var p = plans[key];
+          return '<div style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)">'+
+            '<div style="flex:1">'+
+              '<strong style="font-family:Syne,sans-serif;font-size:14px">'+esc(isEN2?p.nameEN:p.nameES)+'</strong>'+
+              (p.nameES !== p.nameEN ? '<span style="font-size:11px;color:var(--muted);margin-left:8px">/'+esc(isEN2?p.nameES:p.nameEN)+'</span>' : '')+
+            '</div>'+
+            '<div style="font-family:Syne,sans-serif;font-weight:800;font-size:18px;color:var(--accent);min-width:70px;text-align:center">'+esc(isEN2?p.priceEN:p.priceES)+'</div>'+
+            '<span style="color:var(--muted);font-size:12px">/mes</span>'+
+            '<button class="act-btn" onclick="openPlanModal(\''+key+'\')" style="margin-left:8px">✏️ '+(isEN2?'Edit':'Editar')+'</button>'+
+            '<button class="act-btn danger" onclick="trashPlan(\''+key+'\')" title="'+(isEN2?'Send to trash':'Enviar a papelera')+'">🗑</button>'+
+          '</div>';
+        }).join('')
+    );
 
   // Credentials section — dynamic so it translates with lang toggle
   var credSec = document.getElementById('credencialesSection');
@@ -7412,6 +7623,60 @@ async function fbLoadMasterMods(){
         onmouseover="this.style.borderColor='#444';this.style.color='#aaa'" onmouseout="this.style.borderColor='#2a2a2a';this.style.color='#666'">
         Ahora no / Maybe later
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- PLAN MODAL -->
+<div class="modal-overlay" id="planModal" style="z-index:10020">
+  <div class="modal-box" style="max-width:480px;background:#141414;border:1px solid #2a2a2a">
+    <div class="modal-head">
+      <h3 id="planModalTitle" style="color:#f0f0f0">📦 Nuevo Plan</h3>
+      <button class="modal-close" onclick="closePlanModal()" style="color:#f0f0f0">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Plan Key -->
+      <div class="mfield">
+        <label style="color:#666">ID del Plan <span style="color:#444;font-size:10px;text-transform:none;letter-spacing:0">(solo letras, sin espacios — ej: starter, pro, premium)</span></label>
+        <input type="text" id="planKeyField" placeholder="ej: premium" style="font-family:'DM Sans',sans-serif;background:#1e1e1e;border:1.5px solid #2a2a2a;border-radius:9px;padding:11px 14px;color:#f0f0f0;width:100%;outline:none;" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9_]/g,'')"/>
+        <div style="font-size:11px;color:#555;margin-top:4px">Este ID es único y no se puede cambiar después de crear el plan.</div>
+      </div>
+
+      <!-- Names -->
+      <div class="mfield-row">
+        <div class="mfield" style="margin-bottom:0">
+          <label style="color:#666">Nombre (Español)</label>
+          <input type="text" id="planNameES" placeholder="ej: Profesional" style="font-family:'DM Sans',sans-serif;background:#1e1e1e;border:1.5px solid #2a2a2a;border-radius:9px;padding:11px 14px;color:#f0f0f0;width:100%;outline:none;"/>
+        </div>
+        <div class="mfield" style="margin-bottom:0">
+          <label style="color:#666">Name (English)</label>
+          <input type="text" id="planNameEN" placeholder="e.g. Professional" style="font-family:'DM Sans',sans-serif;background:#1e1e1e;border:1.5px solid #2a2a2a;border-radius:9px;padding:11px 14px;color:#f0f0f0;width:100%;outline:none;"/>
+        </div>
+      </div>
+      <div style="height:12px"></div>
+
+      <!-- Prices -->
+      <div class="mfield-row">
+        <div class="mfield" style="margin-bottom:0">
+          <label style="color:#666">Precio (Español / USD)</label>
+          <input type="text" id="planPriceES" placeholder="ej: $97" style="font-family:'Syne',sans-serif;font-weight:800;font-size:16px;background:#1e1e1e;border:1.5px solid #2a2a2a;border-radius:9px;padding:11px 14px;color:#e8ff3c;width:100%;outline:none;text-align:center;"/>
+        </div>
+        <div class="mfield" style="margin-bottom:0">
+          <label style="color:#666">Price (English / USD)</label>
+          <input type="text" id="planPriceEN" placeholder="e.g. $97" style="font-family:'Syne',sans-serif;font-weight:800;font-size:16px;background:#1e1e1e;border:1.5px solid #2a2a2a;border-radius:9px;padding:11px 14px;color:#e8ff3c;width:100%;outline:none;text-align:center;"/>
+        </div>
+      </div>
+      <div style="font-size:11px;color:#555;margin-top:6px">Si el precio EN está vacío, se usará el mismo que el precio ES.</div>
+
+      <!-- Error message -->
+      <div id="planModalErr" style="color:#ff4444;font-size:13px;min-height:18px;margin-top:10px;font-weight:600"></div>
+
+      <!-- Buttons -->
+      <div class="btn-row-modal" style="border-top:1px solid #2a2a2a;margin-top:16px;padding-top:16px;">
+        <button class="btn btn-ghost" onclick="closePlanModal()" style="border-color:#2a2a2a;color:#666">Cancelar</button>
+        <button class="btn btn-accent" onclick="savePlanModal()">💾 Guardar Plan</button>
+      </div>
     </div>
   </div>
 </div>
