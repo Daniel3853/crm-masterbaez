@@ -715,7 +715,57 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
             </div>
           </div>
         </div>
+
+        <!-- ── CREDIT CARD POLICY ── -->
+        <div style="padding:0 20px 20px">
+          <div style="border-top:1px solid var(--border);padding-top:18px;margin-top:4px">
+
+            <!-- Header row -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+              <div>
+                <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent2);font-weight:700;margin-bottom:4px">📄 Política de Tarjeta de Crédito</div>
+                <div style="font-size:11px;color:var(--muted)">Credit Card Payment Policy · Florida Law</div>
+              </div>
+              <div style="display:flex;gap:7px;flex-wrap:wrap">
+                <button onclick="openCCPolicyModal('es')" class="act-btn" style="color:var(--accent2);border-color:var(--accent2);font-size:11px;padding:5px 11px">🇪🇸 Ver Español</button>
+                <button onclick="openCCPolicyModal('en')" class="act-btn" style="color:#60a5fa;border-color:#60a5fa;font-size:11px;padding:5px 11px">🇺🇸 View English</button>
+                <button onclick="printCCPolicy()" class="act-btn" style="color:var(--warn);border-color:var(--warn);font-size:11px;padding:5px 11px">🖨️ Imprimir/PDF</button>
+                <button onclick="copyCCPolicyEmail()" id="ccCopyBtn" class="act-btn" style="font-size:11px;padding:5px 11px">📋 Copiar Email</button>
+              </div>
+            </div>
+
+            <!-- Quick fee summary cards -->
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+              <div style="background:rgba(60,255,212,.04);border:1px solid rgba(60,255,212,.2);border-radius:10px;padding:12px 14px">
+                <div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent2);font-weight:700;margin-bottom:4px">💳 Cargo Conveniencia</div>
+                <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:var(--accent2)">$3.50</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:2px">por pago con crédito / per credit payment</div>
+              </div>
+              <div style="background:rgba(255,68,68,.04);border:1px solid rgba(255,68,68,.2);border-radius:10px;padding:12px 14px">
+                <div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--danger);font-weight:700;margin-bottom:4px">🚫 Pago Rechazado</div>
+                <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:var(--danger)">$25–$50</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:2px">según motivo · 3–5 días para subsanar</div>
+              </div>
+              <div style="background:rgba(34,197,94,.04);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:12px 14px">
+                <div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--success);font-weight:700;margin-bottom:4px">✅ Sin Cargo</div>
+                <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:var(--success)">$0.00</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:2px">débito · ACH · efectivo · cheque</div>
+              </div>
+            </div>
+
+            <!-- Legal tags -->
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <span style="background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:10px;color:var(--muted);font-weight:600">⚖️ FL Stat. §501.0117</span>
+              <span style="background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:10px;color:var(--muted);font-weight:600">⚖️ FL Stat. §68.065</span>
+              <span style="background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:10px;color:var(--muted);font-weight:600">⚖️ FDUTPA Ch.501</span>
+              <span style="background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:10px;color:var(--muted);font-weight:600">⚖️ Dodd-Frank §1075</span>
+            </div>
+
+          </div>
+        </div>
+
       </div>
+    </div>
 
       <!-- PLANS -->
       <div class="section-card">
@@ -7626,6 +7676,156 @@ async function fbLoadMasterMods(){
     </div>
   </div>
 </div>
+
+<!-- CC POLICY MODAL -->
+<div class="modal-overlay" id="ccPolicyModal" style="z-index:10015;padding:12px;">
+  <div style="background:#fdfcf8;border-radius:16px;width:100%;max-width:780px;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.6);">
+    <div style="position:sticky;top:0;z-index:10;background:#1a3a5c;padding:12px 20px;border-radius:16px 16px 0 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#fff;">💳 Política de Tarjeta <span style="color:#d4a017;font-weight:400;font-size:12px">· Credit Card Payment Policy</span></div>
+      <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;">
+        <button onclick="setCCLang('es')" id="ccBtnES" style="padding:5px 13px;border-radius:20px;border:1.5px solid rgba(255,255,255,.4);background:#d4a017;color:#000;font-weight:800;font-size:11px;cursor:pointer;font-family:'Syne',sans-serif;">🇪🇸 Español</button>
+        <button onclick="setCCLang('en')" id="ccBtnEN" style="padding:5px 13px;border-radius:20px;border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-weight:700;font-size:11px;cursor:pointer;font-family:'Syne',sans-serif;">🇺🇸 English</button>
+        <button onclick="printCCPolicy()" style="padding:5px 13px;border-radius:20px;border:none;background:#d4a017;color:#000;font-weight:800;font-size:11px;cursor:pointer;font-family:'Syne',sans-serif;">🖨️ PDF</button>
+        <button onclick="copyCCPolicyEmail()" id="ccCopyBtn2" style="padding:5px 13px;border-radius:20px;border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-weight:700;font-size:11px;cursor:pointer;font-family:'Syne',sans-serif;">📋 Email</button>
+        <button onclick="closeCCPolicyModal()" style="background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.25);border-radius:6px;color:#fff;font-size:16px;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+      </div>
+    </div>
+    <div style="background:#1a3a5c;padding:28px 40px 22px;border-bottom:4px solid #b8860b;">
+      <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:3px 14px;margin-bottom:14px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#d4a017;">📋 Documento Oficial · Official Document</div>
+      <div id="ccTitleES" style="font-family:'Syne',sans-serif;font-weight:900;font-size:22px;color:#fff;margin-bottom:4px;">Política de Pagos con Tarjeta de Crédito</div>
+      <div id="ccTitleEN" style="font-family:'Syne',sans-serif;font-weight:900;font-size:22px;color:#fff;margin-bottom:4px;display:none;">Credit Card Payment Policy</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.5);font-style:italic;margin-bottom:14px;">Estado de Florida / State of Florida</div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;">
+        <span style="font-size:11px;color:rgba(255,255,255,.6);"><strong style="color:rgba(255,255,255,.9);">Estado / State:</strong> Florida, USA</span>
+        <span style="font-size:11px;color:rgba(255,255,255,.6);"><strong style="color:rgba(255,255,255,.9);">Versión:</strong> 2025.1</span>
+        <span style="font-size:11px;color:rgba(255,255,255,.6);"><strong style="color:rgba(255,255,255,.9);">Vigente:</strong> <span id="ccEffDate"></span></span>
+      </div>
+    </div>
+    <div style="padding:32px 40px;color:#0e1117;">
+      <div style="border-left:4px solid #b8860b;background:#fdf8ed;padding:14px 18px;margin-bottom:28px;border-radius:0 4px 4px 0;">
+        <div id="ccAlertTitle" style="font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#b8860b;margin-bottom:5px;">⚠️ Aviso Importante — Lea antes de pagar</div>
+        <p id="ccAlertBody" style="font-size:13px;line-height:1.7;color:#5a4a1a;">Al proporcionar una tarjeta de crédito o débito como forma de pago, usted acepta los términos, cargos y condiciones descritos en este documento conforme a las leyes del Estado de Florida.</p>
+      </div>
+      <div style="margin-bottom:32px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#b8860b;display:flex;align-items:center;gap:8px;margin-bottom:8px;">Sección 01 · Section 01 <span style="flex:1;height:1px;background:#d4cfc4;"></span></div>
+        <div id="ccS1Title" style="font-family:'Syne',sans-serif;font-weight:700;font-size:17px;color:#1a3a5c;margin-bottom:12px;">💳 Cargo por Conveniencia de Tarjeta de Crédito</div>
+        <p id="ccS1Body" style="font-size:13px;line-height:1.85;color:#2a2a2a;margin-bottom:10px;">Para cubrir los costos de procesamiento, se aplica un <strong>cargo fijo de $3.50</strong> a todas las transacciones realizadas con tarjeta de crédito.</p>
+        <div style="background:#f0f4f8;border:1px solid #c8d8e8;border-radius:4px;padding:10px 14px;margin:10px 0;font-size:12px;color:#2a4a6a;line-height:1.7;"><strong>📜 Florida Statute § 501.0117</strong> — Permite a los comerciantes cobrar un cargo por conveniencia claramente divulgado antes de la transacción. / Allows merchants to charge a clearly-disclosed convenience fee prior to the transaction.</div>
+        <div style="background:#f0f4f8;border:1px solid #c8d8e8;border-radius:4px;padding:10px 14px;margin:10px 0;font-size:12px;color:#2a4a6a;line-height:1.7;"><strong>📜 Dodd-Frank Act §1075</strong> — Los comerciantes pueden aplicar recargos en tarjetas de crédito sin exceder los costos de aceptación de la red. / Merchants may apply surcharges on credit cards not exceeding network acceptance costs.</div>
+        <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:13px;">
+          <thead><tr style="background:#1a3a5c;"><th style="padding:9px 12px;color:#fff;text-align:left;font-size:11px;text-transform:uppercase;">Tipo / Card Type</th><th style="padding:9px 12px;color:#fff;text-align:left;font-size:11px;text-transform:uppercase;">Cargo / Fee</th><th style="padding:9px 12px;color:#fff;text-align:left;font-size:11px;text-transform:uppercase;">Notas / Notes</th></tr></thead>
+          <tbody>
+            <tr style="background:#e8f0f7;"><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;">💳 Tarjeta de Crédito / Credit Card</td><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;font-weight:800;color:#1a3a5c;">$3.50</td><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;">Se suma al total / Added to total</td></tr>
+            <tr><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;">🏦 Tarjeta de Débito / Debit Card</td><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;font-weight:800;color:#1a4a1a;">$0.00</td><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;">Sin cargo / No fee</td></tr>
+            <tr style="background:#f5f5f5;"><td style="padding:10px 12px;">🏦 ACH / Transferencia</td><td style="padding:10px 12px;font-weight:800;color:#1a4a1a;">$0.00</td><td style="padding:10px 12px;">Sin cargo / No fee</td></tr>
+          </tbody>
+        </table>
+        <div style="background:#e8f4fd;border-left:3px solid #2196f3;border-radius:4px;padding:12px 16px;font-size:13px;color:#1a3a5a;line-height:1.7;"><strong id="ccEx">ℹ️ Ejemplo:</strong> <span id="ccExBody">Servicio $100.00 + cargo $3.50 = <strong>$103.50 total</strong>.</span></div>
+      </div>
+      <div style="margin-bottom:32px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#b8860b;display:flex;align-items:center;gap:8px;margin-bottom:8px;">Sección 02 · Section 02 <span style="flex:1;height:1px;background:#d4cfc4;"></span></div>
+        <div id="ccS2Title" style="font-family:'Syne',sans-serif;font-weight:700;font-size:17px;color:#1a3a5c;margin-bottom:12px;">🚫 Cargo por Pago Rechazado / Declined Payment Fee</div>
+        <p id="ccS2Body" style="font-size:13px;line-height:1.85;color:#2a2a2a;margin-bottom:10px;">Si su tarjeta es <strong>declinada o el pago devuelto</strong>, se aplicará automáticamente un cargo según la causa.</p>
+        <div style="background:#f0f4f8;border:1px solid #c8d8e8;border-radius:4px;padding:10px 14px;margin:10px 0;font-size:12px;color:#2a4a6a;line-height:1.7;"><strong>📜 Florida Statute § 68.065</strong> — Autoriza cargos adicionales por pagos rechazados: hasta $25 (montos ≤$50), hasta $30 ($50–$300), hasta 5% o mínimo $30 (más de $300). / Authorizes declined payment fees based on transaction amount.</div>
+        <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:13px;">
+          <thead><tr style="background:#1a3a5c;"><th style="padding:9px 12px;color:#fff;text-align:left;font-size:11px;text-transform:uppercase;">Causa / Reason</th><th style="padding:9px 12px;color:#fff;text-align:left;font-size:11px;text-transform:uppercase;">Cargo / Fee</th><th style="padding:9px 12px;color:#fff;text-align:left;font-size:11px;text-transform:uppercase;">Plazo / Cure Period</th></tr></thead>
+          <tbody>
+            <tr><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;">Fondos insuficientes / Insufficient Funds</td><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;font-weight:800;color:#8b1a1a;">$35.00</td><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;">5 días hábiles</td></tr>
+            <tr style="background:#f5f5f5;"><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;">Tarjeta vencida / Expired Card</td><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;font-weight:800;color:#8b1a1a;">$25.00</td><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;">3 días hábiles</td></tr>
+            <tr><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;">Límite excedido / Limit Exceeded</td><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;font-weight:800;color:#8b1a1a;">$35.00</td><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;">5 días hábiles</td></tr>
+            <tr style="background:#f5f5f5;"><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;">Chargeback no autorizado / Unauthorized Chargeback</td><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;font-weight:800;color:#8b1a1a;">$50.00</td><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;">Resolución requerida</td></tr>
+            <tr><td style="padding:10px 12px;">Tarjeta bloqueada / Card Blocked</td><td style="padding:10px 12px;font-weight:800;color:#8b1a1a;">$25.00</td><td style="padding:10px 12px;">3 días hábiles</td></tr>
+          </tbody>
+        </table>
+        <div style="background:#fdecea;border-left:3px solid #c62828;border-radius:4px;padding:12px 16px;font-size:13px;color:#4a0000;line-height:1.7;"><strong>⚠️ <span id="ccSuspTitle">Suspensión de Servicio:</span></strong> <span id="ccSuspBody">El incumplimiento dentro del plazo resultará en la <strong>suspensión inmediata del servicio</strong> hasta que el saldo sea saldado en su totalidad.</span></div>
+      </div>
+      <div style="margin-bottom:28px;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#b8860b;display:flex;align-items:center;gap:8px;margin-bottom:8px;">Sección 03 · Section 03 <span style="flex:1;height:1px;background:#d4cfc4;"></span></div>
+        <div id="ccS3Title" style="font-family:'Syne',sans-serif;font-weight:700;font-size:17px;color:#1a3a5c;margin-bottom:12px;">✍️ Autorización del Cliente / Client Authorization</div>
+        <div style="display:flex;gap:0;border:1px solid #d4cfc4;border-radius:4px;overflow:hidden;margin:10px 0;">
+          <div style="flex:1;padding:14px 16px;background:#fafafa;border-right:1px solid #d4cfc4;font-size:13px;line-height:1.7;"><div style="font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#b8860b;margin-bottom:5px;">🇪🇸 Español</div>Yo, el abajo firmante, acepto el <strong>cargo de $3.50</strong> en pagos con tarjeta de crédito y el <strong>cargo por pago rechazado</strong> conforme a las leyes del Estado de Florida.</div>
+          <div style="flex:1;padding:14px 16px;background:#f0f4f8;font-size:13px;line-height:1.7;"><div style="font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#2a6099;margin-bottom:5px;">🇺🇸 English</div>I, the undersigned, accept the <strong>$3.50 fee</strong> on credit card payments and the <strong>declined payment fee</strong> under the laws of the State of Florida.</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px;padding-top:18px;border-top:2px solid #d4cfc4;">
+          <div><div style="border-bottom:1.5px solid #111;min-height:36px;margin-bottom:4px;"></div><div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#888;">Firma / Signature</div></div>
+          <div><div style="border-bottom:1.5px solid #111;min-height:36px;margin-bottom:4px;"></div><div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#888;">Nombre / Full Name</div></div>
+          <div><div style="border-bottom:1.5px solid #111;min-height:36px;margin-bottom:4px;"></div><div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#888;">Fecha / Date</div></div>
+          <div><div style="border-bottom:1.5px solid #111;min-height:36px;margin-bottom:4px;"></div><div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#888;">Últimos 4 dígitos / Last 4 digits</div></div>
+        </div>
+      </div>
+      <div style="background:#f5f3ef;border-top:2px solid #d4cfc4;padding-top:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+        <div style="font-size:10px;color:#999;line-height:1.7;"><strong>Estado de Florida · State of Florida</strong><br/>FL Stat. §501.0117 · §68.065 · FDUTPA Ch.501 · FCBA 15 U.S.C. §1666 · Dodd-Frank §1075<br/><span id="ccFooterText">Este documento es legalmente vinculante bajo las leyes del Estado de Florida.</span></div>
+        <div style="font-size:28px;">⚖️</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var _ccLang = 'es';
+(function(){
+  var el = document.getElementById('ccEffDate');
+  if(el) el.textContent = new Date().toLocaleDateString('es-US',{year:'numeric',month:'long',day:'numeric'});
+})();
+function openCCPolicyModal(lang){ setCCLang(lang||_ccLang); document.getElementById('ccPolicyModal').classList.add('open'); }
+function closeCCPolicyModal(){ document.getElementById('ccPolicyModal').classList.remove('open'); }
+function setCCLang(lang){
+  _ccLang = lang; var isEN = lang==='en';
+  document.getElementById('ccTitleES').style.display = isEN?'none':'';
+  document.getElementById('ccTitleEN').style.display = isEN?'':'none';
+  document.getElementById('ccBtnES').style.cssText = isEN ? 'padding:5px 13px;border-radius:20px;border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-weight:700;font-size:11px;cursor:pointer;font-family:Syne,sans-serif;' : 'padding:5px 13px;border-radius:20px;border:1.5px solid rgba(255,255,255,.4);background:#d4a017;color:#000;font-weight:800;font-size:11px;cursor:pointer;font-family:Syne,sans-serif;';
+  document.getElementById('ccBtnEN').style.cssText = isEN ? 'padding:5px 13px;border-radius:20px;border:1.5px solid rgba(255,255,255,.4);background:#d4a017;color:#000;font-weight:800;font-size:11px;cursor:pointer;font-family:Syne,sans-serif;' : 'padding:5px 13px;border-radius:20px;border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font-weight:700;font-size:11px;cursor:pointer;font-family:Syne,sans-serif;';
+  var t={
+    alertTitle: isEN?'⚠️ Important Notice — Please read before payment':'⚠️ Aviso Importante — Lea antes de pagar',
+    alertBody: isEN?'By providing a credit or debit card, you agree to the terms described in this document in accordance with the laws of the State of Florida.':'Al proporcionar una tarjeta de crédito o débito, usted acepta los términos descritos en este documento conforme a las leyes del Estado de Florida.',
+    s1Title: isEN?'💳 Credit Card Convenience Fee':'💳 Cargo por Conveniencia de Tarjeta de Crédito',
+    s1Body: isEN?'To cover processing costs, a flat <strong>$3.50 convenience fee</strong> applies to all credit card transactions. This is a legal and regulated practice in the State of Florida.':'Para cubrir los costos de procesamiento, se aplica un <strong>cargo fijo de $3.50</strong> a todas las transacciones con tarjeta de crédito. Práctica legal en el Estado de Florida.',
+    s2Title: isEN?'🚫 Declined Card / Returned Payment Fee':'🚫 Cargo por Pago Rechazado / Tarjeta Declinada',
+    s2Body: isEN?'If your card is <strong>declined or payment returned</strong> for any reason, a fee applies automatically.':'Si su tarjeta es <strong>declinada o el pago devuelto</strong> por cualquier razón, se aplica automáticamente un cargo.',
+    s3Title: isEN?'✍️ Client Authorization':'✍️ Autorización del Cliente',
+    suspTitle: isEN?'Service Suspension:':'Suspensión de Servicio:',
+    suspBody: isEN?'Failure to pay within the period will result in <strong>immediate service suspension</strong> until the balance is paid in full.':'El incumplimiento resultará en la <strong>suspensión inmediata del servicio</strong> hasta que el saldo sea saldado.',
+    ex: isEN?'ℹ️ Example:':'ℹ️ Ejemplo:',
+    exBody: isEN?'$100.00 service + $3.50 fee = <strong>$103.50 total</strong>.':'Servicio $100.00 + cargo $3.50 = <strong>$103.50 total</strong>.',
+    footerText: isEN?'This document is legally binding under the laws of the State of Florida.':'Este documento es legalmente vinculante bajo las leyes del Estado de Florida.',
+    copyLbl: isEN?'📋 Copy Email':'📋 Copiar Email'
+  };
+  document.getElementById('ccAlertTitle').textContent=t.alertTitle;
+  document.getElementById('ccAlertBody').textContent=t.alertBody;
+  document.getElementById('ccS1Title').textContent=t.s1Title;
+  document.getElementById('ccS1Body').innerHTML=t.s1Body;
+  document.getElementById('ccS2Title').textContent=t.s2Title;
+  document.getElementById('ccS2Body').innerHTML=t.s2Body;
+  document.getElementById('ccS3Title').textContent=t.s3Title;
+  document.getElementById('ccSuspTitle').textContent=t.suspTitle;
+  document.getElementById('ccSuspBody').innerHTML=t.suspBody;
+  document.getElementById('ccEx').textContent=t.ex;
+  document.getElementById('ccExBody').innerHTML=t.exBody;
+  document.getElementById('ccFooterText').textContent=t.footerText;
+  ['ccCopyBtn','ccCopyBtn2'].forEach(function(id){var b=document.getElementById(id);if(b)b.textContent=t.copyLbl;});
+}
+function printCCPolicy(){
+  var isEN=_ccLang==='en';
+  var w=window.open('','_blank');
+  var st='<style>body{font-family:Georgia,serif;max-width:720px;margin:40px auto;color:#111;font-size:14px;line-height:1.7}h1{color:#1a3a5c;font-size:22px}h2{color:#1a3a5c;font-size:16px;border-bottom:2px solid #b8860b;padding-bottom:4px;margin-top:24px}table{width:100%;border-collapse:collapse;margin:12px 0}th{background:#1a3a5c;color:#fff;padding:8px 12px;text-align:left;font-size:11px;text-transform:uppercase}td{padding:9px 12px;border-bottom:1px solid #ddd}tr:nth-child(even)td{background:#f5f5f5}.cite{background:#eef4fb;border:1px solid #c8d8e8;padding:10px 14px;font-size:12px;margin:8px 0;border-radius:3px}.sig{border-bottom:1.5px solid #111;min-height:38px;margin-bottom:4px}.sig-lbl{font-size:10px;color:#888;letter-spacing:.08em;text-transform:uppercase}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:20px}@media print{@page{margin:20mm}}</style>';
+  var body='';
+  if(isEN){body='<h1>Credit Card Payment Policy</h1><p><b>State:</b> Florida, USA &nbsp;|&nbsp; <b>Version:</b> 2025.1</p><hr/><h2>1. Credit Card Convenience Fee</h2><p>A flat <b>$3.50 convenience fee</b> applies to all credit card transactions.</p><div class="cite">📜 FL Stat. §501.0117 — Merchants may charge a clearly-disclosed convenience fee prior to the transaction.</div><div class="cite">📜 Dodd-Frank Act §1075 — Surcharges may not exceed card network acceptance costs.</div><table><tr><th>Card Type</th><th>Fee</th><th>Notes</th></tr><tr><td>💳 Credit Card</td><td><b>$3.50</b></td><td>Added to total</td></tr><tr><td>🏦 Debit Card</td><td><b>$0.00</b></td><td>No fee</td></tr><tr><td>🏦 ACH Transfer</td><td><b>$0.00</b></td><td>No fee</td></tr></table><p><b>Example:</b> $100.00 service + $3.50 = <b>$103.50 total</b></p><h2>2. Declined / Returned Payment Fee</h2><p>If your card is declined or payment returned, the following fees apply automatically.</p><div class="cite">📜 FL Stat. §68.065 — Authorizes additional charges for returned/declined payments.</div><table><tr><th>Reason</th><th>Fee</th><th>Cure Period</th></tr><tr><td>Insufficient Funds</td><td><b style="color:#8b1a1a">$35.00</b></td><td>5 business days</td></tr><tr><td>Expired Card</td><td><b style="color:#8b1a1a">$25.00</b></td><td>3 business days</td></tr><tr><td>Limit Exceeded</td><td><b style="color:#8b1a1a">$35.00</b></td><td>5 business days</td></tr><tr><td>Unauthorized Chargeback</td><td><b style="color:#8b1a1a">$50.00</b></td><td>Resolution required</td></tr><tr><td>Card Blocked</td><td><b style="color:#8b1a1a">$25.00</b></td><td>3 business days</td></tr></table><h2>3. Client Authorization</h2><p>I, the undersigned, accept the $3.50 convenience fee on credit card payments and the declined payment fee per this document, under Florida law.</p><div class="grid2"><div><div class="sig"></div><div class="sig-lbl">Signature</div></div><div><div class="sig"></div><div class="sig-lbl">Full Name (Print)</div></div><div><div class="sig"></div><div class="sig-lbl">Date</div></div><div><div class="sig"></div><div class="sig-lbl">Last 4 digits of card</div></div></div><hr/><p style="font-size:11px;color:#888">FL Stat. §501.0117 · §68.065 · FDUTPA Ch.501 · FCBA 15 U.S.C. §1666 · Dodd-Frank §1075 — Legally binding under Florida law.</p>';}
+  else{body='<h1>Política de Pagos con Tarjeta de Crédito</h1><p><b>Estado:</b> Florida, USA &nbsp;|&nbsp; <b>Versión:</b> 2025.1</p><hr/><h2>1. Cargo por Conveniencia de Tarjeta de Crédito</h2><p>Se aplica un <b>cargo fijo de $3.50</b> en todas las transacciones con tarjeta de crédito.</p><div class="cite">📜 FL Stat. §501.0117 — Permite al comerciante cobrar un cargo por conveniencia claramente divulgado antes de la transacción.</div><div class="cite">📜 Dodd-Frank Act §1075 — Los recargos no deben exceder los costos de aceptación de la red.</div><table><tr><th>Tipo de Tarjeta</th><th>Cargo</th><th>Notas</th></tr><tr><td>💳 Tarjeta de Crédito</td><td><b>$3.50</b></td><td>Se suma al total</td></tr><tr><td>🏦 Tarjeta de Débito</td><td><b>$0.00</b></td><td>Sin cargo</td></tr><tr><td>🏦 Transferencia ACH</td><td><b>$0.00</b></td><td>Sin cargo</td></tr></table><p><b>Ejemplo:</b> Servicio $100.00 + $3.50 = <b>$103.50 total</b></p><h2>2. Cargo por Pago Rechazado / Tarjeta Declinada</h2><p>Si su tarjeta es declinada o el pago devuelto, se aplican automáticamente los siguientes cargos.</p><div class="cite">📜 FL Stat. §68.065 — Autoriza cargos adicionales por pagos rechazados o devueltos.</div><table><tr><th>Causa</th><th>Cargo</th><th>Plazo</th></tr><tr><td>Fondos Insuficientes</td><td><b style="color:#8b1a1a">$35.00</b></td><td>5 días hábiles</td></tr><tr><td>Tarjeta Vencida</td><td><b style="color:#8b1a1a">$25.00</b></td><td>3 días hábiles</td></tr><tr><td>Límite Excedido</td><td><b style="color:#8b1a1a">$35.00</b></td><td>5 días hábiles</td></tr><tr><td>Chargeback No Autorizado</td><td><b style="color:#8b1a1a">$50.00</b></td><td>Resolución requerida</td></tr><tr><td>Tarjeta Bloqueada</td><td><b style="color:#8b1a1a">$25.00</b></td><td>3 días hábiles</td></tr></table><h2>3. Autorización del Cliente</h2><p>Yo, el abajo firmante, acepto el cargo de $3.50 en pagos con tarjeta de crédito y el cargo por pago rechazado, conforme a las leyes del Estado de Florida.</p><div class="grid2"><div><div class="sig"></div><div class="sig-lbl">Firma</div></div><div><div class="sig"></div><div class="sig-lbl">Nombre Completo (Letra de molde)</div></div><div><div class="sig"></div><div class="sig-lbl">Fecha</div></div><div><div class="sig"></div><div class="sig-lbl">Últimos 4 dígitos de tarjeta</div></div></div><hr/><p style="font-size:11px;color:#888">FL Stat. §501.0117 · §68.065 · FDUTPA Ch.501 · FCBA 15 U.S.C. §1666 · Dodd-Frank §1075 — Documento legalmente vinculante bajo las leyes del Estado de Florida.</p>';}
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"/>'+st+'</head><body>'+body+'</body></html>');
+  w.document.close(); w.focus(); setTimeout(function(){w.print();},500);
+}
+function copyCCPolicyEmail(){
+  var isEN=_ccLang==='en';
+  var lines=isEN?['Dear Client,','','Please review our Credit Card Payment Policy before completing your payment.','','📋 KEY FEES:','','1. CONVENIENCE FEE: A flat $3.50 fee applies to ALL CREDIT CARD payments.','   • Debit card, ACH, and cash: NO fee.','','2. DECLINED / RETURNED PAYMENT FEE:','   • Insufficient Funds / Limit Exceeded: $35.00','   • Expired / Blocked Card: $25.00','   • Unauthorized Chargeback: $50.00','   • Must be resolved in 3–5 business days or service will be suspended.','','3. LEGAL BASIS: FL Stat. §501.0117, §68.065, FDUTPA Ch.501, Dodd-Frank §1075.','','Please sign and return this document to proceed with payment.','','Sincerely,','[Business Name] | [Phone] | [Email]']:['Estimado/a Cliente,','','Le enviamos nuestra Política de Pagos con Tarjeta de Crédito para su revisión y firma.','','📋 CARGOS CLAVE:','','1. CARGO POR CONVENIENCIA: Se aplica un cargo fijo de $3.50 en TODOS los pagos con tarjeta de CRÉDITO.','   • Tarjeta de débito, ACH y efectivo: SIN cargo.','','2. CARGO POR PAGO RECHAZADO / DECLINADO:','   • Fondos Insuficientes / Límite Excedido: $35.00','   • Tarjeta Vencida / Bloqueada: $25.00','   • Chargeback No Autorizado: $50.00','   • Debe subsanarse en 3–5 días hábiles o el servicio será suspendido.','','3. BASE LEGAL: FL Stat. §501.0117, §68.065, FDUTPA Cap.501, Dodd-Frank §1075.','','Por favor firme y devuelva este documento para proceder con su pago.','','Atentamente,','[Nombre del Negocio] | [Teléfono] | [Email]'];
+  navigator.clipboard.writeText(lines.join('\n')).then(function(){
+    ['ccCopyBtn','ccCopyBtn2'].forEach(function(id){
+      var b=document.getElementById(id);
+      if(b){b.textContent=isEN?'✅ Copied!':'✅ ¡Copiado!';b.style.color='#22c55e';b.style.borderColor='#22c55e';
+        setTimeout(function(){b.textContent=isEN?'📋 Copy Email':'📋 Copiar Email';b.style.color='';b.style.borderColor='';},2500);}
+    });
+  });
+}
+</script>
 
 <!-- PLAN MODAL -->
 <div class="modal-overlay" id="planModal" style="z-index:10020">
