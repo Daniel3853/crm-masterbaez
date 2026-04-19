@@ -1265,6 +1265,7 @@ function skipIntro(){
 var _pdProgIdx=-1;
 function openProgDetail(i){
   var p=customProgs[i]; _pdProgIdx=i;
+  state.clientPhoto=state.clientPhoto||'';
   var isEn=lang==='en';
   var desc=isEn?(p.descEN||p.descES||''):(p.descES||p.descEN||'');
   var forWho=isEn?(p.forWhoEN||p.forWhoES||''):(p.forWhoES||p.forWhoEN||'');
@@ -1282,8 +1283,18 @@ function openProgDetail(i){
       videoBlock+='<div class="prog-detail-video-wrap" style="margin-top:8px">'+buildVideoEmbed(v.url,'v'+(vi+1),false)+'</div>';
     });
   }
+  var clientPhotoBlock=''
+    +'<div id="pd-photo-wrap" style="width:100%;max-height:220px;border-radius:14px;overflow:hidden;background:#f0f0f0;margin-bottom:14px;position:relative;cursor:pointer;border:2.5px dashed #ccc;display:flex;align-items:center;justify-content:center;min-height:140px" onclick="document.getElementById(\'pd-photo-input\').click()">'
+      +'<img id="pd-photo-preview" src="" style="width:100%;max-height:220px;object-fit:cover;display:none;border-radius:11px"/>'
+      +'<div id="pd-photo-placeholder" style="text-align:center;padding:24px;pointer-events:none">'
+        +'<div style="font-size:36px;margin-bottom:8px">📷</div>'
+        +'<div style="font-weight:800;font-size:14px;color:#555">'+(isEn?'Tap to add your photo':'Toca para agregar tu foto')+'</div>'
+        +'<div style="font-size:12px;color:#aaa;margin-top:4px">'+(isEn?'Optional · JPG, PNG':'Opcional · JPG, PNG')+'</div>'
+      +'</div>'
+    +'</div>'
+    +'<input type="file" id="pd-photo-input" accept="image/*" capture="user" style="display:none" onchange="pdHandlePhoto(this)"/>';
   var descBlock='';
-  if(p.photo) descBlock+='<img src="'+p.photo+'" class="prog-detail-photo" alt="'+esc(progLabel(p))+'"/>';
+  descBlock+=clientPhotoBlock;
   if(forWho)  descBlock+='<div style="color:#888;font-size:13px;font-weight:700;margin-bottom:10px">👥 '+esc(forWho)+'</div>';
   if(desc)    descBlock+='<div class="prog-detail-desc">'+esc(desc)+'</div>';
   if(p.age)   descBlock+='<div style="color:#888;font-size:13px;font-weight:700;margin-bottom:12px">👤 '+(isEn?'Ages:':'Edades:')+' <strong>'+esc(p.age)+'</strong></div>';
@@ -1297,6 +1308,21 @@ function closeProgDetail(){
   var b=document.getElementById('pdBody');
   if(b){ b.querySelectorAll('iframe,video').forEach(function(el){el.src='';});b.innerHTML=''; }
   _pdProgIdx=-1;
+  state.clientPhoto='';
+}
+function pdHandlePhoto(input){
+  var file=input.files[0]; if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    state.clientPhoto=e.target.result;
+    var preview=document.getElementById('pd-photo-preview');
+    var placeholder=document.getElementById('pd-photo-placeholder');
+    var wrap=document.getElementById('pd-photo-wrap');
+    if(preview){ preview.src=state.clientPhoto; preview.style.display='block'; }
+    if(placeholder) placeholder.style.display='none';
+    if(wrap){ wrap.style.border='none'; wrap.style.background='transparent'; wrap.style.minHeight='0'; }
+  };
+  reader.readAsDataURL(file);
 }
 function selectProgFromDetail(){
   var i=_pdProgIdx; closeProgDetail(); if(i<0) return;
