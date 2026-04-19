@@ -5448,6 +5448,14 @@ function openClient(id){
   btnAuth.onclick = function(){ closeModal('clientModal'); generarAutorizacion(r.id); };
   btnRow.appendChild(btnAuth);
 
+  // ── ENROLLMENT / INSCRIPCIÓN DOC ──
+  var btnEnroll = document.createElement('button');
+  btnEnroll.className = 'btn btn-ghost';
+  btnEnroll.style.cssText = 'border-color:#3cffd4;color:#3cffd4;';
+  btnEnroll.textContent = '📋 ' + (isEN ? 'Enrollment Form' : 'Inscripción');
+  btnEnroll.onclick = function(){ closeModal('clientModal'); wiGenerateEnrollmentDoc(r); };
+  btnRow.appendChild(btnEnroll);
+
   var btnTrash = document.createElement('button');
   btnTrash.className = 'btn btn-ghost';
   btnTrash.style.marginLeft = 'auto';
@@ -5463,6 +5471,21 @@ function openClient(id){
   convDiv.innerHTML =
     '<div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:14px">'+
       '🔄 '+(isEN ? 'Convert this client into...' : 'Convertir este cliente en...')+
+    '</div>'+
+
+    // ── Tarjeta: Referidor (NUEVO — primero en la lista) ──
+    '<div style="background:linear-gradient(135deg,rgba(249,115,22,.08),rgba(239,68,68,.06));border:2px solid rgba(249,115,22,.35);border-radius:14px;padding:16px 18px;margin-bottom:10px;cursor:pointer;transition:border-color .2s" '+
+      'onmouseover="this.style.borderColor=\'#f97316\'" onmouseout="this.style.borderColor=\'rgba(249,115,22,.35)\'">'+ 
+      '<div style="display:flex;align-items:center;gap:14px">'+
+        '<div style="font-size:28px;flex-shrink:0">🔗</div>'+
+        '<div style="flex:1">'+
+          '<div style="font-family:Syne,sans-serif;font-weight:800;font-size:14px;color:#f97316">'+(isEN?'Referrer — Individual':'Referidor — Individual')+'</div>'+
+          '<div style="font-size:12px;color:var(--muted);margin-top:3px;line-height:1.5">'+(isEN?'Client, student or friend who refers people. Gets personal QR + rewards per lead sent.':'Cliente, estudiante o amigo que refiere personas. Recibe QR personal + recompensas por cada lead enviado.')+'</div>'+
+        '</div>'+
+        '<button class="btn btn-ghost" style="flex-shrink:0;font-size:12px;padding:8px 16px;border-color:#f97316;color:#f97316;" id="btnConvReferidor">'+
+          (isEN?'→ Make Referrer':'→ Hacer Referidor')+
+        '</button>'+
+      '</div>'+
     '</div>'+
 
     // ── Tarjeta: Dueño de Negocio (Partner) ──
@@ -8305,7 +8328,7 @@ goPage = function(p){
         🚶 <span>Walk-In Lead</span>
         <span style="background:rgba(249,115,22,.15);color:#f97316;border:1px solid rgba(249,115,22,.3);border-radius:20px;padding:2px 10px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;">Presencial</span>
       </div>
-      <div style="font-size:12px;color:#555;margin-top:3px;">Persona que llegó en persona o te trajeron directamente</div>
+      <div style="font-size:12px;color:#999;margin-top:3px;">Persona que llegó en persona o te trajeron directamente</div>
     </div>
     <button onclick="closeWalkInModal()" style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;color:#666;width:32px;height:32px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
   </div>
@@ -8313,23 +8336,23 @@ goPage = function(p){
   <div style="padding:22px 24px;">
 
     <!-- SECTION: Contacto -->
-    <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#555;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;">👤 Información de Contacto <span style="flex:1;height:1px;background:#1e1e1e;"></span></div>
+    <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#aaa;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;">👤 Información de Contacto <span style="flex:1;height:1px;background:#333;"></span></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#555;font-weight:700;margin-bottom:5px;">Nombre <span style="color:#f97316;">*</span></label>
+      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#aaa;font-weight:700;margin-bottom:5px;">Nombre <span style="color:#f97316;">*</span></label>
       <input id="wi_firstName" type="text" placeholder="Ej: Carlos" style="width:100%;background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#f97316'" onblur="this.style.borderColor='#2a2a2a'"/></div>
-      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#555;font-weight:700;margin-bottom:5px;">Apellido <span style="color:#f97316;">*</span></label>
+      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#aaa;font-weight:700;margin-bottom:5px;">Apellido <span style="color:#f97316;">*</span></label>
       <input id="wi_lastName" type="text" placeholder="Ej: Mendoza" style="width:100%;background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#f97316'" onblur="this.style.borderColor='#2a2a2a'"/></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#555;font-weight:700;margin-bottom:5px;">Teléfono / WhatsApp</label>
+      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#aaa;font-weight:700;margin-bottom:5px;">Teléfono / WhatsApp</label>
       <input id="wi_phone" type="tel" placeholder="+1 (786) 555-0000" style="width:100%;background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#f97316'" onblur="this.style.borderColor='#2a2a2a'"/></div>
-      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#555;font-weight:700;margin-bottom:5px;">Email</label>
+      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#aaa;font-weight:700;margin-bottom:5px;">Email</label>
       <input id="wi_email" type="email" placeholder="carlos@email.com" style="width:100%;background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#f97316'" onblur="this.style.borderColor='#2a2a2a'"/></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
-      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#555;font-weight:700;margin-bottom:5px;">Edad <span style="color:#444;font-size:9px;font-weight:400;text-transform:none;letter-spacing:0;">(opcional)</span></label>
+      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#aaa;font-weight:700;margin-bottom:5px;">Edad <span style="color:#444;font-size:9px;font-weight:400;text-transform:none;letter-spacing:0;">(opcional)</span></label>
       <input id="wi_age" type="number" min="3" max="99" placeholder="Ej: 28" style="width:100%;background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#f97316'" onblur="this.style.borderColor='#2a2a2a'"/></div>
-      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#555;font-weight:700;margin-bottom:5px;">Idioma Preferido</label>
+      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#aaa;font-weight:700;margin-bottom:5px;">Idioma Preferido</label>
       <select id="wi_lang" style="width:100%;background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;appearance:none;transition:border-color .2s;" onfocus="this.style.borderColor='#f97316'" onblur="this.style.borderColor='#2a2a2a'">
         <option value="espanol">🇺🇸🇲🇽 Español</option>
         <option value="ingles">🇺🇸 English</option>
@@ -8338,9 +8361,9 @@ goPage = function(p){
     </div>
 
     <!-- SECTION: ¿Cómo llegó? -->
-    <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#555;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;">📍 ¿Cómo Llegó? <span style="flex:1;height:1px;background:#1e1e1e;"></span></div>
+    <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#aaa;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;">📍 ¿Cómo Llegó? <span style="flex:1;height:1px;background:#333;"></span></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#555;font-weight:700;margin-bottom:5px;">Cómo llegó <span style="color:#f97316;">*</span></label>
+      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#aaa;font-weight:700;margin-bottom:5px;">Cómo llegó <span style="color:#f97316;">*</span></label>
       <select id="wi_comoLlego" onchange="wiToggleReferidoBy()" style="width:100%;background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;appearance:none;transition:border-color .2s;" onfocus="this.style.borderColor='#f97316'" onblur="this.style.borderColor='#2a2a2a'">
         <option value="walkin_solo">🚶 Entró solo / Por el área</option>
         <option value="walkin_ref">👥 Lo trajo un cliente / estudiante</option>
@@ -8350,14 +8373,14 @@ goPage = function(p){
         <option value="walkin_rrss">📱 Vio redes sociales y vino</option>
         <option value="walkin_pasaba">🚗 Pasaba por aquí</option>
       </select></div>
-      <div id="wi_referidoPorWrap"><label style="display:block;font-size:10px;text-transform:uppercase;color:#555;font-weight:700;margin-bottom:5px;">¿Quién lo trajo? <span style="background:rgba(249,115,22,.15);color:#f97316;border-radius:4px;padding:1px 5px;font-size:9px;">→ futuro referidor</span></label>
+      <div id="wi_referidoPorWrap"><label style="display:block;font-size:10px;text-transform:uppercase;color:#aaa;font-weight:700;margin-bottom:5px;">¿Quién lo trajo? <span style="background:rgba(249,115,22,.15);color:#f97316;border-radius:4px;padding:1px 5px;font-size:9px;">→ futuro referidor</span></label>
       <input id="wi_referidoPor" type="text" placeholder="Nombre del cliente que lo trajo" style="width:100%;background:#1a1a1a;border:1.5px solid rgba(249,115,22,.35);border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#f97316'" onblur="this.style.borderColor='rgba(249,115,22,.35)'"/></div>
     </div>
 
     <!-- SECTION: Interés -->
-    <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#555;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;">🎯 Interés & Programa <span style="flex:1;height:1px;background:#1e1e1e;"></span></div>
+    <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#aaa;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;">🎯 Interés & Programa <span style="flex:1;height:1px;background:#333;"></span></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#555;font-weight:700;margin-bottom:5px;">Tipo de Negocio / Industria</label>
+      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#aaa;font-weight:700;margin-bottom:5px;">Tipo de Negocio / Industria</label>
       <select id="wi_bizType" style="width:100%;background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;appearance:none;">
         <option value="">— Seleccionar —</option>
         <option>🥋 Artes Marciales / Dojo</option>
@@ -8373,7 +8396,7 @@ goPage = function(p){
         <option>🐾 Pet Services / Veterinaria</option>
         <option>✏️ Otro</option>
       </select></div>
-      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#555;font-weight:700;margin-bottom:5px;">Programa de Interés</label>
+      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#aaa;font-weight:700;margin-bottom:5px;">Programa de Interés</label>
       <select id="wi_programa" style="width:100%;background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;appearance:none;">
         <option value="">— Sin definir —</option>
         <option>🥋 Artes Marciales Adultos</option>
@@ -8399,7 +8422,7 @@ goPage = function(p){
           <div id="wi_temp_c_div" style="background:#1a1a1a;border:2px solid #2a2a2a;border-radius:10px;padding:10px;text-align:center;transition:all .15s;">
             <div style="font-size:20px;">🔥</div>
             <div style="font-size:11px;font-weight:700;color:#ef4444;margin-top:2px;">Caliente</div>
-            <div style="font-size:9px;color:#555;">Listo para inscribirse</div>
+            <div style="font-size:9px;color:#888;">Listo para inscribirse</div>
           </div>
         </label>
         <label style="flex:1;cursor:pointer;">
@@ -8407,7 +8430,7 @@ goPage = function(p){
           <div id="wi_temp_t_div" style="background:rgba(245,158,11,.1);border:2px solid rgba(245,158,11,.4);border-radius:10px;padding:10px;text-align:center;transition:all .15s;">
             <div style="font-size:20px;">🟡</div>
             <div style="font-size:11px;font-weight:700;color:#f59e0b;margin-top:2px;">Tibio</div>
-            <div style="font-size:9px;color:#555;">Interesado, necesita seguimiento</div>
+            <div style="font-size:9px;color:#888;">Interesado, necesita seguimiento</div>
           </div>
         </label>
         <label style="flex:1;cursor:pointer;">
@@ -8415,13 +8438,13 @@ goPage = function(p){
           <div id="wi_temp_f_div" style="background:#1a1a1a;border:2px solid #2a2a2a;border-radius:10px;padding:10px;text-align:center;transition:all .15s;">
             <div style="font-size:20px;">🧊</div>
             <div style="font-size:11px;font-weight:700;color:#60a5fa;margin-top:2px;">Frío</div>
-            <div style="font-size:9px;color:#555;">Solo estaba mirando</div>
+            <div style="font-size:9px;color:#888;">Solo estaba mirando</div>
           </div>
         </label>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
-      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#555;font-weight:700;margin-bottom:5px;">Presupuesto Aproximado</label>
+      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#aaa;font-weight:700;margin-bottom:5px;">Presupuesto Aproximado</label>
       <select id="wi_budget" style="width:100%;background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;appearance:none;">
         <option value="">— No sé todavía —</option>
         <option>💵 Menos de $50/mes</option>
@@ -8431,7 +8454,7 @@ goPage = function(p){
         <option>💵 Más de $500/mes</option>
         <option>💵 Pago único</option>
       </select></div>
-      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#555;font-weight:700;margin-bottom:5px;">Etapa Inicial</label>
+      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#aaa;font-weight:700;margin-bottom:5px;">Etapa Inicial</label>
       <select id="wi_etapa" style="width:100%;background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;appearance:none;">
         <option value="nuevo">🆕 Nuevo</option>
         <option value="interesado">🔥 Interesado</option>
@@ -8441,11 +8464,11 @@ goPage = function(p){
     </div>
 
     <!-- SECTION: Seguimiento -->
-    <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#555;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;">📅 Próximo Seguimiento <span style="flex:1;height:1px;background:#1e1e1e;"></span></div>
+    <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#aaa;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px;">📅 Próximo Seguimiento <span style="flex:1;height:1px;background:#333;"></span></div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
-      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#555;font-weight:700;margin-bottom:5px;">Fecha</label>
+      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#aaa;font-weight:700;margin-bottom:5px;">Fecha</label>
       <input id="wi_followDate" type="date" style="width:100%;background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#e8ff3c'" onblur="this.style.borderColor='#2a2a2a'"/></div>
-      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#555;font-weight:700;margin-bottom:5px;">Método</label>
+      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#aaa;font-weight:700;margin-bottom:5px;">Método</label>
       <select id="wi_followMethod" style="width:100%;background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;appearance:none;">
         <option value="whatsapp">💬 WhatsApp</option>
         <option value="llamada">📞 Llamada</option>
@@ -8453,10 +8476,10 @@ goPage = function(p){
         <option value="visita">🚶 Visita en persona</option>
         <option value="sms">📱 SMS</option>
       </select></div>
-      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#555;font-weight:700;margin-bottom:5px;">Asignado a</label>
+      <div><label style="display:block;font-size:10px;text-transform:uppercase;color:#aaa;font-weight:700;margin-bottom:5px;">Asignado a</label>
       <input id="wi_asignadoA" type="text" placeholder="Tu nombre / staff" style="width:100%;background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;transition:border-color .2s;" onfocus="this.style.borderColor='#e8ff3c'" onblur="this.style.borderColor='#2a2a2a'"/></div>
     </div>
-    <div style="margin-bottom:18px;"><label style="display:block;font-size:10px;text-transform:uppercase;color:#555;font-weight:700;margin-bottom:5px;">📝 Notas / Primer Contacto</label>
+    <div style="margin-bottom:18px;"><label style="display:block;font-size:10px;text-transform:uppercase;color:#aaa;font-weight:700;margin-bottom:5px;">📝 Notas / Primer Contacto</label>
     <textarea id="wi_notes" rows="3" placeholder="¿Qué dijo? ¿Qué le interesa? ¿Cuál es su situación? Ej: Tiene 2 hijos, le interesa kids martial arts, no tiene tiempo los lunes..." style="width:100%;background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;resize:vertical;font-family:DM Sans,sans-serif;transition:border-color .2s;" onfocus="this.style.borderColor='#e8ff3c'" onblur="this.style.borderColor='#2a2a2a'"></textarea></div>
 
     <!-- Error -->
@@ -8464,10 +8487,10 @@ goPage = function(p){
 
     <!-- Buttons -->
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
-      <button onclick="closeWalkInModal()" style="background:transparent;color:#555;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 20px;font-family:Syne,sans-serif;font-weight:700;font-size:13px;cursor:pointer;">Cancelar</button>
+      <button onclick="closeWalkInModal()" style="background:transparent;color:#aaa;border:1.5px solid #444;border-radius:9px;padding:10px 20px;font-family:Syne,sans-serif;font-weight:700;font-size:13px;cursor:pointer;">Cancelar</button>
       <div style="display:flex;gap:10px;">
-        <button onclick="saveWalkIn('normal')" style="background:#1e1e1e;color:#f0f0f0;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 18px;font-family:Syne,sans-serif;font-weight:700;font-size:13px;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='#666'" onmouseout="this.style.borderColor='#2a2a2a'">💾 Guardar</button>
-        <button onclick="saveWalkIn('referidor')" style="background:linear-gradient(135deg,#f97316,#ef4444);color:#fff;border:none;border-radius:9px;padding:10px 18px;font-family:Syne,sans-serif;font-weight:800;font-size:13px;cursor:pointer;box-shadow:0 4px 14px rgba(249,115,22,.3);transition:all .15s;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">🔗 Guardar + Convertir a Referidor</button>
+        <button onclick="saveWalkIn('normal')" style="background:#1e1e1e;color:#f0f0f0;border:1.5px solid #444;border-radius:9px;padding:10px 18px;font-family:Syne,sans-serif;font-weight:700;font-size:13px;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='#888'" onmouseout="this.style.borderColor='#444'">💾 Guardar Lead</button>
+        <button onclick="saveWalkIn('cliente')" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:none;border-radius:9px;padding:10px 18px;font-family:Syne,sans-serif;font-weight:800;font-size:13px;cursor:pointer;box-shadow:0 4px 14px rgba(34,197,94,.3);transition:all .15s;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">✅ Guardar + Convertir a Cliente</button>
       </div>
     </div>
 
@@ -8659,18 +8682,13 @@ async function saveWalkIn(mode){
 
   closeWalkInModal();
 
-  if(mode === 'referidor'){
-    // Open confirm modal pre-filled
-    _wiPendingData = p;
-    document.getElementById('wiConvert_name').textContent = firstName+' '+lastName;
-    document.getElementById('wic_firstName').value = firstName;
-    document.getElementById('wic_lastName').value  = lastName;
-    document.getElementById('wic_phone').value     = p.phone;
-    document.getElementById('wic_email').value     = p.email;
-    document.getElementById('wic_cid').value       = '';
-    document.getElementById('wic_error').textContent = '';
-    document.getElementById('wiConvertModal').style.display = 'flex';
-    wicAutoId();
+  if(mode === 'cliente'){
+    // Convert directly to client — open clientModal pre-filled
+    // First find the newly saved prospecto and convert it
+    showToast('🚶 Walk-In guardado — '+firstName+' '+lastName, '#f97316');
+    setTimeout(function(){
+      convertProspectoToClient(p.id);
+    }, 400);
   } else {
     showToast('🚶 Walk-In guardado — '+firstName+' '+lastName, '#f97316');
     if(typeof goPage === 'function') goPage('prospectos');
@@ -8719,6 +8737,121 @@ async function wicConfirm(){
 
   showToast('✅ Walk-In guardado + 🔗 Referidor '+cid+' creado!', '#22c55e');
   if(typeof goPage === 'function') goPage('referidores');
+}
+
+// ── ENROLLMENT / INSCRIPCIÓN DOCUMENT ──
+function wiGenerateEnrollmentDoc(r){
+  var isEN = _masterLang === 'en';
+  var today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  var todayES = new Date().toLocaleDateString('es-US',{year:'numeric',month:'long',day:'numeric'});
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"/>'
+  +'<title>'+(isEN?'Enrollment Form':'Formulario de Inscripción')+'</title>'
+  +'<style>'
+  +'*{margin:0;padding:0;box-sizing:border-box;}'
+  +'body{font-family:Georgia,serif;color:#111;background:#fff;padding:44px 52px;max-width:800px;margin:0 auto;}'
+  +'.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;padding-bottom:16px;border-bottom:3px solid #111;}'
+  +'.org-name{font-size:22px;font-weight:bold;letter-spacing:-.3px;}'
+  +'.doc-title{font-size:13px;text-transform:uppercase;letter-spacing:.12em;color:#555;margin-top:4px;}'
+  +'.badge{background:#111;color:#fff;padding:4px 12px;border-radius:4px;font-size:10px;font-family:Arial;letter-spacing:.1em;text-transform:uppercase;}'
+  +'.section{margin-bottom:22px;}'
+  +'.sec-title{font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:#888;font-weight:bold;margin-bottom:10px;padding-bottom:6px;border-bottom:1.5px solid #e8e8e8;font-family:Arial;}'
+  +'.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;margin-bottom:4px;}'
+  +'.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}'
+  +'.field label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:#888;margin-bottom:4px;font-family:Arial;}'
+  +'.field .val{border-bottom:1.5px solid #bbb;min-height:26px;font-size:14px;padding-bottom:3px;color:#111;}'
+  +'.field .val.prefilled{color:#333;font-style:italic;}'
+  +'.program-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;}'
+  +'.prog-box{border:1.5px solid #ddd;border-radius:6px;padding:8px 10px;font-size:12px;display:flex;align-items:center;gap:6px;}'
+  +'.check-box{width:14px;height:14px;border:1.5px solid #999;border-radius:3px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-size:10px;}'
+  +'.auth-box{background:#f9f9f9;border:1px solid #e0e0e0;border-radius:6px;padding:16px 18px;font-size:12px;line-height:1.8;color:#333;}'
+  +'.sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:24px;}'
+  +'.sig-line{border-bottom:1.5px solid #333;min-height:44px;margin-bottom:5px;}'
+  +'.sig-label{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:#888;font-family:Arial;}'
+  +'.footer{margin-top:28px;padding-top:12px;border-top:1px solid #e5e5e5;font-size:9px;color:#aaa;text-align:center;line-height:1.7;}'
+  +'@media print{body{padding:24px 32px;}}'
+  +'</style></head><body>'
+
+  // Header
+  +'<div class="header">'
+    +'<div><div class="org-name">'+( r.bizName||'My Organization')+'</div>'
+    +'<div class="doc-title">'+(isEN?'Member Enrollment Agreement':'Contrato de Inscripción de Miembro')+'</div></div>'
+    +'<div><span class="badge">'+(isEN?'ENROLLMENT':'INSCRIPCIÓN')+'</span><br/><div style="font-size:10px;color:#888;margin-top:5px;text-align:right;">'+today+'</div></div>'
+  +'</div>'
+
+  // Member Info
+  +'<div class="section"><div class="sec-title">'+(isEN?'Member Information':'Información del Miembro')+'</div>'
+  +'<div class="grid2">'
+    +'<div class="field"><label>'+(isEN?'First Name / Nombre')+'</label><div class="val prefilled">'+( r.firstName||'')+'</div></div>'
+    +'<div class="field"><label>'+(isEN?'Last Name / Apellido')+'</label><div class="val prefilled">'+( r.lastName||'')+'</div></div>'
+    +'<div class="field"><label>Email</label><div class="val prefilled">'+( r.email||'')+'</div></div>'
+    +'<div class="field"><label>'+(isEN?'Phone / Teléfono')+'</label><div class="val prefilled">'+( r.phone||'')+'</div></div>'
+    +'<div class="field"><label>'+(isEN?'Date of Birth / Fecha de Nacimiento')+'</label><div class="val"></div></div>'
+    +'<div class="field"><label>'+(isEN?'Emergency Contact / Contacto de Emergencia')+'</label><div class="val"></div></div>'
+  +'</div></div>'
+
+  // Program Selection
+  +'<div class="section"><div class="sec-title">'+(isEN?'Program / Service Selected':'Programa / Servicio Seleccionado')+'</div>'
+  +'<div class="program-grid">'
+    +['🥋 Martial Arts Adults','👦 Kids (4–12)','🧑 Teens (13–17)','👨‍👩‍👧 Family Plan','💪 Fitness / Conditioning','🥊 Kickboxing','🤼 Grappling / BJJ','📱 Digital / CRM','✏️ Other']
+    .map(function(p){ return '<div class="prog-box"><span class="check-box"></span>'+p+'</div>'; }).join('')
+  +'</div></div>'
+
+  // Membership Terms
+  +'<div class="section"><div class="sec-title">'+(isEN?'Membership Terms':'Términos de Membresía')+'</div>'
+  +'<div class="grid3">'
+    +'<div class="field"><label>'+(isEN?'Plan / Level':'Plan / Nivel')+'</label><div class="val prefilled">'+(r.plan||'')+'</div></div>'
+    +'<div class="field"><label>'+(isEN?'Start Date':'Fecha de Inicio')+'</label><div class="val prefilled">'+(r.trialStart||'')+'</div></div>'
+    +'<div class="field"><label>'+(isEN?'Monthly Amount':'Monto Mensual')+'</label><div class="val">$</div></div>'
+  +'</div></div>'
+
+  // Health
+  +'<div class="section"><div class="sec-title">'+(isEN?'Health & Medical':'Salud y Médico')+'</div>'
+  +'<div class="grid2">'
+    +'<div class="field"><label>'+(isEN?'Known medical conditions / Condiciones médicas')+'</label><div class="val" style="min-height:36px;"></div></div>'
+    +'<div class="field"><label>'+(isEN?'Physician / Doctor & Phone':'Médico y Teléfono')+'</label><div class="val" style="min-height:36px;"></div></div>'
+  +'</div></div>'
+
+  // Authorization
+  +'<div class="section"><div class="sec-title">'+(isEN?'Authorization & Liability Waiver':'Autorización y Exención de Responsabilidad')+'</div>'
+  +'<div class="auth-box">'
+  +(isEN
+    ?'I, the undersigned, voluntarily enroll in the above program and agree to comply with all rules and guidelines. I understand that participation involves physical activity and accept all associated risks. I authorize the organization to use my information for communication and membership management purposes. I authorize recurring charges per the agreed schedule, including the applicable 3.50% processing fee. This agreement remains in effect until cancelled in writing with 30 days notice.'
+    :'Yo, el abajo firmante, me inscribo voluntariamente en el programa indicado y acepto cumplir con todas las normas. Entiendo que la participación implica actividad física y acepto los riesgos asociados. Autorizo a la organización a usar mi información para comunicación y gestión de membresía. Autorizo cargos recurrentes según el calendario acordado, incluyendo el cargo de procesamiento del 3.50%. Este acuerdo permanece vigente hasta su cancelación por escrito con 30 días de anticipación.')
+  +'</div>'
+  +'<div class="sig-grid">'
+    +'<div><div class="sig-line"></div><div class="sig-label">'+(isEN?'Member Signature / Firma del Miembro')+'</div></div>'
+    +'<div><div class="sig-line"></div><div class="sig-label">'+(isEN?'Printed Name / Nombre en Letra de Molde')+'</div></div>'
+    +'<div><div class="sig-line"></div><div class="sig-label">'+(isEN?'Date / Fecha')+'</div></div>'
+    +'<div><div class="sig-line"></div><div class="sig-label">'+(isEN?'Parent/Guardian (if under 18) / Padre o Tutor')+'</div></div>'
+  +'</div></div>'
+
+  +'<div class="footer">'+
+    (isEN?'This enrollment agreement is governed by the laws of the State of Florida. Keep a copy for your records. · CC processing fee: FL Stat. §501.0117 & Dodd-Frank §1075'
+        :'Este contrato de inscripción está regido por las leyes del Estado de Florida. Conserve una copia para sus registros. · Cargo de procesamiento: FL Stat. §501.0117 & Dodd-Frank §1075')+
+  '</div>'
+  +'</body></html>';
+
+  var w = window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+  setTimeout(function(){ w.print(); }, 700);
+}
+
+// ── WALK-IN LANGUAGE SUPPORT ──
+// Re-apply walk-in labels when language changes
+var _origToggleLang = typeof toggleLangMaster === 'function' ? toggleLangMaster : null;
+if(_origToggleLang){
+  toggleLangMaster = function(){
+    _origToggleLang();
+    wiUpdateLang();
+  };
+}
+function wiUpdateLang(){
+  var isEN = _masterLang === 'en';
+  var headerTitle = document.querySelector('#walkInModal [data-wi="title"]');
+  // Only update if modal is open
+  if(!headerTitle) return;
 }
 
 // Close modals clicking outside
