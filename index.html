@@ -1422,15 +1422,83 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
             </div>
             <div style="margin-top:10px;font-size:11px;color:var(--muted2);">Per FL Stat. §501.0117 &amp; Dodd-Frank §1075</div>
           </div>
+          <!-- PAYMENT GATEWAYS -->
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;">
-            <div style="font-family:Syne,sans-serif;font-weight:800;font-size:13px;margin-bottom:12px;">&#9889; Quick Links</div>
-            <div style="display:flex;flex-direction:column;gap:10px;">
-              <a href="#" onclick="openCCPolicyModal('en');return false;" style="font-size:12px;color:var(--accent2);text-decoration:none;">&#128203; CC Policy (EN)</a>
-              <a href="#" onclick="openCCPolicyModal('es');return false;" style="font-size:12px;color:var(--accent2);text-decoration:none;">&#128203; Política (ES)</a>
-              <div style="height:1px;background:var(--border);"></div>
-              <div style="font-size:11px;color:var(--muted);">&#10067; When will my customer be billed?</div>
-              <div style="font-size:11px;color:var(--muted);">&#10067; Why can't I start billing today?</div>
-              <div style="font-size:11px;color:var(--muted);">&#10067; How to complete authorization form?</div>
+            <div style="font-family:Syne,sans-serif;font-weight:800;font-size:13px;margin-bottom:4px;">⚡ Payment Gateways</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:14px;">Open your processor to charge directly</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <!-- Intuit -->
+              <a href="https://payments.intuit.com" target="_blank" rel="noopener"
+                style="display:flex;align-items:center;gap:10px;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;text-decoration:none;transition:border-color .15s;"
+                onmouseover="this.style.borderColor='#2CA01C'" onmouseout="this.style.borderColor='var(--border)'">
+                <div style="width:28px;height:28px;border-radius:6px;background:#2CA01C;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">📗</div>
+                <div>
+                  <div style="font-family:Syne,sans-serif;font-weight:700;font-size:12px;color:var(--text);">QuickBooks / Intuit</div>
+                  <div style="font-size:10px;color:var(--muted);">payments.intuit.com</div>
+                </div>
+                <div style="margin-left:auto;font-size:10px;color:var(--muted);">↗</div>
+              </a>
+              <!-- PayPal -->
+              <a href="https://www.paypal.com/merchantapps/apphome" target="_blank" rel="noopener"
+                style="display:flex;align-items:center;gap:10px;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;text-decoration:none;transition:border-color .15s;"
+                onmouseover="this.style.borderColor='#009CDE'" onmouseout="this.style.borderColor='var(--border)'">
+                <div style="width:28px;height:28px;border-radius:6px;background:#003087;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🅿️</div>
+                <div>
+                  <div style="font-family:Syne,sans-serif;font-weight:700;font-size:12px;color:var(--text);">PayPal Business</div>
+                  <div style="font-size:10px;color:var(--muted);">paypal.com/merchant</div>
+                </div>
+                <div style="margin-left:auto;font-size:10px;color:var(--muted);">↗</div>
+              </a>
+              <!-- Stripe -->
+              <a href="https://dashboard.stripe.com/payments" target="_blank" rel="noopener"
+                style="display:flex;align-items:center;gap:10px;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;text-decoration:none;transition:border-color .15s;"
+                onmouseover="this.style.borderColor='#635BFF'" onmouseout="this.style.borderColor='var(--border)'">
+                <div style="width:28px;height:28px;border-radius:6px;background:#635BFF;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">💜</div>
+                <div>
+                  <div style="font-family:Syne,sans-serif;font-weight:700;font-size:12px;color:var(--text);">Stripe Dashboard</div>
+                  <div style="font-size:10px;color:var(--muted);">dashboard.stripe.com</div>
+                </div>
+                <div style="margin-left:auto;font-size:10px;color:var(--muted);">↗</div>
+              </a>
+            </div>
+          </div>
+
+          <!-- CUSTOMER SELF-FILL & PDF -->
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;">
+            <div style="font-family:Syne,sans-serif;font-weight:800;font-size:13px;margin-bottom:4px;">📋 Customer Authorization</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:14px;">Send form or download PDF for signature</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <!-- Send link to customer -->
+              <button onclick="rpOpenCustomerForm()" style="display:flex;align-items:center;gap:10px;background:rgba(232,255,60,.07);border:1.5px solid rgba(232,255,60,.25);border-radius:9px;padding:10px 13px;cursor:pointer;text-align:left;width:100%;transition:border-color .15s;"
+                onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='rgba(232,255,60,.25)'">
+                <div style="width:28px;height:28px;border-radius:6px;background:rgba(232,255,60,.15);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🔗</div>
+                <div>
+                  <div style="font-family:Syne,sans-serif;font-weight:700;font-size:12px;color:var(--accent);">Customer Self-Fill Form</div>
+                  <div style="font-size:10px;color:var(--muted);">Customer fills &amp; submits online</div>
+                </div>
+              </button>
+              <!-- Copy link -->
+              <button onclick="rpCopyCustomerLink()" id="rp-copy-link-btn" style="display:flex;align-items:center;gap:10px;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;cursor:pointer;text-align:left;width:100%;transition:border-color .15s;"
+                onmouseover="this.style.borderColor='var(--accent2)'" onmouseout="this.style.borderColor='var(--border)'">
+                <div style="width:28px;height:28px;border-radius:6px;background:rgba(60,255,212,.1);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">📎</div>
+                <div>
+                  <div style="font-family:Syne,sans-serif;font-weight:700;font-size:12px;color:var(--text);">Copy Form Link</div>
+                  <div style="font-size:10px;color:var(--muted);">Share via WhatsApp, SMS or email</div>
+                </div>
+              </button>
+              <!-- Download PDF -->
+              <button onclick="rpDownloadAuthPDF()" style="display:flex;align-items:center;gap:10px;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;cursor:pointer;text-align:left;width:100%;transition:border-color .15s;"
+                onmouseover="this.style.borderColor='#f59e0b'" onmouseout="this.style.borderColor='var(--border)'">
+                <div style="width:28px;height:28px;border-radius:6px;background:rgba(245,158,11,.12);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">📄</div>
+                <div>
+                  <div style="font-family:Syne,sans-serif;font-weight:700;font-size:12px;color:var(--text);">Download Auth PDF</div>
+                  <div style="font-size:10px;color:var(--muted);">Print &amp; sign — keep for records</div>
+                </div>
+              </button>
+              <!-- CC Policy links -->
+              <div style="height:1px;background:var(--border);margin:4px 0;"></div>
+              <a href="#" onclick="openCCPolicyModal('en');return false;" style="font-size:12px;color:var(--accent2);text-decoration:none;">📃 CC Policy (English)</a>
+              <a href="#" onclick="openCCPolicyModal('es');return false;" style="font-size:12px;color:var(--accent2);text-decoration:none;">📃 Política CC (Español)</a>
             </div>
           </div>
           <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;">
@@ -8270,7 +8338,361 @@ goPage = function(p){
   _origGoPage(p);
   if(p==='recurring') setTimeout(rpPopulateClients, 100);
 };
+
+// ── CUSTOMER SELF-FILL FORM (inline modal) ──
+function rpOpenCustomerForm(){
+  document.getElementById('rp-customer-modal').style.display='flex';
+}
+function rpCloseCustomerForm(){
+  document.getElementById('rp-customer-modal').style.display='none';
+}
+
+// ── COPY LINK ──
+function rpCopyCustomerLink(){
+  var url = window.location.href.split('?')[0] + '?form=customer-payment';
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(url).then(function(){
+      var btn = document.getElementById('rp-copy-link-btn');
+      var orig = btn.querySelector('div:first-child div:first-child').textContent;
+      btn.querySelector('div:first-child div:first-child').textContent = '✅ Copied!';
+      setTimeout(function(){ btn.querySelector('div:first-child div:first-child').textContent = 'Copy Form Link'; }, 2000);
+    });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = url; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    alert('Link copied!');
+  }
+}
+
+// ── DOWNLOAD AUTH PDF ──
+function rpDownloadAuthPDF(){
+  // Read current form values to pre-fill
+  var mode = typeof _rpMode !== 'undefined' ? _rpMode : 'existing';
+  var custName = '';
+  if(mode==='existing'){
+    var sel = document.getElementById('rp-customer-select');
+    custName = sel && sel.selectedIndex>0 ? sel.options[sel.selectedIndex].text.split('—')[0].trim() : '___________________________';
+  } else {
+    var fn = (document.getElementById('rp-fname')||{}).value||'';
+    var ln = (document.getElementById('rp-lname')||{}).value||'';
+    custName = (fn+' '+ln).trim() || '___________________________';
+  }
+  var plan   = (document.getElementById('rp-plan-name')||{}).value || '___________________________';
+  var freq   = (document.getElementById('rp-frequency')||{}).value || '___________';
+  var amount = (document.getElementById('rp-amount')||{}).value || '_______';
+  var start  = (document.getElementById('rp-start-date')||{}).value || '___________';
+  var end    = (document.getElementById('rp-end-date')||{}).value || 'Until cancelled';
+  var today  = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  var fee    = amount && !isNaN(amount) ? (parseFloat(amount)*0.035).toFixed(2) : '_______';
+  var total  = amount && !isNaN(amount) ? (parseFloat(amount)*1.035).toFixed(2) : '_______';
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"/>'
+  +'<title>Recurring Payment Authorization</title>'
+  +'<style>'
+  +'*{margin:0;padding:0;box-sizing:border-box;}'
+  +'body{font-family:Georgia,serif;color:#111;background:#fff;padding:48px 56px;max-width:780px;margin:0 auto;}'
+  +'h1{font-size:22px;font-weight:bold;margin-bottom:4px;letter-spacing:-.3px;}'
+  +'.subtitle{font-size:12px;color:#666;margin-bottom:28px;}'
+  +'.section{margin-bottom:22px;}'
+  +'.section-title{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#999;font-weight:bold;margin-bottom:10px;padding-bottom:5px;border-bottom:1.5px solid #e5e5e5;font-family:Arial,sans-serif;}'
+  +'.row{display:flex;gap:24px;margin-bottom:12px;}'
+  +'.field{flex:1;}'
+  +'.field label{display:block;font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;font-family:Arial,sans-serif;}'
+  +'.field .val{font-size:14px;color:#111;border-bottom:1.5px solid #ccc;padding-bottom:4px;min-height:24px;}'
+  +'.fee-box{background:#f8f8f8;border:1px solid #e0e0e0;border-radius:6px;padding:14px 18px;margin-top:8px;}'
+  +'.fee-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;}'
+  +'.fee-row.total{border-top:1.5px solid #ccc;padding-top:8px;margin-top:4px;font-weight:bold;font-size:14px;}'
+  +'.auth-box{background:#fffbe6;border:1px solid #f0e06a;border-radius:6px;padding:16px 18px;margin-top:8px;font-size:13px;line-height:1.7;}'
+  +'.sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:28px;}'
+  +'.sig-field{border-bottom:1.5px solid #333;min-height:40px;margin-bottom:5px;}'
+  +'.sig-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#888;font-family:Arial,sans-serif;}'
+  +'.logo-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}'
+  +'.badge{display:inline-block;background:#111;color:#fff;border-radius:4px;padding:3px 10px;font-size:10px;font-family:Arial,sans-serif;letter-spacing:.08em;}'
+  +'.footer{margin-top:32px;padding-top:14px;border-top:1px solid #e5e5e5;font-size:10px;color:#aaa;line-height:1.6;text-align:center;}'
+  +'</style></head><body>'
+  +'<div class="logo-bar"><div><h1>Recurring Payment Authorization</h1><div class="subtitle">State of Florida — Autorización de Pago Recurrente</div></div><div><span class="badge">OFFICIAL DOCUMENT</span></div></div>'
+
+  +'<div class="section"><div class="section-title">Customer Information</div>'
+  +'<div class="row">'
+  +'<div class="field"><label>Full Name / Nombre</label><div class="val">'+custName+'</div></div>'
+  +'<div class="field"><label>Date / Fecha</label><div class="val">'+today+'</div></div>'
+  +'</div></div>'
+
+  +'<div class="section"><div class="section-title">Payment Plan Details</div>'
+  +'<div class="row">'
+  +'<div class="field"><label>Plan / Program</label><div class="val">'+plan+'</div></div>'
+  +'<div class="field"><label>Frequency</label><div class="val">'+freq+'</div></div>'
+  +'</div>'
+  +'<div class="row">'
+  +'<div class="field"><label>Start Date</label><div class="val">'+start+'</div></div>'
+  +'<div class="field"><label>End Date</label><div class="val">'+end+'</div></div>'
+  +'</div>'
+  +'<div class="fee-box">'
+  +'<div class="fee-row"><span>Service Amount</span><span>$'+amount+'</span></div>'
+  +'<div class="fee-row"><span>Processing Fee (3.50%)</span><span>$'+fee+'</span></div>'
+  +'<div class="fee-row total"><span>Total Per Payment</span><span>$'+total+'</span></div>'
+  +'</div></div>'
+
+  +'<div class="section"><div class="section-title">Card Information</div>'
+  +'<div class="row">'
+  +'<div class="field"><label>Name on Card</label><div class="val" style="min-height:24px;">&nbsp;</div></div>'
+  +'<div class="field"><label>Last 4 Digits</label><div class="val" style="min-height:24px;">&nbsp;</div></div>'
+  +'</div>'
+  +'<div class="row">'
+  +'<div class="field"><label>Expiration Date</label><div class="val" style="min-height:24px;">&nbsp;</div></div>'
+  +'<div class="field"><label>Billing ZIP Code</label><div class="val" style="min-height:24px;">&nbsp;</div></div>'
+  +'</div></div>'
+
+  +'<div class="section"><div class="section-title">Authorization / Autorización</div>'
+  +'<div class="auth-box">'
+  +'<strong>English:</strong> I, the undersigned, authorize the above-named business to charge the credit/debit card indicated above for the recurring amount specified, plus the applicable 3.50% processing fee, per the schedule above. I understand this authorization will remain in effect until I cancel in writing. Declined payments are subject to additional fees under FL Stat. §68.065.<br/><br/>'
+  +'<strong>Español:</strong> Yo, el abajo firmante, autorizo al negocio antes mencionado a cargar la tarjeta indicada por el monto recurrente especificado, más el cargo de procesamiento del 3.50%, según el calendario indicado. Esta autorización permanecerá vigente hasta que la cancele por escrito.'
+  +'</div>'
+  +'<div class="sig-grid">'
+  +'<div><div class="sig-field"></div><div class="sig-label">Customer Signature / Firma</div></div>'
+  +'<div><div class="sig-field"></div><div class="sig-label">Printed Name / Nombre</div></div>'
+  +'<div><div class="sig-field"></div><div class="sig-label">Date / Fecha</div></div>'
+  +'<div><div class="sig-field"></div><div class="sig-label">Last 4 of Card / Últimos 4</div></div>'
+  +'</div></div>'
+
+  +'<div class="footer">FL Stat. §501.0117 · §68.065 · FDUTPA Ch.501 · FCBA 15 U.S.C. §1666 · Dodd-Frank §1075<br/>This document is legally binding under the laws of the State of Florida · Este documento es legalmente vinculante bajo las leyes del Estado de Florida.</div>'
+  +'</body></html>';
+
+  var w = window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+  setTimeout(function(){ w.print(); }, 600);
+}
 </script>
 
+<!-- ── CUSTOMER SELF-FILL MODAL ── -->
+<div id="rp-customer-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:10100;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#0a0a0a;border:1px solid #2a2a2a;border-radius:18px;width:100%;max-width:640px;max-height:92vh;overflow-y:auto;position:relative;">
+    <!-- Header -->
+    <div style="position:sticky;top:0;z-index:10;background:#141414;border-bottom:1px solid #2a2a2a;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;border-radius:18px 18px 0 0;">
+      <div>
+        <div style="font-family:Syne,sans-serif;font-weight:800;font-size:16px;">💳 Customer Payment Form</div>
+        <div style="font-size:11px;color:#666;margin-top:2px;">Customer fills this out &amp; submits — info comes back to you</div>
+      </div>
+      <button onclick="rpCloseCustomerForm()" style="background:#1e1e1e;border:1.5px solid #2a2a2a;border-radius:8px;color:#666;width:32px;height:32px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <!-- Tabs -->
+    <div style="display:flex;border-bottom:1px solid #2a2a2a;" id="cf-tabs">
+      <div id="cf-tab-1" onclick="cfShowStep(1)" style="flex:1;padding:12px 10px;text-align:center;font-family:Syne,sans-serif;font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);border-bottom:2px solid var(--accent);cursor:pointer;">① Customer</div>
+      <div id="cf-tab-2" onclick="cfShowStep(2)" style="flex:1;padding:12px 10px;text-align:center;font-family:Syne,sans-serif;font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#666;border-bottom:2px solid transparent;cursor:pointer;">② Plan</div>
+      <div id="cf-tab-3" onclick="cfShowStep(3)" style="flex:1;padding:12px 10px;text-align:center;font-family:Syne,sans-serif;font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#666;border-bottom:2px solid transparent;cursor:pointer;">③ Card</div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div id="cf-step-1" style="padding:22px;">
+      <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#666;font-weight:700;margin-bottom:14px;">Your Information</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div><label style="font-size:10px;text-transform:uppercase;color:#666;font-weight:700;display:block;margin-bottom:5px;">First Name *</label>
+        <input id="cf-fname" type="text" placeholder="Maria" style="width:100%;background:#1e1e1e;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;"/></div>
+        <div><label style="font-size:10px;text-transform:uppercase;color:#666;font-weight:700;display:block;margin-bottom:5px;">Last Name *</label>
+        <input id="cf-lname" type="text" placeholder="Garcia" style="width:100%;background:#1e1e1e;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;"/></div>
+      </div>
+      <div style="margin-bottom:12px;"><label style="font-size:10px;text-transform:uppercase;color:#666;font-weight:700;display:block;margin-bottom:5px;">Email *</label>
+      <input id="cf-email" type="email" placeholder="maria@email.com" style="width:100%;background:#1e1e1e;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;"/></div>
+      <div style="margin-bottom:12px;"><label style="font-size:10px;text-transform:uppercase;color:#666;font-weight:700;display:block;margin-bottom:5px;">Phone</label>
+      <input id="cf-phone" type="tel" placeholder="(954) 000-0000" style="width:100%;background:#1e1e1e;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;"/></div>
+      <div style="margin-bottom:12px;"><label style="font-size:10px;text-transform:uppercase;color:#666;font-weight:700;display:block;margin-bottom:5px;">Program / Notes</label>
+      <textarea id="cf-notes" rows="2" placeholder="e.g. Martial Arts – Adult Monthly" style="width:100%;background:#1e1e1e;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;resize:vertical;"></textarea></div>
+      <div id="cf-err-1" style="color:var(--danger);font-size:12px;min-height:16px;margin-bottom:8px;font-weight:600;"></div>
+      <div style="display:flex;justify-content:flex-end;"><button onclick="cfNext(1)" style="background:var(--accent);color:#000;border:none;border-radius:9px;padding:10px 24px;font-family:Syne,sans-serif;font-weight:800;font-size:13px;cursor:pointer;">Next →</button></div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div id="cf-step-2" style="padding:22px;display:none;">
+      <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#666;font-weight:700;margin-bottom:14px;">Payment Details</div>
+      <div style="margin-bottom:12px;"><label style="font-size:10px;text-transform:uppercase;color:#666;font-weight:700;display:block;margin-bottom:5px;">Payment Description *</label>
+      <input id="cf-plan" type="text" placeholder="e.g. Monthly Martial Arts Membership" style="width:100%;background:#1e1e1e;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;"/></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div><label style="font-size:10px;text-transform:uppercase;color:#666;font-weight:700;display:block;margin-bottom:5px;">Frequency *</label>
+        <select id="cf-freq" style="width:100%;background:#1e1e1e;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;appearance:none;">
+          <option value="">— Select —</option>
+          <option>Weekly</option><option>Bi-Weekly</option><option>Monthly</option><option>Quarterly</option><option>Annually</option>
+        </select></div>
+        <div><label style="font-size:10px;text-transform:uppercase;color:#666;font-weight:700;display:block;margin-bottom:5px;">Amount * ($)</label>
+        <input id="cf-amount" type="number" placeholder="0.00" min="1" step="0.01" oninput="cfCalcFee()" style="width:100%;background:#1e1e1e;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;"/></div>
+      </div>
+      <div id="cf-fee-box" style="display:none;background:rgba(232,255,60,.06);border:1px solid rgba(232,255,60,.18);border-radius:9px;padding:12px 14px;margin-bottom:12px;font-size:13px;">
+        <div style="display:flex;justify-content:space-between;color:#888;margin-bottom:4px;"><span>Amount</span><span id="cf-fee-base">—</span></div>
+        <div style="display:flex;justify-content:space-between;color:#fbbf24;margin-bottom:4px;"><span>Fee (3.50%)</span><span id="cf-fee-val">—</span></div>
+        <div style="display:flex;justify-content:space-between;font-family:Syne,sans-serif;font-weight:800;color:var(--accent);border-top:1px dashed rgba(255,255,255,.1);padding-top:6px;"><span>Total / Cycle</span><span id="cf-fee-total">—</span></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div><label style="font-size:10px;text-transform:uppercase;color:#666;font-weight:700;display:block;margin-bottom:5px;">Start Date *</label>
+        <input id="cf-start" type="date" style="width:100%;background:#1e1e1e;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;"/></div>
+        <div><label style="font-size:10px;text-transform:uppercase;color:#666;font-weight:700;display:block;margin-bottom:5px;">End Date <span style="font-size:9px;color:#444;text-transform:none;letter-spacing:0;">(optional)</span></label>
+        <input id="cf-end" type="date" style="width:100%;background:#1e1e1e;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;"/></div>
+      </div>
+      <div id="cf-err-2" style="color:var(--danger);font-size:12px;min-height:16px;margin-bottom:8px;font-weight:600;"></div>
+      <div style="display:flex;justify-content:space-between;">
+        <button onclick="cfShowStep(1)" style="background:transparent;color:#666;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 20px;font-family:Syne,sans-serif;font-weight:700;font-size:13px;cursor:pointer;">← Back</button>
+        <button onclick="cfNext(2)" style="background:var(--accent);color:#000;border:none;border-radius:9px;padding:10px 24px;font-family:Syne,sans-serif;font-weight:800;font-size:13px;cursor:pointer;">Next →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div id="cf-step-3" style="padding:22px;display:none;">
+      <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#666;font-weight:700;margin-bottom:14px;">Card &amp; Authorization</div>
+      <div style="margin-bottom:12px;"><label style="font-size:10px;text-transform:uppercase;color:#666;font-weight:700;display:block;margin-bottom:5px;">Card Number *</label>
+      <input id="cf-card" type="text" placeholder="•••• •••• •••• ••••" maxlength="19" oninput="var v=this.value.replace(/\D/g,'').substring(0,16);this.value=v.replace(/(.{4})/g,'$1 ').trim();" style="width:100%;background:#1e1e1e;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;font-family:monospace;letter-spacing:.05em;"/></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div><label style="font-size:10px;text-transform:uppercase;color:#666;font-weight:700;display:block;margin-bottom:5px;">Exp Month *</label>
+        <select id="cf-exp-m" style="width:100%;background:#1e1e1e;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;appearance:none;">
+          <option value="">Month</option>
+          <option>01</option><option>02</option><option>03</option><option>04</option><option>05</option><option>06</option>
+          <option>07</option><option>08</option><option>09</option><option>10</option><option>11</option><option>12</option>
+        </select></div>
+        <div><label style="font-size:10px;text-transform:uppercase;color:#666;font-weight:700;display:block;margin-bottom:5px;">Exp Year *</label>
+        <select id="cf-exp-y" style="width:100%;background:#1e1e1e;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;appearance:none;" id="cf-exp-y-sel"></select></div>
+      </div>
+      <div style="margin-bottom:12px;"><label style="font-size:10px;text-transform:uppercase;color:#666;font-weight:700;display:block;margin-bottom:5px;">Name on Card *</label>
+      <input id="cf-cname" type="text" placeholder="As shown on card" oninput="this.value=this.value.toUpperCase()" style="width:100%;background:#1e1e1e;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;letter-spacing:.04em;"/></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        <div><label style="font-size:10px;text-transform:uppercase;color:#666;font-weight:700;display:block;margin-bottom:5px;">Billing ZIP *</label>
+        <input id="cf-zip" type="text" placeholder="33322" maxlength="10" style="width:100%;background:#1e1e1e;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;"/></div>
+        <div><label style="font-size:10px;text-transform:uppercase;color:#666;font-weight:700;display:block;margin-bottom:5px;">Country *</label>
+        <select id="cf-country" style="width:100%;background:#1e1e1e;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 13px;color:#f0f0f0;font-size:14px;outline:none;appearance:none;">
+          <option value="US">🇺🇸 United States</option><option value="MX">🇲🇽 Mexico</option>
+          <option value="CO">🇨🇴 Colombia</option><option value="VE">🇻🇪 Venezuela</option><option value="OTHER">Other</option>
+        </select></div>
+      </div>
+      <div style="background:#1e1e1e;border-radius:9px;padding:14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;">
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:var(--text);">
+          <input type="checkbox" id="cf-auth" style="width:16px;height:16px;accent-color:var(--accent);margin-top:2px;flex-shrink:0;"/>
+          <span><strong>I authorize recurring charges</strong> to this card per the schedule above, including the 3.50% processing fee, until cancelled in writing. <span style="color:var(--accent);font-size:11px;">· FL Stat. §68.065</span></span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--text);">
+          <input type="checkbox" id="cf-notify" checked style="width:16px;height:16px;accent-color:var(--accent);"/>
+          <span>Notify me by email when each payment is processed</span>
+        </label>
+      </div>
+      <div id="cf-err-3" style="color:var(--danger);font-size:12px;min-height:16px;margin-bottom:8px;font-weight:600;"></div>
+      <div style="display:flex;justify-content:space-between;">
+        <button onclick="cfShowStep(2)" style="background:transparent;color:#666;border:1.5px solid #2a2a2a;border-radius:9px;padding:10px 20px;font-family:Syne,sans-serif;font-weight:700;font-size:13px;cursor:pointer;">← Back</button>
+        <button onclick="cfSubmit()" style="background:var(--accent);color:#000;border:none;border-radius:9px;padding:10px 28px;font-family:Syne,sans-serif;font-weight:800;font-size:14px;cursor:pointer;">✓ Authorize &amp; Submit</button>
+      </div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div id="cf-success" style="display:none;padding:36px 22px;text-align:center;">
+      <div style="width:64px;height:64px;border-radius:50%;background:rgba(34,197,94,.12);border:2px solid var(--success);display:inline-flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:16px;">✓</div>
+      <div style="font-family:Syne,sans-serif;font-weight:800;font-size:20px;margin-bottom:8px;">Authorization Received!</div>
+      <div style="font-size:13px;color:#666;margin-bottom:20px;" id="cf-success-msg"></div>
+      <div id="cf-success-pills" style="margin-bottom:20px;"></div>
+      <button onclick="cfReset()" style="background:transparent;color:#666;border:1.5px solid #2a2a2a;border-radius:9px;padding:9px 22px;font-family:Syne,sans-serif;font-weight:700;font-size:13px;cursor:pointer;">Submit Another</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CUSTOMER FORM JS ──
+(function(){
+  // Populate years
+  var sel = document.getElementById('cf-exp-y');
+  if(sel){ var yr=new Date().getFullYear(); for(var i=0;i<12;i++){var o=document.createElement('option');o.value=yr+i;o.textContent=yr+i;sel.appendChild(o);} }
+  // Default start date
+  var sd = document.getElementById('cf-start');
+  if(sd) sd.value = new Date().toISOString().split('T')[0];
+})();
+
+function cfShowStep(n){
+  [1,2,3].forEach(function(i){
+    document.getElementById('cf-step-'+i).style.display = i===n?'':'none';
+    var t=document.getElementById('cf-tab-'+i);
+    if(t){
+      t.style.color = i===n?'var(--accent)':'#666';
+      t.style.borderBottom = i===n?'2px solid var(--accent)':'2px solid transparent';
+    }
+  });
+}
+function cfCalcFee(){
+  var a=parseFloat(document.getElementById('cf-amount').value)||0;
+  var box=document.getElementById('cf-fee-box');
+  if(a>0){
+    document.getElementById('cf-fee-base').textContent='$'+a.toFixed(2);
+    document.getElementById('cf-fee-val').textContent='$'+(a*0.035).toFixed(2);
+    document.getElementById('cf-fee-total').textContent='$'+(a*1.035).toFixed(2);
+    box.style.display='';
+  } else { box.style.display='none'; }
+}
+function cfNext(from){
+  var err=document.getElementById('cf-err-'+from);
+  err.textContent='';
+  if(from===1){
+    if(!document.getElementById('cf-fname').value.trim()){err.textContent='First name required.';return;}
+    if(!document.getElementById('cf-lname').value.trim()){err.textContent='Last name required.';return;}
+    var em=document.getElementById('cf-email').value.trim();
+    if(!em||!/\S+@\S+\.\S+/.test(em)){err.textContent='Valid email required.';return;}
+  }
+  if(from===2){
+    if(!document.getElementById('cf-plan').value.trim()){err.textContent='Payment description required.';return;}
+    if(!document.getElementById('cf-freq').value){err.textContent='Select a frequency.';return;}
+    if(!(parseFloat(document.getElementById('cf-amount').value)>0)){err.textContent='Enter a valid amount.';return;}
+    if(!document.getElementById('cf-start').value){err.textContent='Start date required.';return;}
+  }
+  cfShowStep(from+1);
+}
+function cfSubmit(){
+  var err=document.getElementById('cf-err-3');
+  err.textContent='';
+  var cn=(document.getElementById('cf-card').value||'').replace(/\D/g,'');
+  if(cn.length<13){err.textContent='Valid card number required.';return;}
+  if(!document.getElementById('cf-exp-m').value||!document.getElementById('cf-exp-y').value){err.textContent='Expiration date required.';return;}
+  if(!document.getElementById('cf-cname').value.trim()){err.textContent='Name on card required.';return;}
+  if(!document.getElementById('cf-zip').value.trim()){err.textContent='Billing ZIP required.';return;}
+  if(!document.getElementById('cf-auth').checked){err.textContent='You must authorize recurring charges.';return;}
+
+  var fn=document.getElementById('cf-fname').value.trim();
+  var ln=document.getElementById('cf-lname').value.trim();
+  var em=document.getElementById('cf-email').value.trim();
+  var plan=document.getElementById('cf-plan').value.trim();
+  var freq=document.getElementById('cf-freq').value;
+  var amt=parseFloat(document.getElementById('cf-amount').value)||0;
+  var total=(amt*1.035).toFixed(2);
+  var last4=cn.slice(-4);
+
+  // Hide steps, show success
+  [1,2,3].forEach(function(i){document.getElementById('cf-step-'+i).style.display='none';});
+  document.getElementById('cf-success-msg').textContent='Thank you '+fn+'! Your authorization for $'+total+' ('+freq+') has been received. Confirmation will be sent to '+em+'.';
+  var pills=[
+    {l:'Customer',v:fn+' '+ln},{l:'Plan',v:plan},{l:'Cycle',v:freq},
+    {l:'Total',v:'$'+total},{l:'Card',v:'**** '+last4}
+  ].map(function(p){
+    return '<div style="display:inline-flex;align-items:center;gap:6px;background:#1e1e1e;border:1px solid #2a2a2a;border-radius:20px;padding:6px 14px;font-size:12px;margin:3px;">'
+      +'<span style="color:#666;">'+p.l+'</span><span style="color:#444;margin:0 2px;">·</span><span style="color:var(--accent);font-weight:700;">'+p.v+'</span></div>';
+  }).join('');
+  document.getElementById('cf-success-pills').innerHTML=pills;
+  document.getElementById('cf-success').style.display='';
+
+  // Feed into main recent list
+  var list=document.getElementById('rp-recent-list');
+  if(list){
+    var row=document.createElement('div');
+    row.style.cssText='padding:10px 0;border-bottom:1px solid var(--border);text-align:left;';
+    row.innerHTML='<div style="font-family:Syne,sans-serif;font-weight:700;font-size:13px;">'+fn+' '+ln+'</div>'
+      +'<div style="font-size:11px;color:var(--muted);margin-top:2px;">'+plan+' · '+freq+'</div>'
+      +'<div style="font-size:11px;color:var(--accent);margin-top:2px;">$'+amt.toFixed(2)+' + 3.50% = $'+total+'</div>'
+      +'<div style="font-size:10px;color:var(--muted2);margin-top:2px;">Card *'+last4+' · '+new Date().toLocaleDateString()+'</div>';
+    if(list.textContent.trim().includes('No recurring')) list.innerHTML='';
+    list.prepend(row);
+  }
+}
+function cfReset(){
+  ['cf-fname','cf-lname','cf-email','cf-phone','cf-notes','cf-plan','cf-amount','cf-end','cf-card','cf-cname','cf-zip']
+    .forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  ['cf-freq','cf-exp-m','cf-exp-y'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('cf-auth').checked=false;
+  document.getElementById('cf-notify').checked=true;
+  document.getElementById('cf-fee-box').style.display='none';
+  document.getElementById('cf-success').style.display='none';
+  document.getElementById('cf-start').value=new Date().toISOString().split('T')[0];
+  cfShowStep(1);
+}
+</script>
 </body>
 </html>
