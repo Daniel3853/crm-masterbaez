@@ -649,23 +649,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     </button>
   </nav>
 
-  <!-- Botón flotante Walk-In (lado izquierdo) -->
-  <button id="floatWalkInBtn" onclick="openWalkInModal()"
-    style="position:fixed;left:18px;bottom:24px;z-index:9998;
-           display:flex;align-items:center;gap:8px;
-           background:linear-gradient(135deg,#f97316,#ef4444);
-           color:#fff;border:none;border-radius:50px;
-           padding:11px 18px;font-family:'Syne',sans-serif;font-weight:800;
-           font-size:13px;cursor:pointer;
-           box-shadow:0 4px 20px rgba(249,115,22,.45);
-           transition:all .2s;"
-    onmouseover="this.style.transform='scale(1.05)';this.style.boxShadow='0 6px 28px rgba(249,115,22,.6)'"
-    onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 4px 20px rgba(249,115,22,.45)'">
-    <span style="font-size:16px;">🚶</span>
-    <span>Walk-In</span>
-  </button>
-
-  <!-- Botón flotante de idioma (lado derecho) -->
+  <!-- Botones flotantes — lado derecho apilados -->
   <button onclick="toggleLangMaster()" id="langBtnMaster"
     style="position:fixed;right:18px;bottom:24px;z-index:9999;
            display:flex;align-items:center;gap:7px;padding:10px 16px;
@@ -677,6 +661,21 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
     onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">
     <span style="font-size:17px">🌐</span><span id="langBtnLabel">EN</span>
+  </button>
+
+  <button id="floatWalkInBtn" onclick="openWalkInModal()"
+    style="position:fixed;right:18px;bottom:80px;z-index:9998;
+           display:flex;align-items:center;gap:8px;
+           background:linear-gradient(135deg,#f97316,#ef4444);
+           color:#fff;border:none;border-radius:50px;
+           padding:11px 18px;font-family:'Syne',sans-serif;font-weight:800;
+           font-size:13px;cursor:pointer;
+           box-shadow:0 4px 20px rgba(249,115,22,.45);
+           transition:all .2s;"
+    onmouseover="this.style.transform='scale(1.05)';this.style.boxShadow='0 6px 28px rgba(249,115,22,.6)'"
+    onmouseout="this.style.transform='scale(1)';this.style.boxShadow='0 4px 20px rgba(249,115,22,.45)'">
+    <span style="font-size:16px;">🚶</span>
+    <span>Walk-In</span>
   </button>
 
   <!-- MAIN -->
