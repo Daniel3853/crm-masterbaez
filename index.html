@@ -637,8 +637,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     <button class="sn-item" data-p="grafica" id="nav-grafica" onclick="goPage('grafica')">
       <span class="sn-icon">📊</span><span class="sn-lbl" data-lang-key="navGrafica">Gráfica</span>
     </button>
+    <!-- 17: Recurring Payment -->
+    <button class="sn-item" data-p="recurring" id="nav-recurring" onclick="goPage('recurring')">
+      <span class="sn-icon">🔁</span><span class="sn-lbl">Recurring</span>
+    </button>
     <div class="sn-divider"></div>
-    <!-- 17: Papelera (al final) -->
+    <!-- 18: Papelera (al final) -->
     <button class="sn-item" data-p="papelera" id="nav-papelera" onclick="goPage('papelera')">
       <span class="sn-icon">🗑️</span><span class="sn-lbl" data-lang-key="navPapelera">Papelera</span>
       <span class="sn-badge" id="navBadgePapelera" style="display:none">0</span>
@@ -738,7 +742,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
               <div style="background:rgba(60,255,212,.04);border:1px solid rgba(60,255,212,.2);border-radius:10px;padding:12px 14px">
                 <div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent2);font-weight:700;margin-bottom:4px">💳 Cargo Conveniencia</div>
-                <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:var(--accent2)">$3.50</div>
+                <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;color:var(--accent2)">3.50%</div>
                 <div style="font-size:11px;color:var(--muted);margin-top:2px">por pago con crédito / per credit payment</div>
               </div>
               <div style="background:rgba(255,68,68,.04);border:1px solid rgba(255,68,68,.2);border-radius:10px;padding:12px 14px">
@@ -1190,6 +1194,245 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         </div>
       </div>
     </div>
+
+
+    <!-- PAGE: RECURRING PAYMENT -->
+    <div class="page mod-page" id="page-recurring">
+      <div class="topbar">
+        <div>
+          <div class="page-title">🔁 Set Up Recurring Payment</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Configure automatic billing for your customers</div>
+        </div>
+        <div class="topbar-actions">
+          <div style="background:rgba(234,179,8,.12);border:1px solid rgba(234,179,8,.3);border-radius:8px;padding:7px 14px;font-size:12px;color:#fbbf24;font-weight:700;">
+            💳 3.50% convenience fee applies to credit card payments
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;">
+        <!-- LEFT FORM -->
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
+          <!-- Tabs -->
+          <div style="display:flex;border-bottom:1px solid var(--border);">
+            <div id="rp-step-1-tab" style="flex:1;padding:14px 18px;font-family:Syne,sans-serif;font-weight:700;font-size:13px;color:var(--accent);border-bottom:2px solid var(--accent);cursor:pointer;" onclick="rpShowStep(1)">&#9312; Customer</div>
+            <div id="rp-step-2-tab" style="flex:1;padding:14px 18px;font-family:Syne,sans-serif;font-weight:700;font-size:13px;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;" onclick="rpShowStep(2)">&#9313; Payment Details</div>
+            <div id="rp-step-3-tab" style="flex:1;padding:14px 18px;font-family:Syne,sans-serif;font-weight:700;font-size:13px;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;" onclick="rpShowStep(3)">&#9314; Card Info</div>
+          </div>
+          <!-- STEP 1 -->
+          <div id="rp-step-1" style="padding:24px;">
+            <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:16px;">Customer</div>
+            <div style="display:flex;gap:0;margin-bottom:20px;border:1.5px solid var(--border);border-radius:9px;overflow:hidden;width:fit-content;">
+              <button id="rp-existing-btn" onclick="rpToggleCustomer('existing')" style="padding:9px 22px;font-family:Syne,sans-serif;font-weight:700;font-size:13px;background:var(--accent);color:#000;border:none;cursor:pointer;">&#10003; Existing</button>
+              <button id="rp-new-btn" onclick="rpToggleCustomer('new')" style="padding:9px 22px;font-family:Syne,sans-serif;font-weight:700;font-size:13px;background:transparent;color:var(--muted);border:none;cursor:pointer;">+ Add New</button>
+            </div>
+            <div id="rp-existing-section" style="margin-bottom:18px;">
+              <label style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:6px;">Customer *</label>
+              <select id="rp-customer-select" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;"><option value="">— Select Customer —</option></select>
+            </div>
+            <div id="rp-new-section" style="display:none;">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+                <div>
+                  <label style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:6px;">First Name</label>
+                  <input id="rp-fname" type="text" placeholder="First name" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;"/>
+                </div>
+                <div>
+                  <label style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:6px;">Last Name</label>
+                  <input id="rp-lname" type="text" placeholder="Last name" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;"/>
+                </div>
+              </div>
+              <div style="margin-bottom:14px;">
+                <label style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:6px;">Email</label>
+                <input id="rp-email" type="email" placeholder="customer@email.com" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;"/>
+              </div>
+            </div>
+            <div>
+              <label style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:6px;">Notes</label>
+              <textarea id="rp-notes" rows="3" placeholder="Optional notes..." style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;resize:vertical;"></textarea>
+            </div>
+            <div style="margin-top:20px;display:flex;justify-content:flex-end;">
+              <button onclick="rpShowStep(2)" style="background:var(--accent);color:#000;border:none;border-radius:9px;padding:11px 28px;font-family:Syne,sans-serif;font-weight:800;font-size:14px;cursor:pointer;">Next &#8594;</button>
+            </div>
+          </div>
+          <!-- STEP 2 -->
+          <div id="rp-step-2" style="padding:24px;display:none;">
+            <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:16px;">Payment Details</div>
+            <div style="margin-bottom:14px;">
+              <label style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:6px;">Name Recurring Payment <span style="color:var(--muted2);font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">— visible to your customer</span></label>
+              <input id="rp-plan-name" type="text" placeholder="e.g. Monthly Service Plan" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;"/>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+              <div>
+                <label style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:6px;">Frequency *</label>
+                <select id="rp-frequency" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;">
+                  <option value="">Please Select</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="yearly">Yearly</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="daily">Daily</option>
+                  <option value="quarterly">Quarterly</option>
+                  <option value="once">Once</option>
+                  <option value="every4weeks">Every Four Weeks</option>
+                  <option value="every2weeks">Every Two Weeks</option>
+                  <option value="twicemonth">Twice per Month</option>
+                  <option value="twiceyear">Twice per Year</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:6px;">Invoice Type</label>
+                <select id="rp-invoice-type" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;">
+                  <option value="amount">Amount Only</option>
+                  <option value="itemized">Itemized</option>
+                </select>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+              <div>
+                <label style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:6px;">Start Date *</label>
+                <input id="rp-start-date" type="date" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;"/>
+              </div>
+              <div>
+                <label style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:6px;">End Date</label>
+                <input id="rp-end-date" type="date" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;"/>
+              </div>
+            </div>
+            <div style="margin-bottom:14px;">
+              <label style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:6px;">Amount *</label>
+              <div style="position:relative;">
+                <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:700;">$</span>
+                <input id="rp-amount" type="number" step="0.01" min="0" placeholder="0.00" oninput="rpCalcFee()"
+                  style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:11px 14px 11px 28px;color:var(--text);font-family:Syne,sans-serif;font-weight:800;font-size:16px;outline:none;"/>
+              </div>
+            </div>
+            <div id="rp-fee-preview" style="display:none;background:rgba(232,255,60,.07);border:1px solid rgba(232,255,60,.2);border-radius:9px;padding:12px 16px;margin-bottom:14px;font-size:13px;">
+              <div style="display:flex;justify-content:space-between;color:var(--muted);margin-bottom:4px;"><span>Service amount</span><span id="rp-fee-base">$0.00</span></div>
+              <div style="display:flex;justify-content:space-between;color:#fbbf24;margin-bottom:4px;"><span>Credit card fee (3.50%)</span><span id="rp-fee-amt">$0.00</span></div>
+              <div style="display:flex;justify-content:space-between;font-family:Syne,sans-serif;font-weight:800;color:var(--accent);border-top:1px solid rgba(232,255,60,.15);padding-top:6px;margin-top:2px;"><span>Total charged</span><span id="rp-fee-total">$0.00</span></div>
+            </div>
+            <div style="background:var(--surface2);border-radius:9px;padding:14px 16px;margin-bottom:14px;">
+              <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:10px;">Notifications</div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Each time a payment occurs, you will get an automated notification.</div>
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--text);">
+                <input type="checkbox" id="rp-notify-customer" style="width:16px;height:16px;accent-color:var(--accent);"/>
+                Notify my customer that I set up this recurring payment
+              </label>
+            </div>
+            <div style="margin-top:20px;display:flex;justify-content:space-between;">
+              <button onclick="rpShowStep(1)" style="background:transparent;color:var(--muted);border:1.5px solid var(--border);border-radius:9px;padding:11px 22px;font-family:Syne,sans-serif;font-weight:700;font-size:13px;cursor:pointer;">&#8592; Back</button>
+              <button onclick="rpShowStep(3)" style="background:var(--accent);color:#000;border:none;border-radius:9px;padding:11px 28px;font-family:Syne,sans-serif;font-weight:800;font-size:14px;cursor:pointer;">Next &#8594;</button>
+            </div>
+          </div>
+          <!-- STEP 3 -->
+          <div id="rp-step-3" style="padding:24px;display:none;">
+            <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:16px;">Payment Method</div>
+            <div style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);border-radius:9px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#fbbf24;">
+              &#9888; A <strong>3.50% convenience fee</strong> will be added to credit card transactions.
+            </div>
+            <div style="margin-bottom:14px;">
+              <label style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:6px;">Card Number (no spaces) *</label>
+              <input id="rp-card-number" type="text" maxlength="16" placeholder="1234567890123456" oninput="this.value=this.value.replace(/\D/g,'')"
+                style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;letter-spacing:.1em;"/>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+              <div>
+                <label style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:6px;">Expiration Date *</label>
+                <div style="display:flex;gap:8px;">
+                  <select id="rp-exp-month" style="flex:1;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:11px 8px;color:var(--text);font-size:14px;outline:none;">
+                    <option value="">MM</option>
+                    <option>01</option><option>02</option><option>03</option><option>04</option>
+                    <option>05</option><option>06</option><option>07</option><option>08</option>
+                    <option>09</option><option>10</option><option>11</option><option>12</option>
+                  </select>
+                  <select id="rp-exp-year" style="flex:1;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:11px 8px;color:var(--text);font-size:14px;outline:none;">
+                    <option value="">YYYY</option>
+                    <option>2026</option><option>2027</option><option>2028</option><option>2029</option>
+                    <option>2030</option><option>2031</option><option>2032</option><option>2033</option>
+                    <option>2034</option><option>2035</option><option>2036</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:6px;">Name (as shown on card) *</label>
+                <input id="rp-card-name" type="text" placeholder="JOHN DOE" oninput="this.value=this.value.toUpperCase()"
+                  style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;text-transform:uppercase;"/>
+              </div>
+            </div>
+            <div style="margin-bottom:14px;">
+              <label style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:6px;">Billing Address</label>
+              <input id="rp-billing-addr" type="text" placeholder="Street address"
+                style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;"/>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+              <div>
+                <label style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:6px;">Billing ZIP Code *</label>
+                <input id="rp-zip" type="text" placeholder="33301" maxlength="10"
+                  style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;"/>
+              </div>
+              <div>
+                <label style="font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:6px;">Billing Country *</label>
+                <select id="rp-country" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;">
+                  <option value="USA" selected>United States</option>
+                  <option value="MEX">Mexico</option><option value="CAN">Canada</option>
+                  <option value="GBR">United Kingdom</option><option value="ESP">Spain</option>
+                  <option value="COL">Colombia</option><option value="ARG">Argentina</option>
+                  <option value="BRA">Brazil</option><option value="PER">Peru</option>
+                  <option value="CHL">Chile</option><option value="VEN">Venezuela</option>
+                  <option value="DOM">Dominican Republic</option><option value="CRI">Costa Rica</option>
+                  <option value="PAN">Panama</option><option value="GTM">Guatemala</option>
+                  <option value="HND">Honduras</option><option value="SLV">El Salvador</option>
+                  <option value="NIC">Nicaragua</option><option value="CUB">Cuba</option>
+                  <option value="PRI">Puerto Rico</option><option value="AUS">Australia</option>
+                  <option value="DEU">Germany</option><option value="FRA">France</option>
+                  <option value="ITA">Italy</option><option value="PRT">Portugal</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+            </div>
+            <div style="background:var(--surface2);border-radius:9px;padding:14px 16px;margin-bottom:14px;display:flex;flex-direction:column;gap:12px;">
+              <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:var(--text);">
+                <input type="checkbox" id="rp-auth-signed" style="width:16px;height:16px;accent-color:var(--accent);margin-top:2px;flex-shrink:0;"/>
+                I have the signed authorization from customer to process this card.
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--text);">
+                <input type="checkbox" id="rp-commercial" style="width:16px;height:16px;accent-color:var(--accent);"/>
+                This is a commercial card <span style="color:var(--accent);font-size:11px;margin-left:4px;">[?]</span>
+              </label>
+            </div>
+            <div id="rp-error" style="color:var(--danger);font-size:13px;min-height:18px;margin-bottom:10px;font-weight:600;"></div>
+            <div style="display:flex;justify-content:space-between;gap:12px;">
+              <button onclick="rpShowStep(2)" style="background:transparent;color:var(--muted);border:1.5px solid var(--border);border-radius:9px;padding:11px 22px;font-family:Syne,sans-serif;font-weight:700;font-size:13px;cursor:pointer;">&#8592; Back</button>
+              <button onclick="rpSubmit()" style="background:var(--accent);color:#000;border:none;border-radius:9px;padding:11px 32px;font-family:Syne,sans-serif;font-weight:800;font-size:15px;cursor:pointer;">&#10003; Confirm &amp; Save</button>
+            </div>
+          </div>
+        </div>
+        <!-- RIGHT PANEL -->
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;">
+            <div style="font-family:Syne,sans-serif;font-weight:800;font-size:13px;margin-bottom:12px;color:var(--accent2);">&#128179; Fee Information</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.7;">
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>Credit Card</span><span style="color:#fbbf24;font-weight:700;">3.50%</span></div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);"><span>Debit Card</span><span style="color:var(--success);font-weight:700;">$0.00</span></div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;"><span>ACH Transfer</span><span style="color:var(--success);font-weight:700;">$0.00</span></div>
+            </div>
+            <div style="margin-top:10px;font-size:11px;color:var(--muted2);">Per FL Stat. §501.0117 &amp; Dodd-Frank §1075</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;">
+            <div style="font-family:Syne,sans-serif;font-weight:800;font-size:13px;margin-bottom:12px;">&#9889; Quick Links</div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <a href="#" onclick="openCCPolicyModal('en');return false;" style="font-size:12px;color:var(--accent2);text-decoration:none;">&#128203; CC Policy (EN)</a>
+              <a href="#" onclick="openCCPolicyModal('es');return false;" style="font-size:12px;color:var(--accent2);text-decoration:none;">&#128203; Política (ES)</a>
+              <div style="height:1px;background:var(--border);"></div>
+              <div style="font-size:11px;color:var(--muted);">&#10067; When will my customer be billed?</div>
+              <div style="font-size:11px;color:var(--muted);">&#10067; Why can't I start billing today?</div>
+              <div style="font-size:11px;color:var(--muted);">&#10067; How to complete authorization form?</div>
+            </div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;">
+            <div style="font-family:Syne,sans-serif;font-weight:800;font-size:13px;margin-bottom:12px;">&#128203; Recent Recurring</div>
+            <div id="rp-recent-list" style="font-size:12px;color:var(--muted);text-align:center;padding:16px 0;">No recurring payments set up yet.</div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /page-recurring -->
 
   </div><!-- /main -->
   </div><!-- /main-wrap -->
@@ -7709,18 +7952,18 @@ async function fbLoadMasterMods(){
       <div style="margin-bottom:32px;">
         <div style="font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#b8860b;display:flex;align-items:center;gap:8px;margin-bottom:8px;">Sección 01 · Section 01 <span style="flex:1;height:1px;background:#d4cfc4;"></span></div>
         <div id="ccS1Title" style="font-family:'Syne',sans-serif;font-weight:700;font-size:17px;color:#1a3a5c;margin-bottom:12px;">💳 Cargo por Conveniencia de Tarjeta de Crédito</div>
-        <p id="ccS1Body" style="font-size:13px;line-height:1.85;color:#2a2a2a;margin-bottom:10px;">Para cubrir los costos de procesamiento, se aplica un <strong>cargo fijo de $3.50</strong> a todas las transacciones realizadas con tarjeta de crédito.</p>
+        <p id="ccS1Body" style="font-size:13px;line-height:1.85;color:#2a2a2a;margin-bottom:10px;">Para cubrir los costos de procesamiento, se aplica un <strong>cargo del 3.50%</strong> sobre todas las transacciones realizadas con tarjeta de crédito.</p>
         <div style="background:#f0f4f8;border:1px solid #c8d8e8;border-radius:4px;padding:10px 14px;margin:10px 0;font-size:12px;color:#2a4a6a;line-height:1.7;"><strong>📜 Florida Statute § 501.0117</strong> — Permite a los comerciantes cobrar un cargo por conveniencia claramente divulgado antes de la transacción. / Allows merchants to charge a clearly-disclosed convenience fee prior to the transaction.</div>
         <div style="background:#f0f4f8;border:1px solid #c8d8e8;border-radius:4px;padding:10px 14px;margin:10px 0;font-size:12px;color:#2a4a6a;line-height:1.7;"><strong>📜 Dodd-Frank Act §1075</strong> — Los comerciantes pueden aplicar recargos en tarjetas de crédito sin exceder los costos de aceptación de la red. / Merchants may apply surcharges on credit cards not exceeding network acceptance costs.</div>
         <table style="width:100%;border-collapse:collapse;margin:12px 0;font-size:13px;">
           <thead><tr style="background:#1a3a5c;"><th style="padding:9px 12px;color:#fff;text-align:left;font-size:11px;text-transform:uppercase;">Tipo / Card Type</th><th style="padding:9px 12px;color:#fff;text-align:left;font-size:11px;text-transform:uppercase;">Cargo / Fee</th><th style="padding:9px 12px;color:#fff;text-align:left;font-size:11px;text-transform:uppercase;">Notas / Notes</th></tr></thead>
           <tbody>
-            <tr style="background:#e8f0f7;"><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;">💳 Tarjeta de Crédito / Credit Card</td><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;font-weight:800;color:#1a3a5c;">$3.50</td><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;">Se suma al total / Added to total</td></tr>
+            <tr style="background:#e8f0f7;"><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;">💳 Tarjeta de Crédito / Credit Card</td><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;font-weight:800;color:#1a3a5c;">3.50%</td><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;">Se suma al total / Added to total</td></tr>
             <tr><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;">🏦 Tarjeta de Débito / Debit Card</td><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;font-weight:800;color:#1a4a1a;">$0.00</td><td style="padding:10px 12px;border-bottom:1px solid #d4cfc4;">Sin cargo / No fee</td></tr>
             <tr style="background:#f5f5f5;"><td style="padding:10px 12px;">🏦 ACH / Transferencia</td><td style="padding:10px 12px;font-weight:800;color:#1a4a1a;">$0.00</td><td style="padding:10px 12px;">Sin cargo / No fee</td></tr>
           </tbody>
         </table>
-        <div style="background:#e8f4fd;border-left:3px solid #2196f3;border-radius:4px;padding:12px 16px;font-size:13px;color:#1a3a5a;line-height:1.7;"><strong id="ccEx">ℹ️ Ejemplo:</strong> <span id="ccExBody">Servicio $100.00 + cargo $3.50 = <strong>$103.50 total</strong>.</span></div>
+        <div style="background:#e8f4fd;border-left:3px solid #2196f3;border-radius:4px;padding:12px 16px;font-size:13px;color:#1a3a5a;line-height:1.7;"><strong id="ccEx">ℹ️ Ejemplo:</strong> <span id="ccExBody">Servicio $100.00 + cargo 3.50% = <strong>$103.50 total</strong>.</span></div>
       </div>
       <div style="margin-bottom:32px;">
         <div style="font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#b8860b;display:flex;align-items:center;gap:8px;margin-bottom:8px;">Sección 02 · Section 02 <span style="flex:1;height:1px;background:#d4cfc4;"></span></div>
@@ -7743,8 +7986,8 @@ async function fbLoadMasterMods(){
         <div style="font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#b8860b;display:flex;align-items:center;gap:8px;margin-bottom:8px;">Sección 03 · Section 03 <span style="flex:1;height:1px;background:#d4cfc4;"></span></div>
         <div id="ccS3Title" style="font-family:'Syne',sans-serif;font-weight:700;font-size:17px;color:#1a3a5c;margin-bottom:12px;">✍️ Autorización del Cliente / Client Authorization</div>
         <div style="display:flex;gap:0;border:1px solid #d4cfc4;border-radius:4px;overflow:hidden;margin:10px 0;">
-          <div style="flex:1;padding:14px 16px;background:#fafafa;border-right:1px solid #d4cfc4;font-size:13px;line-height:1.7;"><div style="font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#b8860b;margin-bottom:5px;">🇪🇸 Español</div>Yo, el abajo firmante, acepto el <strong>cargo de $3.50</strong> en pagos con tarjeta de crédito y el <strong>cargo por pago rechazado</strong> conforme a las leyes del Estado de Florida.</div>
-          <div style="flex:1;padding:14px 16px;background:#f0f4f8;font-size:13px;line-height:1.7;"><div style="font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#2a6099;margin-bottom:5px;">🇺🇸 English</div>I, the undersigned, accept the <strong>$3.50 fee</strong> on credit card payments and the <strong>declined payment fee</strong> under the laws of the State of Florida.</div>
+          <div style="flex:1;padding:14px 16px;background:#fafafa;border-right:1px solid #d4cfc4;font-size:13px;line-height:1.7;"><div style="font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#b8860b;margin-bottom:5px;">🇪🇸 Español</div>Yo, el abajo firmante, acepto el <strong>cargo del 3.50%</strong> en pagos con tarjeta de crédito y el <strong>cargo por pago rechazado</strong> conforme a las leyes del Estado de Florida.</div>
+          <div style="flex:1;padding:14px 16px;background:#f0f4f8;font-size:13px;line-height:1.7;"><div style="font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#2a6099;margin-bottom:5px;">🇺🇸 English</div>I, the undersigned, accept the <strong>3.50% fee</strong> on credit card payments and the <strong>declined payment fee</strong> under the laws of the State of Florida.</div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px;padding-top:18px;border-top:2px solid #d4cfc4;">
           <div><div style="border-bottom:1.5px solid #111;min-height:36px;margin-bottom:4px;"></div><div style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#888;">Firma / Signature</div></div>
@@ -7779,14 +8022,14 @@ function setCCLang(lang){
     alertTitle: isEN?'⚠️ Important Notice — Please read before payment':'⚠️ Aviso Importante — Lea antes de pagar',
     alertBody: isEN?'By providing a credit or debit card, you agree to the terms described in this document in accordance with the laws of the State of Florida.':'Al proporcionar una tarjeta de crédito o débito, usted acepta los términos descritos en este documento conforme a las leyes del Estado de Florida.',
     s1Title: isEN?'💳 Credit Card Convenience Fee':'💳 Cargo por Conveniencia de Tarjeta de Crédito',
-    s1Body: isEN?'To cover processing costs, a flat <strong>$3.50 convenience fee</strong> applies to all credit card transactions. This is a legal and regulated practice in the State of Florida.':'Para cubrir los costos de procesamiento, se aplica un <strong>cargo fijo de $3.50</strong> a todas las transacciones con tarjeta de crédito. Práctica legal en el Estado de Florida.',
+    s1Body: isEN?'To cover processing costs, a <strong>3.50% convenience fee</strong> applies to all credit card transactions. This is a legal and regulated practice in the State of Florida.':'Para cubrir los costos de procesamiento, se aplica un <strong>cargo del 3.50%</strong> sobre todas las transacciones con tarjeta de crédito. Práctica legal en el Estado de Florida.',
     s2Title: isEN?'🚫 Declined Card / Returned Payment Fee':'🚫 Cargo por Pago Rechazado / Tarjeta Declinada',
     s2Body: isEN?'If your card is <strong>declined or payment returned</strong> for any reason, a fee applies automatically.':'Si su tarjeta es <strong>declinada o el pago devuelto</strong> por cualquier razón, se aplica automáticamente un cargo.',
     s3Title: isEN?'✍️ Client Authorization':'✍️ Autorización del Cliente',
     suspTitle: isEN?'Service Suspension:':'Suspensión de Servicio:',
     suspBody: isEN?'Failure to pay within the period will result in <strong>immediate service suspension</strong> until the balance is paid in full.':'El incumplimiento resultará en la <strong>suspensión inmediata del servicio</strong> hasta que el saldo sea saldado.',
     ex: isEN?'ℹ️ Example:':'ℹ️ Ejemplo:',
-    exBody: isEN?'$100.00 service + $3.50 fee = <strong>$103.50 total</strong>.':'Servicio $100.00 + cargo $3.50 = <strong>$103.50 total</strong>.',
+    exBody: isEN?'$100.00 service + 3.50% fee = <strong>$103.50 total</strong>.':'Servicio $100.00 + cargo 3.50% = <strong>$103.50 total</strong>.',
     footerText: isEN?'This document is legally binding under the laws of the State of Florida.':'Este documento es legalmente vinculante bajo las leyes del Estado de Florida.',
     copyLbl: isEN?'📋 Copy Email':'📋 Copiar Email'
   };
@@ -7809,14 +8052,14 @@ function printCCPolicy(){
   var w=window.open('','_blank');
   var st='<style>body{font-family:Georgia,serif;max-width:720px;margin:40px auto;color:#111;font-size:14px;line-height:1.7}h1{color:#1a3a5c;font-size:22px}h2{color:#1a3a5c;font-size:16px;border-bottom:2px solid #b8860b;padding-bottom:4px;margin-top:24px}table{width:100%;border-collapse:collapse;margin:12px 0}th{background:#1a3a5c;color:#fff;padding:8px 12px;text-align:left;font-size:11px;text-transform:uppercase}td{padding:9px 12px;border-bottom:1px solid #ddd}tr:nth-child(even)td{background:#f5f5f5}.cite{background:#eef4fb;border:1px solid #c8d8e8;padding:10px 14px;font-size:12px;margin:8px 0;border-radius:3px}.sig{border-bottom:1.5px solid #111;min-height:38px;margin-bottom:4px}.sig-lbl{font-size:10px;color:#888;letter-spacing:.08em;text-transform:uppercase}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:20px}@media print{@page{margin:20mm}}</style>';
   var body='';
-  if(isEN){body='<h1>Credit Card Payment Policy</h1><p><b>State:</b> Florida, USA &nbsp;|&nbsp; <b>Version:</b> 2025.1</p><hr/><h2>1. Credit Card Convenience Fee</h2><p>A flat <b>$3.50 convenience fee</b> applies to all credit card transactions.</p><div class="cite">📜 FL Stat. §501.0117 — Merchants may charge a clearly-disclosed convenience fee prior to the transaction.</div><div class="cite">📜 Dodd-Frank Act §1075 — Surcharges may not exceed card network acceptance costs.</div><table><tr><th>Card Type</th><th>Fee</th><th>Notes</th></tr><tr><td>💳 Credit Card</td><td><b>$3.50</b></td><td>Added to total</td></tr><tr><td>🏦 Debit Card</td><td><b>$0.00</b></td><td>No fee</td></tr><tr><td>🏦 ACH Transfer</td><td><b>$0.00</b></td><td>No fee</td></tr></table><p><b>Example:</b> $100.00 service + $3.50 = <b>$103.50 total</b></p><h2>2. Declined / Returned Payment Fee</h2><p>If your card is declined or payment returned, the following fees apply automatically.</p><div class="cite">📜 FL Stat. §68.065 — Authorizes additional charges for returned/declined payments.</div><table><tr><th>Reason</th><th>Fee</th><th>Cure Period</th></tr><tr><td>Insufficient Funds</td><td><b style="color:#8b1a1a">$35.00</b></td><td>5 business days</td></tr><tr><td>Expired Card</td><td><b style="color:#8b1a1a">$25.00</b></td><td>3 business days</td></tr><tr><td>Limit Exceeded</td><td><b style="color:#8b1a1a">$35.00</b></td><td>5 business days</td></tr><tr><td>Unauthorized Chargeback</td><td><b style="color:#8b1a1a">$50.00</b></td><td>Resolution required</td></tr><tr><td>Card Blocked</td><td><b style="color:#8b1a1a">$25.00</b></td><td>3 business days</td></tr></table><h2>3. Client Authorization</h2><p>I, the undersigned, accept the $3.50 convenience fee on credit card payments and the declined payment fee per this document, under Florida law.</p><div class="grid2"><div><div class="sig"></div><div class="sig-lbl">Signature</div></div><div><div class="sig"></div><div class="sig-lbl">Full Name (Print)</div></div><div><div class="sig"></div><div class="sig-lbl">Date</div></div><div><div class="sig"></div><div class="sig-lbl">Last 4 digits of card</div></div></div><hr/><p style="font-size:11px;color:#888">FL Stat. §501.0117 · §68.065 · FDUTPA Ch.501 · FCBA 15 U.S.C. §1666 · Dodd-Frank §1075 — Legally binding under Florida law.</p>';}
-  else{body='<h1>Política de Pagos con Tarjeta de Crédito</h1><p><b>Estado:</b> Florida, USA &nbsp;|&nbsp; <b>Versión:</b> 2025.1</p><hr/><h2>1. Cargo por Conveniencia de Tarjeta de Crédito</h2><p>Se aplica un <b>cargo fijo de $3.50</b> en todas las transacciones con tarjeta de crédito.</p><div class="cite">📜 FL Stat. §501.0117 — Permite al comerciante cobrar un cargo por conveniencia claramente divulgado antes de la transacción.</div><div class="cite">📜 Dodd-Frank Act §1075 — Los recargos no deben exceder los costos de aceptación de la red.</div><table><tr><th>Tipo de Tarjeta</th><th>Cargo</th><th>Notas</th></tr><tr><td>💳 Tarjeta de Crédito</td><td><b>$3.50</b></td><td>Se suma al total</td></tr><tr><td>🏦 Tarjeta de Débito</td><td><b>$0.00</b></td><td>Sin cargo</td></tr><tr><td>🏦 Transferencia ACH</td><td><b>$0.00</b></td><td>Sin cargo</td></tr></table><p><b>Ejemplo:</b> Servicio $100.00 + $3.50 = <b>$103.50 total</b></p><h2>2. Cargo por Pago Rechazado / Tarjeta Declinada</h2><p>Si su tarjeta es declinada o el pago devuelto, se aplican automáticamente los siguientes cargos.</p><div class="cite">📜 FL Stat. §68.065 — Autoriza cargos adicionales por pagos rechazados o devueltos.</div><table><tr><th>Causa</th><th>Cargo</th><th>Plazo</th></tr><tr><td>Fondos Insuficientes</td><td><b style="color:#8b1a1a">$35.00</b></td><td>5 días hábiles</td></tr><tr><td>Tarjeta Vencida</td><td><b style="color:#8b1a1a">$25.00</b></td><td>3 días hábiles</td></tr><tr><td>Límite Excedido</td><td><b style="color:#8b1a1a">$35.00</b></td><td>5 días hábiles</td></tr><tr><td>Chargeback No Autorizado</td><td><b style="color:#8b1a1a">$50.00</b></td><td>Resolución requerida</td></tr><tr><td>Tarjeta Bloqueada</td><td><b style="color:#8b1a1a">$25.00</b></td><td>3 días hábiles</td></tr></table><h2>3. Autorización del Cliente</h2><p>Yo, el abajo firmante, acepto el cargo de $3.50 en pagos con tarjeta de crédito y el cargo por pago rechazado, conforme a las leyes del Estado de Florida.</p><div class="grid2"><div><div class="sig"></div><div class="sig-lbl">Firma</div></div><div><div class="sig"></div><div class="sig-lbl">Nombre Completo (Letra de molde)</div></div><div><div class="sig"></div><div class="sig-lbl">Fecha</div></div><div><div class="sig"></div><div class="sig-lbl">Últimos 4 dígitos de tarjeta</div></div></div><hr/><p style="font-size:11px;color:#888">FL Stat. §501.0117 · §68.065 · FDUTPA Ch.501 · FCBA 15 U.S.C. §1666 · Dodd-Frank §1075 — Documento legalmente vinculante bajo las leyes del Estado de Florida.</p>';}
+  if(isEN){body='<h1>Credit Card Payment Policy</h1><p><b>State:</b> Florida, USA &nbsp;|&nbsp; <b>Version:</b> 2025.1</p><hr/><h2>1. Credit Card Convenience Fee</h2><p>A <b>3.50% convenience fee</b> applies to all credit card transactions.</p><div class="cite">📜 FL Stat. §501.0117 — Merchants may charge a clearly-disclosed convenience fee prior to the transaction.</div><div class="cite">📜 Dodd-Frank Act §1075 — Surcharges may not exceed card network acceptance costs.</div><table><tr><th>Card Type</th><th>Fee</th><th>Notes</th></tr><tr><td>💳 Credit Card</td><td><b>3.50%</b></td><td>Added to total</td></tr><tr><td>🏦 Debit Card</td><td><b>$0.00</b></td><td>No fee</td></tr><tr><td>🏦 ACH Transfer</td><td><b>$0.00</b></td><td>No fee</td></tr></table><p><b>Example:</b> $100.00 service + 3.50% = <b>$103.50 total</b></p><h2>2. Declined / Returned Payment Fee</h2><p>If your card is declined or payment returned, the following fees apply automatically.</p><div class="cite">📜 FL Stat. §68.065 — Authorizes additional charges for returned/declined payments.</div><table><tr><th>Reason</th><th>Fee</th><th>Cure Period</th></tr><tr><td>Insufficient Funds</td><td><b style="color:#8b1a1a">$35.00</b></td><td>5 business days</td></tr><tr><td>Expired Card</td><td><b style="color:#8b1a1a">$25.00</b></td><td>3 business days</td></tr><tr><td>Limit Exceeded</td><td><b style="color:#8b1a1a">$35.00</b></td><td>5 business days</td></tr><tr><td>Unauthorized Chargeback</td><td><b style="color:#8b1a1a">$50.00</b></td><td>Resolution required</td></tr><tr><td>Card Blocked</td><td><b style="color:#8b1a1a">$25.00</b></td><td>3 business days</td></tr></table><h2>3. Client Authorization</h2><p>I, the undersigned, accept the 3.50% convenience fee on credit card payments and the declined payment fee per this document, under Florida law.</p><div class="grid2"><div><div class="sig"></div><div class="sig-lbl">Signature</div></div><div><div class="sig"></div><div class="sig-lbl">Full Name (Print)</div></div><div><div class="sig"></div><div class="sig-lbl">Date</div></div><div><div class="sig"></div><div class="sig-lbl">Last 4 digits of card</div></div></div><hr/><p style="font-size:11px;color:#888">FL Stat. §501.0117 · §68.065 · FDUTPA Ch.501 · FCBA 15 U.S.C. §1666 · Dodd-Frank §1075 — Legally binding under Florida law.</p>';}
+  else{body='<h1>Política de Pagos con Tarjeta de Crédito</h1><p><b>Estado:</b> Florida, USA &nbsp;|&nbsp; <b>Versión:</b> 2025.1</p><hr/><h2>1. Cargo por Conveniencia de Tarjeta de Crédito</h2><p>Se aplica un <b>cargo del 3.50%</b> sobre todas las transacciones con tarjeta de crédito.</p><div class="cite">📜 FL Stat. §501.0117 — Permite al comerciante cobrar un cargo por conveniencia claramente divulgado antes de la transacción.</div><div class="cite">📜 Dodd-Frank Act §1075 — Los recargos no deben exceder los costos de aceptación de la red.</div><table><tr><th>Tipo de Tarjeta</th><th>Cargo</th><th>Notas</th></tr><tr><td>💳 Tarjeta de Crédito</td><td><b>3.50%</b></td><td>Se suma al total</td></tr><tr><td>🏦 Tarjeta de Débito</td><td><b>$0.00</b></td><td>Sin cargo</td></tr><tr><td>🏦 Transferencia ACH</td><td><b>$0.00</b></td><td>Sin cargo</td></tr></table><p><b>Ejemplo:</b> Servicio $100.00 + 3.50% = <b>$103.50 total</b></p><h2>2. Cargo por Pago Rechazado / Tarjeta Declinada</h2><p>Si su tarjeta es declinada o el pago devuelto, se aplican automáticamente los siguientes cargos.</p><div class="cite">📜 FL Stat. §68.065 — Autoriza cargos adicionales por pagos rechazados o devueltos.</div><table><tr><th>Causa</th><th>Cargo</th><th>Plazo</th></tr><tr><td>Fondos Insuficientes</td><td><b style="color:#8b1a1a">$35.00</b></td><td>5 días hábiles</td></tr><tr><td>Tarjeta Vencida</td><td><b style="color:#8b1a1a">$25.00</b></td><td>3 días hábiles</td></tr><tr><td>Límite Excedido</td><td><b style="color:#8b1a1a">$35.00</b></td><td>5 días hábiles</td></tr><tr><td>Chargeback No Autorizado</td><td><b style="color:#8b1a1a">$50.00</b></td><td>Resolución requerida</td></tr><tr><td>Tarjeta Bloqueada</td><td><b style="color:#8b1a1a">$25.00</b></td><td>3 días hábiles</td></tr></table><h2>3. Autorización del Cliente</h2><p>Yo, el abajo firmante, acepto el cargo del 3.50% en pagos con tarjeta de crédito y el cargo por pago rechazado, conforme a las leyes del Estado de Florida.</p><div class="grid2"><div><div class="sig"></div><div class="sig-lbl">Firma</div></div><div><div class="sig"></div><div class="sig-lbl">Nombre Completo (Letra de molde)</div></div><div><div class="sig"></div><div class="sig-lbl">Fecha</div></div><div><div class="sig"></div><div class="sig-lbl">Últimos 4 dígitos de tarjeta</div></div></div><hr/><p style="font-size:11px;color:#888">FL Stat. §501.0117 · §68.065 · FDUTPA Ch.501 · FCBA 15 U.S.C. §1666 · Dodd-Frank §1075 — Documento legalmente vinculante bajo las leyes del Estado de Florida.</p>';}
   w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"/>'+st+'</head><body>'+body+'</body></html>');
   w.document.close(); w.focus(); setTimeout(function(){w.print();},500);
 }
 function copyCCPolicyEmail(){
   var isEN=_ccLang==='en';
-  var lines=isEN?['Dear Client,','','Please review our Credit Card Payment Policy before completing your payment.','','📋 KEY FEES:','','1. CONVENIENCE FEE: A flat $3.50 fee applies to ALL CREDIT CARD payments.','   • Debit card, ACH, and cash: NO fee.','','2. DECLINED / RETURNED PAYMENT FEE:','   • Insufficient Funds / Limit Exceeded: $35.00','   • Expired / Blocked Card: $25.00','   • Unauthorized Chargeback: $50.00','   • Must be resolved in 3–5 business days or service will be suspended.','','3. LEGAL BASIS: FL Stat. §501.0117, §68.065, FDUTPA Ch.501, Dodd-Frank §1075.','','Please sign and return this document to proceed with payment.','','Sincerely,','[Business Name] | [Phone] | [Email]']:['Estimado/a Cliente,','','Le enviamos nuestra Política de Pagos con Tarjeta de Crédito para su revisión y firma.','','📋 CARGOS CLAVE:','','1. CARGO POR CONVENIENCIA: Se aplica un cargo fijo de $3.50 en TODOS los pagos con tarjeta de CRÉDITO.','   • Tarjeta de débito, ACH y efectivo: SIN cargo.','','2. CARGO POR PAGO RECHAZADO / DECLINADO:','   • Fondos Insuficientes / Límite Excedido: $35.00','   • Tarjeta Vencida / Bloqueada: $25.00','   • Chargeback No Autorizado: $50.00','   • Debe subsanarse en 3–5 días hábiles o el servicio será suspendido.','','3. BASE LEGAL: FL Stat. §501.0117, §68.065, FDUTPA Cap.501, Dodd-Frank §1075.','','Por favor firme y devuelva este documento para proceder con su pago.','','Atentamente,','[Nombre del Negocio] | [Teléfono] | [Email]'];
+  var lines=isEN?['Dear Client,','','Please review our Credit Card Payment Policy before completing your payment.','','📋 KEY FEES:','','1. CONVENIENCE FEE: A 3.50% fee applies to ALL CREDIT CARD payments.','   • Debit card, ACH, and cash: NO fee.','','2. DECLINED / RETURNED PAYMENT FEE:','   • Insufficient Funds / Limit Exceeded: $35.00','   • Expired / Blocked Card: $25.00','   • Unauthorized Chargeback: $50.00','   • Must be resolved in 3–5 business days or service will be suspended.','','3. LEGAL BASIS: FL Stat. §501.0117, §68.065, FDUTPA Ch.501, Dodd-Frank §1075.','','Please sign and return this document to proceed with payment.','','Sincerely,','[Business Name] | [Phone] | [Email]']:['Estimado/a Cliente,','','Le enviamos nuestra Política de Pagos con Tarjeta de Crédito para su revisión y firma.','','📋 CARGOS CLAVE:','','1. CARGO POR CONVENIENCIA: Se aplica un cargo del 3.50% en TODOS los pagos con tarjeta de CRÉDITO.','   • Tarjeta de débito, ACH y efectivo: SIN cargo.','','2. CARGO POR PAGO RECHAZADO / DECLINADO:','   • Fondos Insuficientes / Límite Excedido: $35.00','   • Tarjeta Vencida / Bloqueada: $25.00','   • Chargeback No Autorizado: $50.00','   • Debe subsanarse en 3–5 días hábiles o el servicio será suspendido.','','3. BASE LEGAL: FL Stat. §501.0117, §68.065, FDUTPA Cap.501, Dodd-Frank §1075.','','Por favor firme y devuelva este documento para proceder con su pago.','','Atentamente,','[Nombre del Negocio] | [Teléfono] | [Email]'];
   navigator.clipboard.writeText(lines.join('\n')).then(function(){
     ['ccCopyBtn','ccCopyBtn2'].forEach(function(id){
       var b=document.getElementById(id);
@@ -7880,6 +8123,129 @@ function copyCCPolicyEmail(){
     </div>
   </div>
 </div>
+
+
+<script>
+// ── RECURRING PAYMENT PAGE ──
+var _rpMode = 'existing';
+function rpToggleCustomer(mode){
+  _rpMode = mode;
+  document.getElementById('rp-existing-section').style.display = mode==='existing'?'':'none';
+  document.getElementById('rp-new-section').style.display = mode==='new'?'':'none';
+  document.getElementById('rp-existing-btn').style.cssText = mode==='existing'?'padding:9px 22px;font-family:Syne,sans-serif;font-weight:700;font-size:13px;background:var(--accent);color:#000;border:none;cursor:pointer;':'padding:9px 22px;font-family:Syne,sans-serif;font-weight:700;font-size:13px;background:transparent;color:var(--muted);border:none;cursor:pointer;';
+  document.getElementById('rp-new-btn').style.cssText = mode==='new'?'padding:9px 22px;font-family:Syne,sans-serif;font-weight:700;font-size:13px;background:var(--accent);color:#000;border:none;cursor:pointer;':'padding:9px 22px;font-family:Syne,sans-serif;font-weight:700;font-size:13px;background:transparent;color:var(--muted);border:none;cursor:pointer;';
+}
+function rpShowStep(n){
+  [1,2,3].forEach(function(i){
+    document.getElementById('rp-step-'+i).style.display = i===n?'':'none';
+    var tab = document.getElementById('rp-step-'+i+'-tab');
+    if(tab){
+      tab.style.color = i===n?'var(--accent)':'var(--muted)';
+      tab.style.borderBottom = i===n?'2px solid var(--accent)':'2px solid transparent';
+    }
+  });
+}
+function rpCalcFee(){
+  var amt = parseFloat(document.getElementById('rp-amount').value)||0;
+  var preview = document.getElementById('rp-fee-preview');
+  if(amt>0){
+    var fee = amt*0.035;
+    var total = amt+fee;
+    document.getElementById('rp-fee-base').textContent = '$'+amt.toFixed(2);
+    document.getElementById('rp-fee-amt').textContent = '$'+fee.toFixed(2);
+    document.getElementById('rp-fee-total').textContent = '$'+total.toFixed(2);
+    preview.style.display = '';
+  } else {
+    preview.style.display = 'none';
+  }
+}
+function rpPopulateClients(){
+  var sel = document.getElementById('rp-customer-select');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">— Select Customer —</option>';
+  if(typeof clients !== 'undefined' && clients.length){
+    clients.forEach(function(c){
+      var opt = document.createElement('option');
+      opt.value = c.id||c.name||'';
+      opt.textContent = (c.name||'')+(c.email?' — '+c.email:'');
+      sel.appendChild(opt);
+    });
+  }
+}
+function rpSubmit(){
+  var err = document.getElementById('rp-error');
+  err.textContent = '';
+  var cardNum = (document.getElementById('rp-card-number').value||'').replace(/\D/g,'');
+  var expM = document.getElementById('rp-exp-month').value;
+  var expY = document.getElementById('rp-exp-year').value;
+  var cardName = (document.getElementById('rp-card-name').value||'').trim();
+  var zip = (document.getElementById('rp-zip').value||'').trim();
+  var authSigned = document.getElementById('rp-auth-signed').checked;
+  if(cardNum.length < 13){ err.textContent = 'Please enter a valid card number.'; return; }
+  if(!expM || !expY){ err.textContent = 'Please select expiration date.'; return; }
+  if(!cardName){ err.textContent = 'Please enter the name on the card.'; return; }
+  if(!zip){ err.textContent = 'Please enter the billing ZIP code.'; return; }
+  if(!authSigned){ err.textContent = 'You must confirm you have signed authorization.'; return; }
+  var freq = document.getElementById('rp-frequency').value;
+  var amount = parseFloat(document.getElementById('rp-amount').value)||0;
+  if(!freq){ err.textContent = 'Please select a frequency on step 2.'; rpShowStep(2); return; }
+  if(amount <= 0){ err.textContent = 'Please enter an amount on step 2.'; rpShowStep(2); return; }
+  // Build record
+  var rec = {
+    id: Date.now(),
+    customer: _rpMode==='existing' ? (document.getElementById('rp-customer-select').options[document.getElementById('rp-customer-select').selectedIndex]||{}).text||'' : (document.getElementById('rp-fname').value+' '+document.getElementById('rp-lname').value).trim(),
+    planName: document.getElementById('rp-plan-name').value||'Recurring Payment',
+    frequency: freq,
+    amount: amount,
+    fee: parseFloat((amount*0.035).toFixed(2)),
+    total: parseFloat((amount*1.035).toFixed(2)),
+    startDate: document.getElementById('rp-start-date').value,
+    endDate: document.getElementById('rp-end-date').value,
+    cardLast4: cardNum.slice(-4),
+    commercial: document.getElementById('rp-commercial').checked,
+    notify: document.getElementById('rp-notify-customer').checked,
+    createdAt: new Date().toLocaleDateString()
+  };
+  // Add to recent list
+  var list = document.getElementById('rp-recent-list');
+  if(list){
+    var row = document.createElement('div');
+    row.style.cssText = 'padding:10px 0;border-bottom:1px solid var(--border);text-align:left;';
+    row.innerHTML = '<div style="font-family:Syne,sans-serif;font-weight:700;font-size:13px;color:var(--text);">'+rec.customer+'</div>'
+      +'<div style="font-size:11px;color:var(--muted);margin-top:2px;">'+rec.planName+' · '+rec.frequency+'</div>'
+      +'<div style="font-size:11px;color:var(--accent);margin-top:2px;">$'+rec.amount.toFixed(2)+' + 3.50% = $'+rec.total.toFixed(2)+'</div>'
+      +'<div style="font-size:10px;color:var(--muted2);margin-top:2px;">Card *'+rec.cardLast4+' · '+rec.createdAt+'</div>';
+    if(list.textContent.trim().includes('No recurring')) list.innerHTML='';
+    list.prepend(row);
+  }
+  // Reset form
+  rpShowStep(1);
+  document.getElementById('rp-plan-name').value='';
+  document.getElementById('rp-frequency').value='';
+  document.getElementById('rp-amount').value='';
+  document.getElementById('rp-start-date').value='';
+  document.getElementById('rp-end-date').value='';
+  document.getElementById('rp-card-number').value='';
+  document.getElementById('rp-card-name').value='';
+  document.getElementById('rp-zip').value='';
+  document.getElementById('rp-auth-signed').checked=false;
+  document.getElementById('rp-commercial').checked=false;
+  document.getElementById('rp-notify-customer').checked=false;
+  document.getElementById('rp-fee-preview').style.display='none';
+  // Show success
+  var msg = document.createElement('div');
+  msg.style.cssText='position:fixed;top:24px;right:24px;z-index:99999;background:#22c55e;color:#000;padding:14px 22px;border-radius:12px;font-family:Syne,sans-serif;font-weight:800;font-size:14px;box-shadow:0 8px 32px rgba(0,0,0,.4);';
+  msg.textContent = '✅ Recurring payment saved for '+rec.customer+'!';
+  document.body.appendChild(msg);
+  setTimeout(function(){msg.remove();},3500);
+}
+// Populate clients when page opens
+var _origGoPage = goPage;
+goPage = function(p){
+  _origGoPage(p);
+  if(p==='recurring') setTimeout(rpPopulateClients, 100);
+};
+</script>
 
 </body>
 </html>
