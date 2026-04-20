@@ -2250,6 +2250,20 @@ async function loadData(){
       {id:'demo-p2',cid:'COFFEESHOP02',bizName:'Café Habana Corner',bizType:'Restaurante / Café',ownerName:'Diana López',phone:'+1 (305) 555-9876',email:'diana@cafehabana.com',address:'1900 W Flagler St, Miami FL 33135',status:'active',compType:'free',compValue:'1 mes gratis cada 5 referidos',notes:'Flyer en la caja registradora. Evaluar después del mes.',createdAt:new Date(now-15*864e5).toISOString()},
       {id:'demo-p3',cid:'GYM03',bizName:'Iron Body Fitness',bizType:'Gym / Fitness',ownerName:'Jorge Mendes',phone:'+1 (954) 555-4422',email:'jorge@ironbody.com',address:'500 E Broward Blvd, Ft Lauderdale FL 33394',status:'paused',compType:'discount',compValue:'15% descuento en plan Business',notes:'Pausado temporalmente, retomar en enero.',createdAt:new Date(now-45*864e5).toISOString()},
     ];
+    // Restore qrEnabled state from localStorage in demo mode
+    try{
+      var demoQR = JSON.parse(localStorage.getItem('demoQRState')||'{}');
+      referidores = referidores.map(function(r){
+        var key = 'ref_'+r.id;
+        if(key in demoQR) r.qrEnabled = demoQR[key];
+        return r;
+      });
+      partners = partners.map(function(p){
+        var key = 'partner_'+p.id;
+        if(key in demoQR) p.qrEnabled = demoQR[key];
+        return p;
+      });
+    }catch(e){}
   } else {
     try{
       var snap = await _fbdb.ref('registrations').once('value');
@@ -3635,6 +3649,13 @@ async function toggleReferidorQR(id, btnEl){
   referidores = referidores.map(function(x){ return x.id===id ? ref : x; });
   if(!_demoMode && _fbdb){
     try{ await _fbdb.ref('referidores/'+id+'/qrEnabled').set(ref.qrEnabled); }catch(e){}
+  } else {
+    // Demo mode: persist qrEnabled in localStorage so it survives page reload
+    try{
+      var demoQR = JSON.parse(localStorage.getItem('demoQRState')||'{}');
+      demoQR['ref_'+id] = ref.qrEnabled;
+      localStorage.setItem('demoQRState', JSON.stringify(demoQR));
+    }catch(e){}
   }
   var label = ref.qrEnabled
     ? (isEN ? '✅ QR activated' : '✅ QR activado')
@@ -3666,6 +3687,13 @@ async function togglePartnerQR(id){
   partners = partners.map(function(x){ return x.id===id ? p : x; });
   if(!_demoMode && _fbdb){
     try{ await _fbdb.ref('partners/'+id+'/qrEnabled').set(p.qrEnabled); }catch(e){}
+  } else {
+    // Demo mode: persist qrEnabled in localStorage so it survives page reload
+    try{
+      var demoQR = JSON.parse(localStorage.getItem('demoQRState')||'{}');
+      demoQR['partner_'+id] = p.qrEnabled;
+      localStorage.setItem('demoQRState', JSON.stringify(demoQR));
+    }catch(e){}
   }
   var label = p.qrEnabled
     ? (isEN ? '✅ QR activated' : '✅ QR activado')
