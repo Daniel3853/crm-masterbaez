@@ -1194,6 +1194,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
       <div class="modal-box" style="max-width:440px">
         <div class="modal-title" id="qrclienteModalTitle">🪪 Nuevo QR Cliente</div>
         <div class="mfield"><label>Nombre del cliente</label><input id="qrc-name" placeholder="Ej: Juan Pérez"/></div>
+        <div class="mfield"><label>Empresa / Negocio (opcional)</label><input id="qrc-biz" placeholder="Ej: Taekwondo Sunrise"/></div>
+        <div class="mfield"><label>Email (opcional)</label><input id="qrc-email" type="email" placeholder="juan@email.com"/></div>
         <div class="mfield"><label>Tipo de QR</label>
           <select id="qrc-type" onchange="toggleQRClientFields()" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;font-family:'Syne',sans-serif">
             <option value="whatsapp">📲 WhatsApp</option>
@@ -1203,6 +1205,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         </div>
         <div class="mfield" id="qrc-phone-field"><label id="qrc-phone-label">📱 Número de teléfono</label><input id="qrc-phone" type="tel" placeholder="19543801340"/></div>
         <div class="mfield" id="qrc-msg-field"><label>Mensaje pre-escrito (opcional)</label><input id="qrc-msg" placeholder="Hola, me interesa información..."/></div>
+        <div class="mfield"><label>Notas internas (opcional)</label><input id="qrc-notes" placeholder="Ej: Plan básico, paga $39/mes"/></div>
         <div class="mfield" id="qrc-link-field" style="display:none"><label>🌐 URL</label><input id="qrc-link" type="url" placeholder="https://..."/></div>
         <div style="display:flex;gap:10px;margin-top:8px">
           <button class="act-btn" onclick="closeQRClientModal()" style="flex:1">Cancelar</button>
@@ -9122,8 +9125,12 @@ function renderQRClientes(){
           ? '<img src="'+qrImgUrl+'" style="width:160px;height:160px;border-radius:6px;'+(isOn?'':'filter:grayscale(1);opacity:.4')+'" crossorigin="anonymous"/>'
           : '<div style="width:160px;height:160px;display:flex;align-items:center;justify-content:center;color:#999;font-size:12px">Sin datos</div>')+
       '</div>'+
-      // Detail info
-      (detail ? '<div style="font-size:12px;color:var(--muted);text-align:center;word-break:break-all">'+detail+(c.msg?'<br><span style="color:var(--text)">💬 '+c.msg+'</span>':'')+'</div>' : '')+
+      '<div style="font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:3px">'+
+        (c.bizName?'<span>🏢 '+c.bizName+'</span>':'')+
+        (c.phone && c.type!=='link'?'<span>📱 +'+c.phone.replace(/\D/g,'')+'</span>':'')+
+        (c.email?'<span>✉️ '+c.email+'</span>':'')+
+        (c.notes?'<span style="color:#666;font-style:italic">📝 '+c.notes+'</span>':'')+
+      '</div>'+
       // Status + Actions
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap">'+
         '<button class="qrc-btn qrc-toggle-'+(isOn?'on':'off')+'" onclick="toggleQRClientEnabled(\''+c.id+'\')" style="flex:1;text-align:center">'+(isOn?'✅ Activo':'🚫 Inactivo')+'</button>'+
@@ -9138,17 +9145,9 @@ function renderQRClientes(){
 }
 
 function buildQRClientUrl(c){
-  if(c.type==='whatsapp'){
-    var num = (c.phone||'').replace(/\D/g,'');
-    var msg = c.msg ? '?text='+encodeURIComponent(c.msg) : '';
-    return 'https://wa.me/'+num+msg;
-  } else if(c.type==='sms'){
-    var num2 = (c.phone||'').replace(/\D/g,'');
-    var body = c.msg ? '?body='+encodeURIComponent(c.msg) : '';
-    return 'sms:+'+num2+body;
-  } else {
-    return c.link||'';
-  }
+  // Points to qr.html which verifies Firebase before redirecting
+  var base = window.location.href.replace(/\/[^\/]*$/, '/qr.html');
+  return base + '?id=' + c.id;
 }
 
 function openQRClientModal(id){
@@ -9157,9 +9156,12 @@ function openQRClientModal(id){
   var c = id ? qrClientes.find(function(x){return x.id===id;}) : null;
   document.getElementById('qrclienteModalTitle').textContent = id ? '✏️ Editar QR Cliente' : '🪪 Nuevo QR Cliente';
   document.getElementById('qrc-name').value = c ? c.name : '';
+  document.getElementById('qrc-biz').value = c ? (c.bizName||'') : '';
+  document.getElementById('qrc-email').value = c ? (c.email||'') : '';
   document.getElementById('qrc-type').value = c ? c.type : 'whatsapp';
   document.getElementById('qrc-phone').value = c ? (c.phone||'') : '';
   document.getElementById('qrc-msg').value = c ? (c.msg||'') : '';
+  document.getElementById('qrc-notes').value = c ? (c.notes||'') : '';
   document.getElementById('qrc-link').value = c ? (c.link||'') : '';
   toggleQRClientFields();
   modal.style.display = 'flex';
@@ -9179,15 +9181,19 @@ function toggleQRClientFields(){
 
 async function saveQRClient(){
   var name = document.getElementById('qrc-name').value.trim();
+  var bizName = document.getElementById('qrc-biz').value.trim();
+  var email = document.getElementById('qrc-email').value.trim();
   var type = document.getElementById('qrc-type').value;
   var phone = document.getElementById('qrc-phone').value.trim();
   var msg = document.getElementById('qrc-msg').value.trim();
+  var notes = document.getElementById('qrc-notes').value.trim();
   var link = document.getElementById('qrc-link').value.trim();
   if(!name){ showToast('⚠️ Ingresa el nombre del cliente','var(--danger)'); return; }
   if((type==='whatsapp'||type==='sms') && !phone){ showToast('⚠️ Ingresa el número','var(--danger)'); return; }
   var c = {
     id: _editQRClientId || 'qrc_'+Date.now(),
-    name: name, type: type, phone: phone, msg: msg, link: link,
+    name: name, bizName: bizName, email: email,
+    type: type, phone: phone, msg: msg, notes: notes, link: link,
     qrEnabled: _editQRClientId ? (qrClientes.find(function(x){return x.id===_editQRClientId;})||{}).qrEnabled!==false : true,
     createdAt: _editQRClientId ? (qrClientes.find(function(x){return x.id===_editQRClientId;})||{}).createdAt||new Date().toISOString() : new Date().toISOString()
   };
