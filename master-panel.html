@@ -9194,7 +9194,7 @@ async function saveQRClient(){
     id: _editQRClientId || 'qrc_'+Date.now(),
     name: name, bizName: bizName, email: email,
     type: type, phone: phone, msg: msg, notes: notes, link: link,
-    qrEnabled: _editQRClientId ? (qrClientes.find(function(x){return x.id===_editQRClientId;})||{}).qrEnabled!==false : true,
+    qrEnabled: _editQRClientId ? (qrClientes.find(function(x){return x.id===_editQRClientId;})||{}).qrEnabled !== false : true,
     createdAt: _editQRClientId ? (qrClientes.find(function(x){return x.id===_editQRClientId;})||{}).createdAt||new Date().toISOString() : new Date().toISOString()
   };
   if(_editQRClientId){
@@ -9212,9 +9212,16 @@ async function saveQRClient(){
 async function toggleQRClientEnabled(id){
   var c = qrClientes.find(function(x){return x.id===id;});
   if(!c) return;
-  c.qrEnabled = c.qrEnabled === false ? true : false;
-  if(!_demoMode && _fbdb){ try{ await _fbdb.ref('qrClientes/'+id+'/qrEnabled').set(c.qrEnabled); }catch(e){} }
-  else { localStorage.setItem('qrClientes', JSON.stringify(qrClientes)); }
+  // Flip: if currently active (true or undefined) → set false. If false → set true.
+  var wasOn = c.qrEnabled !== false;
+  c.qrEnabled = !wasOn;
+  if(!_demoMode && _fbdb){
+    try{
+      await _fbdb.ref('qrClientes/'+id).update({qrEnabled: c.qrEnabled});
+    }catch(e){ console.warn('Toggle error:',e); }
+  } else {
+    localStorage.setItem('qrClientes', JSON.stringify(qrClientes));
+  }
   showToast(c.qrEnabled ? '✅ QR activado' : '🚫 QR desactivado', c.qrEnabled ? 'var(--success)' : 'var(--danger)');
   renderQRClientes();
 }
