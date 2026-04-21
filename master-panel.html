@@ -46,6 +46,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .pin-key:hover{background:#2a2a2a;border-color:var(--accent);color:var(--accent);}
 .pin-key.wide{grid-column:span 2;}
 .pin-err{color:var(--danger);font-size:13px;margin-top:12px;min-height:18px;}
+.qrc-img-hover:hover{transform:scale(1.04);}
+.qrc-id-link:hover{text-decoration:underline !important;}
 
 /* ── LAYOUT ── */
 .app{display:none;min-height:100vh;}
@@ -9127,6 +9129,7 @@ function renderQRClientes(){
     var qrUrl = buildQRClientUrl(c);
     var qrImgUrl = qrUrl ? 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data='+encodeURIComponent(qrUrl) : '';
     var payActive = c.paymentActive === true;
+    var cid = esc(c.id);
 
     return '<div style="background:var(--surface);border:1px solid '+(isOn?'var(--border)':'rgba(255,68,68,.25)')+';border-radius:16px;overflow:hidden;display:flex;flex-direction:column;">'+
 
@@ -9145,7 +9148,7 @@ function renderQRClientes(){
 
       '<div style="display:flex;justify-content:center;padding:4px 16px 10px">'+
         (qrImgUrl
-          ? '<div onclick="viewQRClient(\'+c.id+\')" title="Click para ver QR grande y descargar" style="cursor:pointer;background:#fff;border-radius:12px;padding:8px;display:inline-block;border:2px solid '+(isOn?t.color:'#555')+';position:relative" onmouseover="this.style.transform=\'scale(1.04)\'" onmouseout="this.style.transform=\'\'">'+
+          ? '<div data-qrcaction="view" data-qrcid="'+cid+'" title="Click para ver QR grande y descargar" class="qrc-img-hover" style="cursor:pointer;background:#fff;border-radius:12px;padding:8px;display:inline-block;border:2px solid '+(isOn?t.color:'#555')+';position:relative;transition:transform .15s">'+
               '<img src="'+qrImgUrl+'" style="width:128px;height:128px;display:block;'+(isOn?'':'filter:grayscale(1);opacity:.45')+'"/>'+
               '<div style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.6);border-radius:5px;padding:2px 6px;font-size:9px;color:#fff;font-weight:700">⬇ Ver</div>'+
             '</div>'
@@ -9153,39 +9156,60 @@ function renderQRClientes(){
       '</div>'+
 
       '<div style="padding:0 16px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px">'+
-        '<span onclick="viewQRClient(\'+c.id+\')" title="Click para ver QR" style="cursor:pointer;background:'+t.bg+';color:'+t.color+';padding:4px 11px;border-radius:20px;font-size:11px;font-weight:800;display:inline-flex;align-items:center;gap:5px">'+
+        '<span data-qrcaction="view" data-qrcid="'+cid+'" title="Click para ver QR" style="cursor:pointer;background:'+t.bg+';color:'+t.color+';padding:4px 11px;border-radius:20px;font-size:11px;font-weight:800;display:inline-flex;align-items:center;gap:5px">'+
           '<span style="background:'+t.color+';color:#000;border-radius:50%;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;flex-shrink:0">'+t.num+'</span>'+
           t.icon+' '+t.label+
         '</span>'+
-        '<code style="background:var(--surface2);padding:3px 8px;border-radius:5px;font-size:10px;color:#f97316;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(c.id)+'">'+esc(c.id)+'</code>'+
+        (qrUrl
+          ? '<a href="'+qrUrl+'" target="_blank" title="Abrir link directo en nueva pestaña" class="qrc-id-link" style="background:var(--surface2);padding:3px 8px;border-radius:5px;font-size:10px;color:#f97316;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:none;display:inline-block">🔗 '+esc(c.id)+'</a>'
+          : '<code style="background:var(--surface2);padding:3px 8px;border-radius:5px;font-size:10px;color:#f97316;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(c.id)+'</code>')+
       '</div>'+
 
       '<div style="padding:0 16px 8px;display:flex;flex-direction:column;gap:3px">'+
         (c.phone && c.type!=='link'?'<div style="font-size:11px;color:var(--muted)">📱 '+esc(c.phone)+'</div>':'')+
         (c.email?'<div style="font-size:11px;color:var(--muted)">📧 '+esc(c.email)+'</div>':'')+
-        (c.link && (c.type==='link'||c.type==='teams')?'<div style="font-size:10px;color:var(--muted);word-break:break-all">🌐 '+esc(c.link)+'</div>':'')+
+        (c.link && (c.type==='link'||c.type==='teams')?'<div style="font-size:10px;color:var(--muted);word-break:break-all">🌐 <a href="'+esc(c.link)+'" target="_blank" style="color:var(--accent2);text-decoration:none">'+esc(c.link)+'</a></div>':'')+
         (c.msg?'<div style="font-size:10px;color:var(--muted2)">💬 '+esc(c.msg)+'</div>':'')+
       '</div>'+
 
       (c.notes
         ? '<div style="padding:0 16px 10px">'+
-            '<button onclick="toggleInlineNote(\'note-\'+c.id+\')" style="background:rgba(232,255,60,.08);border:1px solid rgba(232,255,60,.3);color:var(--accent);border-radius:6px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif;width:100%">📝 Ver nota</button>'+
-            '<div id="note-\'+c.id+\'" style="display:none;margin-top:8px;background:var(--surface2);border:1px solid rgba(232,255,60,.2);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--text);line-height:1.6;white-space:pre-wrap;max-height:120px;overflow-y:auto">'+esc(c.notes)+'</div>'+
+            '<button data-qrcaction="togglenote" data-qrcid="'+cid+'" style="background:rgba(232,255,60,.08);border:1px solid rgba(232,255,60,.3);color:var(--accent);border-radius:6px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif;width:100%">📝 Ver nota</button>'+
+            '<div id="note-'+cid+'" style="display:none;margin-top:8px;background:var(--surface2);border:1px solid rgba(232,255,60,.2);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--text);line-height:1.6;white-space:pre-wrap;max-height:120px;overflow-y:auto">'+esc(c.notes)+'</div>'+
           '</div>'
         : '')+
 
       '<div style="padding:10px 16px 14px;border-top:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap">'+
-        '<button class="act-btn" style="'+(isOn?'color:#22c55e;border-color:#22c55e':'color:#f87171;border-color:#f87171')+'" onclick="toggleQRClientEnabled(\'+c.id+\')" title="'+(isOn?'Desactivar':'Activar')+'">'+(isOn?'✅':'🚫')+'</button>'+
-        '<button class="act-btn" style="color:#f97316;border-color:#f97316" onclick="viewQRClient(\'+c.id+\')" title="Ver y descargar QR">📱 QR</button>'+
-        '<button class="act-btn" onclick="copyQRClientUrlById(\'+c.id+\')" title="Copiar link">🔗</button>'+
-        '<button class="act-btn" style="color:#a78bfa;border-color:#a78bfa" onclick="openQRAgreementModal(\'+c.id+\')" title="Acuerdo">📄</button>'+
-        '<button class="act-btn" style="'+(payActive?'color:#22c55e;border-color:#22c55e':'color:#f59e0b;border-color:#f59e0b')+'" onclick="openPaymentActivationModal(\'+c.id+\')" title="Pagos">'+(payActive?'💳 ON':'💳')+'</button>'+
-        '<button class="act-btn" onclick="openQRClientModal(\'+c.id+\')" title="Editar">✏️</button>'+
-        '<button class="act-btn danger" onclick="deleteQRClient(\'+c.id+\')" title="Eliminar">🗑</button>'+
+        '<button class="act-btn" data-qrcaction="toggle" data-qrcid="'+cid+'" style="'+(isOn?'color:#22c55e;border-color:#22c55e':'color:#f87171;border-color:#f87171')+'" title="'+(isOn?'Desactivar':'Activar')+'">'+(isOn?'✅':'🚫')+'</button>'+
+        '<button class="act-btn" data-qrcaction="view"   data-qrcid="'+cid+'" style="color:#f97316;border-color:#f97316" title="Ver y descargar QR">📱 QR</button>'+
+        '<button class="act-btn" data-qrcaction="copy"   data-qrcid="'+cid+'" title="Copiar link">🔗</button>'+
+        '<button class="act-btn" data-qrcaction="agree"  data-qrcid="'+cid+'" style="color:#a78bfa;border-color:#a78bfa" title="Acuerdo">📄</button>'+
+        '<button class="act-btn" data-qrcaction="pay"    data-qrcid="'+cid+'" style="'+(payActive?'color:#22c55e;border-color:#22c55e':'color:#f59e0b;border-color:#f59e0b')+'" title="Pagos">'+(payActive?'💳 ON':'💳')+'</button>'+
+        '<button class="act-btn" data-qrcaction="edit"   data-qrcid="'+cid+'" title="Editar">✏️</button>'+
+        '<button class="act-btn danger" data-qrcaction="delete" data-qrcid="'+cid+'" title="Eliminar">🗑</button>'+
       '</div>'+
 
     '</div>';
   }).join('');
+
+  // Event delegation — one listener handles all card buttons
+  grid.onclick = function(e){
+    var el = e.target.closest('[data-qrcaction]');
+    if(!el) return;
+    var action = el.dataset.qrcaction;
+    var id = el.dataset.qrcid;
+    if     (action==='view')       viewQRClient(id);
+    else if(action==='toggle')     toggleQRClientEnabled(id);
+    else if(action==='copy')       copyQRClientUrlById(id);
+    else if(action==='agree')      openQRAgreementModal(id);
+    else if(action==='pay')        openPaymentActivationModal(id);
+    else if(action==='edit')       openQRClientModal(id);
+    else if(action==='delete')     deleteQRClient(id);
+    else if(action==='togglenote'){
+      var n = document.getElementById('note-'+id);
+      if(n) n.style.display = n.style.display==='none' ? 'block' : 'none';
+    }
+  };
 }
 
 function toggleInlineNote(id){
@@ -9572,12 +9596,47 @@ function openPaymentActivationModal(id){
   document.getElementById('payActPlan').value = c.paymentPlan || '';
   document.getElementById('payActCutDay').value = c.paymentCutDay || '';
   document.getElementById('payActNotes').value = c.paymentNotes || '';
+  document.getElementById('payActMethod').value = c.paymentMethod || '';
+  document.getElementById('payActLink').value = c.paymentLink || '';
+  qrcPayMethodChanged();
   document.getElementById('payActToggleBtn').textContent = isActive ? '🚫 Desactivar Pagos' : '✅ Activar Pagos con Acuerdo';
   document.getElementById('payActToggleBtn').dataset.activate = isActive ? 'false' : 'true';
   document.getElementById('payActToggleBtn').style.background = isActive ? 'transparent' : 'var(--accent)';
   document.getElementById('payActToggleBtn').style.color = isActive ? 'var(--danger)' : '#000';
   document.getElementById('payActToggleBtn').style.borderColor = isActive ? 'var(--danger)' : 'var(--accent)';
   document.getElementById('payActivationModal').style.display = 'flex';
+}
+function qrcPayMethodChanged(){
+  var method = document.getElementById('payActMethod').value;
+  var linkRow = document.getElementById('payActLinkRow');
+  var linkInput = document.getElementById('payActLink');
+  var linkBtn = document.getElementById('payActLinkBtn');
+  var defaults = {
+    paypal:  'https://paypal.me/',
+    zelle:   '',
+    venmo:   'https://venmo.com/',
+    cashapp: 'https://cash.app/$',
+    stripe:  'https://buy.stripe.com/',
+    efectivo:'',
+    otro:    ''
+  };
+  if(method && method !== 'efectivo' && method !== 'zelle'){
+    linkRow.style.display = 'block';
+    if(!linkInput.value && defaults[method]) linkInput.value = defaults[method];
+  } else if(method === 'zelle'){
+    linkRow.style.display = 'block';
+    if(!linkInput.value) linkInput.value = '';
+    document.getElementById('payActLink').placeholder = 'Número / email de Zelle';
+  } else {
+    linkRow.style.display = method ? 'none' : 'none';
+  }
+  // Update the "Ir" button href live
+  linkInput.oninput = function(){
+    var v = linkInput.value.trim();
+    linkBtn.href = (v && v.startsWith('http')) ? v : '#';
+  };
+  var v = linkInput.value.trim();
+  linkBtn.href = (v && v.startsWith('http')) ? v : '#';
 }
 function closePaymentActivationModal(){
   document.getElementById('payActivationModal').style.display = 'none';
@@ -9589,12 +9648,16 @@ async function savePaymentActivation(activate){
   var plan   = document.getElementById('payActPlan').value.trim();
   var cutDay = document.getElementById('payActCutDay').value.trim();
   var notes  = document.getElementById('payActNotes').value.trim();
+  var method = document.getElementById('payActMethod').value;
+  var link   = document.getElementById('payActLink').value.trim();
   if(activate && !amount){ showToast('⚠️ Ingresa el monto mensual','var(--danger)'); return; }
   c.paymentActive = activate;
   c.paymentAmount = amount;
   c.paymentPlan   = plan;
   c.paymentCutDay = cutDay;
   c.paymentNotes  = notes;
+  c.paymentMethod = method;
+  c.paymentLink   = link;
   c.paymentActivatedAt = activate ? new Date().toISOString() : null;
   qrClientes = qrClientes.map(function(x){ return x.id===c.id ? c : x; });
   if(!_demoMode && _fbdb){
@@ -9604,6 +9667,8 @@ async function savePaymentActivation(activate){
       paymentPlan: c.paymentPlan,
       paymentCutDay: c.paymentCutDay,
       paymentNotes: c.paymentNotes,
+      paymentMethod: c.paymentMethod,
+      paymentLink: c.paymentLink,
       paymentActivatedAt: c.paymentActivatedAt
     }); }catch(e){}
   } else {
@@ -9684,6 +9749,26 @@ async function savePaymentActivation(activate){
       <div style="margin-bottom:14px">
         <label style="display:block;font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px;letter-spacing:.08em">📦 Plan / Servicio</label>
         <input id="payActPlan" type="text" placeholder="Ej: Plan Básico QR WhatsApp" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-family:DM Sans,sans-serif;font-size:14px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px;letter-spacing:.08em">💳 Método de Pago</label>
+        <select id="payActMethod" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-family:DM Sans,sans-serif;font-size:13px;outline:none;cursor:pointer" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'" onchange="qrcPayMethodChanged()">
+          <option value="">— Seleccionar método —</option>
+          <option value="paypal">💰 PayPal</option>
+          <option value="zelle">💸 Zelle</option>
+          <option value="venmo">💜 Venmo</option>
+          <option value="cashapp">💚 Cash App</option>
+          <option value="stripe">🔵 Stripe / Tarjeta</option>
+          <option value="efectivo">💵 Efectivo</option>
+          <option value="otro">🔗 Otro / Link personalizado</option>
+        </select>
+      </div>
+      <div id="payActLinkRow" style="margin-bottom:14px;display:none">
+        <label style="display:block;font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px;letter-spacing:.08em">🔗 Link de Pago</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="payActLink" type="url" placeholder="https://paypal.me/tu-usuario  o  https://venmo.com/..." style="flex:1;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-family:DM Sans,sans-serif;font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+          <a id="payActLinkBtn" href="#" target="_blank" style="padding:10px 14px;background:var(--accent);color:#000;border-radius:9px;font-weight:800;font-size:12px;text-decoration:none;white-space:nowrap;font-family:Syne,sans-serif">Ir ↗</a>
+        </div>
       </div>
       <div style="margin-bottom:20px">
         <label style="display:block;font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px;letter-spacing:.08em">📝 Notas de Pago</label>
