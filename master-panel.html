@@ -1200,6 +1200,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
           <select id="qrc-type" onchange="toggleQRClientFields()" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;font-family:'Syne',sans-serif">
             <option value="whatsapp">📲 WhatsApp</option>
             <option value="sms">💬 SMS</option>
+            <option value="telegram">✈️ Telegram</option>
+            <option value="teams">🟦 Microsoft Teams</option>
             <option value="link">🌐 Link</option>
           </select>
         </div>
@@ -9105,44 +9107,41 @@ function renderQRClientes(){
     return;
   }
   var isEN = _masterLang==='en';
-  grid.innerHTML = qrClientes.map(function(c){
-    var typeLabel = c.type==='whatsapp' ? '📲 WhatsApp' : c.type==='sms' ? '💬 SMS' : '🌐 Link';
-    var typeBg = c.type==='whatsapp' ? '#14532d' : c.type==='sms' ? '#1e3a5f' : '#3b0764';
-    var typeColor = c.type==='whatsapp' ? '#4ade80' : c.type==='sms' ? '#93c5fd' : '#d8b4fe';
-    var isOn = c.qrEnabled !== false;
-    var qrUrl = buildQRClientUrl(c);
-    var qrImgUrl = qrUrl ? 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data='+encodeURIComponent(qrUrl) : '';
-    var detail = c.type==='link' ? (c.link||'') : (c.phone ? '+'+c.phone.replace(/\D/g,'') : '');
-    return '<div class="qrc-card'+(isOn?'':' qrc-card-disabled')+'">'+
-      // Header
-      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'+
-        '<div class="qrc-name">'+c.name+'</div>'+
-        '<span class="qrc-type-badge" style="background:'+typeBg+';color:'+typeColor+'">'+typeLabel+'</span>'+
-      '</div>'+
-      // QR Image centered
-      '<div style="display:flex;justify-content:center;background:#fff;border-radius:12px;padding:10px">'+
-        (qrImgUrl
-          ? '<img src="'+qrImgUrl+'" style="width:160px;height:160px;border-radius:6px;'+(isOn?'':'filter:grayscale(1);opacity:.4')+'" crossorigin="anonymous"/>'
-          : '<div style="width:160px;height:160px;display:flex;align-items:center;justify-content:center;color:#999;font-size:12px">Sin datos</div>')+
-      '</div>'+
-      '<div style="font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:3px">'+
-        (c.bizName?'<span>🏢 '+c.bizName+'</span>':'')+
-        (c.phone && c.type!=='link'?'<span>📱 +'+c.phone.replace(/\D/g,'')+'</span>':'')+
-        (c.email?'<span>✉️ '+c.email+'</span>':'')+
-        (c.notes?'<span style="color:#666;font-style:italic">📝 '+c.notes+'</span>':'')+
-      '</div>'+
-      // Status + Actions
-      '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap">'+
-        '<button class="qrc-btn qrc-toggle-'+(isOn?'on':'off')+'" onclick="toggleQRClientEnabled(\''+c.id+'\')" style="flex:1;text-align:center">'+(isOn?'✅ Activo':'🚫 Inactivo')+'</button>'+
-      '</div>'+
-      '<div class="qrc-actions" style="justify-content:center">'+
-        '<button class="qrc-btn" onclick="viewQRClient(\''+c.id+'\')">⬇ Descargar</button>'+
-        '<button class="qrc-btn" onclick="openQRClientModal(\''+c.id+'\')">✏️ Editar</button>'+
-        '<button class="qrc-btn" onclick="deleteQRClient(\''+c.id+'\')" style="border-color:#f87171;color:#f87171">🗑</button>'+
-      '</div>'+
+  var typeInfo = {
+    whatsapp: {label:'📲 WhatsApp', bg:'#14532d', color:'#4ade80'},
+    sms:      {label:'💬 SMS',      bg:'#1e3a5f', color:'#93c5fd'},
+    telegram: {label:'✈️ Telegram', bg:'#0c3460', color:'#67e8f9'},
+    teams:    {label:'🟦 Teams',    bg:'#1e3a6e', color:'#818cf8'},
+    link:     {label:'🌐 Link',     bg:'#3b0764', color:'#d8b4fe'}
+  };
+  grid.innerHTML = '<div style="display:flex;flex-direction:column;gap:6px">'+
+    qrClientes.map(function(c){
+      var t = typeInfo[c.type]||typeInfo.link;
+      var isOn = c.qrEnabled !== false;
+      var qrUrl = buildQRClientUrl(c);
+      var qrImgUrl = qrUrl ? 'https://api.qrserver.com/v1/create-qr-code/?size=80x80&data='+encodeURIComponent(qrUrl) : '';
+      return '<div style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1.5px solid '+(isOn?'var(--border)':'#f87171')+';border-radius:12px;padding:10px 14px">'+
+        '<div style="flex-shrink:0;background:#fff;border-radius:8px;padding:3px;width:50px;height:50px;display:flex;align-items:center;justify-content:center">'+
+          (qrImgUrl?'<img src="'+qrImgUrl+'" style="width:44px;height:44px;'+(isOn?'':'filter:grayscale(1);opacity:.4')+'" />':'<span style="font-size:18px">❓</span>')+
+        '</div>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div style="font-family:Syne,sans-serif;font-weight:800;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+c.name+'</div>'+
+          '<div style="display:flex;align-items:center;gap:6px;margin-top:3px">'+
+            '<span style="background:'+t.bg+';color:'+t.color+';padding:2px 8px;border-radius:20px;font-size:10px;font-weight:800">'+t.label+'</span>'+
+            (c.bizName?'<span style="font-size:11px;color:var(--muted)">'+c.bizName+'</span>':'')+
+          '</div>'+
+          (c.notes?'<div style="font-size:11px;color:#666;margin-top:2px;font-style:italic">📝 '+c.notes+'</div>':'')+
+        '</div>'+
+        '<div style="display:flex;gap:5px;flex-shrink:0">'+
+          '<button class="qrc-btn '+(isOn?'qrc-toggle-on':'qrc-toggle-off')+'" onclick="toggleQRClientEnabled(''+c.id+'')" style="padding:6px 10px;font-size:12px" title="'+(isOn?'Desactivar':'Activar')+'">'+(isOn?'✅':'🚫')+'</button>'+
+          '<button class="qrc-btn" onclick="viewQRClient(''+c.id+'')" style="padding:6px 10px;font-size:12px" title="Descargar QR">⬇</button>'+
+          '<button class="qrc-btn" onclick="openQRClientModal(''+c.id+'')" style="padding:6px 10px;font-size:12px" title="Editar">✏️</button>'+
+          '<button class="qrc-btn" onclick="deleteQRClient(''+c.id+'')" style="padding:6px 10px;font-size:12px;border-color:#f87171;color:#f87171" title="Eliminar">🗑</button>'+
+        '</div>';
+    }).join('')+
     '</div>';
-  }).join('');
 }
+
 
 function buildQRClientUrl(c){
   // Points to qr.html which verifies Firebase before redirecting
@@ -9173,10 +9172,16 @@ function closeQRClientModal(){
 
 function toggleQRClientFields(){
   var type = document.getElementById('qrc-type').value;
-  document.getElementById('qrc-phone-field').style.display = type==='link' ? 'none' : '';
-  document.getElementById('qrc-link-field').style.display = type==='link' ? '' : 'none';
-  document.getElementById('qrc-msg-field').style.display = type==='link' ? 'none' : '';
-  document.getElementById('qrc-phone-label').textContent = type==='whatsapp' ? '📲 Número WhatsApp' : '💬 Número SMS';
+  var isLink    = type==='link';
+  var isTeams   = type==='teams';
+  var needPhone = type==='whatsapp'||type==='sms'||type==='telegram';
+  document.getElementById('qrc-phone-field').style.display = needPhone ? '' : 'none';
+  document.getElementById('qrc-link-field').style.display  = (isLink||isTeams) ? '' : 'none';
+  document.getElementById('qrc-msg-field').style.display   = (isLink||isTeams) ? 'none' : '';
+  var phoneLabel = type==='whatsapp' ? '📲 Número WhatsApp' : type==='telegram' ? '✈️ Usuario o número Telegram' : '💬 Número SMS';
+  var linkLabel  = isTeams ? '🟦 Link de canal Teams' : '🌐 URL';
+  document.getElementById('qrc-phone-label').textContent = phoneLabel;
+  document.getElementById('qrc-link-field').querySelector('label').textContent = linkLabel;
 }
 
 async function saveQRClient(){
