@@ -195,6 +195,7 @@ if(!qrId){
       showBlocked(); return;
     }
     var c = snap.val();
+    // qrEnabled=true or undefined = active. Only false = blocked.
     if(c.qrEnabled === false){
       showBlocked(); return;
     }
