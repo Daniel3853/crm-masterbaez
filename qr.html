@@ -153,6 +153,10 @@ function showCard(c){
     btn.textContent = '📲 Abrir WhatsApp'; btn.className='action-btn btn-wa';
   } else if(c.type==='sms'){
     btn.textContent = '💬 Enviar SMS'; btn.className='action-btn btn-sms';
+  } else if(c.type==='telegram'){
+    btn.textContent = '✈️ Abrir Telegram'; btn.className='action-btn btn-link';
+  } else if(c.type==='teams'){
+    btn.textContent = '🟦 Abrir Teams'; btn.className='action-btn btn-link';
   } else {
     btn.textContent = '🌐 Abrir Link'; btn.className='action-btn btn-link';
   }
@@ -181,6 +185,11 @@ function buildUrl(c){
   } else if(c.type==='sms'){
     var num2 = (c.phone||'').replace(/\D/g,'');
     return 'sms:+'+num2+(c.msg?'?body='+encodeURIComponent(c.msg):'');
+  } else if(c.type==='telegram'){
+    var user = (c.phone||'').replace(/[@\s]/g,'');
+    return 'https://t.me/'+user+(c.msg?'?text='+encodeURIComponent(c.msg):'');
+  } else if(c.type==='teams'){
+    return c.link||'';
   } else {
     return c.link||'';
   }
