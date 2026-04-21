@@ -9202,8 +9202,18 @@ async function saveQRClient(){
   } else {
     qrClientes.push(c);
   }
-  if(!_demoMode && _fbdb){ try{ await _fbdb.ref('qrClientes/'+c.id).set(c); }catch(e){} }
-  else { localStorage.setItem('qrClientes', JSON.stringify(qrClientes)); }
+  if(!_demoMode && _fbdb){
+    try{
+      await _fbdb.ref('qrClientes/'+c.id).set(c);
+      console.log('✅ QR Cliente guardado en Firebase:', c.id);
+    }catch(e){
+      console.error('❌ Error guardando QR Cliente:', e);
+      showToast('❌ Error guardando en Firebase','var(--danger)');
+      return;
+    }
+  } else {
+    localStorage.setItem('qrClientes', JSON.stringify(qrClientes));
+  }
   closeQRClientModal();
   renderQRClientes();
   showToast('✅ QR guardado');
