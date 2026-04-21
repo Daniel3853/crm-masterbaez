@@ -9133,10 +9133,10 @@ function renderQRClientes(){
           (c.notes?'<div style="font-size:11px;color:#666;margin-top:2px;font-style:italic">📝 '+c.notes+'</div>':'')+
         '</div>'+
         '<div style="display:flex;gap:5px;flex-shrink:0">'+
-          '<button class="qrc-btn '+(isOn?'qrc-toggle-on':'qrc-toggle-off')+'" onclick="toggleQRClientEnabled(''+c.id+'')" style="padding:6px 10px;font-size:12px" title="'+(isOn?'Desactivar':'Activar')+'">'+(isOn?'✅':'🚫')+'</button>'+
-          '<button class="qrc-btn" onclick="viewQRClient(''+c.id+'')" style="padding:6px 10px;font-size:12px" title="Descargar QR">⬇</button>'+
-          '<button class="qrc-btn" onclick="openQRClientModal(''+c.id+'')" style="padding:6px 10px;font-size:12px" title="Editar">✏️</button>'+
-          '<button class="qrc-btn" onclick="deleteQRClient(''+c.id+'')" style="padding:6px 10px;font-size:12px;border-color:#f87171;color:#f87171" title="Eliminar">🗑</button>'+
+          '<button class="qrc-btn '+(isOn?'qrc-toggle-on':'qrc-toggle-off')+' " onclick="toggleQRClientEnabled(\''+c.id+'\')" style="padding:6px 10px;font-size:12px" title="'+(isOn?'Desactivar':'Activar')+'">'+(isOn?'\u2705':'\U0001f6ab')+'</button>'+
+          '<button class="qrc-btn" onclick="viewQRClient(\''+c.id+'\')" style="padding:6px 10px;font-size:12px" title="Descargar QR">\u2b07</button>'+
+          '<button class="qrc-btn" onclick="openQRClientModal(\''+c.id+'\')" style="padding:6px 10px;font-size:12px" title="Editar">\u270f\ufe0f</button>'+
+          '<button class="qrc-btn" onclick="deleteQRClient(\''+c.id+'\')" style="padding:6px 10px;font-size:12px;border-color:#f87171;color:#f87171" title="Eliminar">\U0001f5d1</button>'+
         '</div>';
     }).join('')+
     '</div>';
