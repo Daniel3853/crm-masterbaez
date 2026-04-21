@@ -398,16 +398,17 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .sn-item[data-p="anuncios"].active{background:linear-gradient(135deg,#e879f9,#c026d3);box-shadow:0 4px 14px rgba(232,121,249,.45);}
 .sn-item[data-p="qrclientes"].active{background:linear-gradient(135deg,#f472b6,#ec4899);box-shadow:0 4px 14px rgba(244,114,182,.45);}
 .sn-item[data-p="qrclientes"]:not(.active):hover{background:#1f0a18;color:#f472b6;}
-.qrc-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px;transition:border-color .2s;}
+.qrc-card{background:var(--surface);border:2px solid var(--border);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;transition:border-color .2s;}
 .qrc-card:hover{border-color:var(--accent);}
-.qrc-name{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--text);}
-.qrc-type-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
-.qrc-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
-.qrc-btn{padding:7px 13px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:12px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:all .15s;}
+.qrc-card-disabled{opacity:.6;border-style:dashed;}
+.qrc-name{font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:var(--text);}
+.qrc-type-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:.03em;}
+.qrc-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px;}
+.qrc-btn{padding:8px 14px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);color:var(--text);font-size:12px;font-weight:800;cursor:pointer;font-family:'Syne',sans-serif;transition:all .15s;}
 .qrc-btn:hover{border-color:var(--accent);color:var(--accent);}
-.qrc-btn.danger:hover{border-color:var(--danger);color:var(--danger);}
-.qrc-toggle-on{border-color:var(--success)!important;color:var(--success)!important;}
-.qrc-toggle-off{border-color:var(--danger)!important;color:var(--danger)!important;opacity:.7;}
+.qrc-btn.danger:hover{border-color:#f87171;color:#f87171;}
+.qrc-toggle-on{background:#14532d!important;border-color:#22c55e!important;color:#4ade80!important;}
+.qrc-toggle-off{background:#450a0a!important;border-color:#f87171!important;color:#fca5a5!important;}
 .sn-item[data-p="iatools"].active{background:linear-gradient(135deg,#60a5fa,#7c3aed);box-shadow:0 4px 14px rgba(96,165,250,.45);}
 .sn-item[data-p="papelera"].active{background:linear-gradient(135deg,#f87171,#dc2626);box-shadow:0 4px 14px rgba(248,113,113,.45);}
 .sn-item[data-p="grafica"].active{background:linear-gradient(135deg,#4ade80,#22c55e);box-shadow:0 4px 14px rgba(74,222,128,.45);}
@@ -9103,25 +9104,34 @@ function renderQRClientes(){
   var isEN = _masterLang==='en';
   grid.innerHTML = qrClientes.map(function(c){
     var typeLabel = c.type==='whatsapp' ? '📲 WhatsApp' : c.type==='sms' ? '💬 SMS' : '🌐 Link';
-    var typeBg = c.type==='whatsapp' ? '#16a34a22' : c.type==='sms' ? '#2563eb22' : '#7c3aed22';
-    var typeColor = c.type==='whatsapp' ? '#4ade80' : c.type==='sms' ? '#60a5fa' : '#a78bfa';
+    var typeBg = c.type==='whatsapp' ? '#14532d' : c.type==='sms' ? '#1e3a5f' : '#3b0764';
+    var typeColor = c.type==='whatsapp' ? '#4ade80' : c.type==='sms' ? '#93c5fd' : '#d8b4fe';
     var isOn = c.qrEnabled !== false;
     var qrUrl = buildQRClientUrl(c);
-    var qrImgUrl = qrUrl ? 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data='+encodeURIComponent(qrUrl) : '';
-    return '<div class="qrc-card">'+
+    var qrImgUrl = qrUrl ? 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data='+encodeURIComponent(qrUrl) : '';
+    var detail = c.type==='link' ? (c.link||'') : (c.phone ? '+'+c.phone.replace(/\D/g,'') : '');
+    return '<div class="qrc-card'+(isOn?'':' qrc-card-disabled')+'">'+
+      // Header
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'+
         '<div class="qrc-name">'+c.name+'</div>'+
         '<span class="qrc-type-badge" style="background:'+typeBg+';color:'+typeColor+'">'+typeLabel+'</span>'+
       '</div>'+
-      (qrImgUrl
-        ? '<div style="text-align:center"><img src="'+qrImgUrl+'" style="width:150px;height:150px;border-radius:8px;'+(isOn?'':'opacity:.3;filter:grayscale(1)')+'"/></div>'
-        : '<div style="text-align:center;color:var(--muted);font-size:12px;padding:20px 0">Sin URL configurada</div>')+
-      '<div style="font-size:11px;color:var(--muted);word-break:break-all;text-align:center">'+(c.type==='link'?(c.link||''):(c.phone||''))+(c.msg?'<br>💬 '+c.msg:'')+'</div>'+
-      '<div class="qrc-actions">'+
+      // QR Image centered
+      '<div style="display:flex;justify-content:center;background:#fff;border-radius:12px;padding:10px">'+
+        (qrImgUrl
+          ? '<img src="'+qrImgUrl+'" style="width:160px;height:160px;border-radius:6px;'+(isOn?'':'filter:grayscale(1);opacity:.4')+'" crossorigin="anonymous"/>'
+          : '<div style="width:160px;height:160px;display:flex;align-items:center;justify-content:center;color:#999;font-size:12px">Sin datos</div>')+
+      '</div>'+
+      // Detail info
+      (detail ? '<div style="font-size:12px;color:var(--muted);text-align:center;word-break:break-all">'+detail+(c.msg?'<br><span style="color:var(--text)">💬 '+c.msg+'</span>':'')+'</div>' : '')+
+      // Status + Actions
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap">'+
+        '<button class="qrc-btn qrc-toggle-'+(isOn?'on':'off')+'" onclick="toggleQRClientEnabled(\''+c.id+'\')" style="flex:1;text-align:center">'+(isOn?'✅ Activo':'🚫 Inactivo')+'</button>'+
+      '</div>'+
+      '<div class="qrc-actions" style="justify-content:center">'+
         '<button class="qrc-btn" onclick="viewQRClient(\''+c.id+'\')">⬇ Descargar</button>'+
-        '<button class="qrc-btn '+(isOn?'qrc-toggle-on':'qrc-toggle-off')+'" onclick="toggleQRClientEnabled(\''+c.id+'\')">'+(isOn?'✅ Activo':'🚫 Inactivo')+'</button>'+
-        '<button class="qrc-btn" onclick="openQRClientModal(\''+c.id+'\')">✏️</button>'+
-        '<button class="qrc-btn danger" onclick="deleteQRClient(\''+c.id+'\')">🗑</button>'+
+        '<button class="qrc-btn" onclick="openQRClientModal(\''+c.id+'\')">✏️ Editar</button>'+
+        '<button class="qrc-btn" onclick="deleteQRClient(\''+c.id+'\')" style="border-color:#f87171;color:#f87171">🗑</button>'+
       '</div>'+
     '</div>';
   }).join('');
