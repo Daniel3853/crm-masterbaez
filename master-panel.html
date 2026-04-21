@@ -2594,7 +2594,7 @@ function getPartnerLeads(cid){
 }
 
 function copyPartnerLink(cid){
-  var baseUrl = 'https://daniel3853.github.io/crm-masterbaez/public-masterbaez.html';
+  var baseUrl = 'https://daniel3853.github.io/crm-masterbaez/index.html';
   var url = baseUrl + '?ref=' + cid;
   try{
     navigator.clipboard.writeText(url).then(function(){
@@ -2622,7 +2622,7 @@ function showPartnerQR(cid, bizName){
     showToast(isEN ? '🚫 QR is deactivated for this partner' : '🚫 El QR está desactivado para este partner', 'var(--danger)');
     return;
   }
-  var baseUrl = 'https://daniel3853.github.io/crm-masterbaez/public-masterbaez.html';
+  var baseUrl = 'https://daniel3853.github.io/crm-masterbaez/index.html';
   var url = baseUrl + '?ref=' + cid;
   _qrCurrentUrl = url;
   var qrSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&color=000000&bgcolor=ffffff&margin=10&data='+encodeURIComponent(url);
@@ -3380,7 +3380,7 @@ function rfUpdateQRPreview(){
       if(boxEl){ boxEl.style.borderColor='var(--border)'; }
       return;
     }
-    var baseUrl = 'https://daniel3853.github.io/crm-masterbaez/public-masterbaez.html';
+    var baseUrl = 'https://daniel3853.github.io/crm-masterbaez/index.html';
     var url = baseUrl + '?ref=' + cid;
     if(previewEl) previewEl.textContent = '🔗 ?' + 'ref=' + cid;
     if(placeholder){ placeholder.style.display='none'; }
@@ -3444,7 +3444,7 @@ function generarContratoReferidor(ref){
   var incentLabels = {freemonth:'Mes(es) Gratis / Free Month(s)',discount:'Descuento en Servicio / Service Discount',credit:'Crédito / Bono / Credit',cash:'Pago en Efectivo / Cash Payment',other:'Otro / Other'};
   var incentType = incentLabels[ref.incentiveType] || ref.incentiveType || 'Por definir / TBD';
   var incentVal  = ref.incentiveValue || 'A coordinar con el negocio / To be coordinated';
-  var baseUrl = 'https://daniel3853.github.io/crm-masterbaez/public-masterbaez.html';
+  var baseUrl = 'https://daniel3853.github.io/crm-masterbaez/index.html';
   var refUrl  = baseUrl + '?ref=' + ref.cid;
   var qrUrl   = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&color=000000&bgcolor=ffffff&margin=12&data='+encodeURIComponent(refUrl);
   var typeLabels = {cliente:'Cliente Activo / Active Client', estudiante:'Estudiante / Student', excliente:'Ex-Cliente / Former Client', otro:'Otro / Other'};
@@ -3697,7 +3697,7 @@ function showReferidorQR(cid, nombre){
     showToast(isEN ? '🚫 QR is deactivated for this referrer' : '🚫 El QR está desactivado para este referidor', 'var(--danger)');
     return;
   }
-  var baseUrl = 'https://daniel3853.github.io/crm-masterbaez/public-masterbaez.html';
+  var baseUrl = 'https://daniel3853.github.io/crm-masterbaez/index.html';
   var url = baseUrl + '?ref=' + cid;
   _qrCurrentUrl = url;
   var qrSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&color=000000&bgcolor=ffffff&margin=10&data='+encodeURIComponent(url);
@@ -3712,7 +3712,7 @@ function showReferidorQR(cid, nombre){
 }
 
 function copyReferidorLink(cid){
-  var baseUrl = 'https://daniel3853.github.io/crm-masterbaez/public-masterbaez.html';
+  var baseUrl = 'https://daniel3853.github.io/crm-masterbaez/index.html';
   var url = baseUrl + '?ref=' + cid;
   try{
     navigator.clipboard.writeText(url).then(function(){ showToast('📋 Link copiado!'); });
@@ -5854,7 +5854,7 @@ function openPartnerModalFromClient(r){
 // ── QR PERSONAL DEL CLIENTE ───────────────────────────────
 function showClientQR(r){
   var clientRef = 'CLI-' + r.id;
-  var baseUrl = 'https://daniel3853.github.io/crm-masterbaez/public-masterbaez.html';
+  var baseUrl = 'https://daniel3853.github.io/crm-masterbaez/index.html';
   var url = baseUrl + '?ref=' + clientRef;
   _qrCurrentUrl = url;
   var qrSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&color=000000&bgcolor=ffffff&margin=10&data='+encodeURIComponent(url);
@@ -6874,7 +6874,7 @@ var videoConfig = {
     {type:'plans',     eyebrow:'Planes y Precios',        title:'Empieza gratis.<br/><span class="acc">Escala sin límites.</span>',                         plans:[{name:'Starter',price:'$49',period:'/mes',features:['✓ Dashboard básico','✓ 100 leads/mes','✓ Notif. WhatsApp'],featured:false,popLabel:''},{name:'Profesional',price:'$97',period:'/mes',features:['✓ Leads ilimitados','✓ Sistema QR referidos','✓ Emails automáticos','✓ Partners ilimitados'],featured:true,popLabel:'MÁS POPULAR'},{name:'Empresarial',price:'$147',period:'/mes',features:['✓ White-label','✓ Múltiples negocios','✓ Soporte prioritario'],featured:false,popLabel:''}], duration:7},
     {type:'tech',      eyebrow:'Tecnología',              title:'Infraestructura <span class="acc2">enterprise</span><br/>a costo mínimo',                  cards:[{icon:'🔥',name:'Firebase Realtime DB',body:'Sincronización en tiempo real. Datos seguros en Google Cloud. Plan gratuito incluido.'},{icon:'🐙',name:'GitHub Pages',body:'Hosting 100% gratis. Deploy en segundos. Sin servidores que mantener.'},{icon:'📧',name:'Brevo',body:'9,000 emails/mes gratis. Plantillas profesionales. Sin configuración SMTP.'},{icon:'📱',name:'CallMeBot',body:'WhatsApp gratis sin Meta Business. Notificaciones instantáneas al admin.'}], duration:6},
     {type:'roadmap',   eyebrow:'Roadmap',                 title:'Lo que viene<br/><span class="acc">próximamente</span>',                                  phases:[{label:'FASE 1 — ACTUAL',title:'CRM + Referidos + Panel Master',body:'Registro de leads, QR, WhatsApp/Email automático, papelera, bilingüe.',style:''},{label:'FASE 2 — EN DESARROLLO',title:'WhatsApp Automation + Calendario',body:'Respuestas automáticas via Evolution API. Flujo lead → trial → enrolment.',style:'teal'},{label:'FASE 3 — PRÓXIMO',title:'White-Label & Multi-Cliente',body:'Un repo por cliente. Branding personalizado. Modelo de negocio escalable.',style:'dim'},{label:'FASE 4 — FUTURO',title:'App Móvil + Pagos Integrados',body:'App iOS/Android, Stripe, reportes avanzados e IA para seguimiento automático.',style:'dim'}], duration:7},
-    {type:'cta',       eyebrow:'¿Listo para empezar?',   title:'Tu negocio merece un<br/><span class="acc">sistema inteligente</span>',                   subtitle:'Sin contratos. Sin complicaciones. Sin tarjeta de crédito.<br/>Empieza hoy y ve los resultados desde el primer día.', btn1Text:'🚀 Comenzar Trial Gratis', btn1Url:'https://daniel3853.github.io/crm-masterbaez/public-masterbaez.html', btn2Text:'Ver Demo →', btn2Url:'https://daniel3853.github.io/masterlead/', duration:8}
+    {type:'cta',       eyebrow:'¿Listo para empezar?',   title:'Tu negocio merece un<br/><span class="acc">sistema inteligente</span>',                   subtitle:'Sin contratos. Sin complicaciones. Sin tarjeta de crédito.<br/>Empieza hoy y ve los resultados desde el primer día.', btn1Text:'🚀 Comenzar Trial Gratis', btn1Url:'https://daniel3853.github.io/crm-masterbaez/index.html', btn2Text:'Ver Demo →', btn2Url:'https://daniel3853.github.io/masterlead/', duration:8}
   ]
 };
 
@@ -9103,50 +9103,79 @@ function renderQRClientes(){
   var grid = document.getElementById('qrclientesGrid');
   if(!grid) return;
   if(!qrClientes.length){
-    grid.innerHTML = '<div style="color:var(--muted);font-size:14px;padding:20px 0">No hay QR creados aún. Presiona ➕ Nuevo QR para comenzar.</div>';
+    grid.innerHTML = '<div class="empty-state"><div class="es-icon">🪪</div>'+
+      '<div class="es-title">Sin QR creados aún</div>'+
+      '<div class="es-sub">Presiona ➕ Nuevo QR para crear el primer código QR de cliente.</div></div>';
     return;
   }
-  var isEN = _masterLang==='en';
   var typeInfo = {
-    whatsapp: {label:'📲 WhatsApp', bg:'#14532d', color:'#4ade80'},
-    sms:      {label:'💬 SMS',      bg:'#1e3a5f', color:'#93c5fd'},
-    telegram: {label:'✈️ Telegram', bg:'#0c3460', color:'#67e8f9'},
-    teams:    {label:'🟦 Teams',    bg:'#1e3a6e', color:'#818cf8'},
-    link:     {label:'🌐 Link',     bg:'#3b0764', color:'#d8b4fe'}
+    whatsapp: {label:'📲 WhatsApp', bg:'rgba(34,197,94,.12)', color:'#22c55e'},
+    sms:      {label:'💬 SMS',      bg:'rgba(59,130,246,.12)', color:'#60a5fa'},
+    telegram: {label:'✈️ Telegram', bg:'rgba(6,182,212,.12)',  color:'#22d3ee'},
+    teams:    {label:'🟦 Teams',    bg:'rgba(129,140,248,.12)','color':'#818cf8'},
+    link:     {label:'🌐 Link',     bg:'rgba(168,85,247,.12)', color:'#d8b4fe'}
   };
-  grid.innerHTML = '<div style="display:flex;flex-direction:column;gap:6px">'+
+  grid.innerHTML = '<table class="client-table"><thead><tr>'+
+    '<th>Nombre</th>'+
+    '<th>Contacto</th>'+
+    '<th>ID & Tipo</th>'+
+    '<th>Notas</th>'+
+    '<th style="text-align:center">Estado</th>'+
+    '<th>Acciones</th>'+
+    '</tr></thead><tbody>'+
     qrClientes.map(function(c){
-      var t = typeInfo[c.type]||typeInfo.link;
+      var t = typeInfo[c.type] || typeInfo.link;
       var isOn = c.qrEnabled !== false;
       var qrUrl = buildQRClientUrl(c);
       var qrImgUrl = qrUrl ? 'https://api.qrserver.com/v1/create-qr-code/?size=80x80&data='+encodeURIComponent(qrUrl) : '';
-      return '<div style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1.5px solid '+(isOn?'var(--border)':'#f87171')+';border-radius:12px;padding:10px 14px">'+
-        '<div style="flex-shrink:0;background:#fff;border-radius:8px;padding:3px;width:50px;height:50px;display:flex;align-items:center;justify-content:center">'+
-          (qrImgUrl?'<img src="'+qrImgUrl+'" style="width:44px;height:44px;'+(isOn?'':'filter:grayscale(1);opacity:.4')+'" />':'<span style="font-size:18px">❓</span>')+
-        '</div>'+
-        '<div style="flex:1;min-width:0">'+
-          '<div style="font-family:Syne,sans-serif;font-weight:800;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+c.name+'</div>'+
-          '<div style="display:flex;align-items:center;gap:6px;margin-top:3px">'+
-            '<span style="background:'+t.bg+';color:'+t.color+';padding:2px 8px;border-radius:20px;font-size:10px;font-weight:800">'+t.label+'</span>'+
-            (c.bizName?'<span style="font-size:11px;color:var(--muted)">'+c.bizName+'</span>':'')+
-          '</div>'+
-          (c.notes?'<div style="font-size:11px;color:#666;margin-top:2px;font-style:italic">📝 '+c.notes+'</div>':'')+
-        '</div>'+
-        '<div style="display:flex;gap:5px;flex-shrink:0">'+
-          '<button class="qrc-btn '+(isOn?'qrc-toggle-on':'qrc-toggle-off')+' " onclick="toggleQRClientEnabled(\''+c.id+'\')" style="padding:6px 10px;font-size:12px" title="'+(isOn?'Desactivar':'Activar')+'">'+(isOn?'\u2705':'\U0001f6ab')+'</button>'+
-          '<button class="qrc-btn" onclick="viewQRClient(\''+c.id+'\')" style="padding:6px 10px;font-size:12px" title="Descargar QR">\u2b07</button>'+
-          '<button class="qrc-btn" onclick="openQRClientModal(\''+c.id+'\')" style="padding:6px 10px;font-size:12px" title="Editar">\u270f\ufe0f</button>'+
-          '<button class="qrc-btn" onclick="deleteQRClient(\''+c.id+'\')" style="padding:6px 10px;font-size:12px;border-color:#f87171;color:#f87171" title="Eliminar">\U0001f5d1</button>'+
-        '</div>';
+      return '<tr>'+
+        '<td>'+
+          '<strong style="font-size:14px">'+esc(c.name)+'</strong>'+
+          '<br/><span class="badge '+(isOn?'badge-partner-active':'badge-partner-inactive')+'" style="margin-top:4px">'+(isOn?'Activo':'Inactivo')+'</span>'+
+        '</td>'+
+        '<td>'+
+          (c.phone && c.type!=='link'?'<div style="font-size:12px;color:var(--muted)">📱 '+esc(c.phone)+'</div>':'')+
+          (c.email?'<div style="font-size:12px;color:var(--muted)">📧 '+esc(c.email)+'</div>':'')+
+          (c.link && c.type==='link'?'<div style="font-size:11px;color:var(--muted);word-break:break-all">🌐 '+esc(c.link)+'</div>':'')+
+          (c.type==='telegram'?'<div style="font-size:12px;color:var(--muted)">✈️ '+esc(c.phone||'')+'</div>':'')+
+        '</td>'+
+        '<td>'+
+          '<code style="background:var(--surface2);padding:3px 8px;border-radius:5px;font-size:11px;color:#f97316;display:block;margin-bottom:4px">'+esc(c.id)+'</code>'+
+          '<span style="background:'+t.bg+';color:'+t.color+';padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700">'+t.label+'</span>'+
+        '</td>'+
+        '<td>'+
+          (c.bizName?'<div style="font-size:12px;color:var(--muted)">🏢 '+esc(c.bizName)+'</div>':'')+
+          (c.msg?'<div style="font-size:11px;color:var(--muted)">💬 '+esc(c.msg)+'</div>':'')+
+          (c.notes?'<div style="font-size:11px;color:#888;font-style:italic">📝 '+esc(c.notes)+'</div>':'')+
+        '</td>'+
+        '<td style="text-align:center">'+
+          (qrImgUrl?'<div style="background:#fff;border-radius:8px;padding:4px;display:inline-block"><img src="'+qrImgUrl+'" style="width:52px;height:52px;display:block;'+(isOn?'':'filter:grayscale(1);opacity:.4')+'"/></div>':'<span style="color:var(--muted);font-size:12px">—</span>')+
+        '</td>'+
+        '<td onclick="event.stopPropagation()"><div class="actions-cell">'+
+          '<button class="act-btn '+(isOn?'':'') +'" style="'+(isOn?'color:#22c55e;border-color:#22c55e':'color:#f87171;border-color:#f87171')+'" onclick="toggleQRClientEnabled(\''+c.id+'\')" title="'+(isOn?'Desactivar QR':'Activar QR')+'">'+(isOn?'✅':'🚫')+'</button>'+
+          '<button class="act-btn" style="color:#f97316;border-color:#f97316" onclick="viewQRClient(\''+c.id+'\')" title="Ver y descargar QR">📱 QR</button>'+
+          '<button class="act-btn" onclick="copyQRClientUrlById(\''+c.id+'\')" title="Copiar link">🔗</button>'+
+          '<button class="act-btn" onclick="openQRClientModal(\''+c.id+'\')" >✏️</button>'+
+          '<button class="act-btn danger" onclick="deleteQRClient(\''+c.id+'\')" >🗑</button>'+
+        '</div></td>'+
+      '</tr>';
     }).join('')+
-    '</div>';
+    '</tbody></table>';
 }
+
 
 
 function buildQRClientUrl(c){
   // Points to qr.html which verifies Firebase before redirecting
   var base = window.location.href.replace(/\/[^\/]*$/, '/qr.html');
   return base + '?id=' + c.id;
+}
+
+function copyQRClientUrlById(id){
+  var c = qrClientes.find(function(x){return x.id===id;});
+  if(!c) return;
+  var url = buildQRClientUrl(c);
+  navigator.clipboard.writeText(url).then(function(){ showToast('🔗 Link copiado'); });
 }
 
 function openQRClientModal(id){
