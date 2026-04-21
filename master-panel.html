@@ -9169,19 +9169,19 @@ function renderQRClientes(){
 
       (c.notes
         ? '<div style="padding:0 16px 10px">'+
-            '<button onclick="toggleInlineNote('note-'+c.id+'')" style="background:rgba(232,255,60,.08);border:1px solid rgba(232,255,60,.3);color:var(--accent);border-radius:6px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif;width:100%">📝 Ver nota</button>'+
-            '<div id="note-'+c.id+'" style="display:none;margin-top:8px;background:var(--surface2);border:1px solid rgba(232,255,60,.2);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--text);line-height:1.6;white-space:pre-wrap;max-height:120px;overflow-y:auto">'+esc(c.notes)+'</div>'+
+            '<button onclick="toggleInlineNote(\'note-\'+c.id+\')" style="background:rgba(232,255,60,.08);border:1px solid rgba(232,255,60,.3);color:var(--accent);border-radius:6px;padding:4px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif;width:100%">📝 Ver nota</button>'+
+            '<div id="note-\'+c.id+\'" style="display:none;margin-top:8px;background:var(--surface2);border:1px solid rgba(232,255,60,.2);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--text);line-height:1.6;white-space:pre-wrap;max-height:120px;overflow-y:auto">'+esc(c.notes)+'</div>'+
           '</div>'
         : '')+
 
       '<div style="padding:10px 16px 14px;border-top:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap">'+
-        '<button class="act-btn" style="'+(isOn?'color:#22c55e;border-color:#22c55e':'color:#f87171;border-color:#f87171')+'" onclick="toggleQRClientEnabled(''+c.id+'')" title="'+(isOn?'Desactivar':'Activar')+'">'+(isOn?'✅':'🚫')+'</button>'+
-        '<button class="act-btn" style="color:#f97316;border-color:#f97316" onclick="viewQRClient(''+c.id+'')" title="Ver y descargar QR">📱 QR</button>'+
-        '<button class="act-btn" onclick="copyQRClientUrlById(''+c.id+'')" title="Copiar link">🔗</button>'+
-        '<button class="act-btn" style="color:#a78bfa;border-color:#a78bfa" onclick="openQRAgreementModal(''+c.id+'')" title="Acuerdo">📄</button>'+
-        '<button class="act-btn" style="'+(payActive?'color:#22c55e;border-color:#22c55e':'color:#f59e0b;border-color:#f59e0b')+'" onclick="openPaymentActivationModal(''+c.id+'')" title="Pagos">'+(payActive?'💳 ON':'💳')+'</button>'+
-        '<button class="act-btn" onclick="openQRClientModal(''+c.id+'')" title="Editar">✏️</button>'+
-        '<button class="act-btn danger" onclick="deleteQRClient(''+c.id+'')" title="Eliminar">🗑</button>'+
+        '<button class="act-btn" style="'+(isOn?'color:#22c55e;border-color:#22c55e':'color:#f87171;border-color:#f87171')+'" onclick="toggleQRClientEnabled(\'+c.id+\')" title="'+(isOn?'Desactivar':'Activar')+'">'+(isOn?'✅':'🚫')+'</button>'+
+        '<button class="act-btn" style="color:#f97316;border-color:#f97316" onclick="viewQRClient(\'+c.id+\')" title="Ver y descargar QR">📱 QR</button>'+
+        '<button class="act-btn" onclick="copyQRClientUrlById(\'+c.id+\')" title="Copiar link">🔗</button>'+
+        '<button class="act-btn" style="color:#a78bfa;border-color:#a78bfa" onclick="openQRAgreementModal(\'+c.id+\')" title="Acuerdo">📄</button>'+
+        '<button class="act-btn" style="'+(payActive?'color:#22c55e;border-color:#22c55e':'color:#f59e0b;border-color:#f59e0b')+'" onclick="openPaymentActivationModal(\'+c.id+\')" title="Pagos">'+(payActive?'💳 ON':'💳')+'</button>'+
+        '<button class="act-btn" onclick="openQRClientModal(\'+c.id+\')" title="Editar">✏️</button>'+
+        '<button class="act-btn danger" onclick="deleteQRClient(\'+c.id+\')" title="Eliminar">🗑</button>'+
       '</div>'+
 
     '</div>';
