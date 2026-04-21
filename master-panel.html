@@ -396,7 +396,18 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .sn-item[data-p="waiver"].active{background:linear-gradient(135deg,#a855f7,#7c3aed);box-shadow:0 4px 14px rgba(168,85,247,.45);}
 .sn-item[data-p="referidores"].active{background:linear-gradient(135deg,#fb923c,#ef4444);box-shadow:0 4px 14px rgba(251,146,60,.45);}
 .sn-item[data-p="anuncios"].active{background:linear-gradient(135deg,#e879f9,#c026d3);box-shadow:0 4px 14px rgba(232,121,249,.45);}
-.sn-item[data-p="qrflyer"].active{background:linear-gradient(135deg,#34d399,#059669);box-shadow:0 4px 14px rgba(52,211,153,.45);}
+.sn-item[data-p="qrclientes"].active{background:linear-gradient(135deg,#f472b6,#ec4899);box-shadow:0 4px 14px rgba(244,114,182,.45);}
+.sn-item[data-p="qrclientes"]:not(.active):hover{background:#1f0a18;color:#f472b6;}
+.qrc-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px;transition:border-color .2s;}
+.qrc-card:hover{border-color:var(--accent);}
+.qrc-name{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--text);}
+.qrc-type-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.qrc-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
+.qrc-btn{padding:7px 13px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:12px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:all .15s;}
+.qrc-btn:hover{border-color:var(--accent);color:var(--accent);}
+.qrc-btn.danger:hover{border-color:var(--danger);color:var(--danger);}
+.qrc-toggle-on{border-color:var(--success)!important;color:var(--success)!important;}
+.qrc-toggle-off{border-color:var(--danger)!important;color:var(--danger)!important;opacity:.7;}
 .sn-item[data-p="iatools"].active{background:linear-gradient(135deg,#60a5fa,#7c3aed);box-shadow:0 4px 14px rgba(96,165,250,.45);}
 .sn-item[data-p="papelera"].active{background:linear-gradient(135deg,#f87171,#dc2626);box-shadow:0 4px 14px rgba(248,113,113,.45);}
 .sn-item[data-p="grafica"].active{background:linear-gradient(135deg,#4ade80,#22c55e);box-shadow:0 4px 14px rgba(74,222,128,.45);}
@@ -627,6 +638,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     <!-- 14: QR Flyer -->
     <button class="sn-item" data-p="qrflyer" id="nav-qrflyer" onclick="goPage('qrflyer')">
       <span class="sn-icon">📱</span><span class="sn-lbl" data-lang-key="navQr">QR Flyer</span>
+    </button>
+    <!-- 14b: QR Clientes -->
+    <button class="sn-item" data-p="qrclientes" id="nav-qrclientes" onclick="goPage('qrclientes')">
+      <span class="sn-icon">🪪</span><span class="sn-lbl">QR Clientes</span>
     </button>
     <div class="sn-divider"></div>
     <!-- 15: IA Tools -->
@@ -1158,6 +1173,54 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         <div id="qrCardsWrap" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:18px"></div>
         <button onclick="downloadQRFlyer()" id="qrDownloadFlyerBtn" style="width:100%;padding:13px;border-radius:12px;border:none;background:var(--accent);color:#000;font-weight:900;font-size:15px;cursor:pointer;font-family:'Syne',sans-serif;margin-bottom:8px" data-i18n="qrDownloadFlyerBtn">📥 Descargar Flyer con los 3 QR</button>
         <canvas id="flyerCanvas" style="display:none"></canvas>
+      </div>
+    </div>
+
+    <!-- ── PÁGINA: QR CLIENTES ── -->
+    <div class="page mod-page" id="page-qrclientes">
+      <div class="page-header">
+        <div class="page-title">🪪 QR Clientes</div>
+        <button class="act-btn primary" onclick="openQRClientModal(null)" style="margin-left:auto">➕ Nuevo QR</button>
+      </div>
+      <div style="max-width:760px;padding:0 0 40px">
+        <p style="color:var(--muted);font-size:13px;margin-bottom:20px">QR personalizados por cliente. Cada QR puede abrir WhatsApp, SMS o un link. Actívalo o desactívalo cuando quieras.</p>
+        <div id="qrclientesGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px"></div>
+      </div>
+    </div>
+
+    <!-- ── MODAL: QR CLIENTE ── -->
+    <div class="modal-overlay" id="qrclienteModal" style="display:none" onclick="if(event.target===this)closeQRClientModal()">
+      <div class="modal-box" style="max-width:440px">
+        <div class="modal-title" id="qrclienteModalTitle">🪪 Nuevo QR Cliente</div>
+        <div class="mfield"><label>Nombre del cliente</label><input id="qrc-name" placeholder="Ej: Juan Pérez"/></div>
+        <div class="mfield"><label>Tipo de QR</label>
+          <select id="qrc-type" onchange="toggleQRClientFields()" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;font-family:'Syne',sans-serif">
+            <option value="whatsapp">📲 WhatsApp</option>
+            <option value="sms">💬 SMS</option>
+            <option value="link">🌐 Link</option>
+          </select>
+        </div>
+        <div class="mfield" id="qrc-phone-field"><label id="qrc-phone-label">📱 Número de teléfono</label><input id="qrc-phone" type="tel" placeholder="19543801340"/></div>
+        <div class="mfield" id="qrc-msg-field"><label>Mensaje pre-escrito (opcional)</label><input id="qrc-msg" placeholder="Hola, me interesa información..."/></div>
+        <div class="mfield" id="qrc-link-field" style="display:none"><label>🌐 URL</label><input id="qrc-link" type="url" placeholder="https://..."/></div>
+        <div style="display:flex;gap:10px;margin-top:8px">
+          <button class="act-btn" onclick="closeQRClientModal()" style="flex:1">Cancelar</button>
+          <button class="act-btn primary" onclick="saveQRClient()" style="flex:1">💾 Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MODAL: VER QR CLIENTE ── -->
+    <div class="modal-overlay" id="qrclienteViewModal" style="display:none" onclick="if(event.target===this)closeQRClientViewModal()">
+      <div class="modal-box" style="max-width:340px;text-align:center">
+        <div class="modal-title" id="qrcv-title">QR</div>
+        <canvas id="qrcv-canvas" style="border-radius:12px;max-width:220px;margin:0 auto 16px;display:block"></canvas>
+        <div style="font-size:12px;color:var(--muted);word-break:break-all;margin-bottom:16px" id="qrcv-url"></div>
+        <div style="display:flex;gap:10px;justify-content:center">
+          <button class="act-btn" onclick="copyQRClientUrl()" >🔗 Copiar</button>
+          <button class="act-btn primary" onclick="downloadQRClient()">⬇ Descargar</button>
+          <button class="act-btn" onclick="closeQRClientViewModal()">Cerrar</button>
+        </div>
       </div>
     </div>
 
@@ -2039,6 +2102,7 @@ var planTrash = {}; // key → {key, nameES, nameEN, priceES, priceEN, deletedAt
 // ── NOTIFICATION CONFIG ─────────────────────────
 var notifConfig = {
   email: false, whatsapp: false, sms: false, ms: false,
+  brevoAdminEmail: 'dbkoryo@gmail.com',
   emailjs: { serviceId:'', templateId:'', publicKey:'' },
   twilio:  { sid:'', token:'', from:'', waFrom:'', adminPhone:'' },
   msWebhook: ''
@@ -2062,6 +2126,7 @@ function saveNotifConfig(){
   notifConfig.whatsapp= document.getElementById('notifWA').checked;
   notifConfig.sms     = document.getElementById('notifSMS').checked;
   notifConfig.ms      = document.getElementById('notifMS').checked;
+  notifConfig.brevoAdminEmail = document.getElementById('brevoAdminEmail').value.trim();
   notifConfig.emailjs = {
     serviceId:  document.getElementById('ejServiceId').value.trim(),
     templateId: document.getElementById('ejTemplateId').value.trim(),
@@ -2082,6 +2147,7 @@ function loadNotifConfig(){
   document.getElementById('notifWA').checked    = notifConfig.whatsapp;
   document.getElementById('notifSMS').checked   = notifConfig.sms;
   document.getElementById('notifMS').checked    = notifConfig.ms;
+  document.getElementById('brevoAdminEmail').value = notifConfig.brevoAdminEmail||'dbkoryo@gmail.com';
   document.getElementById('ejServiceId').value  = notifConfig.emailjs.serviceId||'';
   document.getElementById('ejTemplateId').value = notifConfig.emailjs.templateId||'';
   document.getElementById('ejPublicKey').value  = notifConfig.emailjs.publicKey||'';
@@ -2114,25 +2180,30 @@ async function sendAdminNotifications(record, plan){
     '👤 '+fullName+'\n📧 '+record.email+'\n📱 '+record.phone+
     '\n🏢 '+record.bizName+'\n📦 Plan: '+planName+'\n🆔 ID: '+record.id;
 
-  // 1 — EMAIL via EmailJS
-  if(notifConfig.email && notifConfig.emailjs.serviceId){
+  // 1 — EMAIL via Brevo Worker
+  if(notifConfig.email && BREVO_WORKER){
     try{
-      await fetch('https://api.emailjs.com/api/v1.0/email/send',{
+      var adminEmail = notifConfig.brevoAdminEmail || 'dbkoryo@gmail.com';
+      var htmlBody = '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:24px;background:#f9f9f9;border-radius:12px">'
+        +'<h2 style="color:#1a1a2e;margin-bottom:16px">🚀 Nuevo Registro en CRM Platform</h2>'
+        +'<table style="width:100%;border-collapse:collapse">'
+        +'<tr><td style="padding:8px 0;color:#555;width:120px">👤 Cliente</td><td style="padding:8px 0;font-weight:700">'+fullName+'</td></tr>'
+        +'<tr><td style="padding:8px 0;color:#555">📧 Email</td><td style="padding:8px 0">'+record.email+'</td></tr>'
+        +'<tr><td style="padding:8px 0;color:#555">📱 Teléfono</td><td style="padding:8px 0">'+record.phone+'</td></tr>'
+        +'<tr><td style="padding:8px 0;color:#555">🏢 Negocio</td><td style="padding:8px 0">'+record.bizName+'</td></tr>'
+        +'<tr><td style="padding:8px 0;color:#555">📦 Plan</td><td style="padding:8px 0"><strong>'+planName+'</strong></td></tr>'
+        +'<tr><td style="padding:8px 0;color:#555">🆔 ID</td><td style="padding:8px 0;font-size:12px;color:#999">'+record.id+'</td></tr>'
+        +'</table></div>';
+      await fetch(BREVO_WORKER,{
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({
-          service_id: notifConfig.emailjs.serviceId,
-          template_id: notifConfig.emailjs.templateId,
-          user_id: notifConfig.emailjs.publicKey,
-          template_params:{
-            to_name: 'Admin', admin_msg: msg,
-            client_name: fullName, client_email: record.email,
-            client_phone: record.phone, biz_name: record.bizName,
-            plan_name: planName, reg_id: record.id
-          }
+          to:[{email:adminEmail, name:'Admin'}],
+          subject:'🚀 Nuevo Registro — '+fullName+' ('+planName+')',
+          htmlContent: htmlBody
         })
       });
-      console.log('✅ Admin email sent');
-    }catch(e){ console.warn('Email failed:',e); }
+      console.log('✅ Admin email sent via Brevo');
+    }catch(e){ console.warn('Brevo email failed:',e); }
   }
 
   // 2 — SMS via Twilio (requires server-side proxy in production)
@@ -2221,6 +2292,7 @@ function goPage(p){
   if(p==='waiver')     { renderWaiverTab(); }
   if(p==='anuncios')   { renderAnunciosTab(); }
   if(p==='qrflyer')    { renderQRPageCards(); }
+  if(p==='qrclientes') { renderQRClientes(); }
   if(p==='grafica')    { renderLeadsChart(); }
 }
 
@@ -5860,12 +5932,9 @@ function renderConfig(){
     credSec.innerHTML =
       '<div id="credencialesTitle" style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;font-weight:600">'+t.credencialesTitle+'</div>'+
 
-      '<div style="font-size:12px;color:var(--accent);font-weight:700;margin-bottom:8px">'+t.ejLabel+'</div>'+
-      '<div class="mfield-row" style="margin-bottom:12px">'+
-        '<div class="mfield" style="margin-bottom:0"><label>'+t.ejServiceLabel+'</label><input type="text" id="ejServiceId" placeholder="service_abc123" oninput="saveNotifConfig()"/></div>'+
-        '<div class="mfield" style="margin-bottom:0"><label>'+t.ejTemplateLabel+'</label><input type="text" id="ejTemplateId" placeholder="template_xyz456" oninput="saveNotifConfig()"/></div>'+
-      '</div>'+
-      '<div class="mfield"><label>'+t.ejPublicLabel+'</label><input type="text" id="ejPublicKey" placeholder="user_XXXXX" oninput="saveNotifConfig()"/></div>'+
+      '<div style="font-size:12px;color:var(--accent);font-weight:700;margin-bottom:8px">📧 Brevo</div>'+
+      '<div class="mfield" style="margin-bottom:12px"><label>'+(isEN2?'Admin notification email':'Email de notificaciones admin')+'</label><input type="email" id="brevoAdminEmail" placeholder="tu@email.com" oninput="saveNotifConfig()"/></div>'+
+      '<input type="hidden" id="ejServiceId"/><input type="hidden" id="ejTemplateId"/><input type="hidden" id="ejPublicKey"/>'+
 
       '<div style="font-size:12px;color:var(--accent2);font-weight:700;margin-bottom:8px;margin-top:4px">'+t.twilioLabel+'</div>'+
       '<div class="mfield-row" style="margin-bottom:12px">'+
@@ -9005,6 +9074,194 @@ document.getElementById('walkInModal').addEventListener('click', function(e){
 document.getElementById('wiConvertModal').addEventListener('click', function(e){
   if(e.target === this) this.style.display = 'none';
 });
+
+// ── QR CLIENTES ─────────────────────────────────────────────────────────────
+var qrClientes = [];
+var _editQRClientId = null;
+var _qrcViewUrl = '';
+var _qrcViewName = '';
+
+function loadQRClientes(){
+  if(!_demoMode && _fbdb){
+    _fbdb.ref('qrClientes').once('value', function(snap){
+      qrClientes = snap.exists() ? Object.values(snap.val()) : [];
+      renderQRClientes();
+    });
+  } else {
+    try{ qrClientes = JSON.parse(localStorage.getItem('qrClientes')||'[]'); }catch(e){ qrClientes=[]; }
+    renderQRClientes();
+  }
+}
+
+function renderQRClientes(){
+  var grid = document.getElementById('qrclientesGrid');
+  if(!grid) return;
+  if(!qrClientes.length){
+    grid.innerHTML = '<div style="color:var(--muted);font-size:14px;padding:20px 0">No hay QR creados aún. Presiona ➕ Nuevo QR para comenzar.</div>';
+    return;
+  }
+  var isEN = _masterLang==='en';
+  grid.innerHTML = qrClientes.map(function(c){
+    var typeLabel = c.type==='whatsapp' ? '📲 WhatsApp' : c.type==='sms' ? '💬 SMS' : '🌐 Link';
+    var typeBg = c.type==='whatsapp' ? '#16a34a22' : c.type==='sms' ? '#2563eb22' : '#7c3aed22';
+    var typeColor = c.type==='whatsapp' ? '#4ade80' : c.type==='sms' ? '#60a5fa' : '#a78bfa';
+    var isOn = c.qrEnabled !== false;
+    return '<div class="qrc-card">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'+
+        '<div class="qrc-name">'+c.name+'</div>'+
+        '<span class="qrc-type-badge" style="background:'+typeBg+';color:'+typeColor+'">'+typeLabel+'</span>'+
+      '</div>'+
+      '<div style="font-size:12px;color:var(--muted);word-break:break-all">'+(c.type==='link'?c.link:(c.phone||''))+(c.msg?'<br>💬 '+c.msg:'')+'</div>'+
+      '<div class="qrc-actions">'+
+        '<button class="qrc-btn" onclick="viewQRClient(\''+c.id+'\')">🔍 Ver QR</button>'+
+        '<button class="qrc-btn '+(isOn?'qrc-toggle-on':'qrc-toggle-off')+'" onclick="toggleQRClientEnabled(\''+c.id+'\')">'+(isOn?'✅ Activo':'🚫 Inactivo')+'</button>'+
+        '<button class="qrc-btn" onclick="openQRClientModal(\''+c.id+'\')">✏️</button>'+
+        '<button class="qrc-btn danger" onclick="deleteQRClient(\''+c.id+'\')">🗑</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function buildQRClientUrl(c){
+  if(c.type==='whatsapp'){
+    var num = (c.phone||'').replace(/\D/g,'');
+    var msg = c.msg ? '?text='+encodeURIComponent(c.msg) : '';
+    return 'https://wa.me/'+num+msg;
+  } else if(c.type==='sms'){
+    var num2 = (c.phone||'').replace(/\D/g,'');
+    var body = c.msg ? '?body='+encodeURIComponent(c.msg) : '';
+    return 'sms:+'+num2+body;
+  } else {
+    return c.link||'';
+  }
+}
+
+function openQRClientModal(id){
+  _editQRClientId = id;
+  var modal = document.getElementById('qrclienteModal');
+  var c = id ? qrClientes.find(function(x){return x.id===id;}) : null;
+  document.getElementById('qrclienteModalTitle').textContent = id ? '✏️ Editar QR Cliente' : '🪪 Nuevo QR Cliente';
+  document.getElementById('qrc-name').value = c ? c.name : '';
+  document.getElementById('qrc-type').value = c ? c.type : 'whatsapp';
+  document.getElementById('qrc-phone').value = c ? (c.phone||'') : '';
+  document.getElementById('qrc-msg').value = c ? (c.msg||'') : '';
+  document.getElementById('qrc-link').value = c ? (c.link||'') : '';
+  toggleQRClientFields();
+  modal.style.display = 'flex';
+}
+
+function closeQRClientModal(){
+  document.getElementById('qrclienteModal').style.display = 'none';
+}
+
+function toggleQRClientFields(){
+  var type = document.getElementById('qrc-type').value;
+  document.getElementById('qrc-phone-field').style.display = type==='link' ? 'none' : '';
+  document.getElementById('qrc-link-field').style.display = type==='link' ? '' : 'none';
+  document.getElementById('qrc-msg-field').style.display = type==='link' ? 'none' : '';
+  document.getElementById('qrc-phone-label').textContent = type==='whatsapp' ? '📲 Número WhatsApp' : '💬 Número SMS';
+}
+
+async function saveQRClient(){
+  var name = document.getElementById('qrc-name').value.trim();
+  var type = document.getElementById('qrc-type').value;
+  var phone = document.getElementById('qrc-phone').value.trim();
+  var msg = document.getElementById('qrc-msg').value.trim();
+  var link = document.getElementById('qrc-link').value.trim();
+  if(!name){ showToast('⚠️ Ingresa el nombre del cliente','var(--danger)'); return; }
+  if((type==='whatsapp'||type==='sms') && !phone){ showToast('⚠️ Ingresa el número','var(--danger)'); return; }
+  if(type==='link' && !link){ showToast('⚠️ Ingresa el link','var(--danger)'); return; }
+  var c = {
+    id: _editQRClientId || 'qrc_'+Date.now(),
+    name: name, type: type, phone: phone, msg: msg, link: link,
+    qrEnabled: _editQRClientId ? (qrClientes.find(function(x){return x.id===_editQRClientId;})||{}).qrEnabled!==false : true,
+    createdAt: _editQRClientId ? (qrClientes.find(function(x){return x.id===_editQRClientId;})||{}).createdAt||new Date().toISOString() : new Date().toISOString()
+  };
+  if(_editQRClientId){
+    qrClientes = qrClientes.map(function(x){ return x.id===_editQRClientId ? c : x; });
+  } else {
+    qrClientes.push(c);
+  }
+  if(!_demoMode && _fbdb){ try{ await _fbdb.ref('qrClientes/'+c.id).set(c); }catch(e){} }
+  else { localStorage.setItem('qrClientes', JSON.stringify(qrClientes)); }
+  closeQRClientModal();
+  renderQRClientes();
+  showToast('✅ QR guardado');
+}
+
+async function toggleQRClientEnabled(id){
+  var c = qrClientes.find(function(x){return x.id===id;});
+  if(!c) return;
+  c.qrEnabled = c.qrEnabled === false ? true : false;
+  if(!_demoMode && _fbdb){ try{ await _fbdb.ref('qrClientes/'+id+'/qrEnabled').set(c.qrEnabled); }catch(e){} }
+  else { localStorage.setItem('qrClientes', JSON.stringify(qrClientes)); }
+  showToast(c.qrEnabled ? '✅ QR activado' : '🚫 QR desactivado', c.qrEnabled ? 'var(--success)' : 'var(--danger)');
+  renderQRClientes();
+}
+
+async function deleteQRClient(id){
+  if(!confirm('¿Eliminar este QR?')) return;
+  qrClientes = qrClientes.filter(function(x){ return x.id!==id; });
+  if(!_demoMode && _fbdb){ try{ await _fbdb.ref('qrClientes/'+id).remove(); }catch(e){} }
+  else { localStorage.setItem('qrClientes', JSON.stringify(qrClientes)); }
+  renderQRClientes();
+  showToast('🗑 QR eliminado');
+}
+
+function viewQRClient(id){
+  var c = qrClientes.find(function(x){return x.id===id;});
+  if(!c) return;
+  var url = buildQRClientUrl(c);
+  _qrcViewUrl = url;
+  _qrcViewName = c.name;
+  document.getElementById('qrcv-title').textContent = '🪪 '+c.name;
+  document.getElementById('qrcv-url').textContent = url;
+  // Use qrserver.com (same as QR Flyer section)
+  var qrImgUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data='+encodeURIComponent(url);
+  var canvas = document.getElementById('qrcv-canvas');
+  // Replace canvas with img for simplicity
+  var imgEl = document.getElementById('qrcv-img');
+  if(!imgEl){
+    imgEl = document.createElement('img');
+    imgEl.id = 'qrcv-img';
+    imgEl.style.cssText = 'border-radius:12px;width:220px;height:220px;display:block;margin:0 auto 16px';
+    canvas.parentNode.insertBefore(imgEl, canvas);
+    canvas.style.display = 'none';
+  }
+  imgEl.src = qrImgUrl;
+  // Store for download
+  imgEl.onload = function(){
+    var cv = document.getElementById('qrcv-canvas');
+    cv.width = 220; cv.height = 220;
+    cv.getContext('2d').drawImage(imgEl, 0, 0);
+  };
+  document.getElementById('qrclienteViewModal').style.display = 'flex';
+}
+
+function closeQRClientViewModal(){
+  document.getElementById('qrclienteViewModal').style.display = 'none';
+}
+
+function copyQRClientUrl(){
+  navigator.clipboard.writeText(_qrcViewUrl).then(function(){ showToast('🔗 Link copiado'); });
+}
+
+function downloadQRClient(){
+  var canvas = document.getElementById('qrcv-canvas');
+  var a = document.createElement('a');
+  a.download = 'QR_'+_qrcViewName.replace(/\s+/g,'-')+'.png';
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+}
+
+// Load QR Clientes on startup
+if(!_demoMode && _fbdb){
+  _fbdb.ref('qrClientes').once('value', function(snap){
+    qrClientes = snap.exists() ? Object.values(snap.val()) : [];
+  });
+} else {
+  try{ qrClientes = JSON.parse(localStorage.getItem('qrClientes')||'[]'); }catch(e){ qrClientes=[]; }
+}
 </script>
 
 </body>
