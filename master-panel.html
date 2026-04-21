@@ -9106,14 +9106,19 @@ function renderQRClientes(){
     var typeBg = c.type==='whatsapp' ? '#16a34a22' : c.type==='sms' ? '#2563eb22' : '#7c3aed22';
     var typeColor = c.type==='whatsapp' ? '#4ade80' : c.type==='sms' ? '#60a5fa' : '#a78bfa';
     var isOn = c.qrEnabled !== false;
+    var qrUrl = buildQRClientUrl(c);
+    var qrImgUrl = qrUrl ? 'https://api.qrserver.com/v1/create-qr-code/?size=160x160&data='+encodeURIComponent(qrUrl) : '';
     return '<div class="qrc-card">'+
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'+
         '<div class="qrc-name">'+c.name+'</div>'+
         '<span class="qrc-type-badge" style="background:'+typeBg+';color:'+typeColor+'">'+typeLabel+'</span>'+
       '</div>'+
-      '<div style="font-size:12px;color:var(--muted);word-break:break-all">'+(c.type==='link'?c.link:(c.phone||''))+(c.msg?'<br>💬 '+c.msg:'')+'</div>'+
+      (qrImgUrl
+        ? '<div style="text-align:center"><img src="'+qrImgUrl+'" style="width:150px;height:150px;border-radius:8px;'+(isOn?'':'opacity:.3;filter:grayscale(1)')+'"/></div>'
+        : '<div style="text-align:center;color:var(--muted);font-size:12px;padding:20px 0">Sin URL configurada</div>')+
+      '<div style="font-size:11px;color:var(--muted);word-break:break-all;text-align:center">'+(c.type==='link'?(c.link||''):(c.phone||''))+(c.msg?'<br>💬 '+c.msg:'')+'</div>'+
       '<div class="qrc-actions">'+
-        '<button class="qrc-btn" onclick="viewQRClient(\''+c.id+'\')">🔍 Ver QR</button>'+
+        '<button class="qrc-btn" onclick="viewQRClient(\''+c.id+'\')">⬇ Descargar</button>'+
         '<button class="qrc-btn '+(isOn?'qrc-toggle-on':'qrc-toggle-off')+'" onclick="toggleQRClientEnabled(\''+c.id+'\')">'+(isOn?'✅ Activo':'🚫 Inactivo')+'</button>'+
         '<button class="qrc-btn" onclick="openQRClientModal(\''+c.id+'\')">✏️</button>'+
         '<button class="qrc-btn danger" onclick="deleteQRClient(\''+c.id+'\')">🗑</button>'+
@@ -9170,7 +9175,6 @@ async function saveQRClient(){
   var link = document.getElementById('qrc-link').value.trim();
   if(!name){ showToast('⚠️ Ingresa el nombre del cliente','var(--danger)'); return; }
   if((type==='whatsapp'||type==='sms') && !phone){ showToast('⚠️ Ingresa el número','var(--danger)'); return; }
-  if(type==='link' && !link){ showToast('⚠️ Ingresa el link','var(--danger)'); return; }
   var c = {
     id: _editQRClientId || 'qrc_'+Date.now(),
     name: name, type: type, phone: phone, msg: msg, link: link,
