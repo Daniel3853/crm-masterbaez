@@ -9145,7 +9145,7 @@ function renderQRClientes(){
 
       '<div style="display:flex;justify-content:center;padding:4px 16px 10px">'+
         (qrImgUrl
-          ? '<div onclick="viewQRClient(''+c.id+'')" title="Click para ver QR grande y descargar" style="cursor:pointer;background:#fff;border-radius:12px;padding:8px;display:inline-block;border:2px solid '+(isOn?t.color:'#555')+';position:relative" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform=''">'+
+          ? '<div onclick="viewQRClient(\'+c.id+\')" title="Click para ver QR grande y descargar" style="cursor:pointer;background:#fff;border-radius:12px;padding:8px;display:inline-block;border:2px solid '+(isOn?t.color:'#555')+';position:relative" onmouseover="this.style.transform=\'scale(1.04)\'" onmouseout="this.style.transform=\'\'">'+
               '<img src="'+qrImgUrl+'" style="width:128px;height:128px;display:block;'+(isOn?'':'filter:grayscale(1);opacity:.45')+'"/>'+
               '<div style="position:absolute;bottom:6px;right:6px;background:rgba(0,0,0,.6);border-radius:5px;padding:2px 6px;font-size:9px;color:#fff;font-weight:700">⬇ Ver</div>'+
             '</div>'
@@ -9153,7 +9153,7 @@ function renderQRClientes(){
       '</div>'+
 
       '<div style="padding:0 16px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px">'+
-        '<span onclick="viewQRClient(''+c.id+'')" title="Click para ver QR" style="cursor:pointer;background:'+t.bg+';color:'+t.color+';padding:4px 11px;border-radius:20px;font-size:11px;font-weight:800;display:inline-flex;align-items:center;gap:5px">'+
+        '<span onclick="viewQRClient(\'+c.id+\')" title="Click para ver QR" style="cursor:pointer;background:'+t.bg+';color:'+t.color+';padding:4px 11px;border-radius:20px;font-size:11px;font-weight:800;display:inline-flex;align-items:center;gap:5px">'+
           '<span style="background:'+t.color+';color:#000;border-radius:50%;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;flex-shrink:0">'+t.num+'</span>'+
           t.icon+' '+t.label+
         '</span>'+
