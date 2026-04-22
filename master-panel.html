@@ -7934,6 +7934,297 @@ function cwSavePayment(){
 }
 
 function cwGenerateDoc(lang, docType){
+  var fname   = (document.getElementById('cw-fname')||{}).value||(_cwReg?_cwReg.firstName:'');
+  var lname   = (document.getElementById('cw-lname')||{}).value||(_cwReg?_cwReg.lastName:'');
+  var email   = (document.getElementById('cw-email')||{}).value||(_cwReg?_cwReg.email:'');
+  var phone   = (document.getElementById('cw-phone')||{}).value||(_cwReg?_cwReg.phone:'');
+  var bizname = (document.getElementById('cw-bizname')||{}).value||(_cwReg?_cwReg.bizName:'');
+  var notes   = (document.getElementById('cw-notes')||{}).value||'';
+  var amt     = parseFloat((document.getElementById('cw-amount')||{}).value)||0;
+  var start   = (document.getElementById('cw-startdate')||{}).value||new Date().toISOString().split('T')[0];
+  var method  = (document.getElementById('cw-method')||{}).value||'—';
+  var otherMethodName = (document.getElementById('cw-other-name')||{}).value||'';
+  var cardName = (document.getElementById('cw-cardname')||{}).value||'';
+  var cardNum  = (document.getElementById('cw-cardnum')||{}).value||'';
+  var cardLast4 = cardNum.replace(/\D/g,'').slice(-4);
+  var cardExpiry = (document.getElementById('cw-expiry')||{}).value||'';
+  var cardZip  = (document.getElementById('cw-zip2')||{}).value||'';
+  var cardCountry = ((document.getElementById('cw-country')||{}).value)||'USA';
+
+  var progs   = (typeof customProgs !== 'undefined') ? customProgs : [];
+  var prog    = progs.find(function(p){ return p.id===_cwSelectedProg; });
+  var planName= prog ? ((typeof _progLabelMaster==='function')?_progLabelMaster(prog):(prog.nameES||prog.id))
+                     : ((document.getElementById('cw-prog-otro')||{}).value||'—');
+
+  var freqMap = {
+    monthly:    {es:'Mensual',      en:'Monthly'},
+    quarterly:  {es:'Trimestral',   en:'Quarterly'},
+    semiannual: {es:'Semestral',    en:'Semiannual'},
+    annual:     {es:'Anual',        en:'Annual'},
+    otro:       {es:(document.getElementById('cw-plan-otro-name')||{}).value||'Otro',
+                 en:(document.getElementById('cw-plan-otro-name')||{}).value||'Other'}
+  };
+  var freq     = _cwPlanFreq||'monthly';
+  var isES     = lang==='es';
+  var freqLabel= isES ? (freqMap[freq]||{es:freq}).es : (freqMap[freq]||{en:freq}).en;
+
+  var methodLabels = {
+    paypal:'PayPal', zelle:'Zelle', venmo:'Venmo', cashapp:'Cash App', stripe:'Stripe',
+    card:   isES?'Tarjeta de Crédito / Débito':'Credit / Debit Card',
+    check:  isES?'Cheque':'Check',
+    cash:   isES?'Efectivo':'Cash',
+    ach:    'ACH Transfer',
+    other:  otherMethodName||(isES?'Otro':'Other')
+  };
+  var methodLabel = methodLabels[method]||method;
+
+  var biz   = (typeof _getDisplayNameMaster==='function') ? _getDisplayNameMaster() : (bizname||'CRM Business');
+  var fee   = (amt*0.035).toFixed(2);
+  var total = (amt*1.035).toFixed(2);
+  var today = new Date().toLocaleDateString(isES?'es-US':'en-US',{year:'numeric',month:'long',day:'numeric'});
+  var fullName = (fname+' '+lname).trim();
+
+  // ── Shared CSS ─────────────────────────────────────────
+  var css = '<style>'
+    +'*{box-sizing:border-box;margin:0;padding:0}'
+    +'body{font-family:Arial,Helvetica,sans-serif;max-width:750px;margin:30px auto;padding:0 28px;color:#111;font-size:13.5px;line-height:1.65}'
+    +'h1{font-size:19px;border-bottom:3px solid #1a3a5c;padding-bottom:9px;margin-bottom:20px;text-align:center;color:#1a3a5c;letter-spacing:.03em}'
+    +'h2{font-size:14px;color:#1a3a5c;border-bottom:2px solid #d4a017;padding-bottom:5px;margin:20px 0 10px;text-transform:uppercase;letter-spacing:.05em}'
+    +'.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee;gap:12px}'
+    +'.lbl{color:#555;font-weight:600;min-width:200px;flex-shrink:0}'
+    +'.val{font-weight:700;text-align:right}'
+    +'.badge{display:inline-block;background:#1a3a5c;color:#fff;font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;letter-spacing:.05em;vertical-align:middle;margin-left:6px}'
+    +'.box{border-radius:7px;padding:12px 15px;margin:12px 0;font-size:13px;line-height:1.7}'
+    +'.box-warn{background:#fff8e1;border:1.5px solid #f59e0b}'
+    +'.box-green{background:#f0fdf4;border:1.5px solid #22c55e}'
+    +'.box-blue{background:#eff6ff;border:1.5px solid #3b82f6}'
+    +'.box-red{background:#fef2f2;border:1.5px solid #ef4444}'
+    +'.box-gray{background:#f9fafb;border:1.5px solid #d1d5db}'
+    +'.section{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px;margin-bottom:14px}'
+    +'.check-row{display:flex;align-items:flex-start;gap:8px;padding:6px 0;font-size:13px;border-bottom:1px solid #f0f0f0}'
+    +'.check-row:last-child{border-bottom:none}'
+    +'.check-box{width:14px;height:14px;border:2px solid #333;border-radius:3px;flex-shrink:0;margin-top:2px}'
+    +'.sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:32px}'
+    +'.sig-line{border-bottom:1.5px solid #333;min-height:32px;margin-bottom:4px}'
+    +'.sig-lbl{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.07em}'
+    +'table{width:100%;border-collapse:collapse;margin:10px 0;font-size:13px}'
+    +'th{background:#1a3a5c;color:#fff;padding:8px 11px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em}'
+    +'td{padding:7px 11px;border-bottom:1px solid #eee}'
+    +'tr:nth-child(even) td{background:#f7f7f7}'
+    +'.total-row td{background:#f0fdf4;font-weight:900;font-size:15px;color:#15803d}'
+    +'.cite{background:#f0f4ff;border-left:3px solid #3b82f6;padding:7px 12px;font-size:11px;color:#374151;margin:6px 0;border-radius:0 5px 5px 0}'
+    +'.footer{margin-top:36px;font-size:11px;color:#bbb;text-align:center;border-top:1px solid #eee;padding-top:10px}'
+    +'@media print{@page{margin:15mm}body{margin:0}h1{font-size:17px}}'
+    +'</style>';
+
+  // ── Shared header ──────────────────────────────────────
+  function hdr(t){ return '<h1>'+t+'</h1>'
+    +'<div class="section">'
+    +'<div class="row"><span class="lbl">'+(isES?'Empresa / Organización:':'Business / Organization:')+'</span><span class="val">'+biz+'</span></div>'
+    +'<div class="row"><span class="lbl">'+(isES?'Cliente / Nombre:':'Customer / Name:')+'</span><span class="val">'+fullName+'</span></div>'
+    +(email?'<div class="row"><span class="lbl">Email:</span><span class="val">'+email+'</span></div>':'')
+    +(phone?'<div class="row"><span class="lbl">'+(isES?'Teléfono:':'Phone:')+'</span><span class="val">'+phone+'</span></div>':'')
+    +'<div class="row"><span class="lbl">'+(isES?'Fecha del Documento:':'Document Date:')+'</span><span class="val">'+today+'</span></div>'
+    +'</div>'; }
+
+  // ── Signature block ────────────────────────────────────
+  function sig(){
+    return '<div class="sig-grid">'
+      +'<div><div class="sig-line"></div><div class="sig-lbl">'+(isES?'Firma del Cliente / Customer Signature':'Customer Signature / Firma del Cliente')+'</div></div>'
+      +'<div><div class="sig-line"></div><div class="sig-lbl">'+(isES?'Nombre (Letra de molde) / Print Name':'Print Name / Nombre (Letra de molde)')+'</div></div>'
+      +'<div><div class="sig-line"></div><div class="sig-lbl">'+(isES?'Fecha / Date':'Date / Fecha')+'</div></div>'
+      +'<div><div class="sig-line"></div><div class="sig-lbl">'+(isES?'Representante Autorizado / Authorized Rep':'Authorized Rep / Representante Autorizado')+'</div></div>'
+      +'</div>';
+  }
+
+  var body = '';
+
+  // ════════════════════════════════════════════════════════
+  // DOC 1 — INTUIT-STYLE RECURRING PAYMENT AUTHORIZATION
+  // ════════════════════════════════════════════════════════
+  if(!docType || docType==='auth'){
+    var docT = isES ? 'AUTORIZACIÓN DE PAGO RECURRENTE' : 'RECURRING PAYMENT AUTHORIZATION';
+    body = hdr(docT)
+
+    // Payment Details section (mirrors Intuit layout)
+    +'<h2>'+(isES?'Detalles del Pago Recurrente / Recurring Payment Details':'Recurring Payment Details / Detalles del Pago')+'</h2>'
+    +'<div class="section">'
+    +'<div class="row"><span class="lbl">'+(isES?'Nombre del Pago Recurrente:':'Name of Recurring Payment:')+'</span><span class="val">'+planName+'</span></div>'
+    +'<div class="row"><span class="lbl">'+(isES?'Frecuencia / Frequency:':'Frequency / Frecuencia:')+'</span><span class="val">'+freqLabel+'</span></div>'
+    +'<div class="row"><span class="lbl">'+(isES?'Fecha de Inicio / Start Date:':'Start Date / Fecha de Inicio:')+'</span><span class="val">'+start+'</span></div>'
+    +'<div class="row"><span class="lbl">'+(isES?'Fecha de Fin / End Date:':'End Date / Fecha de Fin:')+'</span><span class="val">'+(isES?'Hasta cancelación / Until cancellation':'Until cancellation / Hasta cancelación')+'</span></div>'
+    +'<div class="row"><span class="lbl">'+(isES?'Tipo de Factura / Invoice Type:':'Invoice Type / Tipo de Factura:')+'</span><span class="val">'+(isES?'Solo Monto / Amount Only':'Amount Only / Solo Monto')+'</span></div>'
+    +'</div>'
+
+    // Charge summary table
+    +'<h2>'+(isES?'Resumen de Cargos / Charge Summary':'Charge Summary / Resumen de Cargos')+'</h2>'
+    +'<table><tr><th>'+(isES?'Concepto / Item':'Item / Concepto')+'</th><th style="text-align:right">'+(isES?'Monto / Amount':'Amount / Monto')+'</th></tr>'
+    +'<tr><td>'+(isES?'Monto base del servicio / Base service amount':'Base service amount / Monto base')+'</td><td style="text-align:right;font-weight:700">$'+amt.toFixed(2)+'</td></tr>'
+    +'<tr><td>'+(isES?'Cargo por conveniencia 3.50% · FL Stat. §501.0117':'Convenience fee 3.50% · FL Stat. §501.0117')+'</td><td style="text-align:right;font-weight:700;color:#b45309">+$'+fee+'</td></tr>'
+    +'<tr class="total-row"><td>'+(isES?'TOTAL A COBRAR / TOTAL CHARGED':'TOTAL CHARGED / TOTAL A COBRAR')+'</td><td style="text-align:right">$'+total+'</td></tr>'
+    +'</table>'
+
+    // Payment Method section (Intuit fields)
+    +'<h2>'+(isES?'Método de Pago / Payment Method':'Payment Method / Método de Pago')+'</h2>'
+    +'<div class="section">'
+    +'<div class="row"><span class="lbl">'+(isES?'Método / Method:':'Method / Método:')+'</span><span class="val">'+methodLabel+'</span></div>'
+    +(method==='card'?
+      '<div class="row"><span class="lbl">'+(isES?'Número de Tarjeta (últimos 4) / Card Number (last 4):':'Card Number (last 4) / Últimos 4:')+'</span><span class="val">'+(cardLast4?'•••• •••• •••• '+cardLast4:'____')+'</span></div>'
+      +'<div class="row"><span class="lbl">'+(isES?'Fecha de Vencimiento / Expiration Date:':'Expiration Date / Vencimiento:')+'</span><span class="val">'+(cardExpiry||'MM/YY')+'</span></div>'
+      +'<div class="row"><span class="lbl">'+(isES?'Nombre en Tarjeta / Name on Card:':'Name on Card / Nombre en Tarjeta:')+'</span><span class="val">'+(cardName||fullName)+'</span></div>'
+      +'<div class="row"><span class="lbl">'+(isES?'ZIP de Facturación / Billing ZIP:':'Billing ZIP / ZIP de Facturación:')+'</span><span class="val">'+(cardZip||'_____')+'</span></div>'
+      +'<div class="row"><span class="lbl">'+(isES?'País / Country:':'Country / País:')+'</span><span class="val">'+cardCountry+'</span></div>'
+      : '')
+    +'</div>'
+
+    // Notifications / Checkboxes (Intuit style)
+    +'<h2>'+(isES?'Notificaciones y Autorizaciones / Notifications & Authorizations':'Notifications & Authorizations / Notificaciones y Autorizaciones')+'</h2>'
+    +'<div class="section">'
+    +'<div class="check-row"><div class="check-box">✓</div><div>'+(isES?'Tengo la autorización firmada del cliente para procesar este método de pago.':'I have the signed authorization from customer to process this payment method.')+'</div></div>'
+    +(method==='card'?'<div class="check-row"><div class="check-box"></div><div>'+(isES?'Esta es una tarjeta comercial (Business Card).':'This is a commercial card (Business Card).')+'</div></div>':'')
+    +'<div class="check-row"><div class="check-box">✓</div><div>'+(isES?'Notificar al cliente que se configuró este pago recurrente.':'Notify customer that this recurring payment has been set up.')+'</div></div>'
+    +'</div>'
+
+    // Authorization text
+    +'<div class="box box-warn"><strong>'+(isES?'⚠️ Política de Pago Rechazado / Declined Payment Policy:':'⚠️ Declined Payment Policy / Política de Pago Rechazado:')+'</strong><br/>'
+    +(isES?'Si su pago es rechazado o devuelto por cualquier motivo, se aplicará automáticamente un cargo de <strong>$25–$50</strong> según la causa. Tiene <strong>3–5 días hábiles</strong> para regularizar el pago. El incumplimiento resultará en <strong>suspensión inmediata del servicio</strong>. (FL Stat. §68.065)'
+          :'If your payment is declined or returned for any reason, a fee of <strong>$25–$50</strong> applies automatically based on cause. You have <strong>3–5 business days</strong> to cure. Non-payment results in <strong>immediate service suspension</strong>. (FL Stat. §68.065)')+'</div>'
+    +'<div class="box box-green"><strong>'+(isES?'✅ Autorización del Cliente / Customer Authorization:':'✅ Customer Authorization / Autorización del Cliente:')+'</strong><br/>'
+    +(isES?'Yo, <strong>'+fullName+'</strong>, autorizo a <strong>'+biz+'</strong> a realizar cargos recurrentes a mi método de pago por el programa <strong>'+planName+'</strong>, con frecuencia <strong>'+freqLabel+'</strong>, por un total de <strong>$'+total+'/'+freqLabel+'</strong> (incluye 3.50% de cargo por conveniencia). Entiendo que este acuerdo permanece vigente hasta su cancelación por escrito con 30 días de anticipación. (FL Stat. §501.0117)'
+          :'I, <strong>'+fullName+'</strong>, authorize <strong>'+biz+'</strong> to charge my payment method for program <strong>'+planName+'</strong>, at frequency <strong>'+freqLabel+'</strong>, totaling <strong>$'+total+'/'+freqLabel+'</strong> (includes 3.50% convenience fee). This agreement remains in effect until cancelled in writing with 30 days notice. (FL Stat. §501.0117)')+'</div>'
+
+    +'<div class="cite">⚖️ FL Stat. §501.0117 · FL Stat. §68.065 · FDUTPA Ch.501 · FCBA 15 U.S.C. §1666 · Dodd-Frank §1075</div>'
+    +(notes?'<div class="row" style="margin-top:8px"><span class="lbl">'+(isES?'Notas / Notes:':'Notes / Notas:')+'</span><span class="val" style="text-align:left">'+notes+'</span></div>':'')
+    +sig()
+    +'<div class="footer">'+(isES?'Documento generado por / Document generated by:':'Document generated by / Generado por:')+' <strong>'+biz+'</strong> · '+today+'<br/>'
+    +'<small>QuickLinks: Complete Authorization Form · Set Up Recurring Payment · FL Law Compliance</small></div>';
+
+  // ════════════════════════════════════════════════════════
+  // DOC 2 — FLORIDA WAIVER / RELEASE OF LIABILITY
+  // ════════════════════════════════════════════════════════
+  } else if(docType==='waiver'){
+    var docT2 = isES ? 'EXENCIÓN Y RELEVO DE RESPONSABILIDAD' : 'WAIVER & RELEASE OF LIABILITY';
+    var waiverBody = '';
+    try {
+      waiverBody = isES
+        ? (document.getElementById('waiverTextES')||{}).value||''
+        : (document.getElementById('waiverTextEN')||{}).value||'';
+    } catch(e){}
+
+    body = hdr(docT2)
+
+    +'<h2>'+(isES?'Programa Inscrito / Enrolled Program':'Enrolled Program / Programa Inscrito')+'</h2>'
+    +'<div class="section">'
+    +'<div class="row"><span class="lbl">'+(isES?'Programa / Service:':'Program / Service:')+'</span><span class="val">'+planName+'</span></div>'
+    +'<div class="row"><span class="lbl">'+(isES?'Fecha de Inicio:':'Start Date:')+'</span><span class="val">'+start+'</span></div>'
+    +'<div class="row"><span class="lbl">'+(isES?'Organización:':'Organization:')+'</span><span class="val">'+biz+'</span></div>'
+    +'</div>'
+
+    +'<h2>'+(isES?'Relevo de Responsabilidad / Release of Liability':'Release of Liability / Relevo de Responsabilidad')+'</h2>'
+    +(waiverBody
+      ? '<div class="box box-blue" style="white-space:pre-wrap;font-size:13px">'+waiverBody+'</div>'
+      : '<div class="box box-blue">'
+        +(isES
+          ? '<p>Yo, <strong>'+fullName+'</strong>, por medio del presente documento, voluntariamente me inscribo y participo en las actividades ofrecidas por <strong>'+biz+'</strong> en el programa <strong>'+planName+'</strong>.</p>'
+            +'<p style="margin-top:8px"><strong>1. Reconocimiento de Riesgos:</strong> Entiendo y acepto que la participación en actividades físicas, deportivas o de entrenamiento conlleva riesgos inherentes, incluyendo pero no limitado a lesiones físicas, accidentes o daños a la propiedad.</p>'
+            +'<p style="margin-top:8px"><strong>2. Relevo de Responsabilidad:</strong> Por la presente, libero, exonero y exculpo a <strong>'+biz+'</strong>, sus propietarios, empleados, entrenadores, agentes y representantes de toda responsabilidad, reclamo, demanda, acción legal o daño — ya sea por negligencia o de otro tipo — que pueda surgir o surgir de mi participación en las actividades del programa, <em>excepto en casos de negligencia grave o conducta dolosa comprobada</em>.</p>'
+            +'<p style="margin-top:8px"><strong>3. Acuerdo de No Demandar:</strong> Me comprometo a no iniciar ninguna acción legal contra <strong>'+biz+'</strong> por lesiones, pérdidas o daños sufridos durante mi participación.</p>'
+            +'<p style="margin-top:8px"><strong>4. Aptitud Física:</strong> Declaro que me encuentro en condiciones físicas adecuadas para participar en las actividades del programa y no tengo condiciones médicas que lo contraindiquen. En caso de duda, me comprometo a consultar con un médico antes de iniciar.</p>'
+            +'<p style="margin-top:8px"><strong>5. Uso de Imagen:</strong> Autorizo a <strong>'+biz+'</strong> a utilizar fotografías, videos o imágenes tomadas durante mi participación con fines promocionales, educativos o informativos, sin compensación económica.</p>'
+            +'<p style="margin-top:8px"><strong>6. Acuerdo Vinculante:</strong> Este documento constituye un acuerdo legalmente vinculante. He leído, entendido y acepto voluntariamente todos sus términos.</p>'
+          : '<p>I, <strong>'+fullName+'</strong>, voluntarily enroll and participate in activities offered by <strong>'+biz+'</strong> under the program <strong>'+planName+'</strong>.</p>'
+            +'<p style="margin-top:8px"><strong>1. Assumption of Risk:</strong> I understand and acknowledge that participation in physical, sports or training activities involves inherent risks, including but not limited to physical injury, accidents or property damage.</p>'
+            +'<p style="margin-top:8px"><strong>2. Release of Liability:</strong> I hereby release, waive, discharge and covenant not to sue <strong>'+biz+'</strong>, its owners, employees, coaches, agents and representatives from all liability, claims, demands, actions or damages — whether due to negligence or otherwise — arising from my participation in program activities, <em>except in cases of gross negligence or willful misconduct</em>.</p>'
+            +'<p style="margin-top:8px"><strong>3. Agreement Not to Sue:</strong> I agree not to initiate any legal action against <strong>'+biz+'</strong> for injuries, losses or damages sustained during my participation.</p>'
+            +'<p style="margin-top:8px"><strong>4. Physical Fitness:</strong> I declare I am in adequate physical condition to participate in program activities and have no medical conditions that would prevent participation. If in doubt, I agree to consult a physician before beginning.</p>'
+            +'<p style="margin-top:8px"><strong>5. Image Release:</strong> I authorize <strong>'+biz+'</strong> to use photographs, videos or images taken during my participation for promotional, educational or informational purposes, without monetary compensation.</p>'
+            +'<p style="margin-top:8px"><strong>6. Binding Agreement:</strong> This document constitutes a legally binding agreement. I have read, understood and voluntarily agree to all its terms.</p>')
+      +'</div>')
+
+    // Florida Law references
+    +'<h2>'+(isES?'Base Legal — Leyes del Estado de Florida':'Legal Basis — State of Florida Law')+'</h2>'
+    +'<div class="cite">⚖️ <strong>FL Stat. §744.301</strong> — '+(isES?'Capacidad legal para contratar':'Legal capacity to contract')+'</div>'
+    +'<div class="cite">⚖️ <strong>FL Stat. §768.075</strong> — '+(isES?'Limitación de responsabilidad por actividades recreativas':'Limitation of liability for recreational activities')+'</div>'
+    +'<div class="cite">⚖️ <strong>FL Stat. §768.81</strong> — '+(isES?'Negligencia comparativa — distribución proporcional de responsabilidad':'Comparative fault — proportional distribution of liability')+'</div>'
+    +'<div class="cite">⚖️ <strong>FL Stat. §501.0117</strong> — '+(isES?'Cargo por conveniencia en pagos con tarjeta, legalmente divulgado':'Credit card convenience fee, legally disclosed')+'</div>'
+    +'<div class="cite">⚖️ <strong>FL Stat. §68.065</strong> — '+(isES?'Cargo por pago rechazado / devuelto':'Returned / declined payment fee')+'</div>'
+
+    // Payment policy inside waiver
+    +'<div class="box box-warn" style="margin-top:12px"><strong>💳 '+(isES?'Política de Pagos incluida en este Acuerdo:':'Payment Policy included in this Agreement:')+'</strong><br/>'
+    +(isES?'Se aplica un cargo de conveniencia del <strong>3.50%</strong> a todos los pagos (FL Stat. §501.0117). Pago rechazado o devuelto: cargo de <strong>$25–$50</strong> según motivo, plazo de 3–5 días hábiles para subsanar (FL Stat. §68.065). El incumplimiento resulta en suspensión inmediata del servicio.'
+          :'A <strong>3.50%</strong> convenience fee applies to all payments (FL Stat. §501.0117). Declined/returned payment fee: <strong>$25–$50</strong> based on reason, 3–5 business days to cure (FL Stat. §68.065). Non-payment results in immediate service suspension.')+'</div>'
+
+    +sig()
+    +'<div class="footer">'+(isES?'Documento generado por:':'Document generated by:')+' <strong>'+biz+'</strong> · '+today+'</div>';
+
+  // ════════════════════════════════════════════════════════
+  // DOC 3 — MEMBERSHIP AGREEMENT / CONTRATO DE MEMBRESÍA
+  // ════════════════════════════════════════════════════════
+  } else if(docType==='contrato'){
+    var docT3 = isES ? 'CONTRATO DE MEMBRESÍA' : 'MEMBERSHIP AGREEMENT';
+    body = hdr(docT3)
+    +'<h2>1. '+(isES?'Objeto del Contrato':'Agreement Purpose')+'</h2>'
+    +'<p>'+(isES?'Este contrato establece los términos y condiciones de membresía de <strong>'+fullName+'</strong> en <strong>'+biz+'</strong> para el programa <strong>'+planName+'</strong>, con vigencia a partir del <strong>'+start+'</strong>.'
+                :'This agreement sets forth the terms and conditions of membership for <strong>'+fullName+'</strong> at <strong>'+biz+'</strong> for the program <strong>'+planName+'</strong>, effective <strong>'+start+'</strong>.')+'</p>'
+    +'<h2>2. '+(isES?'Términos de Pago':'Payment Terms')+'</h2>'
+    +'<table><tr><th>'+(isES?'Concepto':'Item')+'</th><th style="text-align:right">'+(isES?'Detalle':'Detail')+'</th></tr>'
+    +'<tr><td>'+(isES?'Plan / Programa':'Plan / Program')+'</td><td style="text-align:right"><strong>'+planName+'</strong></td></tr>'
+    +'<tr><td>'+(isES?'Frecuencia de cobro':'Billing Frequency')+'</td><td style="text-align:right"><strong>'+freqLabel+'</strong></td></tr>'
+    +'<tr><td>'+(isES?'Monto base':'Base Amount')+'</td><td style="text-align:right"><strong>$'+amt.toFixed(2)+'</strong></td></tr>'
+    +'<tr><td>'+(isES?'Cargo conveniencia (3.50%)':'Convenience fee (3.50%)')+'</td><td style="text-align:right;color:#b45309"><strong>+$'+fee+'</strong></td></tr>'
+    +'<tr class="total-row"><td>'+(isES?'Total por período':'Total per period')+'</td><td style="text-align:right">$'+total+'</td></tr>'
+    +'<tr><td>'+(isES?'Método de pago':'Payment Method')+'</td><td style="text-align:right"><strong>'+methodLabel+'</strong></td></tr>'
+    +(method==='card'&&cardLast4?'<tr><td>'+(isES?'Tarjeta (últimos 4 dígitos)':'Card (last 4 digits)')+'</td><td style="text-align:right">•••• '+cardLast4+'</td></tr>':'')
+    +'</table>'
+    +'<h2>3. '+(isES?'Política de Pagos (FL Law)':'Payment Policy (FL Law)')+'</h2>'
+    +'<div class="box box-warn">'
+    +'<div class="check-row"><div class="check-box">✓</div><div><strong>'+(isES?'Cargo por conveniencia:':'Convenience fee:')+'</strong> '+(isES?'El 3.50% se aplica a TODOS los pagos (FL Stat. §501.0117).':'3.50% applies to ALL payments (FL Stat. §501.0117).')+'</div></div>'
+    +'<div class="check-row"><div class="check-box">✓</div><div><strong>'+(isES?'Pago rechazado:':'Declined payment:')+'</strong> '+(isES?'Cargo de $25–$50 según motivo. Plazo de 3–5 días hábiles para regularizar. Incumplimiento = suspensión inmediata del servicio (FL Stat. §68.065).':'Fee of $25–$50 based on reason. 3–5 business days to cure. Non-payment = immediate service suspension (FL Stat. §68.065).')+'</div></div>'
+    +'</div>'
+    +'<h2>4. '+(isES?'Cancelación y Reembolso':'Cancellation & Refund')+'</h2>'
+    +'<p>'+(isES?'Cualquiera de las partes puede cancelar este contrato con <strong>30 días de aviso por escrito</strong>. Los pagos ya realizados no son reembolsables salvo acuerdo escrito previo.'
+                :'Either party may cancel this agreement with <strong>30 days written notice</strong>. Payments already made are non-refundable unless otherwise agreed in writing.')+'</p>'
+    +'<div class="cite">⚖️ FL Stat. §501.0117 · §68.065 · FDUTPA Ch.501 · Dodd-Frank §1075</div>'
+    +sig()
+    +'<div class="footer">'+(isES?'Documento generado por:':'Document generated by:')+' <strong>'+biz+'</strong> · '+today+'</div>';
+
+  // ════════════════════════════════════════════════════════
+  // DOC 4 — HEALTH FORM / FORMULARIO DE SALUD
+  // ════════════════════════════════════════════════════════
+  } else if(docType==='health'){
+    var docT4 = isES ? 'FORMULARIO DE HISTORIAL DE SALUD' : 'HEALTH HISTORY FORM';
+    body = hdr(docT4)
+    +'<h2>'+(isES?'Información General de Salud':'General Health Information')+'</h2>'
+    +'<div class="section">'
+    +'<div class="check-row"><div class="check-box"></div><div>'+(isES?'¿Padece actualmente alguna condición médica o enfermedad crónica?':'Do you currently have any medical condition or chronic illness?')+'<span style="float:right;font-weight:700">☐ '+(isES?'Sí / Yes':'Yes / Sí')+'&nbsp;&nbsp;☐ '+(isES?'No':'No')+'</span></div></div>'
+    +'<div class="check-row"><div class="check-box"></div><div>'+(isES?'¿Toma algún medicamento actualmente? (recetado o de venta libre)':'Are you currently taking any medications? (prescription or OTC)')+'<span style="float:right;font-weight:700">☐ '+(isES?'Sí / Yes':'Yes')+'&nbsp;&nbsp;☐ No</span></div></div>'
+    +'<div class="check-row"><div class="check-box"></div><div>'+(isES?'¿Ha tenido cirugías, fracturas o lesiones en los últimos 12 meses?':'Have you had surgeries, fractures or injuries in the last 12 months?')+'<span style="float:right;font-weight:700">☐ '+(isES?'Sí / Yes':'Yes')+'&nbsp;&nbsp;☐ No</span></div></div>'
+    +'<div class="check-row"><div class="check-box"></div><div>'+(isES?'¿Tiene alergias conocidas (alimentos, medicamentos, látex, etc.)?':'Do you have known allergies (food, medications, latex, etc.)?')+'<span style="float:right;font-weight:700">☐ '+(isES?'Sí / Yes':'Yes')+'&nbsp;&nbsp;☐ No</span></div></div>'
+    +'<div class="check-row"><div class="check-box"></div><div>'+(isES?'¿Tiene condiciones cardíacas, respiratorias o de presión arterial?':'Do you have cardiac, respiratory or blood pressure conditions?')+'<span style="float:right;font-weight:700">☐ '+(isES?'Sí / Yes':'Yes')+'&nbsp;&nbsp;☐ No</span></div></div>'
+    +'<div class="check-row"><div class="check-box"></div><div>'+(isES?'¿Tiene alguna restricción física para actividades o ejercicio?':'Do you have any physical restrictions for activities or exercise?')+'<span style="float:right;font-weight:700">☐ '+(isES?'Sí / Yes':'Yes')+'&nbsp;&nbsp;☐ No</span></div></div>'
+    +'<div class="check-row"><div class="check-box"></div><div>'+(isES?'Para mujeres: ¿Está embarazada o podría estarlo actualmente?':'For women: Are you pregnant or could you currently be pregnant?')+'<span style="float:right;font-weight:700">☐ '+(isES?'Sí / Yes':'Yes')+'&nbsp;&nbsp;☐ No&nbsp;&nbsp;☐ N/A</span></div></div>'
+    +'</div>'
+    +'<h2>'+(isES?'Explicación (si respondió Sí a cualquiera de las preguntas anteriores):':'Explanation (if you answered Yes to any of the above):')+'</h2>'
+    +'<div style="border:1px solid #ccc;border-radius:6px;padding:10px;min-height:70px;margin-bottom:14px;background:#fafafa"></div>'
+    +'<h2>'+(isES?'Contacto de Emergencia / Emergency Contact':'Emergency Contact / Contacto de Emergencia')+'</h2>'
+    +'<div class="section">'
+    +'<div class="row"><span class="lbl">'+(isES?'Nombre completo / Full Name:':'Full Name / Nombre:')+'</span><span class="val" style="border-bottom:1px solid #ccc;min-width:200px">&nbsp;</span></div>'
+    +'<div class="row"><span class="lbl">'+(isES?'Parentesco / Relationship:':'Relationship / Parentesco:')+'</span><span class="val" style="border-bottom:1px solid #ccc;min-width:200px">&nbsp;</span></div>'
+    +'<div class="row"><span class="lbl">'+(isES?'Teléfono / Phone:':'Phone / Teléfono:')+'</span><span class="val" style="border-bottom:1px solid #ccc;min-width:200px">&nbsp;</span></div>'
+    +'<div class="row"><span class="lbl">'+(isES?'Email (opcional / optional):':'Email (optional / opcional):')+'</span><span class="val" style="border-bottom:1px solid #ccc;min-width:200px">&nbsp;</span></div>'
+    +'</div>'
+    +'<div class="box box-green">'
+    +(isES?'Al firmar, confirmo que la información proporcionada es verídica y completa. Autorizo a <strong>'+biz+'</strong> a contactar a mi persona de emergencia si fuera necesario. Entiendo que es mi responsabilidad informar cualquier cambio en mi condición de salud.'
+          :'By signing, I confirm the information provided is truthful and complete. I authorize <strong>'+biz+'</strong> to contact my emergency contact if necessary. I understand it is my responsibility to report any changes in my health condition.')+'</div>'
+    +sig()
+    +'<div class="footer">'+(isES?'Documento generado por:':'Document generated by:')+' <strong>'+biz+'</strong> · '+today+'</div>';
+  }
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"/>'+css+'</head><body>'+body+'</body></html>';
+  var win = window.open('','_blank','width=820,height=980');
+  if(win){ win.document.write(html); win.document.close(); setTimeout(function(){ win.print(); },500); }
+  else showToast('⚠️ '+(isES?'Permite ventanas emergentes para generar documentos':'Allow pop-ups to generate documents'),'var(--warn)');
+}
   // Gather all data
   var fname   = (document.getElementById('cw-fname')||{}).value||(_cwReg?_cwReg.firstName:'');
   var lname   = (document.getElementById('cw-lname')||{}).value||(_cwReg?_cwReg.lastName:'');
@@ -10394,55 +10685,74 @@ async function savePaymentActivation(activate){
       <div id="cw-step-1">
 
         <!-- Avatar upload -->
-        <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
-          <div id="cw-avatar-preview" onclick="document.getElementById('cw-avatar-file').click()" style="width:64px;height:64px;border-radius:14px;background:var(--surface2);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;cursor:pointer;font-family:'Syne',sans-serif;flex-shrink:0;overflow:hidden;transition:border-color .2s;position:relative" title="Subir foto">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:18px">
+          <div id="cw-avatar-preview" onclick="document.getElementById('cw-avatar-file').click()" style="width:68px;height:68px;border-radius:14px;background:#1e1e1e;border:2px dashed #444;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;cursor:pointer;font-family:'Syne',sans-serif;flex-shrink:0;overflow:hidden;transition:border-color .2s;position:relative" title="Subir foto">
             <span id="cw-avatar-initials" style="color:var(--accent)">?</span>
           </div>
           <input type="file" id="cw-avatar-file" accept="image/*" style="display:none" onchange="cwAvatarChanged(this)"/>
           <div>
-            <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:3px">Foto / Avatar</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Haz clic para subir imagen · Click to upload photo</div>
+            <div style="font-size:13px;font-weight:700;color:#e0e0e0;margin-bottom:3px">📷 Foto / Avatar</div>
+            <div style="font-size:12px;color:#888;margin-bottom:8px">Clic para subir · Click to upload photo</div>
             <div style="display:flex;gap:6px">
-              <button onclick="document.getElementById('cw-avatar-file').click()" style="padding:5px 12px;border-radius:7px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">📷 Subir</button>
-              <button onclick="cwClearAvatar()" style="padding:5px 12px;border-radius:7px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">🗑 Quitar</button>
+              <button type="button" onclick="document.getElementById('cw-avatar-file').click()" style="padding:6px 14px;border-radius:7px;border:1.5px solid #444;background:transparent;color:#ccc;font-size:12px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">📷 Subir</button>
+              <button type="button" onclick="cwClearAvatar()" style="padding:6px 14px;border-radius:7px;border:1.5px solid #444;background:transparent;color:#888;font-size:12px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">✕ Quitar</button>
             </div>
           </div>
         </div>
 
         <!-- Nombre + Apellido -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:13px">
           <div>
-            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Nombre / First Name *</label>
-            <input id="cw-fname" type="text" placeholder="Nombre" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)';cwUpdateAvatarInitials()"/>
+            <label style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#aaa;font-weight:700;display:block;margin-bottom:6px">Nombre / First Name *</label>
+            <input id="cw-fname" tabindex="1" type="text" placeholder="Nombre" autocomplete="given-name"
+              style="width:100%;background:#1e1e1e;border:1.5px solid #333;border-radius:9px;padding:11px 13px;color:#f0f0f0;font-size:14px;outline:none;transition:border-color .2s"
+              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='#333';cwUpdateAvatarInitials()"
+              onkeydown="if(event.key==='Enter'||event.key==='Tab'){event.preventDefault();document.getElementById('cw-lname').focus()}"/>
           </div>
           <div>
-            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Apellido / Last Name *</label>
-            <input id="cw-lname" type="text" placeholder="Apellido" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)';cwUpdateAvatarInitials()"/>
+            <label style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#aaa;font-weight:700;display:block;margin-bottom:6px">Apellido / Last Name *</label>
+            <input id="cw-lname" tabindex="2" type="text" placeholder="Apellido" autocomplete="family-name"
+              style="width:100%;background:#1e1e1e;border:1.5px solid #333;border-radius:9px;padding:11px 13px;color:#f0f0f0;font-size:14px;outline:none;transition:border-color .2s"
+              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='#333';cwUpdateAvatarInitials()"
+              onkeydown="if(event.key==='Enter'||event.key==='Tab'){event.preventDefault();document.getElementById('cw-email').focus()}"/>
           </div>
         </div>
 
         <!-- Email + Phone -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:13px">
           <div>
-            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Email</label>
-            <input id="cw-email" type="email" placeholder="correo@email.com" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+            <label style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#aaa;font-weight:700;display:block;margin-bottom:6px">Email</label>
+            <input id="cw-email" tabindex="3" type="email" placeholder="correo@email.com" autocomplete="email"
+              style="width:100%;background:#1e1e1e;border:1.5px solid #333;border-radius:9px;padding:11px 13px;color:#f0f0f0;font-size:14px;outline:none;transition:border-color .2s"
+              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='#333'"
+              onkeydown="if(event.key==='Enter'||event.key==='Tab'){event.preventDefault();document.getElementById('cw-phone').focus()}"/>
           </div>
           <div>
-            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Teléfono / Phone</label>
-            <input id="cw-phone" type="tel" placeholder="(305) 000-0000" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+            <label style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#aaa;font-weight:700;display:block;margin-bottom:6px">Teléfono / Phone</label>
+            <input id="cw-phone" tabindex="4" type="tel" placeholder="(954) 000-0000" autocomplete="tel" maxlength="14"
+              style="width:100%;background:#1e1e1e;border:1.5px solid #333;border-radius:9px;padding:11px 13px;color:#f0f0f0;font-size:14px;outline:none;transition:border-color .2s;letter-spacing:.03em"
+              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='#333'"
+              oninput="cwFormatPhone(this)"
+              onkeydown="if(event.key==='Enter'||event.key==='Tab'){event.preventDefault();document.getElementById('cw-bizname').focus()}"/>
           </div>
         </div>
 
         <!-- Negocio + Tipo -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:13px">
           <div>
-            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Negocio / Business</label>
-            <input id="cw-bizname" type="text" placeholder="Nombre del negocio" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+            <label style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#aaa;font-weight:700;display:block;margin-bottom:6px">Negocio / Business</label>
+            <input id="cw-bizname" tabindex="5" type="text" placeholder="Nombre del negocio" autocomplete="organization"
+              style="width:100%;background:#1e1e1e;border:1.5px solid #333;border-radius:9px;padding:11px 13px;color:#f0f0f0;font-size:14px;outline:none;transition:border-color .2s"
+              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='#333'"
+              onkeydown="if(event.key==='Enter'||event.key==='Tab'){event.preventDefault();document.getElementById('cw-biztype').focus()}"/>
           </div>
           <div>
-            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Tipo / Type</label>
-            <select id="cw-biztype" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none;cursor:pointer" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
-              <option value="">— Seleccionar —</option>
+            <label style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#aaa;font-weight:700;display:block;margin-bottom:6px">Tipo / Type</label>
+            <select id="cw-biztype" tabindex="6"
+              style="width:100%;background:#1e1e1e;border:1.5px solid #333;border-radius:9px;padding:11px 13px;color:#f0f0f0;font-size:13px;outline:none;cursor:pointer;transition:border-color .2s"
+              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='#333'"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('cw-notes').focus()}">
+              <option value="" style="color:#888">— Seleccionar —</option>
               <option value="Barbería / Salón">💇 Barbería / Salón</option>
               <option value="Gym / Fitness">💪 Gym / Fitness</option>
               <option value="Artes Marciales">🥋 Artes Marciales</option>
@@ -10457,23 +10767,25 @@ async function savePaymentActivation(activate){
 
         <!-- Tipo de Relación -->
         <div style="margin-bottom:16px">
-          <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:8px">Tipo de Relación / Relationship Type *</label>
+          <label style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#aaa;font-weight:700;display:block;margin-bottom:8px">Tipo de Relación / Relationship Type *</label>
           <div style="display:flex;gap:8px;flex-wrap:wrap" id="cw-relation-btns">
-            <button type="button" onclick="cwSetRelation('cliente')" id="cwrel-cliente" style="flex:1;min-width:100px;padding:10px 8px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'Syne',sans-serif;font-weight:800;font-size:11px;cursor:pointer;transition:all .15s;text-align:center">👤<br/>Cliente</button>
-            <button type="button" onclick="cwSetRelation('estudiante')" id="cwrel-estudiante" style="flex:1;min-width:100px;padding:10px 8px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'Syne',sans-serif;font-weight:800;font-size:11px;cursor:pointer;transition:all .15s;text-align:center">🎓<br/>Estudiante</button>
-            <button type="button" onclick="cwSetRelation('referido')" id="cwrel-referido" style="flex:1;min-width:100px;padding:10px 8px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'Syne',sans-serif;font-weight:800;font-size:11px;cursor:pointer;transition:all .15s;text-align:center">🔗<br/>Referido</button>
-            <button type="button" onclick="cwSetRelation('partner')" id="cwrel-partner" style="flex:1;min-width:100px;padding:10px 8px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'Syne',sans-serif;font-weight:800;font-size:11px;cursor:pointer;transition:all .15s;text-align:center">🏢<br/>Partner</button>
+            <button type="button" onclick="cwSetRelation('cliente')" id="cwrel-cliente" style="flex:1;min-width:90px;padding:11px 8px;border-radius:10px;border:2px solid #333;background:#1e1e1e;color:#999;font-family:'Syne',sans-serif;font-weight:800;font-size:12px;cursor:pointer;transition:all .15s;text-align:center;line-height:1.5">👤<br/><span style="font-size:11px">Cliente</span></button>
+            <button type="button" onclick="cwSetRelation('estudiante')" id="cwrel-estudiante" style="flex:1;min-width:90px;padding:11px 8px;border-radius:10px;border:2px solid #333;background:#1e1e1e;color:#999;font-family:'Syne',sans-serif;font-weight:800;font-size:12px;cursor:pointer;transition:all .15s;text-align:center;line-height:1.5">🎓<br/><span style="font-size:11px">Estudiante</span></button>
+            <button type="button" onclick="cwSetRelation('referido')" id="cwrel-referido" style="flex:1;min-width:90px;padding:11px 8px;border-radius:10px;border:2px solid #333;background:#1e1e1e;color:#999;font-family:'Syne',sans-serif;font-weight:800;font-size:12px;cursor:pointer;transition:all .15s;text-align:center;line-height:1.5">🔗<br/><span style="font-size:11px">Referido</span></button>
+            <button type="button" onclick="cwSetRelation('partner')" id="cwrel-partner" style="flex:1;min-width:90px;padding:11px 8px;border-radius:10px;border:2px solid #333;background:#1e1e1e;color:#999;font-family:'Syne',sans-serif;font-weight:800;font-size:12px;cursor:pointer;transition:all .15s;text-align:center;line-height:1.5">🏢<br/><span style="font-size:11px">Partner</span></button>
           </div>
         </div>
 
         <!-- Notas -->
         <div style="margin-bottom:16px">
-          <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Notas / Notes</label>
-          <textarea id="cw-notes" rows="2" placeholder="Notas opcionales..." style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none;resize:vertical" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+          <label style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#aaa;font-weight:700;display:block;margin-bottom:6px">Notas / Notes</label>
+          <textarea id="cw-notes" tabindex="7" rows="2" placeholder="Notas opcionales / Optional notes..."
+            style="width:100%;background:#1e1e1e;border:1.5px solid #333;border-radius:9px;padding:11px 13px;color:#f0f0f0;font-size:13px;outline:none;resize:vertical;transition:border-color .2s"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='#333'"></textarea>
         </div>
 
         <div style="display:flex;justify-content:flex-end">
-          <button onclick="cwStep1Next()" style="background:var(--accent);color:#000;border:none;border-radius:9px;padding:11px 28px;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;cursor:pointer">Siguiente →</button>
+          <button type="button" onclick="cwStep1Next()" tabindex="8" style="background:var(--accent);color:#000;border:none;border-radius:9px;padding:12px 32px;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;cursor:pointer;letter-spacing:.03em">Siguiente → ②</button>
         </div>
       </div>
 
@@ -10700,6 +11012,17 @@ async function savePaymentActivation(activate){
 
 <!-- ── NEW 4-STEP CLIENT MODAL SCRIPTS ── -->
 <script>
+// ── Phone auto-format (954) 380-0134 ──────────────────────
+function cwFormatPhone(input){
+  var digits = input.value.replace(/\D/g,'').substring(0,10);
+  var fmt = '';
+  if(digits.length === 0){ fmt = ''; }
+  else if(digits.length <= 3){ fmt = '('+digits; }
+  else if(digits.length <= 6){ fmt = '('+digits.substring(0,3)+') '+digits.substring(3); }
+  else { fmt = '('+digits.substring(0,3)+') '+digits.substring(3,6)+'-'+digits.substring(6); }
+  input.value = fmt;
+}
+
 // ── Avatar helpers ─────────────────────────────────────────
 var _cwAvatarData = null;
 var _cwRelation = '';
