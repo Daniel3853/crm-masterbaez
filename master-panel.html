@@ -635,17 +635,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
       <span class="sn-icon">🔗</span><span class="sn-lbl" data-lang-key="navReferidores">Referidos</span>
       <span class="sn-badge" id="navBadgeReferidores" style="display:none;background:#f97316">0</span>
     </button>
-    <!-- 13: Anuncios -->
+    <!-- 13: Anuncios + QR Flyer (combinados) -->
     <button class="sn-item" data-p="anuncios" id="nav-anuncios" onclick="goPage('anuncios')">
       <span class="sn-icon">📣</span><span class="sn-lbl" data-lang-key="navAnuncios">Anuncios</span>
-    </button>
-    <!-- 14: QR Flyer -->
-    <button class="sn-item" data-p="qrflyer" id="nav-qrflyer" onclick="goPage('qrflyer')">
-      <span class="sn-icon">📱</span><span class="sn-lbl" data-lang-key="navQr">QR Flyer</span>
-    </button>
-    <!-- 14b: QR Clientes -->
-    <button class="sn-item" data-p="qrclientes" id="nav-qrclientes" onclick="goPage('qrclientes')">
-      <span class="sn-icon">🪪</span><span class="sn-lbl">QR Clientes</span>
     </button>
     <div class="sn-divider"></div>
     <!-- 15: IA Tools -->
@@ -714,14 +706,38 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     <div class="page" id="page-clients">
       <div class="topbar">
         <div class="page-title" data-i18n="pgClients">👥 Clientes</div>
-        <div class="topbar-actions">
+        <div class="topbar-actions" id="clientsTopbarActions">
           <input class="search-inp" type="text" placeholder="🔍 Buscar..." oninput="filterClients(this.value)" id="searchInp"/>
         </div>
       </div>
-      <!-- FILTER TABS -->
-      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;" id="filterTabs"></div>
-      <div class="table-wrap">
-        <div id="clientsTable"></div>
+
+      <!-- MAIN TABS -->
+      <div style="display:flex;gap:4px;margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:4px;width:fit-content">
+        <button id="clientsTab-clientes" onclick="switchClientsTab('clientes')"
+          style="padding:8px 20px;border-radius:9px;border:none;background:var(--accent);color:#000;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;cursor:pointer">
+          👥 Clientes
+        </button>
+        <button id="clientsTab-qr" onclick="switchClientsTab('qr')"
+          style="padding:8px 20px;border-radius:9px;border:none;background:transparent;color:var(--muted);font-family:'Syne',sans-serif;font-weight:800;font-size:13px;cursor:pointer">
+          🪪 QR / Clientes
+        </button>
+      </div>
+
+      <!-- SUB-TAB: Clientes -->
+      <div id="clientsSubTab-clientes">
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;" id="filterTabs"></div>
+        <div class="table-wrap">
+          <div id="clientsTable"></div>
+        </div>
+      </div>
+
+      <!-- SUB-TAB: QR/Clientes -->
+      <div id="clientsSubTab-qr" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <p style="color:var(--muted);font-size:13px">QR personalizados por cliente. Haz clic en el QR para verlo grande y descargarlo.</p>
+          <button class="act-btn primary" onclick="openQRClientModal(null)">➕ Nuevo QR</button>
+        </div>
+        <div id="qrclientesGrid"></div>
       </div>
     </div>
 
@@ -1132,7 +1148,22 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
     <!-- ── PÁGINA: ANUNCIOS ── -->
     <div class="page mod-page" id="page-anuncios">
-      <div class="page-header"><div class="page-title" data-i18n="pgAnuncios">📣 Generador de Anuncios IA</div></div>
+      <div class="page-header"><div class="page-title" data-i18n="pgAnuncios">📣 Anuncios & QR Flyer</div></div>
+
+      <!-- TABS: Anuncios | QR Flyer -->
+      <div style="display:flex;gap:4px;margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:4px;width:fit-content">
+        <button id="anunciosTab-ads" onclick="switchAnunciosTab('ads')"
+          style="padding:8px 20px;border-radius:9px;border:none;background:var(--accent);color:#000;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;cursor:pointer">
+          📣 Anuncios IA
+        </button>
+        <button id="anunciosTab-qr" onclick="switchAnunciosTab('qr')"
+          style="padding:8px 20px;border-radius:9px;border:none;background:transparent;color:var(--muted);font-family:'Syne',sans-serif;font-weight:800;font-size:13px;cursor:pointer">
+          📱 QR Flyer
+        </button>
+      </div>
+
+      <!-- SUB-TAB: Anuncios IA -->
+      <div id="anunciosSubTab-ads">
       <div style="max-width:720px;padding:0 0 40px">
         <p style="color:var(--muted);font-size:13px;margin-bottom:16px" id="anunciosDesc" data-i18n="anunciosDesc">Genera copys para redes sociales con IA (requiere Google Gemini API Key en Config).</p>
         <div style="background:var(--surface);border-radius:12px;padding:16px;margin-bottom:16px;border:1px solid var(--border)">
@@ -1152,11 +1183,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         <button class="ad-gen-btn" id="adGenBtn" onclick="generateAds()" data-i18n="btnGenAds">⚡ Generar Anuncios con IA</button>
         <div id="adResultsWrap" style="margin-top:18px"></div>
       </div>
-    </div>
+      </div><!-- end anunciosSubTab-ads -->
 
-    <!-- ── PÁGINA: QR FLYER ── -->
-    <div class="page mod-page" id="page-qrflyer">
-      <div class="page-header"><div class="page-title" data-i18n="pgQr">📱 QR Flyer</div></div>
+      <!-- SUB-TAB: QR Flyer -->
+      <div id="anunciosSubTab-qr" style="display:none">
       <div style="max-width:680px;padding:0 0 40px">
         <p style="color:var(--muted);font-size:13px;margin-bottom:16px" id="qrDesc" data-i18n="qrDesc">Genera los 3 códigos QR para tu flyer. Configura tus números y URL primero.</p>
         <div style="background:var(--surface);border-radius:12px;padding:16px;margin-bottom:18px;border:1px solid var(--border)">
@@ -1178,19 +1208,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         <button onclick="downloadQRFlyer()" id="qrDownloadFlyerBtn" style="width:100%;padding:13px;border-radius:12px;border:none;background:var(--accent);color:#000;font-weight:900;font-size:15px;cursor:pointer;font-family:'Syne',sans-serif;margin-bottom:8px" data-i18n="qrDownloadFlyerBtn">📥 Descargar Flyer con los 3 QR</button>
         <canvas id="flyerCanvas" style="display:none"></canvas>
       </div>
-    </div>
+      </div><!-- end anunciosSubTab-qr -->
 
-    <!-- ── PÁGINA: QR CLIENTES ── -->
-    <div class="page mod-page" id="page-qrclientes">
-      <div class="page-header">
-        <div class="page-title">🪪 QR Clientes</div>
-        <button class="act-btn primary" onclick="openQRClientModal(null)" style="margin-left:auto">➕ Nuevo QR</button>
-      </div>
-      <div style="max-width:1100px;padding:0 0 40px">
-        <p style="color:var(--muted);font-size:13px;margin-bottom:20px">QR personalizados por cliente. Haz clic en el ícono del tipo (📲 SMS etc.) o en el QR para verlo grande y descargarlo.</p>
-        <div id="qrclientesGrid"></div>
-      </div>
-    </div>
+    </div><!-- end page-anuncios -->
+    <!-- QR Flyer movido a pestaña en Anuncios -->
+
+    <!-- QR Clientes movido a pestaña en Clientes -->
 
     <!-- ── MODAL: QR CLIENTE ── -->
     <div class="modal-overlay" id="qrclienteModal" style="display:none" onclick="if(event.target===this)closeQRClientModal()">
@@ -2287,7 +2310,7 @@ function goPage(p){
   if(pageEl) pageEl.classList.add('active');
   if(navEl)  navEl.classList.add('active');
   currentPage = p;
-  if(p==='clients')    { renderClients(); }
+  if(p==='clients')    { renderClients(); switchClientsTab('clientes'); }
   if(p==='config')     { renderConfig(); loadNotifConfig(); renderVideoSlidesEditor(); }
   if(p==='papelera')   { renderPapelera(); }
   if(p==='partners')   { renderPartners(); }
@@ -2299,9 +2322,10 @@ function goPage(p){
   if(p==='horarios')   { renderAdminTimes(); }
   if(p==='leads')      { renderLeadsInbox(); }
   if(p==='waiver')     { renderWaiverTab(); }
-  if(p==='anuncios')   { renderAnunciosTab(); }
+  if(p==='anuncios')   { renderAnunciosTab(); switchAnunciosTab('ads'); }
   if(p==='qrflyer')    { renderQRPageCards(); }
-  if(p==='qrclientes') { renderQRClientes(); }
+  if(p==='qrclientes') { goPage('clients'); switchClientsTab('qr'); return; }
+  if(p==='qrflyer') { goPage('anuncios'); switchAnunciosTab('qr'); return; }
   if(p==='grafica')    { renderLeadsChart(); }
 }
 
@@ -9100,6 +9124,28 @@ function loadQRClientes(){
     try{ qrClientes = JSON.parse(localStorage.getItem('qrClientes')||'[]'); }catch(e){ qrClientes=[]; }
     renderQRClientes();
   }
+}
+
+function switchClientsTab(tab){
+  var isClientes = tab === 'clientes';
+  document.getElementById('clientsSubTab-clientes').style.display = isClientes ? '' : 'none';
+  document.getElementById('clientsSubTab-qr').style.display = isClientes ? 'none' : '';
+  document.getElementById('clientsTab-clientes').style.background = isClientes ? 'var(--accent)' : 'transparent';
+  document.getElementById('clientsTab-clientes').style.color = isClientes ? '#000' : 'var(--muted)';
+  document.getElementById('clientsTab-qr').style.background = isClientes ? 'transparent' : 'var(--accent)';
+  document.getElementById('clientsTab-qr').style.color = isClientes ? 'var(--muted)' : '#000';
+  if(!isClientes) renderQRClientes();
+}
+
+function switchAnunciosTab(tab){
+  var isAds = tab === 'ads';
+  document.getElementById('anunciosSubTab-ads').style.display = isAds ? '' : 'none';
+  document.getElementById('anunciosSubTab-qr').style.display = isAds ? 'none' : '';
+  document.getElementById('anunciosTab-ads').style.background = isAds ? 'var(--accent)' : 'transparent';
+  document.getElementById('anunciosTab-ads').style.color = isAds ? '#000' : 'var(--muted)';
+  document.getElementById('anunciosTab-qr').style.background = isAds ? 'transparent' : 'var(--accent)';
+  document.getElementById('anunciosTab-qr').style.color = isAds ? 'var(--muted)' : '#000';
+  if(!isAds) renderQRPageCards();
 }
 
 function renderQRClientes(){
