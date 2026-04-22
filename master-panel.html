@@ -7537,7 +7537,8 @@ function renderLeadsInbox(){
         +'</div>'
         +'<div class="lead-actions">'
           +(lead.email?'<a class="lead-act-btn btn-email-s" href="'+buildLeadEmailHref(lead)+'" target="_blank" style="text-decoration:none;display:flex;align-items:center;justify-content:center">📧</a>':'')
-          +(lead.phone?'<a class="lead-act-btn" style="background:var(--accent2);color:#000;text-decoration:none;display:flex;align-items:center;justify-content:center" href="'+buildLeadSMSGVHref(lead)+'" target="_blank">💬</a>':'')
+          +(lead.phone?'<a class="lead-act-btn" style="background:#34A853;color:#fff;text-decoration:none;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;font-family:Syne,sans-serif" href="'+buildLeadSMSGVHref(lead)+'" target="_blank">GV</a>':'')
+          +(lead.phone?'<a class="lead-act-btn" style="background:#0078d4;color:#fff;text-decoration:none;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;font-family:Syne,sans-serif" href="'+buildLeadSMSMSHref(lead)+'" target="_blank">MS</a>':'')
           +(lead.phone?'<a class="lead-act-btn btn-wa-s" href="'+buildLeadWAHref(lead)+'" target="_blank" style="text-decoration:none;display:flex;align-items:center;justify-content:center">📲</a>':'')
           +(!lead._read
             ?'<button class="lead-act-btn" style="background:var(--surface2);color:var(--accent)" onclick="markLeadRead(\''+lead.id+'\')">✓</button>'
@@ -7683,12 +7684,73 @@ async function confirmConvertLead(profileType){
   renderClients();
   renderDashboard();
   updateNavBadge();
+
+  // If converting to cliente, open the welcome payment popup
+  if(profileType === 'cliente'){
+    openClientWelcomePopup(newReg, l);
+    return;
+  }
   showToast('🏅','Lead convertido a '+profileType+' — aparece en Clientes');
 }
 function closeConvertLeadModal(){
   var overlay = document.getElementById('convertLeadModal');
   if(overlay){ overlay.classList.remove('open'); }
   _convertPendingLeadId = null;
+}
+
+// ── WELCOME CLIENT POPUP (programa + pago) ──────────────────────────
+function openClientWelcomePopup(reg, lead){
+  var prog = customProgs.find(function(p){ return p.id===(lead.program||reg.bizType); });
+  var progName = prog ? _progLabelMaster(prog) : (lead.program||reg.bizType||'—');
+  var progDesc = prog ? (prog.description||prog.descES||'') : '';
+  var progPrice = prog ? (prog.price||prog.priceES||prog.monthlyPrice||'') : '';
+  var progDuration = prog ? (prog.duration||prog.schedule||'') : '';
+  var progColor = prog ? (prog.color||'var(--accent)') : 'var(--accent)';
+  var clientName = (reg.firstName||'')+' '+(reg.lastName||'');
+  var today = new Date().toLocaleDateString('es-US',{year:'numeric',month:'long',day:'numeric'});
+
+  // Build payment links from payServerLinks + common methods
+  var linksHtml = '';
+  if(payServerLinks && payServerLinks.length > 0){
+    linksHtml = payServerLinks.map(function(lnk){
+      return '<a href="'+esc(lnk.url)+'" target="_blank" style="display:flex;align-items:center;gap:10px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;text-decoration:none;transition:border-color .15s" onmouseover="this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
+        +'<span style="font-size:20px">🔗</span>'
+        +'<div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--text);font-family:Syne,sans-serif">'+esc(lnk.name)+'</div><div style="font-size:11px;color:var(--muted);word-break:break-all">'+esc(lnk.url)+'</div></div>'
+        +'<span style="font-size:12px;font-weight:800;color:var(--accent);font-family:Syne,sans-serif">Pagar ↗</span>'
+        +'</a>';
+    }).join('');
+  } else {
+    linksHtml = '<div style="font-size:12px;color:var(--muted);text-align:center;padding:12px">No hay links de pago configurados.<br/>Agrégalos en ⚙️ Configuración → Links de Pago.</div>';
+  }
+
+  var modal = document.getElementById('clientWelcomeModal');
+  document.getElementById('cwClientName').textContent = '🎉 ¡Bienvenido, '+clientName+'!';
+  document.getElementById('cwDate').textContent = today;
+  document.getElementById('cwProgName').textContent = progName;
+  document.getElementById('cwProgDesc').textContent = progDesc || 'Sin descripción';
+  document.getElementById('cwProgPrice').textContent = progPrice ? '$'+progPrice : '—';
+  document.getElementById('cwProgDuration').textContent = progDuration || '—';
+  document.getElementById('cwProgBadge').style.background = progColor;
+  document.getElementById('cwPayLinks').innerHTML = linksHtml;
+
+  // Phone shortcuts for payment follow-up
+  var phone = reg.phone||lead.phone||'';
+  var num = phone.replace(/\D/g,'');
+  if(num.length===10) num='1'+num;
+  var payMsg = 'Hola '+reg.firstName+'! 👋 Tu inscripción en *'+progName+'* está lista. Por favor realiza tu pago para activar tu cuenta. ¡Gracias!';
+  document.getElementById('cwWABtn').href = phone ? 'https://wa.me/'+num+'?text='+encodeURIComponent(payMsg) : '#';
+  document.getElementById('cwWABtn').style.display = phone ? '' : 'none';
+  document.getElementById('cwSMSGVBtn').href = phone ? 'https://voice.google.com/u/0/messages?itemId=t.%2B'+num+'&body='+encodeURIComponent(payMsg) : '#';
+  document.getElementById('cwSMSGVBtn').style.display = phone ? '' : 'none';
+  var numLocal = num.length===11&&num[0]==='1' ? num.slice(1) : num;
+  document.getElementById('cwSMSMSBtn').href = phone ? 'sms:+1'+numLocal+'?body='+encodeURIComponent(payMsg) : '#';
+  document.getElementById('cwSMSMSBtn').style.display = phone ? '' : 'none';
+
+  modal.style.display = 'flex';
+  showToast('🏅 Lead convertido a Cliente ✅');
+}
+function closeClientWelcomePopup(){
+  document.getElementById('clientWelcomeModal').style.display = 'none';
 }
 function openTrialConfigModal(){
   document.getElementById('trialDuration').value = '2';
@@ -9891,6 +9953,71 @@ async function savePaymentActivation(activate){
         <button id="payActToggleBtn" onclick="savePaymentActivation(document.getElementById('payActToggleBtn').dataset.activate==='true')" style="flex:2;padding:12px;border-radius:9px;border:1.5px solid var(--accent);background:var(--accent);color:#000;font-family:Syne,sans-serif;font-weight:800;font-size:13px;cursor:pointer">✅ Activar Pagos con Acuerdo</button>
       </div>
       <button onclick="savePaymentActivation(false)" style="width:100%;margin-top:8px;padding:10px;border-radius:9px;border:1.5px solid var(--danger);background:transparent;color:var(--danger);font-family:Syne,sans-serif;font-weight:700;font-size:12px;cursor:pointer">🚫 Desactivar Pagos</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     MODAL: BIENVENIDA CLIENTE — Programa + Pago
+══════════════════════════════════════════════════ -->
+<div id="clientWelcomeModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:10600;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(6px);overflow-y:auto" onclick="if(event.target===this)closeClientWelcomePopup()">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:22px;width:100%;max-width:500px;overflow:hidden;margin:auto">
+
+    <!-- Header verde celebración -->
+    <div style="background:linear-gradient(135deg,rgba(34,197,94,.18),rgba(16,185,129,.1));padding:24px 24px 18px;border-bottom:1px solid rgba(34,197,94,.2);text-align:center">
+      <div style="font-size:42px;margin-bottom:8px">🎉</div>
+      <div id="cwClientName" style="font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:#22c55e;margin-bottom:4px"></div>
+      <div id="cwDate" style="font-size:12px;color:var(--muted)"></div>
+    </div>
+
+    <div style="padding:20px 22px;max-height:78vh;overflow-y:auto">
+
+      <!-- ── SECCIÓN: PROGRAMA ── -->
+      <div style="margin-bottom:18px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;font-family:'Syne',sans-serif;margin-bottom:10px">📋 Programa Seleccionado</div>
+        <div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden">
+          <div id="cwProgBadge" style="position:absolute;top:0;left:0;width:4px;height:100%;border-radius:4px 0 0 4px"></div>
+          <div style="padding-left:10px">
+            <div id="cwProgName" style="font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:var(--text);margin-bottom:6px"></div>
+            <div id="cwProgDesc" style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:10px"></div>
+            <div style="display:flex;gap:16px;flex-wrap:wrap">
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="font-size:13px">💵</span>
+                <div>
+                  <div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Precio</div>
+                  <div id="cwProgPrice" style="font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--accent)"></div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="font-size:13px">🗓</span>
+                <div>
+                  <div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Duración / Horario</div>
+                  <div id="cwProgDuration" style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text)"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECCIÓN: PAGO ── -->
+      <div style="margin-bottom:18px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;font-family:'Syne',sans-serif;margin-bottom:10px">💳 Realizar Pago</div>
+        <div id="cwPayLinks" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+
+      <!-- ── SECCIÓN: CONTACTAR PARA PAGO ── -->
+      <div style="margin-bottom:18px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;font-family:'Syne',sans-serif;margin-bottom:10px">📨 Enviar Recordatorio de Pago</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <a id="cwWABtn" href="#" target="_blank" style="flex:1;min-width:110px;display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 14px;border-radius:10px;background:#25D366;color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:12px;text-decoration:none;white-space:nowrap">📲 WhatsApp</a>
+          <a id="cwSMSGVBtn" href="#" target="_blank" style="flex:1;min-width:110px;display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 14px;border-radius:10px;background:#34A853;color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:12px;text-decoration:none;white-space:nowrap">💬 SMS GV</a>
+          <a id="cwSMSMSBtn" href="#" target="_blank" style="flex:1;min-width:110px;display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 14px;border-radius:10px;background:#0078d4;color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:12px;text-decoration:none;white-space:nowrap">💬 SMS MS</a>
+        </div>
+      </div>
+
+      <!-- ── CERRAR ── -->
+      <button onclick="closeClientWelcomePopup()" style="width:100%;padding:13px;border-radius:11px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer">Cerrar</button>
     </div>
   </div>
 </div>
