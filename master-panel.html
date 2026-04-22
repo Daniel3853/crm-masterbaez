@@ -7699,58 +7699,237 @@ function closeConvertLeadModal(){
 }
 
 // ── WELCOME CLIENT POPUP (programa + pago) ──────────────────────────
+// ── WELCOME CLIENT POPUP — globals ─────────────────
+var _cwReg = null;
+var _cwLead = null;
+var _cwStep = 1;
+
 function openClientWelcomePopup(reg, lead){
-  var prog = customProgs.find(function(p){ return p.id===(lead.program||reg.bizType); });
-  var progName = prog ? _progLabelMaster(prog) : (lead.program||reg.bizType||'—');
-  var progDesc = prog ? (prog.description||prog.descES||'') : '';
+  _cwReg  = reg;
+  _cwLead = lead;
+  _cwStep = 1;
+
+  var prog      = customProgs.find(function(p){ return p.id===(lead.program||reg.bizType); });
+  var progName  = prog ? _progLabelMaster(prog) : (lead.program||reg.bizType||'—');
+  var progDesc  = prog ? (prog.description||prog.descES||'') : '';
   var progPrice = prog ? (prog.price||prog.priceES||prog.monthlyPrice||'') : '';
-  var progDuration = prog ? (prog.duration||prog.schedule||'') : '';
   var progColor = prog ? (prog.color||'var(--accent)') : 'var(--accent)';
-  var clientName = (reg.firstName||'')+' '+(reg.lastName||'');
-  var today = new Date().toLocaleDateString('es-US',{year:'numeric',month:'long',day:'numeric'});
+  var clientName= (reg.firstName||'')+' '+(reg.lastName||'');
+  var today     = new Date().toLocaleDateString('es-US',{year:'numeric',month:'long',day:'numeric'});
 
-  // Build payment links from payServerLinks + common methods
-  var linksHtml = '';
-  if(payServerLinks && payServerLinks.length > 0){
-    linksHtml = payServerLinks.map(function(lnk){
-      return '<a href="'+esc(lnk.url)+'" target="_blank" style="display:flex;align-items:center;gap:10px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;text-decoration:none;transition:border-color .15s" onmouseover="this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
-        +'<span style="font-size:20px">🔗</span>'
-        +'<div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--text);font-family:Syne,sans-serif">'+esc(lnk.name)+'</div><div style="font-size:11px;color:var(--muted);word-break:break-all">'+esc(lnk.url)+'</div></div>'
-        +'<span style="font-size:12px;font-weight:800;color:var(--accent);font-family:Syne,sans-serif">Pagar ↗</span>'
-        +'</a>';
-    }).join('');
-  } else {
-    linksHtml = '<div style="font-size:12px;color:var(--muted);text-align:center;padding:12px">No hay links de pago configurados.<br/>Agrégalos en ⚙️ Configuración → Links de Pago.</div>';
-  }
-
-  var modal = document.getElementById('clientWelcomeModal');
+  // Header
   document.getElementById('cwClientName').textContent = '🎉 ¡Bienvenido, '+clientName+'!';
   document.getElementById('cwDate').textContent = today;
-  document.getElementById('cwProgName').textContent = progName;
-  document.getElementById('cwProgDesc').textContent = progDesc || 'Sin descripción';
-  document.getElementById('cwProgPrice').textContent = progPrice ? '$'+progPrice : '—';
-  document.getElementById('cwProgDuration').textContent = progDuration || '—';
+
+  // Program card
   document.getElementById('cwProgBadge').style.background = progColor;
-  document.getElementById('cwPayLinks').innerHTML = linksHtml;
+  document.getElementById('cwProgName').textContent  = progName;
+  document.getElementById('cwProgDesc').textContent  = progDesc || '—';
+  document.getElementById('cwProgPrice').textContent = progPrice ? '$'+progPrice+'/mes' : '—';
 
-  // Phone shortcuts for payment follow-up
+  // Pre-fill recurring form
+  document.getElementById('cw-fname').value    = reg.firstName||'';
+  document.getElementById('cw-lname').value    = reg.lastName||'';
+  document.getElementById('cw-email').value    = reg.email||'';
+  document.getElementById('cw-phone').value    = reg.phone||'';
+  document.getElementById('cw-plan').value     = progName||'';
+  document.getElementById('cw-amount').value   = progPrice||'';
+  document.getElementById('cw-startdate').value= new Date().toISOString().split('T')[0];
+  document.getElementById('cw-cardname').value = clientName;
+  cwCalcFee();
+  cwShowStep(1);
+
+  // Messaging shortcuts
   var phone = reg.phone||lead.phone||'';
-  var num = phone.replace(/\D/g,'');
+  var num   = phone.replace(/\D/g,'');
   if(num.length===10) num='1'+num;
-  var payMsg = 'Hola '+reg.firstName+'! 👋 Tu inscripción en *'+progName+'* está lista. Por favor realiza tu pago para activar tu cuenta. ¡Gracias!';
-  document.getElementById('cwWABtn').href = phone ? 'https://wa.me/'+num+'?text='+encodeURIComponent(payMsg) : '#';
-  document.getElementById('cwWABtn').style.display = phone ? '' : 'none';
-  document.getElementById('cwSMSGVBtn').href = phone ? 'https://voice.google.com/u/0/messages?itemId=t.%2B'+num+'&body='+encodeURIComponent(payMsg) : '#';
-  document.getElementById('cwSMSGVBtn').style.display = phone ? '' : 'none';
-  var numLocal = num.length===11&&num[0]==='1' ? num.slice(1) : num;
-  document.getElementById('cwSMSMSBtn').href = phone ? 'sms:+1'+numLocal+'?body='+encodeURIComponent(payMsg) : '#';
-  document.getElementById('cwSMSMSBtn').style.display = phone ? '' : 'none';
+  var numL  = num.length===11&&num[0]==='1'?num.slice(1):num;
+  var msg   = 'Hola '+reg.firstName+'! 👋 Tu inscripción en *'+progName+'* está lista. Por favor realiza tu pago para activar tu cuenta. ¡Gracias!';
+  var waEl  = document.getElementById('cwWABtn');
+  var gvEl  = document.getElementById('cwSMSGVBtn');
+  var msEl  = document.getElementById('cwSMSMSBtn');
+  if(waEl){ waEl.href = phone?'https://wa.me/'+num+'?text='+encodeURIComponent(msg):'#'; waEl.style.display=phone?'':'none'; }
+  if(gvEl){ gvEl.href = phone?'https://voice.google.com/u/0/messages?itemId=t.%2B'+num+'&body='+encodeURIComponent(msg):'#'; gvEl.style.display=phone?'':'none'; }
+  if(msEl){ msEl.href = phone?'sms:+1'+numL+'?body='+encodeURIComponent(msg):'#'; msEl.style.display=phone?'':'none'; }
 
-  modal.style.display = 'flex';
+  document.getElementById('clientWelcomeModal').style.display='flex';
   showToast('🏅 Lead convertido a Cliente ✅');
 }
+
 function closeClientWelcomePopup(){
-  document.getElementById('clientWelcomeModal').style.display = 'none';
+  document.getElementById('clientWelcomeModal').style.display='none';
+}
+
+function cwShowStep(n){
+  _cwStep = n;
+  [1,2,3].forEach(function(i){
+    var s = document.getElementById('cw-step-'+i);
+    var t = document.getElementById('cw-tab-'+i);
+    if(s) s.style.display = i===n ? '' : 'none';
+    if(t){
+      t.style.color        = i===n ? 'var(--accent)' : 'var(--muted)';
+      t.style.borderBottom = i===n ? '2px solid var(--accent)' : '2px solid transparent';
+    }
+  });
+}
+
+function cwCalcFee(){
+  var amt  = parseFloat(document.getElementById('cw-amount').value)||0;
+  var box  = document.getElementById('cw-fee-box');
+  var base = document.getElementById('cw-fee-base');
+  var fee  = document.getElementById('cw-fee-amt');
+  var tot  = document.getElementById('cw-fee-total');
+  if(amt > 0 && box){
+    var f = amt*0.035;
+    base.textContent = '$'+amt.toFixed(2);
+    fee.textContent  = '$'+f.toFixed(2);
+    tot.textContent  = '$'+(amt+f).toFixed(2);
+    box.style.display= '';
+  } else if(box){
+    box.style.display='none';
+  }
+}
+
+function cwSavePayment(){
+  var fname  = document.getElementById('cw-fname').value.trim();
+  var lname  = document.getElementById('cw-lname').value.trim();
+  var email  = document.getElementById('cw-email').value.trim();
+  var plan   = document.getElementById('cw-plan').value.trim();
+  var amt    = parseFloat(document.getElementById('cw-amount').value)||0;
+  var freq   = document.getElementById('cw-frequency').value;
+  var start  = document.getElementById('cw-startdate').value;
+  var method = document.getElementById('cw-method').value;
+  var errEl  = document.getElementById('cw-error');
+  errEl.textContent='';
+
+  if(!fname||!lname){ errEl.textContent='❌ First and last name required.'; cwShowStep(1); return; }
+  if(!amt||!freq||!start){ errEl.textContent='❌ Amount, frequency and start date required.'; cwShowStep(2); return; }
+  if(!method){ errEl.textContent='❌ Select a payment method.'; cwShowStep(2); return; }
+
+  // Save into recurring payments list
+  var rec = {
+    id:        'REC-'+Date.now().toString(36).toUpperCase(),
+    customer:  fname+' '+lname,
+    email:     email,
+    plan:      plan,
+    amount:    amt,
+    fee:       parseFloat((amt*0.035).toFixed(2)),
+    total:     parseFloat((amt*1.035).toFixed(2)),
+    frequency: freq,
+    startDate: start,
+    endDate:   document.getElementById('cw-enddate').value||'',
+    method:    method,
+    cardLast4: (document.getElementById('cw-cardnum').value||'').replace(/\s/g,'').slice(-4)||'',
+    cardName:  document.getElementById('cw-cardname').value||'',
+    zip:       document.getElementById('cw-zip2').value||'',
+    notes:     document.getElementById('cw-notes').value||'',
+    notify:    document.getElementById('cw-notify').checked,
+    authSigned:document.getElementById('cw-auth').checked,
+    createdAt: new Date().toISOString(),
+    clientId:  _cwReg ? _cwReg.id : ''
+  };
+
+  // Store in Firebase or local
+  if(!_demoMode && _fbdb){
+    _fbdb.ref('recurringPayments/'+rec.id).set(rec);
+  } else {
+    try{
+      var existing = JSON.parse(localStorage.getItem('recurringPayments')||'[]');
+      existing.push(rec);
+      localStorage.setItem('recurringPayments', JSON.stringify(existing));
+    }catch(e){}
+  }
+
+  showToast('✅ Recurring payment saved for '+rec.customer+'!');
+  closeClientWelcomePopup();
+}
+
+function cwGenerateDoc(lang){
+  var fname  = document.getElementById('cw-fname').value.trim()||(_cwReg?_cwReg.firstName:'');
+  var lname  = document.getElementById('cw-lname').value.trim()||(_cwReg?_cwReg.lastName:'');
+  var email  = document.getElementById('cw-email').value.trim()||(_cwReg?_cwReg.email:'');
+  var plan   = document.getElementById('cw-plan').value.trim();
+  var amt    = parseFloat(document.getElementById('cw-amount').value)||0;
+  var freq   = document.getElementById('cw-frequency').value||'monthly';
+  var start  = document.getElementById('cw-startdate').value||new Date().toISOString().split('T')[0];
+  var method = document.getElementById('cw-method').value||'—';
+  var notes  = document.getElementById('cw-notes').value||'';
+  var fee    = (amt*0.035).toFixed(2);
+  var total  = (amt*1.035).toFixed(2);
+  var biz    = _getDisplayNameMaster();
+  var today  = new Date().toLocaleDateString(lang==='es'?'es-US':'en-US',{year:'numeric',month:'long',day:'numeric'});
+  var freqMap= {monthly:lang==='es'?'Mensual':'Monthly', weekly:lang==='es'?'Semanal':'Weekly', yearly:lang==='es'?'Anual':'Yearly', quarterly:lang==='es'?'Trimestral':'Quarterly', daily:lang==='es'?'Diario':'Daily'};
+  var freqLabel = freqMap[freq]||freq;
+  var methodLabels = {paypal:'PayPal',zelle:'Zelle',venmo:'Venmo',cashapp:'Cash App',stripe:'Stripe/Card',card:'Credit/Debit Card',check:'Check',cash:lang==='es'?'Efectivo':'Cash',ach:'ACH Transfer',other:lang==='es'?'Otro':'Other'};
+  var methodLabel = methodLabels[method]||method;
+
+  var isES = lang==='es';
+  var T = {
+    title:     isES ? 'AUTORIZACIÓN DE PAGO RECURRENTE' : 'RECURRING PAYMENT AUTHORIZATION',
+    biz:       isES ? 'Empresa / Organización:' : 'Business / Organization:',
+    client:    isES ? 'Cliente:' : 'Customer:',
+    email:     isES ? 'Correo electrónico:' : 'Email:',
+    date:      isES ? 'Fecha:' : 'Date:',
+    plan:      isES ? 'Programa / Servicio:' : 'Program / Service:',
+    amount:    isES ? 'Monto base:' : 'Base Amount:',
+    fee:       isES ? 'Cargo por conveniencia (3.50%):' : 'Convenience Fee (3.50%):',
+    total:     isES ? 'Total a cobrar:' : 'Total Charged:',
+    freq:      isES ? 'Frecuencia:' : 'Frequency:',
+    start:     isES ? 'Fecha de inicio:' : 'Start Date:',
+    method:    isES ? 'Método de pago:' : 'Payment Method:',
+    notes:     isES ? 'Notas:' : 'Notes:',
+    authTitle: isES ? 'AUTORIZACIÓN' : 'AUTHORIZATION',
+    authText:  isES
+      ? 'Yo, el/la abajo firmante, autorizo a '+biz+' a realizar cargos recurrentes a mi método de pago indicado, con la frecuencia y monto descritos. Entiendo que se aplica un cargo adicional del 3.50% como tarifa de conveniencia, conforme a las leyes del Estado de Florida (FL Stat. §501.0117). Este acuerdo permanece vigente hasta su cancelación por escrito con 30 días de anticipación.'
+      : 'I, the undersigned, authorize '+biz+' to charge my selected payment method on a recurring basis at the frequency and amount described above. I understand a 3.50% convenience fee applies per FL Stat. §501.0117. This agreement remains in effect until cancelled in writing with 30 days notice.',
+    sig:       isES ? 'Firma del cliente:' : 'Customer Signature:',
+    sigDate:   isES ? 'Fecha:' : 'Date:',
+    footer:    isES ? 'Documento generado por '+biz+' · '+today : 'Document generated by '+biz+' · '+today
+  };
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"/>'
+    +'<style>body{font-family:Arial,sans-serif;max-width:700px;margin:40px auto;padding:0 30px;color:#111}'
+    +'h1{font-size:22px;border-bottom:3px solid #000;padding-bottom:10px;margin-bottom:24px;text-align:center}'
+    +'.row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #eee;font-size:14px}'
+    +'.label{color:#555;font-weight:600;min-width:220px}'
+    +'.val{font-weight:700;text-align:right}'
+    +'.highlight{background:#f0f9f0;border-radius:8px;padding:10px 14px;margin:14px 0;font-size:14px;border-left:4px solid #22c55e}'
+    +'.auth-box{background:#fff8e1;border:1.5px solid #f59e0b;border-radius:8px;padding:16px;margin-top:20px;font-size:13px;line-height:1.7}'
+    +'.sig-line{margin-top:36px;display:flex;gap:40px}'
+    +'.sig-block{flex:1;border-top:1.5px solid #333;padding-top:6px;font-size:12px;color:#555}'
+    +'.footer{margin-top:40px;font-size:11px;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:12px}'
+    +'@media print{body{margin:20px}}</style>'
+    +'</head><body>'
+    +'<h1>'+T.title+'</h1>'
+    +'<div class="row"><span class="label">'+T.biz+'</span><span class="val">'+esc(biz)+'</span></div>'
+    +'<div class="row"><span class="label">'+T.client+'</span><span class="val">'+esc(fname+' '+lname)+'</span></div>'
+    +'<div class="row"><span class="label">'+T.email+'</span><span class="val">'+esc(email)+'</span></div>'
+    +'<div class="row"><span class="label">'+T.date+'</span><span class="val">'+today+'</span></div>'
+    +'<div class="row"><span class="label">'+T.plan+'</span><span class="val">'+esc(plan)+'</span></div>'
+    +'<div style="height:10px"></div>'
+    +'<div class="row"><span class="label">'+T.amount+'</span><span class="val">$'+amt.toFixed(2)+'</span></div>'
+    +'<div class="row"><span class="label">'+T.fee+'</span><span class="val">$'+fee+'</span></div>'
+    +'<div class="row" style="background:#f0fdf4;font-size:15px;font-weight:900"><span class="label" style="color:#166534">'+T.total+'</span><span class="val" style="color:#16a34a">$'+total+'</span></div>'
+    +'<div class="row"><span class="label">'+T.freq+'</span><span class="val">'+freqLabel+'</span></div>'
+    +'<div class="row"><span class="label">'+T.start+'</span><span class="val">'+start+'</span></div>'
+    +'<div class="row"><span class="label">'+T.method+'</span><span class="val">'+methodLabel+'</span></div>'
+    +(notes?'<div class="row"><span class="label">'+T.notes+'</span><span class="val" style="text-align:left;max-width:400px">'+esc(notes)+'</span></div>':'')
+    +'<div class="auth-box"><strong>'+T.authTitle+'</strong><br/>'+T.authText+'</div>'
+    +'<div class="sig-line">'
+    +'<div class="sig-block">'+T.sig+'</div>'
+    +'<div class="sig-block">'+T.sigDate+'</div>'
+    +'</div>'
+    +'<div class="footer">'+T.footer+'</div>'
+    +'</body></html>';
+
+  var win = window.open('','_blank','width=780,height=900');
+  if(win){ win.document.write(html); win.document.close(); setTimeout(function(){ win.print(); },400); }
+}
+
+function cwSaveToCloud(){
+  // Guarda el registro y redirige a Firebase / muestra confirmación
+  cwSavePayment();
+  showToast('☁️ Guardado en la nube correctamente');
 }
 function openTrialConfigModal(){
   document.getElementById('trialDuration').value = '2';
@@ -9958,67 +10137,225 @@ async function savePaymentActivation(activate){
 </div>
 
 <!-- ══════════════════════════════════════════════════
-     MODAL: BIENVENIDA CLIENTE — Programa + Pago
+     MODAL: BIENVENIDA CLIENTE — Programa + Pago Recurrente
 ══════════════════════════════════════════════════ -->
-<div id="clientWelcomeModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:10600;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(6px);overflow-y:auto" onclick="if(event.target===this)closeClientWelcomePopup()">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:22px;width:100%;max-width:500px;overflow:hidden;margin:auto">
+<div id="clientWelcomeModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:10600;align-items:flex-start;justify-content:center;padding:16px;backdrop-filter:blur(6px);overflow-y:auto" onclick="if(event.target===this)closeClientWelcomePopup()">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:22px;width:100%;max-width:580px;overflow:hidden;margin:auto;position:relative">
 
-    <!-- Header verde celebración -->
-    <div style="background:linear-gradient(135deg,rgba(34,197,94,.18),rgba(16,185,129,.1));padding:24px 24px 18px;border-bottom:1px solid rgba(34,197,94,.2);text-align:center">
-      <div style="font-size:42px;margin-bottom:8px">🎉</div>
-      <div id="cwClientName" style="font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:#22c55e;margin-bottom:4px"></div>
-      <div id="cwDate" style="font-size:12px;color:var(--muted)"></div>
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,rgba(34,197,94,.18),rgba(16,185,129,.08));padding:20px 24px 16px;border-bottom:1px solid rgba(34,197,94,.2)">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:32px;margin-bottom:4px">🎉</div>
+          <div id="cwClientName" style="font-family:'Syne',sans-serif;font-weight:800;font-size:19px;color:#22c55e"></div>
+          <div id="cwDate" style="font-size:12px;color:var(--muted);margin-top:2px"></div>
+        </div>
+        <button onclick="closeClientWelcomePopup()" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--muted);font-size:18px;cursor:pointer;width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center">✕</button>
+      </div>
     </div>
 
-    <div style="padding:20px 22px;max-height:78vh;overflow-y:auto">
+    <div style="padding:18px 22px;max-height:82vh;overflow-y:auto">
 
-      <!-- ── SECCIÓN: PROGRAMA ── -->
-      <div style="margin-bottom:18px">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;font-family:'Syne',sans-serif;margin-bottom:10px">📋 Programa Seleccionado</div>
-        <div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden">
-          <div id="cwProgBadge" style="position:absolute;top:0;left:0;width:4px;height:100%;border-radius:4px 0 0 4px"></div>
-          <div style="padding-left:10px">
-            <div id="cwProgName" style="font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:var(--text);margin-bottom:6px"></div>
-            <div id="cwProgDesc" style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:10px"></div>
-            <div style="display:flex;gap:16px;flex-wrap:wrap">
-              <div style="display:flex;align-items:center;gap:6px">
-                <span style="font-size:13px">💵</span>
-                <div>
-                  <div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Precio</div>
-                  <div id="cwProgPrice" style="font-family:'Syne',sans-serif;font-weight:800;font-size:15px;color:var(--accent)"></div>
-                </div>
-              </div>
-              <div style="display:flex;align-items:center;gap:6px">
-                <span style="font-size:13px">🗓</span>
-                <div>
-                  <div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Duración / Horario</div>
-                  <div id="cwProgDuration" style="font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text)"></div>
-                </div>
-              </div>
-            </div>
+      <!-- ── PROGRAMA ── -->
+      <div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:13px;padding:14px 16px;margin-bottom:16px;position:relative;overflow:hidden">
+        <div id="cwProgBadge" style="position:absolute;top:0;left:0;width:4px;height:100%;border-radius:4px 0 0 4px"></div>
+        <div style="padding-left:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;letter-spacing:.08em;margin-bottom:4px">📋 Programa / Program</div>
+            <div id="cwProgName" style="font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:var(--text)"></div>
+            <div id="cwProgDesc" style="font-size:12px;color:var(--muted);margin-top:3px"></div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:2px">Precio base</div>
+            <div id="cwProgPrice" style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:var(--accent)"></div>
           </div>
         </div>
       </div>
 
-      <!-- ── SECCIÓN: PAGO ── -->
-      <div style="margin-bottom:18px">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;font-family:'Syne',sans-serif;margin-bottom:10px">💳 Realizar Pago</div>
-        <div id="cwPayLinks" style="display:flex;flex-direction:column;gap:8px"></div>
+      <!-- ── FEE NOTICE ── -->
+      <div style="background:rgba(234,179,8,.09);border:1px solid rgba(234,179,8,.3);border-radius:9px;padding:9px 14px;margin-bottom:16px;font-size:12px;color:#fbbf24;font-weight:700;display:flex;align-items:center;gap:8px">
+        💳 Se aplica cargo de conveniencia del <strong>3.50%</strong> a todos los pagos con tarjeta · FL Stat. §501.0117
       </div>
 
-      <!-- ── SECCIÓN: CONTACTAR PARA PAGO ── -->
-      <div style="margin-bottom:18px">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;font-family:'Syne',sans-serif;margin-bottom:10px">📨 Enviar Recordatorio de Pago</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <a id="cwWABtn" href="#" target="_blank" style="flex:1;min-width:110px;display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 14px;border-radius:10px;background:#25D366;color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:12px;text-decoration:none;white-space:nowrap">📲 WhatsApp</a>
-          <a id="cwSMSGVBtn" href="#" target="_blank" style="flex:1;min-width:110px;display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 14px;border-radius:10px;background:#34A853;color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:12px;text-decoration:none;white-space:nowrap">💬 SMS GV</a>
-          <a id="cwSMSMSBtn" href="#" target="_blank" style="flex:1;min-width:110px;display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 14px;border-radius:10px;background:#0078d4;color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:12px;text-decoration:none;white-space:nowrap">💬 SMS MS</a>
+      <!-- ── TABS ── -->
+      <div style="display:flex;border-bottom:1px solid var(--border);margin-bottom:18px">
+        <div id="cw-tab-1" onclick="cwShowStep(1)" style="flex:1;padding:11px 8px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--accent);border-bottom:2px solid var(--accent);cursor:pointer;text-align:center">① Customer</div>
+        <div id="cw-tab-2" onclick="cwShowStep(2)" style="flex:1;padding:11px 8px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;text-align:center">② Payment Details</div>
+        <div id="cw-tab-3" onclick="cwShowStep(3)" style="flex:1;padding:11px 8px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;text-align:center">③ Card Info</div>
+      </div>
+
+      <!-- ── STEP 1: CUSTOMER ── -->
+      <div id="cw-step-1">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div>
+            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">First Name *</label>
+            <input id="cw-fname" type="text" placeholder="First name" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+          </div>
+          <div>
+            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Last Name *</label>
+            <input id="cw-lname" type="text" placeholder="Last name" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+          </div>
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Email</label>
+          <input id="cw-email" type="email" placeholder="customer@email.com" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Phone</label>
+          <input id="cw-phone" type="tel" placeholder="(305) 000-0000" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+        </div>
+        <div style="margin-bottom:16px">
+          <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Notes</label>
+          <textarea id="cw-notes" rows="2" placeholder="Optional notes..." style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none;resize:vertical" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+        </div>
+        <div style="display:flex;justify-content:flex-end">
+          <button onclick="cwShowStep(2)" style="background:var(--accent);color:#000;border:none;border-radius:9px;padding:11px 28px;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;cursor:pointer">Next →</button>
         </div>
       </div>
 
-      <!-- ── CERRAR ── -->
-      <button onclick="closeClientWelcomePopup()" style="width:100%;padding:13px;border-radius:11px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer">Cerrar</button>
-    </div>
+      <!-- ── STEP 2: PAYMENT DETAILS ── -->
+      <div id="cw-step-2" style="display:none">
+        <div style="margin-bottom:12px">
+          <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Name Recurring Payment <span style="color:var(--muted2);font-weight:400;text-transform:none;letter-spacing:0">— visible to customer</span></label>
+          <input id="cw-plan" type="text" placeholder="e.g. Monthly Membership Plan" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div>
+            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Frequency *</label>
+            <select id="cw-frequency" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none;cursor:pointer" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+              <option value="">Please Select</option>
+              <option value="monthly">Monthly</option>
+              <option value="weekly">Weekly</option>
+              <option value="yearly">Yearly</option>
+              <option value="quarterly">Quarterly</option>
+              <option value="daily">Daily</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Amount ($) *</label>
+            <input id="cw-amount" type="number" min="0" step="0.01" placeholder="0.00" oninput="cwCalcFee()" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+          </div>
+        </div>
+
+        <!-- Fee preview -->
+        <div id="cw-fee-box" style="display:none;background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.25);border-radius:9px;padding:10px 14px;margin-bottom:12px;font-size:12px">
+          <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--muted)">Base amount:</span><span id="cw-fee-base" style="font-weight:700"></span></div>
+          <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--muted)">3.50% fee:</span><span id="cw-fee-amt" style="color:#fbbf24;font-weight:700"></span></div>
+          <div style="display:flex;justify-content:space-between;padding:3px 0;border-top:1px solid rgba(234,179,8,.2);margin-top:4px"><span style="font-weight:700">Total charged:</span><span id="cw-fee-total" style="color:var(--accent);font-family:'Syne',sans-serif;font-weight:800;font-size:14px"></span></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div>
+            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Start Date *</label>
+            <input id="cw-startdate" type="date" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+          </div>
+          <div>
+            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">End Date <span style="font-weight:400;text-transform:none">(optional)</span></label>
+            <input id="cw-enddate" type="date" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px">
+          <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Payment Method *</label>
+          <select id="cw-method" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none;cursor:pointer" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+            <option value="">— Select Method —</option>
+            <option value="card">💳 Credit / Debit Card</option>
+            <option value="paypal">💰 PayPal</option>
+            <option value="zelle">💸 Zelle</option>
+            <option value="venmo">💜 Venmo</option>
+            <option value="cashapp">💚 Cash App</option>
+            <option value="stripe">🔵 Stripe</option>
+            <option value="ach">🏦 ACH Transfer</option>
+            <option value="check">📝 Check</option>
+            <option value="cash">💵 Cash / Efectivo</option>
+            <option value="other">🔗 Other</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom:14px">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--text)">
+            <input type="checkbox" id="cw-notify" style="width:15px;height:15px;accent-color:var(--accent)"/> Notify my customer that I set up this recurring payment
+          </label>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;gap:10px">
+          <button onclick="cwShowStep(1)" style="background:transparent;color:var(--muted);border:1.5px solid var(--border);border-radius:9px;padding:10px 20px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer">← Back</button>
+          <button onclick="cwShowStep(3)" style="background:var(--accent);color:#000;border:none;border-radius:9px;padding:10px 28px;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;cursor:pointer">Next →</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 3: CARD INFO ── -->
+      <div id="cw-step-3" style="display:none">
+        <div style="margin-bottom:12px">
+          <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Card Number (no spaces) *</label>
+          <input id="cw-cardnum" type="text" maxlength="19" placeholder="•••• •••• •••• ••••" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none;letter-spacing:.1em" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div>
+            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Expiration Date *</label>
+            <input id="cw-expiry" type="text" maxlength="5" placeholder="MM/YY" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+          </div>
+          <div>
+            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">CVV</label>
+            <input id="cw-cvv" type="text" maxlength="4" placeholder="•••" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+          </div>
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Name (as shown on card) *</label>
+          <input id="cw-cardname" type="text" placeholder="Full name on card" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div>
+            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Billing ZIP *</label>
+            <input id="cw-zip2" type="text" maxlength="10" placeholder="33301" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+          </div>
+          <div>
+            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Billing Country *</label>
+            <select id="cw-country" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none;cursor:pointer" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+              <option value="USA" selected>United States</option>
+              <option value="MEX">Mexico</option><option value="CAN">Canada</option>
+              <option value="GBR">United Kingdom</option><option value="COL">Colombia</option>
+              <option value="ARG">Argentina</option><option value="DOM">Dominican Republic</option>
+              <option value="PRI">Puerto Rico</option><option value="OTHER">Other</option>
+            </select>
+          </div>
+        </div>
+        <div style="background:var(--surface2);border-radius:9px;padding:12px 14px;margin-bottom:14px">
+          <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:var(--text)">
+            <input type="checkbox" id="cw-auth" style="width:15px;height:15px;accent-color:var(--accent);margin-top:2px;flex-shrink:0"/> I have the signed authorization from customer to process this card.
+          </label>
+        </div>
+
+        <div id="cw-error" style="color:var(--danger);font-size:12px;min-height:16px;margin-bottom:8px;font-weight:700"></div>
+
+        <!-- ACTION BUTTONS -->
+        <div style="display:flex;justify-content:space-between;gap:10px;margin-bottom:10px">
+          <button onclick="cwShowStep(2)" style="background:transparent;color:var(--muted);border:1.5px solid var(--border);border-radius:9px;padding:10px 18px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;cursor:pointer">← Back</button>
+          <button onclick="cwSavePayment()" style="flex:1;background:var(--accent);color:#000;border:none;border-radius:9px;padding:11px;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;cursor:pointer">✅ Confirm &amp; Save</button>
+        </div>
+
+        <!-- Document + Cloud buttons -->
+        <div style="border-top:1px solid var(--border);padding-top:12px">
+          <div style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;letter-spacing:.08em;margin-bottom:8px">📄 Generar Documento de Autorización</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button onclick="cwGenerateDoc('es')" style="flex:1;min-width:110px;padding:10px 12px;border-radius:9px;border:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:11px;cursor:pointer">🇪🇸 Español</button>
+            <button onclick="cwGenerateDoc('en')" style="flex:1;min-width:110px;padding:10px 12px;border-radius:9px;border:none;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:11px;cursor:pointer">🇺🇸 English</button>
+            <button onclick="cwSaveToCloud()" style="flex:1;min-width:110px;padding:10px 12px;border-radius:9px;border:none;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:11px;cursor:pointer">☁️ Save to Cloud</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MENSAJERÍA ── -->
+      <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:14px">
+        <div style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;letter-spacing:.08em;margin-bottom:8px">📨 Enviar Recordatorio de Pago</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <a id="cwWABtn"    href="#" target="_blank" style="flex:1;min-width:100px;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:9px;background:#25D366;color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:11px;text-decoration:none;white-space:nowrap">📲 WhatsApp</a>
+          <a id="cwSMSGVBtn" href="#" target="_blank" style="flex:1;min-width:100px;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:9px;background:#34A853;color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:11px;text-decoration:none;white-space:nowrap">💬 SMS GV</a>
+          <a id="cwSMSMSBtn" href="#" target="_blank" style="flex:1;min-width:100px;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:9px;background:#0078d4;color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:11px;text-decoration:none;white-space:nowrap">💬 SMS MS</a>
+        </div>
+      </div>
+
+    </div><!-- /scroll body -->
   </div>
 </div>
 
