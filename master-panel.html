@@ -12,7 +12,7 @@
 <style>
 :root{
   --bg:#0a0a0a; --surface:#141414; --surface2:#1e1e1e; --border:#2a2a2a;
-  --text:#f0f0f0; --muted:#666; --muted2:#444;
+  --text:#f0f0f0; --muted:#888; --muted2:#555;
   --accent:#e8ff3c; --accent2:#3cffd4; --danger:#ff4444; --warn:#f59e0b; --success:#22c55e;
   --radius:12px;
 }
@@ -131,14 +131,14 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .badge-partner-inactive::before{background:var(--muted);}
 
 /* ── MODAL READABILITY FIXES ── */
-#clientWelcomeModal label{color:#d0d0d0 !important;}
+#clientWelcomeModal label{color:#d8d8d8 !important;}
 #clientWelcomeModal input,#clientWelcomeModal select,#clientWelcomeModal textarea{color:#f0f0f0 !important;background:#1e1e1e !important;}
-#clientWelcomeModal input::placeholder,#clientWelcomeModal textarea::placeholder{color:#555 !important;}
-#clientWelcomeModal .cw-field-label{font-size:11px !important;text-transform:uppercase;letter-spacing:.08em;font-weight:700 !important;color:#aaa !important;display:block;margin-bottom:5px}
+#clientWelcomeModal input::placeholder,#clientWelcomeModal textarea::placeholder{color:#666 !important;}
+#clientWelcomeModal .cw-field-label{font-size:11px !important;text-transform:uppercase;letter-spacing:.08em;font-weight:700 !important;color:#bbb !important;display:block;margin-bottom:5px}
 #clientWelcomeModal h2,#clientWelcomeModal h3{color:#f0f0f0 !important;}
-#cw-step-1 label,#cw-step-2 label,#cw-step-3 label,#cw-step-4 label{color:#ccc !important;font-size:13px;}
-#cw-step-1>div label[style*="uppercase"],#cw-step-2>div label[style*="uppercase"],#cw-step-3>div label[style*="uppercase"]{color:#aaa !important;font-size:10px !important;}
-.cw-section-title{font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:#aaa;margin-bottom:8px;display:block}
+#cw-step-1 label,#cw-step-2 label,#cw-step-3 label,#cw-step-4 label{color:#d0d0d0 !important;font-size:13px;}
+#cw-step-1>div label[style*="uppercase"],#cw-step-2>div label[style*="uppercase"],#cw-step-3>div label[style*="uppercase"]{color:#bbb !important;font-size:10px !important;}
+.cw-section-title{font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:#bbb;margin-bottom:8px;display:block}
 
 .qr-modal-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:380px;text-align:center;}
 .qr-modal-box .modal-body{display:flex;flex-direction:column;align-items:center;gap:14px;padding:28px 24px;}
@@ -1160,17 +1160,36 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     <div class="page mod-page" id="page-waiver">
       <div class="page-header"><div class="page-title" data-i18n="pgWaiver">📄 Waiver / Acuerdo</div></div>
       <div style="max-width:700px;padding:0 0 40px">
-        <p style="color:var(--muted);font-size:13px;margin-bottom:16px" id="waiverDesc" data-i18n="waiverDesc">Edita el texto del acuerdo. Usa [NOMBRE_NEGOCIO] para insertar el nombre automáticamente.</p>
+        <!-- Florida Law Info Box -->
+        <div style="background:rgba(59,130,246,.08);border:1.5px solid rgba(59,130,246,.25);border-radius:12px;padding:14px 18px;margin-bottom:18px">
+          <div style="font-size:12px;font-weight:800;color:#60a5fa;margin-bottom:8px;font-family:'Syne',sans-serif">⚖️ Relevo de Responsabilidad — Leyes del Estado de Florida / Liability Waiver — Florida Law</div>
+          <div style="font-size:12px;color:#93c5fd;line-height:1.7">
+            Este waiver está respaldado por las siguientes leyes de Florida:<br/>
+            <strong style="color:#bfdbfe">FL Stat. §768.075</strong> — Limitación de responsabilidad por actividades recreativas y deportivas<br/>
+            <strong style="color:#bfdbfe">FL Stat. §768.81</strong> — Negligencia comparativa (proporcional)<br/>
+            <strong style="color:#bfdbfe">FL Stat. §744.301</strong> — Capacidad legal para contratar<br/>
+            <strong style="color:#bfdbfe">FL Stat. §501.0117</strong> — Cargo de conveniencia en tarjetas (3.50%)<br/>
+            <strong style="color:#bfdbfe">FL Stat. §68.065</strong> — Cargo por pago rechazado/devuelto ($25–$50)
+          </div>
+          <div style="margin-top:10px;font-size:11px;color:#6b7280">
+            📌 <em>Para que el waiver sea válido en Florida debe incluir: nombre del negocio, nombre del firmante, descripción de actividades, reconocimiento voluntario de riesgos, y firma con fecha. El texto puede ser personalizado pero siempre debe estar redactado claramente y sin ambigüedades.</em>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+          <button onclick="waiverLoadTemplate('es')" style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--accent);background:transparent;color:var(--accent);font-size:12px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">📋 Cargar Plantilla ES</button>
+          <button onclick="waiverLoadTemplate('en')" style="padding:7px 14px;border-radius:8px;border:1.5px solid #60a5fa;background:transparent;color:#60a5fa;font-size:12px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">📋 Load Template EN</button>
+        </div>
+        <p style="color:var(--muted);font-size:13px;margin-bottom:16px" id="waiverDesc" data-i18n="waiverDesc">Edita el texto del acuerdo. Usa <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;color:var(--accent)">[NOMBRE_NEGOCIO]</code> para insertar el nombre automáticamente.</p>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
           <div style="color:var(--accent);font-size:12px;font-weight:700">📝 Texto Waiver (ES)</div>
           <button onclick="copyWaiverES2EN()" style="padding:4px 12px;border-radius:14px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:11px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">📋 Copiar ES → EN</button>
         </div>
-        <textarea class="waiver-editor-textarea" id="waiverTextES" placeholder="Escribe el waiver en español..."></textarea>
+        <textarea class="waiver-editor-textarea" id="waiverTextES" placeholder="Escribe el waiver en español... o usa el botón 'Cargar Plantilla ES' arriba."></textarea>
         <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 8px">
           <div style="color:var(--accent);font-size:12px;font-weight:700">📝 Waiver Text (EN)</div>
           <button onclick="copyWaiverEN2ES()" style="padding:4px 12px;border-radius:14px;border:1px solid var(--accent);background:transparent;color:var(--accent);font-size:11px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">📋 Copy EN → ES</button>
         </div>
-        <textarea class="waiver-editor-textarea" id="waiverTextEN" placeholder="Write the waiver in English..."></textarea>
+        <textarea class="waiver-editor-textarea" id="waiverTextEN" placeholder="Write the waiver in English... or use the 'Load Template EN' button above."></textarea>
         <div style="display:flex;gap:8px;margin-top:14px">
           <button onclick="saveWaiverText()" id="waiverSaveBtn" style="flex:2;padding:12px;border-radius:10px;border:none;background:var(--accent);color:#000;font-weight:800;font-size:14px;cursor:pointer;font-family:'Syne',sans-serif" data-i18n="waiverSaveBtn">💾 Guardar Waiver</button>
           <button onclick="clearWaiverText()" id="waiverClearBtn" style="flex:1;padding:12px;border-radius:10px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-weight:700;cursor:pointer;font-family:'Syne',sans-serif" data-i18n="waiverClearBtn">🗑 Borrar</button>
@@ -8096,8 +8115,20 @@ function cwGenerateDoc(lang, docType){
     +'<div class="cite">⚖️ FL Stat. §501.0117 · FL Stat. §68.065 · FDUTPA Ch.501 · FCBA 15 U.S.C. §1666 · Dodd-Frank §1075</div>'
     +(notes?'<div class="row" style="margin-top:8px"><span class="lbl">'+(isES?'Notas / Notes:':'Notes / Notas:')+'</span><span class="val" style="text-align:left">'+notes+'</span></div>':'')
     +sig()
+    +'<div style="background:#f0f4ff;border:1.5px solid #c7d2fe;border-radius:8px;padding:14px 18px;margin-top:18px">'
+    +'<div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#4f46e5;font-weight:800;margin-bottom:10px">⚡ '+(isES?'QuickLinks — Recursos Adicionales':'QuickLinks — Additional Resources')+'</div>'
+    +'<div style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:#374151">'
+    +'<div>📋 '+(isES?'<strong>Cómo configurar un pago recurrente:</strong> Ingrese a su panel de administración → Recurring Payment → Nuevo pago recurrente.':'<strong>How to set up a recurring payment:</strong> Go to your admin panel → Recurring Payment → New recurring payment.')+'</div>'
+    +'<div>📝 '+(isES?'<strong>Formulario de autorización completo:</strong> Este documento sirve como formulario de autorización. El cliente debe firmarlo y conservar una copia.':'<strong>Complete authorization form:</strong> This document serves as the authorization form. Customer must sign and keep a copy.')+'</div>'
+    +'<div>🔍 '+(isES?'<strong>Transacciones recurrentes procesadas:</strong> Consulte el historial de pagos en su panel de administración → Clientes → Historial de pagos.':'<strong>Find processed recurring transactions:</strong> Check payment history in your admin panel → Clients → Payment history.')+'</div>'
+    +'<div style="border-top:1px solid #c7d2fe;margin-top:8px;padding-top:8px;color:#6b7280;font-size:11px">'
+    +'<strong>'+(isES?'Preguntas frecuentes:':'Common Questions:')+'</strong><br/>'
+    +(isES?'• ¿Cuándo se le cobrará a mi cliente? El cobro ocurre en la fecha de inicio configurada y luego según la frecuencia seleccionada.<br/>• ¿Por qué no puedo iniciar el cobro hoy? La fecha de inicio mínima puede variar según el procesador de pagos.<br/>• ¿Qué es una tarjeta comercial (Commercial Card)? Una tarjeta emitida a nombre de una empresa o entidad comercial que puede tener tarifas diferentes.'
+    :'• When will my customer be billed? Billing occurs on the configured start date and then per the selected frequency.<br/>• Why can\'t I start billing today? Minimum start date may vary by payment processor.<br/>• What is a commercial card? A card issued in the name of a business or commercial entity that may have different processing rates.')
+    +'</div>'
+    +'</div></div>'
     +'<div class="footer">'+(isES?'Documento generado por / Document generated by:':'Document generated by / Generado por:')+' <strong>'+biz+'</strong> · '+today+'<br/>'
-    +'<small>QuickLinks: Complete Authorization Form · Set Up Recurring Payment · FL Law Compliance</small></div>';
+    +'<small>Intuit-compatible format · FL Stat. §501.0117 · §68.065 · FDUTPA Ch.501 · Dodd-Frank §1075</small></div>';
 
   // ════════════════════════════════════════════════════════
   // DOC 2 — FLORIDA WAIVER / RELEASE OF LIABILITY
@@ -8224,200 +8255,6 @@ function cwGenerateDoc(lang, docType){
   var win = window.open('','_blank','width=820,height=980');
   if(win){ win.document.write(html); win.document.close(); setTimeout(function(){ win.print(); },500); }
   else showToast('⚠️ '+(isES?'Permite ventanas emergentes para generar documentos':'Allow pop-ups to generate documents'),'var(--warn)');
-}
-  // Gather all data
-  var fname   = (document.getElementById('cw-fname')||{}).value||(_cwReg?_cwReg.firstName:'');
-  var lname   = (document.getElementById('cw-lname')||{}).value||(_cwReg?_cwReg.lastName:'');
-  var email   = (document.getElementById('cw-email')||{}).value||(_cwReg?_cwReg.email:'');
-  var phone   = (document.getElementById('cw-phone')||{}).value||(_cwReg?_cwReg.phone:'');
-  var bizname = (document.getElementById('cw-bizname')||{}).value||(_cwReg?_cwReg.bizName:'');
-  var notes   = (document.getElementById('cw-notes')||{}).value||'';
-  var amt     = parseFloat((document.getElementById('cw-amount')||{}).value)||0;
-  var start   = (document.getElementById('cw-startdate')||{}).value||new Date().toISOString().split('T')[0];
-  var method  = (document.getElementById('cw-method')||{}).value||'—';
-  var otherMethodName = (document.getElementById('cw-other-name')||{}).value||'';
-
-  var progs   = (typeof customProgs !== 'undefined') ? customProgs : [];
-  var prog    = progs.find(function(p){ return p.id===_cwSelectedProg; });
-  var planName= prog ? ((typeof _progLabelMaster==='function')?_progLabelMaster(prog):(prog.nameES||prog.id))
-                     : ((document.getElementById('cw-prog-otro')||{}).value||'—');
-
-  var freqMap = {monthly:{es:'Mensual',en:'Monthly'},quarterly:{es:'Trimestral',en:'Quarterly'},
-                 semiannual:{es:'Semestral',en:'Semiannual'},annual:{es:'Anual',en:'Annual'},
-                 otro:{es:(document.getElementById('cw-plan-otro-name')||{}).value||'Otro',en:(document.getElementById('cw-plan-otro-name')||{}).value||'Other'}};
-  var freq    = _cwPlanFreq||'monthly';
-  var freqLabel = lang==='es' ? (freqMap[freq]||{es:freq}).es : (freqMap[freq]||{en:freq}).en;
-  var methodLabels = {paypal:'PayPal',zelle:'Zelle',venmo:'Venmo',cashapp:'Cash App',stripe:'Stripe',
-                      card:lang==='es'?'Tarjeta de Crédito/Débito':'Credit/Debit Card',
-                      check:lang==='es'?'Cheque':'Check',cash:lang==='es'?'Efectivo':'Cash',
-                      ach:'ACH Transfer',other:otherMethodName||'Otro'};
-  var methodLabel = methodLabels[method]||method;
-
-  var biz     = (typeof _getDisplayNameMaster==='function') ? _getDisplayNameMaster() : (bizname||'CRM Business');
-  var fee     = (amt*0.035).toFixed(2);
-  var total   = (amt*1.035).toFixed(2);
-  var isES    = lang==='es';
-  var today   = new Date().toLocaleDateString(isES?'es-US':'en-US',{year:'numeric',month:'long',day:'numeric'});
-  var fullName= (fname+' '+lname).trim();
-
-  // ── CSS shared ────────────────────────────────────
-  var css = '<style>'
-    +'*{box-sizing:border-box}'
-    +'body{font-family:Arial,sans-serif;max-width:720px;margin:40px auto;padding:0 32px;color:#111;font-size:14px;line-height:1.6}'
-    +'h1{font-size:20px;border-bottom:3px solid #111;padding-bottom:10px;margin-bottom:22px;text-align:center;letter-spacing:.04em}'
-    +'h2{font-size:15px;color:#1a3a5c;border-bottom:2px solid #b8860b;padding-bottom:5px;margin:22px 0 12px}'
-    +'.row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #eee}'
-    +'.lbl{color:#555;font-weight:600;min-width:220px}'
-    +'.val{font-weight:700;text-align:right}'
-    +'.box{border-radius:8px;padding:14px 16px;margin:14px 0;font-size:13px;line-height:1.7}'
-    +'.box-warn{background:#fff8e1;border:1.5px solid #f59e0b}'
-    +'.box-green{background:#f0fdf4;border:1.5px solid #22c55e}'
-    +'.box-blue{background:#eff6ff;border:1.5px solid #3b82f6}'
-    +'.box-red{background:#fef2f2;border:1.5px solid #ef4444}'
-    +'.sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:36px}'
-    +'.sig-line{border-bottom:1.5px solid #333;min-height:36px;margin-bottom:5px}'
-    +'.sig-lbl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.06em}'
-    +'.legal{font-size:11px;color:#999;margin-top:8px}'
-    +'.footer{margin-top:40px;font-size:11px;color:#bbb;text-align:center;border-top:1px solid #eee;padding-top:12px}'
-    +'.stamp{display:inline-block;border:2px solid #16a34a;border-radius:6px;padding:4px 14px;color:#16a34a;font-weight:900;font-size:13px;letter-spacing:.05em;margin-bottom:12px}'
-    +'table{width:100%;border-collapse:collapse;margin:10px 0}'
-    +'th{background:#1a3a5c;color:#fff;padding:8px 12px;text-align:left;font-size:11px;text-transform:uppercase}'
-    +'td{padding:8px 12px;border-bottom:1px solid #eee}'
-    +'tr:nth-child(even) td{background:#f9f9f9}'
-    +'@media print{@page{margin:20mm}body{margin:0}}'
-    +'</style>';
-
-  // ── Header shared ─────────────────────────────────
-  function header(titleES, titleEN){
-    return '<h1>'+(isES?titleES:titleEN)+'</h1>'
-      +'<div class="row"><span class="lbl">'+(isES?'Empresa / Organización:':'Business / Organization:')+'</span><span class="val">'+biz+'</span></div>'
-      +'<div class="row"><span class="lbl">'+(isES?'Cliente / Nombre completo:':'Customer / Full Name:')+'</span><span class="val">'+fullName+'</span></div>'
-      +'<div class="row"><span class="lbl">'+(isES?'Correo electrónico:':'Email:')+'</span><span class="val">'+email+'</span></div>'
-      +'<div class="row"><span class="lbl">'+(isES?'Teléfono:':'Phone:')+'</span><span class="val">'+phone+'</span></div>'
-      +'<div class="row"><span class="lbl">'+(isES?'Fecha del documento:':'Document Date:')+'</span><span class="val">'+today+'</span></div>';
-  }
-
-  // ── Signature block ───────────────────────────────
-  function sigBlock(){
-    return '<div class="sig-grid">'
-      +'<div><div class="sig-line"></div><div class="sig-lbl">'+(isES?'Firma del Cliente':'Customer Signature')+'</div></div>'
-      +'<div><div class="sig-line"></div><div class="sig-lbl">'+(isES?'Nombre (Letra de molde)':'Print Name')+'</div></div>'
-      +'<div><div class="sig-line"></div><div class="sig-lbl">'+(isES?'Fecha':'Date')+'</div></div>'
-      +'<div><div class="sig-line"></div><div class="sig-lbl">'+(isES?'Representante Autorizado':'Authorized Representative')+'</div></div>'
-      +'</div>';
-  }
-
-  var body = '';
-  var docTitle = '';
-
-  if(!docType || docType==='auth'){
-    // ── AUTORIZACIÓN DE PAGO RECURRENTE ───────────────
-    docTitle = isES ? 'AUTORIZACIÓN DE PAGO RECURRENTE' : 'RECURRING PAYMENT AUTHORIZATION';
-    body = header(docTitle, docTitle)
-      +'<h2>'+(isES?'Detalles del Servicio':'Service Details')+'</h2>'
-      +'<div class="row"><span class="lbl">'+(isES?'Programa / Servicio:':'Program / Service:')+'</span><span class="val">'+planName+'</span></div>'
-      +'<div class="row"><span class="lbl">'+(isES?'Frecuencia de cobro:':'Billing Frequency:')+'</span><span class="val">'+freqLabel+'</span></div>'
-      +'<div class="row"><span class="lbl">'+(isES?'Fecha de inicio:':'Start Date:')+'</span><span class="val">'+start+'</span></div>'
-      +'<div class="row"><span class="lbl">'+(isES?'Método de pago:':'Payment Method:')+'</span><span class="val">'+methodLabel+'</span></div>'
-      +'<h2>'+(isES?'Resumen de Cargos':'Charge Summary')+'</h2>'
-      +'<table><tr><th>'+(isES?'Concepto':'Item')+'</th><th>'+(isES?'Monto':'Amount')+'</th></tr>'
-      +'<tr><td>'+(isES?'Monto base del servicio':'Base service amount')+'</td><td><b>$'+amt.toFixed(2)+'</b></td></tr>'
-      +'<tr><td>'+(isES?'Cargo por conveniencia (3.50%) · FL Stat. §501.0117':'Convenience fee (3.50%) · FL Stat. §501.0117')+'</td><td style="color:#b45309"><b>$'+fee+'</b></td></tr>'
-      +'<tr style="background:#f0fdf4"><td style="font-weight:900;color:#166534">'+(isES?'TOTAL A COBRAR':'TOTAL CHARGED')+'</td><td style="font-weight:900;color:#16a34a;font-size:16px">$'+total+'</td></tr>'
-      +'</table>'
-      +'<div class="box box-warn"><b>'+(isES?'Pago Rechazado / Tarjeta Declinada:':'Declined / Returned Payment:')+'</b><br/>'
-      +(isES?'Si su pago es rechazado o devuelto, se aplicará automáticamente un cargo de <b>$25–$50</b> según el motivo, conforme a FL Stat. §68.065. Tiene 3–5 días hábiles para regularizar.'
-            :'If your payment is declined or returned for any reason, a fee of <b>$25–$50</b> applies automatically per FL Stat. §68.065. You have 3–5 business days to cure.')+'</div>'
-      +'<div class="box box-green"><b>'+(isES?'Autorización:':'Authorization:')+'</b><br/>'
-      +(isES?'Yo, el/la abajo firmante, autorizo a <b>'+biz+'</b> a realizar cargos recurrentes a mi método de pago por el monto y frecuencia indicados. Entiendo que se aplica un cargo adicional del 3.50% (FL Stat. §501.0117). Este acuerdo permanece vigente hasta su cancelación por escrito con 30 días de anticipación. Autorizo cargos según el calendario acordado.'
-            :'I, the undersigned, authorize <b>'+biz+'</b> to charge my payment method on a recurring basis at the amount and frequency described above. I understand a 3.50% convenience fee applies per FL Stat. §501.0117. This agreement remains in effect until cancelled in writing with 30 days notice.')+'</div>'
-      +(notes?'<div class="row"><span class="lbl">'+(isES?'Notas:':'Notes:')+'</span><span class="val" style="text-align:left;max-width:380px">'+notes+'</span></div>':'')
-      +'<div class="legal">⚖️ FL Stat. §501.0117 · §68.065 · FDUTPA Ch.501 · FCBA 15 U.S.C. §1666 · Dodd-Frank §1075</div>'
-      +sigBlock()
-      +'<div class="footer">'+(isES?'Documento generado por':'Document generated by')+' '+biz+' · '+today+'</div>';
-
-  } else if(docType==='waiver'){
-    // ── WAIVER ────────────────────────────────────────
-    docTitle = isES ? 'EXENCIÓN DE RESPONSABILIDAD / WAIVER' : 'LIABILITY WAIVER / RELEASE OF LIABILITY';
-    var waiverText = '';
-    try {
-      waiverText = isES
-        ? (document.getElementById('waiverTextES')||{}).value||''
-        : (document.getElementById('waiverTextEN')||{}).value||'';
-    } catch(e){}
-    if(!waiverText) waiverText = isES
-      ? 'Yo, '+fullName+', me inscribo voluntariamente en el programa indicado y acepto cumplir con todas las normas y reglamentos. Entiendo que la participación puede implicar actividades físicas y acepto los riesgos inherentes. Exonero a '+biz+' y a sus representantes de toda responsabilidad por lesiones, daños o pérdidas que pudieran ocurrir durante la participación, salvo negligencia grave. Autorizo a la organización a usar mi información para comunicación y gestión de membresía.'
-      : 'I, '+fullName+', voluntarily enroll in the indicated program and agree to comply with all rules and regulations. I understand that participation may involve physical activities and I accept the inherent risks. I release '+biz+' and its representatives from any liability for injuries, damages, or losses that may occur during participation, except for gross negligence. I authorize the organization to use my information for communication and membership management.';
-    body = header(docTitle, docTitle)
-      +'<h2>'+(isES?'Detalles del Programa':'Program Details')+'</h2>'
-      +'<div class="row"><span class="lbl">'+(isES?'Programa / Servicio:':'Program / Service:')+'</span><span class="val">'+planName+'</span></div>'
-      +'<div class="row"><span class="lbl">'+(isES?'Fecha de inicio:':'Start Date:')+'</span><span class="val">'+start+'</span></div>'
-      +'<h2>'+(isES?'Términos y Condiciones':'Terms & Conditions')+'</h2>'
-      +'<div class="box box-blue" style="white-space:pre-wrap">'+waiverText+'</div>'
-      +'<div class="box box-warn"><b>'+(isES?'Política de Pagos incluida:':'Payment Policy included:')+'</b><br/>'
-      +(isES?'Se aplica cargo de conveniencia del <b>3.50%</b> en todos los pagos. Pago rechazado: <b>$25–$50</b>. FL Stat. §501.0117 · §68.065'
-            :'A <b>3.50%</b> convenience fee applies to all payments. Declined payment fee: <b>$25–$50</b>. FL Stat. §501.0117 · §68.065')+'</div>'
-      +sigBlock()
-      +'<div class="footer">'+(isES?'Documento generado por':'Document generated by')+' '+biz+' · '+today+'</div>';
-
-  } else if(docType==='contrato'){
-    // ── CONTRATO DE MEMBRESÍA ─────────────────────────
-    docTitle = isES ? 'CONTRATO DE MEMBRESÍA' : 'MEMBERSHIP AGREEMENT';
-    body = header(docTitle, docTitle)
-      +'<h2>1. '+(isES?'Objeto del Contrato':'Agreement Purpose')+'</h2>'
-      +'<p>'+(isES?'Este contrato establece los términos y condiciones de la membresía de <b>'+fullName+'</b> en <b>'+biz+'</b> para el programa <b>'+planName+'</b>, con vigencia a partir del <b>'+start+'</b>.'
-                  :'This agreement sets forth the terms and conditions of membership for <b>'+fullName+'</b> at <b>'+biz+'</b> for the program <b>'+planName+'</b>, effective as of <b>'+start+'</b>.')+'</p>'
-      +'<h2>2. '+(isES?'Términos de Pago':'Payment Terms')+'</h2>'
-      +'<table><tr><th>'+(isES?'Concepto':'Item')+'</th><th>'+(isES?'Detalle':'Detail')+'</th></tr>'
-      +'<tr><td>'+(isES?'Plan':'Plan')+'</td><td><b>'+planName+'</b></td></tr>'
-      +'<tr><td>'+(isES?'Frecuencia':'Frequency')+'</td><td><b>'+freqLabel+'</b></td></tr>'
-      +'<tr><td>'+(isES?'Monto base':'Base amount')+'</td><td><b>$'+amt.toFixed(2)+'</b></td></tr>'
-      +'<tr><td>'+(isES?'Cargo conveniencia (3.50%)':'Convenience fee (3.50%)')+'</td><td><b>$'+fee+'</b></td></tr>'
-      +'<tr style="background:#f0fdf4"><td style="font-weight:900;color:#166534">'+(isES?'Total':'Total')+'</td><td style="font-weight:900;color:#16a34a">$'+total+'</td></tr>'
-      +'<tr><td>'+(isES?'Método de pago':'Payment method')+'</td><td><b>'+methodLabel+'</b></td></tr>'
-      +'</table>'
-      +'<h2>3. '+(isES?'Política de Pagos':'Payment Policy')+'</h2>'
-      +'<div class="box box-warn">'
-      +(isES?'<b>Cargo por conveniencia:</b> El 3.50% se aplica a TODOS los pagos (FL Stat. §501.0117).<br/><b>Pago rechazado:</b> Se aplicará un cargo de $25–$50 según el motivo (FL Stat. §68.065). Plazo de 3–5 días para regularizar. El incumplimiento resulta en suspensión inmediata del servicio.'
-            :'<b>Convenience fee:</b> 3.50% applies to ALL payments (FL Stat. §501.0117).<br/><b>Declined payment:</b> A $25–$50 fee applies based on reason (FL Stat. §68.065). 3–5 business days to cure. Non-payment results in immediate service suspension.')+'</div>'
-      +'<h2>4. '+(isES?'Cancelación':'Cancellation')+'</h2>'
-      +'<p>'+(isES?'Cualquiera de las partes puede cancelar este contrato con 30 días de aviso por escrito. Los pagos ya realizados no son reembolsables salvo acuerdo escrito.'
-                  :'Either party may cancel this agreement with 30 days written notice. Payments already made are non-refundable unless otherwise agreed in writing.')+'</p>'
-      +'<div class="legal">⚖️ FL Stat. §501.0117 · §68.065 · FDUTPA Ch.501 · Dodd-Frank §1075</div>'
-      +sigBlock()
-      +'<div class="footer">'+(isES?'Documento generado por':'Document generated by')+' '+biz+' · '+today+'</div>';
-
-  } else if(docType==='health'){
-    // ── FORMULARIO DE SALUD ───────────────────────────
-    docTitle = isES ? 'FORMULARIO DE HISTORIAL DE SALUD' : 'HEALTH HISTORY FORM';
-    body = header(docTitle, docTitle)
-      +'<h2>'+(isES?'Información de Salud General':'General Health Information')+'</h2>'
-      +'<table>'
-      +'<tr><td style="width:60%">'+(isES?'¿Padece alguna condición médica actualmente?':'Do you have any current medical conditions?')+'</td><td>☐ '+(isES?'Sí / Yes':'Yes')+'&nbsp;&nbsp;☐ '+(isES?'No':'No')+'</td></tr>'
-      +'<tr><td>'+(isES?'¿Toma algún medicamento?':'Are you currently taking any medications?')+'</td><td>☐ '+(isES?'Sí':'Yes')+'&nbsp;&nbsp;☐ No</td></tr>'
-      +'<tr><td>'+(isES?'¿Ha tenido cirugías o lesiones recientes?':'Have you had recent surgeries or injuries?')+'</td><td>☐ '+(isES?'Sí':'Yes')+'&nbsp;&nbsp;☐ No</td></tr>'
-      +'<tr><td>'+(isES?'¿Tiene alergias conocidas?':'Do you have any known allergies?')+'</td><td>☐ '+(isES?'Sí':'Yes')+'&nbsp;&nbsp;☐ No</td></tr>'
-      +'<tr><td>'+(isES?'¿Tiene alguna restricción física?':'Do you have any physical restrictions?')+'</td><td>☐ '+(isES?'Sí':'Yes')+'&nbsp;&nbsp;☐ No</td></tr>'
-      +'</table>'
-      +'<h2>'+(isES?'Si respondió Sí, por favor explique:':'If you answered Yes, please explain:')+'</h2>'
-      +'<div style="border:1px solid #ccc;border-radius:6px;padding:10px;min-height:80px;margin-bottom:14px"></div>'
-      +'<h2>'+(isES?'Contacto de Emergencia':'Emergency Contact')+'</h2>'
-      +'<table>'
-      +'<tr><td style="width:40%">'+(isES?'Nombre completo:':'Full name:')+'</td><td style="border-bottom:1px solid #ccc;min-width:200px">&nbsp;</td></tr>'
-      +'<tr><td>'+(isES?'Parentesco:':'Relationship:')+'</td><td style="border-bottom:1px solid #ccc">&nbsp;</td></tr>'
-      +'<tr><td>'+(isES?'Teléfono:':'Phone:')+'</td><td style="border-bottom:1px solid #ccc">&nbsp;</td></tr>'
-      +'</table>'
-      +'<div class="box box-green" style="margin-top:16px">'
-      +(isES?'Al firmar, confirmo que la información proporcionada es correcta y autorizo a '+biz+' a contactar a mi persona de emergencia si fuera necesario.'
-            :'By signing, I confirm the information provided is accurate and authorize '+biz+' to contact my emergency contact if necessary.')+'</div>'
-      +sigBlock()
-      +'<div class="footer">'+(isES?'Documento generado por':'Document generated by')+' '+biz+' · '+today+'</div>';
-  }
-
-  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"/>'+css+'</head><body>'+body+'</body></html>';
-  var win = window.open('','_blank','width=800,height=960');
-  if(win){ win.document.write(html); win.document.close(); setTimeout(function(){ win.print(); },500); }
-  else showToast('⚠️ '+(lang==='es'?'Permite popups para generar documentos':'Allow popups to generate documents'),'var(--warn)');
 }
 
 function cwSaveToCloud(){
@@ -8615,6 +8452,65 @@ function copyWaiverEN2ES(){
   var es = document.getElementById('waiverTextES');
   var en = document.getElementById('waiverTextEN');
   if(es&&en){ es.value=en.value; waiverTextES=en.value; showToast('📋','Copiado EN → ES'); }
+}
+function waiverLoadTemplate(lang){
+  var biz = (typeof _getDisplayNameMaster==='function') ? _getDisplayNameMaster() : '[NOMBRE_NEGOCIO]';
+  var today = new Date().toLocaleDateString('es-US',{year:'numeric',month:'long',day:'numeric'});
+  if(lang==='es'){
+    var tmpl =
+'EXENCIÓN Y RELEVO DE RESPONSABILIDAD\n'+
+'[NOMBRE_NEGOCIO]\n\n'+
+'Yo, el(la) abajo firmante, voluntariamente me inscribo y participo en las actividades, clases y programas ofrecidos por [NOMBRE_NEGOCIO] (en adelante "la Organización"). Al firmar este documento, reconozco y acepto lo siguiente:\n\n'+
+'1. RECONOCIMIENTO VOLUNTARIO DE RIESGOS\n'+
+'Entiendo que la participación en actividades físicas, deportivas o de entrenamiento conlleva riesgos inherentes, incluyendo pero no limitado a: lesiones físicas, esguinces, fracturas, contusiones, accidentes o daños a la propiedad. Reconozco que estos riesgos existen incluso cuando las actividades son supervisadas por instructores certificados y que las instalaciones se mantienen en condiciones adecuadas.\n\n'+
+'2. RELEVO DE RESPONSABILIDAD (FL Stat. §768.075 · §768.81)\n'+
+'Por medio del presente, en consideración de mi participación, libero, exonero y exculpo a [NOMBRE_NEGOCIO], sus propietarios, empleados, entrenadores, agentes, voluntarios y representantes de toda responsabilidad, reclamo, demanda, acción legal o daño —ya sea por negligencia ordinaria o de otro tipo— que pueda surgir de mi participación en las actividades de la Organización, EXCEPTO en casos de negligencia grave o conducta dolosa comprobada según las leyes del Estado de Florida.\n\n'+
+'3. ACUERDO DE NO DEMANDAR\n'+
+'Me comprometo a no iniciar ninguna acción legal, queja o demanda contra [NOMBRE_NEGOCIO] por lesiones, pérdidas, gastos médicos o daños de cualquier naturaleza sufridos durante mi participación en las actividades de la Organización.\n\n'+
+'4. APTITUD FÍSICA Y ESTADO DE SALUD\n'+
+'Declaro bajo juramento que me encuentro en condiciones físicas y mentales adecuadas para participar en las actividades del programa inscrito. No tengo condiciones médicas conocidas que contraindiquen mi participación. En caso de duda o condición preexistente, me comprometo a consultar con un médico calificado antes de iniciar.\n\n'+
+'5. RESPONSABILIDAD POR MENORES (FL Stat. §744.301)\n'+
+'Si este waiver aplica a un menor de 18 años, el padre, madre o tutor legal firma en representación del menor, asumiendo toda responsabilidad y autorizando la participación.\n\n'+
+'6. USO DE IMAGEN Y DERECHOS MULTIMEDIA\n'+
+'Autorizo a [NOMBRE_NEGOCIO] a capturar y utilizar fotografías, videos, grabaciones de audio e imágenes de mi persona durante las actividades, con fines promocionales, educativos e informativos, sin compensación económica y sin restricción geográfica ni temporal.\n\n'+
+'7. POLÍTICA DE PAGOS (FL Stat. §501.0117 · §68.065)\n'+
+'Reconozco y acepto que [NOMBRE_NEGOCIO] aplica un cargo de conveniencia del 3.50% a todos los pagos realizados con tarjeta de crédito o débito, conforme a FL Stat. §501.0117. Los pagos rechazados o devueltos generarán un cargo adicional de $25 a $50 según la causa, conforme a FL Stat. §68.065, con un plazo de 3 a 5 días hábiles para regularizar el pago. El incumplimiento resultará en suspensión inmediata del servicio.\n\n'+
+'8. ACUERDO VINCULANTE\n'+
+'He leído, entendido y acepto voluntariamente todos los términos de este documento. Reconozco que constituye un acuerdo legalmente vinculante conforme a las leyes del Estado de Florida y que su firma implica la renuncia a ciertos derechos legales.\n\n'+
+'⚖️ Leyes aplicables: FL Stat. §768.075 · §768.81 · §744.301 · §501.0117 · §68.065 · FDUTPA Cap. 501\n\n'+
+'________________________________________\nFirma del Participante / Padre o Tutor\n\n'+
+'________________________________________\nNombre completo en letra de molde\n\n'+
+'Fecha: ___________________\n';
+    var el = document.getElementById('waiverTextES');
+    if(el){ el.value=tmpl; waiverTextES=tmpl; showToast('📋','Plantilla ES cargada'); }
+  } else {
+    var tmpl2 =
+'WAIVER & RELEASE OF LIABILITY\n'+
+'[NOMBRE_NEGOCIO]\n\n'+
+'I, the undersigned, voluntarily enroll and participate in the activities, classes and programs offered by [NOMBRE_NEGOCIO] (hereinafter "the Organization"). By signing this document, I acknowledge and agree to the following:\n\n'+
+'1. VOLUNTARY ASSUMPTION OF RISK\n'+
+'I understand that participation in physical, sports or training activities involves inherent risks, including but not limited to: physical injuries, sprains, fractures, bruises, accidents or property damage. I acknowledge these risks exist even when activities are supervised by certified instructors and facilities are properly maintained.\n\n'+
+'2. RELEASE OF LIABILITY (FL Stat. §768.075 · §768.81)\n'+
+'In consideration of my participation, I hereby release, waive, discharge and covenant not to sue [NOMBRE_NEGOCIO], its owners, employees, coaches, agents, volunteers and representatives from all liability, claims, demands, actions or damages — whether due to ordinary negligence or otherwise — arising from my participation in the Organization\'s activities, EXCEPT in cases of gross negligence or willful misconduct as defined under Florida law.\n\n'+
+'3. COVENANT NOT TO SUE\n'+
+'I agree not to initiate any legal action, complaint or lawsuit against [NOMBRE_NEGOCIO] for injuries, losses, medical expenses or damages of any nature sustained during my participation in the Organization\'s activities.\n\n'+
+'4. PHYSICAL FITNESS AND HEALTH CONDITION\n'+
+'I declare that I am in adequate physical and mental condition to participate in the enrolled program\'s activities. I have no known medical conditions that would prevent participation. If uncertain or if I have a pre-existing condition, I agree to consult a qualified physician before beginning.\n\n'+
+'5. PARENTAL RESPONSIBILITY (FL Stat. §744.301)\n'+
+'If this waiver applies to a minor under 18 years of age, the parent or legal guardian signs on behalf of the minor, assuming all responsibility and authorizing participation.\n\n'+
+'6. IMAGE RELEASE AND MULTIMEDIA RIGHTS\n'+
+'I authorize [NOMBRE_NEGOCIO] to capture and use photographs, videos, audio recordings and images of me during activities for promotional, educational and informational purposes, without monetary compensation and without geographic or time restrictions.\n\n'+
+'7. PAYMENT POLICY (FL Stat. §501.0117 · §68.065)\n'+
+'I acknowledge and agree that [NOMBRE_NEGOCIO] applies a 3.50% convenience fee to all payments made by credit or debit card pursuant to FL Stat. §501.0117. Declined or returned payments will incur an additional fee of $25 to $50 depending on the reason, pursuant to FL Stat. §68.065, with a 3 to 5 business day cure period. Non-payment will result in immediate service suspension.\n\n'+
+'8. BINDING AGREEMENT\n'+
+'I have read, understood and voluntarily agree to all terms of this document. I acknowledge it constitutes a legally binding agreement under Florida law and that signing waives certain legal rights.\n\n'+
+'⚖️ Applicable laws: FL Stat. §768.075 · §768.81 · §744.301 · §501.0117 · §68.065 · FDUTPA Ch. 501\n\n'+
+'________________________________________\nParticipant Signature / Parent or Guardian\n\n'+
+'________________________________________\nPrint Full Name\n\n'+
+'Date: ___________________\n';
+    var el2 = document.getElementById('waiverTextEN');
+    if(el2){ el2.value=tmpl2; waiverTextEN=tmpl2; showToast('📋','Template EN loaded'); }
+  }
 }
 
 // ── ANUNCIOS IA (Gemini) ──────────────────────────────────────
@@ -10729,7 +10625,7 @@ async function savePaymentActivation(activate){
           </div>
           <div>
             <label style="font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#aaa;font-weight:700;display:block;margin-bottom:6px">Teléfono / Phone</label>
-            <input id="cw-phone" tabindex="4" type="tel" placeholder="(954) 000-0000" autocomplete="tel" maxlength="14"
+            <input id="cw-phone" tabindex="4" type="tel" placeholder="(954) 000-0000" autocomplete="tel" maxlength="15"
               style="width:100%;background:#1e1e1e;border:1.5px solid #333;border-radius:9px;padding:11px 13px;color:#f0f0f0;font-size:14px;outline:none;transition:border-color .2s;letter-spacing:.03em"
               onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='#333'"
               oninput="cwFormatPhone(this)"
@@ -11014,12 +10910,13 @@ async function savePaymentActivation(activate){
 <script>
 // ── Phone auto-format (954) 380-0134 ──────────────────────
 function cwFormatPhone(input){
-  var digits = input.value.replace(/\D/g,'').substring(0,10);
+  var digits = input.value.replace(/\D/g,'').substring(0,11);
   var fmt = '';
   if(digits.length === 0){ fmt = ''; }
   else if(digits.length <= 3){ fmt = '('+digits; }
   else if(digits.length <= 6){ fmt = '('+digits.substring(0,3)+') '+digits.substring(3); }
-  else { fmt = '('+digits.substring(0,3)+') '+digits.substring(3,6)+'-'+digits.substring(6); }
+  else if(digits.length <= 10){ fmt = '('+digits.substring(0,3)+') '+digits.substring(3,6)+'-'+digits.substring(6); }
+  else { fmt = '('+digits.substring(0,3)+') '+digits.substring(3,6)+'-'+digits.substring(6,10)+digits.substring(10); }
   input.value = fmt;
 }
 
