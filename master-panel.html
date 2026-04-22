@@ -130,7 +130,16 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .badge-partner-inactive{background:rgba(102,102,102,.15);color:var(--muted);}
 .badge-partner-inactive::before{background:var(--muted);}
 
-/* PARTNER QR MODAL */
+/* ── MODAL READABILITY FIXES ── */
+#clientWelcomeModal label{color:#d0d0d0 !important;}
+#clientWelcomeModal input,#clientWelcomeModal select,#clientWelcomeModal textarea{color:#f0f0f0 !important;background:#1e1e1e !important;}
+#clientWelcomeModal input::placeholder,#clientWelcomeModal textarea::placeholder{color:#555 !important;}
+#clientWelcomeModal .cw-field-label{font-size:11px !important;text-transform:uppercase;letter-spacing:.08em;font-weight:700 !important;color:#aaa !important;display:block;margin-bottom:5px}
+#clientWelcomeModal h2,#clientWelcomeModal h3{color:#f0f0f0 !important;}
+#cw-step-1 label,#cw-step-2 label,#cw-step-3 label,#cw-step-4 label{color:#ccc !important;font-size:13px;}
+#cw-step-1>div label[style*="uppercase"],#cw-step-2>div label[style*="uppercase"],#cw-step-3>div label[style*="uppercase"]{color:#aaa !important;font-size:10px !important;}
+.cw-section-title{font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:#aaa;margin-bottom:8px;display:block}
+
 .qr-modal-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:380px;text-align:center;}
 .qr-modal-box .modal-body{display:flex;flex-direction:column;align-items:center;gap:14px;padding:28px 24px;}
 .qr-biz-name{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;}
@@ -7808,7 +7817,7 @@ function closeClientWelcomePopup(){
 
 function cwShowStep(n){
   _cwStep = n;
-  [1,2,3].forEach(function(i){
+  [1,2,3,4].forEach(function(i){
     var s = document.getElementById('cw-step-'+i);
     var t = document.getElementById('cw-tab-'+i);
     if(s) s.style.display = i===n ? '' : 'none';
@@ -7837,145 +7846,295 @@ function cwCalcFee(){
 }
 
 function cwSavePayment(){
-  var fname  = document.getElementById('cw-fname').value.trim();
-  var lname  = document.getElementById('cw-lname').value.trim();
-  var email  = document.getElementById('cw-email').value.trim();
-  var plan   = document.getElementById('cw-plan').value.trim();
-  var amt    = parseFloat(document.getElementById('cw-amount').value)||0;
-  var freq   = document.getElementById('cw-frequency').value;
-  var start  = document.getElementById('cw-startdate').value;
-  var method = document.getElementById('cw-method').value;
-  var errEl  = document.getElementById('cw-error');
-  errEl.textContent='';
+  var fname  = (document.getElementById('cw-fname')||{}).value||'';
+  var lname  = (document.getElementById('cw-lname')||{}).value||'';
+  var email  = (document.getElementById('cw-email')||{}).value||'';
+  var phone  = (document.getElementById('cw-phone')||{}).value||'';
+  var bizname= (document.getElementById('cw-bizname')||{}).value||'';
+  var biztype= (document.getElementById('cw-biztype')||{}).value||'';
+  var notes  = (document.getElementById('cw-notes')||{}).value||'';
+  var amt    = parseFloat((document.getElementById('cw-amount')||{}).value)||0;
+  var start  = (document.getElementById('cw-startdate')||{}).value||new Date().toISOString().split('T')[0];
+  var method = (document.getElementById('cw-method')||{}).value||'';
+  var errEl  = document.getElementById('cw-final-error')||document.getElementById('cw-error');
 
-  if(!fname||!lname){ errEl.textContent='❌ First and last name required.'; cwShowStep(1); return; }
-  if(!amt||!freq||!start){ errEl.textContent='❌ Amount, frequency and start date required.'; cwShowStep(2); return; }
-  if(!method){ errEl.textContent='❌ Select a payment method.'; cwShowStep(2); return; }
+  // Programa
+  var progs  = (typeof customProgs !== 'undefined') ? customProgs : [];
+  var prog   = progs.find(function(p){ return p.id===_cwSelectedProg; });
+  var planName = prog ? ((typeof _progLabelMaster==='function')?_progLabelMaster(prog):(prog.nameES||prog.id))
+                      : ((document.getElementById('cw-prog-otro')||{}).value||'');
+  // Frecuencia
+  var freqMap2 = {monthly:'Mensual/Monthly',quarterly:'Trimestral/Quarterly',semiannual:'Semestral/Semiannual',annual:'Anual/Annual',otro:(document.getElementById('cw-plan-otro-name')||{}).value||'Otro'};
+  var freqLabel = freqMap2[_cwPlanFreq||'monthly'];
 
-  // Save into recurring payments list
+  fname = fname.trim(); lname = lname.trim();
+  if(!fname||!lname){
+    if(errEl) errEl.textContent='❌ Nombre y apellido son requeridos.';
+    cwShowStep(1); return;
+  }
+  if(!planName||!amt||!start){
+    if(errEl) errEl.textContent='❌ Selecciona programa, monto y fecha de inicio.';
+    cwShowStep(2); return;
+  }
+  if(!method){
+    if(errEl) errEl.textContent='❌ Selecciona un método de pago.';
+    cwShowStep(3); return;
+  }
+  if(errEl) errEl.textContent='';
+
   var rec = {
     id:        'REC-'+Date.now().toString(36).toUpperCase(),
     customer:  fname+' '+lname,
     email:     email,
-    plan:      plan,
+    phone:     phone,
+    bizName:   bizname,
+    bizType:   biztype,
+    plan:      planName,
+    frequency: _cwPlanFreq||'monthly',
+    freqLabel: freqLabel,
     amount:    amt,
     fee:       parseFloat((amt*0.035).toFixed(2)),
     total:     parseFloat((amt*1.035).toFixed(2)),
-    frequency: freq,
     startDate: start,
-    endDate:   document.getElementById('cw-enddate').value||'',
     method:    method,
-    cardLast4: (document.getElementById('cw-cardnum').value||'').replace(/\s/g,'').slice(-4)||'',
-    cardName:  document.getElementById('cw-cardname').value||'',
-    zip:       document.getElementById('cw-zip2').value||'',
-    notes:     document.getElementById('cw-notes').value||'',
-    notify:    document.getElementById('cw-notify').checked,
-    authSigned:document.getElementById('cw-auth').checked,
+    otherMethodName: (document.getElementById('cw-other-name')||{}).value||'',
+    otherMethodLink: (document.getElementById('cw-other-link')||{}).value||'',
+    cardLast4: ((document.getElementById('cw-cardnum')||{}).value||'').replace(/\s/g,'').slice(-4)||'',
+    cardName:  (document.getElementById('cw-cardname')||{}).value||'',
+    zip:       (document.getElementById('cw-zip2')||{}).value||'',
+    notes:     notes,
+    relation:  _cwRelation||'cliente',
+    avatarData:_cwAvatarData||'',
+    authSigned:(document.getElementById('cw-auth')||{}).checked||false,
+    policyAccepted:(document.getElementById('cw-policy-accept')||{}).checked||false,
     createdAt: new Date().toISOString(),
-    clientId:  _cwReg ? _cwReg.id : ''
+    clientId:  _cwReg ? _cwReg.id : 'CLI-'+Date.now().toString(36).toUpperCase()
   };
 
-  // Store in Firebase or local
+  // Save recurring payment
   if(!_demoMode && _fbdb){
     _fbdb.ref('recurringPayments/'+rec.id).set(rec);
-  } else {
-    try{
-      var existing = JSON.parse(localStorage.getItem('recurringPayments')||'[]');
-      existing.push(rec);
-      localStorage.setItem('recurringPayments', JSON.stringify(existing));
-    }catch(e){}
   }
 
-  showToast('✅ Recurring payment saved for '+rec.customer+'!');
+  // Update client record with new info
+  if(_cwReg){
+    _cwReg.bizName   = bizname||_cwReg.bizName;
+    _cwReg.bizType   = biztype||_cwReg.bizType;
+    _cwReg.plan      = planName;
+    _cwReg.payMethod = method;
+    _cwReg.profileType = _cwRelation||_cwReg.profileType;
+    _cwReg.avatarData  = rec.avatarData;
+    if(!_demoMode && _fbdb)
+      _fbdb.ref('registrations/'+_cwReg.id).update({bizName:_cwReg.bizName,bizType:_cwReg.bizType,plan:planName,payMethod:method,profileType:_cwReg.profileType,avatarData:rec.avatarData});
+  }
+
+  renderClients();
+  showToast('✅ Cliente creado y pago guardado — '+rec.customer);
   closeClientWelcomePopup();
 }
 
-function cwGenerateDoc(lang){
-  var fname  = document.getElementById('cw-fname').value.trim()||(_cwReg?_cwReg.firstName:'');
-  var lname  = document.getElementById('cw-lname').value.trim()||(_cwReg?_cwReg.lastName:'');
-  var email  = document.getElementById('cw-email').value.trim()||(_cwReg?_cwReg.email:'');
-  var plan   = document.getElementById('cw-plan').value.trim();
-  var amt    = parseFloat(document.getElementById('cw-amount').value)||0;
-  var freq   = document.getElementById('cw-frequency').value||'monthly';
-  var start  = document.getElementById('cw-startdate').value||new Date().toISOString().split('T')[0];
-  var method = document.getElementById('cw-method').value||'—';
-  var notes  = document.getElementById('cw-notes').value||'';
-  var fee    = (amt*0.035).toFixed(2);
-  var total  = (amt*1.035).toFixed(2);
-  var biz    = _getDisplayNameMaster();
-  var today  = new Date().toLocaleDateString(lang==='es'?'es-US':'en-US',{year:'numeric',month:'long',day:'numeric'});
-  var freqMap= {monthly:lang==='es'?'Mensual':'Monthly', weekly:lang==='es'?'Semanal':'Weekly', yearly:lang==='es'?'Anual':'Yearly', quarterly:lang==='es'?'Trimestral':'Quarterly', daily:lang==='es'?'Diario':'Daily'};
-  var freqLabel = freqMap[freq]||freq;
-  var methodLabels = {paypal:'PayPal',zelle:'Zelle',venmo:'Venmo',cashapp:'Cash App',stripe:'Stripe/Card',card:'Credit/Debit Card',check:'Check',cash:lang==='es'?'Efectivo':'Cash',ach:'ACH Transfer',other:lang==='es'?'Otro':'Other'};
+function cwGenerateDoc(lang, docType){
+  // Gather all data
+  var fname   = (document.getElementById('cw-fname')||{}).value||(_cwReg?_cwReg.firstName:'');
+  var lname   = (document.getElementById('cw-lname')||{}).value||(_cwReg?_cwReg.lastName:'');
+  var email   = (document.getElementById('cw-email')||{}).value||(_cwReg?_cwReg.email:'');
+  var phone   = (document.getElementById('cw-phone')||{}).value||(_cwReg?_cwReg.phone:'');
+  var bizname = (document.getElementById('cw-bizname')||{}).value||(_cwReg?_cwReg.bizName:'');
+  var notes   = (document.getElementById('cw-notes')||{}).value||'';
+  var amt     = parseFloat((document.getElementById('cw-amount')||{}).value)||0;
+  var start   = (document.getElementById('cw-startdate')||{}).value||new Date().toISOString().split('T')[0];
+  var method  = (document.getElementById('cw-method')||{}).value||'—';
+  var otherMethodName = (document.getElementById('cw-other-name')||{}).value||'';
+
+  var progs   = (typeof customProgs !== 'undefined') ? customProgs : [];
+  var prog    = progs.find(function(p){ return p.id===_cwSelectedProg; });
+  var planName= prog ? ((typeof _progLabelMaster==='function')?_progLabelMaster(prog):(prog.nameES||prog.id))
+                     : ((document.getElementById('cw-prog-otro')||{}).value||'—');
+
+  var freqMap = {monthly:{es:'Mensual',en:'Monthly'},quarterly:{es:'Trimestral',en:'Quarterly'},
+                 semiannual:{es:'Semestral',en:'Semiannual'},annual:{es:'Anual',en:'Annual'},
+                 otro:{es:(document.getElementById('cw-plan-otro-name')||{}).value||'Otro',en:(document.getElementById('cw-plan-otro-name')||{}).value||'Other'}};
+  var freq    = _cwPlanFreq||'monthly';
+  var freqLabel = lang==='es' ? (freqMap[freq]||{es:freq}).es : (freqMap[freq]||{en:freq}).en;
+  var methodLabels = {paypal:'PayPal',zelle:'Zelle',venmo:'Venmo',cashapp:'Cash App',stripe:'Stripe',
+                      card:lang==='es'?'Tarjeta de Crédito/Débito':'Credit/Debit Card',
+                      check:lang==='es'?'Cheque':'Check',cash:lang==='es'?'Efectivo':'Cash',
+                      ach:'ACH Transfer',other:otherMethodName||'Otro'};
   var methodLabel = methodLabels[method]||method;
 
-  var isES = lang==='es';
-  var T = {
-    title:     isES ? 'AUTORIZACIÓN DE PAGO RECURRENTE' : 'RECURRING PAYMENT AUTHORIZATION',
-    biz:       isES ? 'Empresa / Organización:' : 'Business / Organization:',
-    client:    isES ? 'Cliente:' : 'Customer:',
-    email:     isES ? 'Correo electrónico:' : 'Email:',
-    date:      isES ? 'Fecha:' : 'Date:',
-    plan:      isES ? 'Programa / Servicio:' : 'Program / Service:',
-    amount:    isES ? 'Monto base:' : 'Base Amount:',
-    fee:       isES ? 'Cargo por conveniencia (3.50%):' : 'Convenience Fee (3.50%):',
-    total:     isES ? 'Total a cobrar:' : 'Total Charged:',
-    freq:      isES ? 'Frecuencia:' : 'Frequency:',
-    start:     isES ? 'Fecha de inicio:' : 'Start Date:',
-    method:    isES ? 'Método de pago:' : 'Payment Method:',
-    notes:     isES ? 'Notas:' : 'Notes:',
-    authTitle: isES ? 'AUTORIZACIÓN' : 'AUTHORIZATION',
-    authText:  isES
-      ? 'Yo, el/la abajo firmante, autorizo a '+biz+' a realizar cargos recurrentes a mi método de pago indicado, con la frecuencia y monto descritos. Entiendo que se aplica un cargo adicional del 3.50% como tarifa de conveniencia, conforme a las leyes del Estado de Florida (FL Stat. §501.0117). Este acuerdo permanece vigente hasta su cancelación por escrito con 30 días de anticipación.'
-      : 'I, the undersigned, authorize '+biz+' to charge my selected payment method on a recurring basis at the frequency and amount described above. I understand a 3.50% convenience fee applies per FL Stat. §501.0117. This agreement remains in effect until cancelled in writing with 30 days notice.',
-    sig:       isES ? 'Firma del cliente:' : 'Customer Signature:',
-    sigDate:   isES ? 'Fecha:' : 'Date:',
-    footer:    isES ? 'Documento generado por '+biz+' · '+today : 'Document generated by '+biz+' · '+today
-  };
+  var biz     = (typeof _getDisplayNameMaster==='function') ? _getDisplayNameMaster() : (bizname||'CRM Business');
+  var fee     = (amt*0.035).toFixed(2);
+  var total   = (amt*1.035).toFixed(2);
+  var isES    = lang==='es';
+  var today   = new Date().toLocaleDateString(isES?'es-US':'en-US',{year:'numeric',month:'long',day:'numeric'});
+  var fullName= (fname+' '+lname).trim();
 
-  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"/>'
-    +'<style>body{font-family:Arial,sans-serif;max-width:700px;margin:40px auto;padding:0 30px;color:#111}'
-    +'h1{font-size:22px;border-bottom:3px solid #000;padding-bottom:10px;margin-bottom:24px;text-align:center}'
-    +'.row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #eee;font-size:14px}'
-    +'.label{color:#555;font-weight:600;min-width:220px}'
+  // ── CSS shared ────────────────────────────────────
+  var css = '<style>'
+    +'*{box-sizing:border-box}'
+    +'body{font-family:Arial,sans-serif;max-width:720px;margin:40px auto;padding:0 32px;color:#111;font-size:14px;line-height:1.6}'
+    +'h1{font-size:20px;border-bottom:3px solid #111;padding-bottom:10px;margin-bottom:22px;text-align:center;letter-spacing:.04em}'
+    +'h2{font-size:15px;color:#1a3a5c;border-bottom:2px solid #b8860b;padding-bottom:5px;margin:22px 0 12px}'
+    +'.row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #eee}'
+    +'.lbl{color:#555;font-weight:600;min-width:220px}'
     +'.val{font-weight:700;text-align:right}'
-    +'.highlight{background:#f0f9f0;border-radius:8px;padding:10px 14px;margin:14px 0;font-size:14px;border-left:4px solid #22c55e}'
-    +'.auth-box{background:#fff8e1;border:1.5px solid #f59e0b;border-radius:8px;padding:16px;margin-top:20px;font-size:13px;line-height:1.7}'
-    +'.sig-line{margin-top:36px;display:flex;gap:40px}'
-    +'.sig-block{flex:1;border-top:1.5px solid #333;padding-top:6px;font-size:12px;color:#555}'
-    +'.footer{margin-top:40px;font-size:11px;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:12px}'
-    +'@media print{body{margin:20px}}</style>'
-    +'</head><body>'
-    +'<h1>'+T.title+'</h1>'
-    +'<div class="row"><span class="label">'+T.biz+'</span><span class="val">'+esc(biz)+'</span></div>'
-    +'<div class="row"><span class="label">'+T.client+'</span><span class="val">'+esc(fname+' '+lname)+'</span></div>'
-    +'<div class="row"><span class="label">'+T.email+'</span><span class="val">'+esc(email)+'</span></div>'
-    +'<div class="row"><span class="label">'+T.date+'</span><span class="val">'+today+'</span></div>'
-    +'<div class="row"><span class="label">'+T.plan+'</span><span class="val">'+esc(plan)+'</span></div>'
-    +'<div style="height:10px"></div>'
-    +'<div class="row"><span class="label">'+T.amount+'</span><span class="val">$'+amt.toFixed(2)+'</span></div>'
-    +'<div class="row"><span class="label">'+T.fee+'</span><span class="val">$'+fee+'</span></div>'
-    +'<div class="row" style="background:#f0fdf4;font-size:15px;font-weight:900"><span class="label" style="color:#166534">'+T.total+'</span><span class="val" style="color:#16a34a">$'+total+'</span></div>'
-    +'<div class="row"><span class="label">'+T.freq+'</span><span class="val">'+freqLabel+'</span></div>'
-    +'<div class="row"><span class="label">'+T.start+'</span><span class="val">'+start+'</span></div>'
-    +'<div class="row"><span class="label">'+T.method+'</span><span class="val">'+methodLabel+'</span></div>'
-    +(notes?'<div class="row"><span class="label">'+T.notes+'</span><span class="val" style="text-align:left;max-width:400px">'+esc(notes)+'</span></div>':'')
-    +'<div class="auth-box"><strong>'+T.authTitle+'</strong><br/>'+T.authText+'</div>'
-    +'<div class="sig-line">'
-    +'<div class="sig-block">'+T.sig+'</div>'
-    +'<div class="sig-block">'+T.sigDate+'</div>'
-    +'</div>'
-    +'<div class="footer">'+T.footer+'</div>'
-    +'</body></html>';
+    +'.box{border-radius:8px;padding:14px 16px;margin:14px 0;font-size:13px;line-height:1.7}'
+    +'.box-warn{background:#fff8e1;border:1.5px solid #f59e0b}'
+    +'.box-green{background:#f0fdf4;border:1.5px solid #22c55e}'
+    +'.box-blue{background:#eff6ff;border:1.5px solid #3b82f6}'
+    +'.box-red{background:#fef2f2;border:1.5px solid #ef4444}'
+    +'.sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:36px}'
+    +'.sig-line{border-bottom:1.5px solid #333;min-height:36px;margin-bottom:5px}'
+    +'.sig-lbl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.06em}'
+    +'.legal{font-size:11px;color:#999;margin-top:8px}'
+    +'.footer{margin-top:40px;font-size:11px;color:#bbb;text-align:center;border-top:1px solid #eee;padding-top:12px}'
+    +'.stamp{display:inline-block;border:2px solid #16a34a;border-radius:6px;padding:4px 14px;color:#16a34a;font-weight:900;font-size:13px;letter-spacing:.05em;margin-bottom:12px}'
+    +'table{width:100%;border-collapse:collapse;margin:10px 0}'
+    +'th{background:#1a3a5c;color:#fff;padding:8px 12px;text-align:left;font-size:11px;text-transform:uppercase}'
+    +'td{padding:8px 12px;border-bottom:1px solid #eee}'
+    +'tr:nth-child(even) td{background:#f9f9f9}'
+    +'@media print{@page{margin:20mm}body{margin:0}}'
+    +'</style>';
 
-  var win = window.open('','_blank','width=780,height=900');
-  if(win){ win.document.write(html); win.document.close(); setTimeout(function(){ win.print(); },400); }
+  // ── Header shared ─────────────────────────────────
+  function header(titleES, titleEN){
+    return '<h1>'+(isES?titleES:titleEN)+'</h1>'
+      +'<div class="row"><span class="lbl">'+(isES?'Empresa / Organización:':'Business / Organization:')+'</span><span class="val">'+biz+'</span></div>'
+      +'<div class="row"><span class="lbl">'+(isES?'Cliente / Nombre completo:':'Customer / Full Name:')+'</span><span class="val">'+fullName+'</span></div>'
+      +'<div class="row"><span class="lbl">'+(isES?'Correo electrónico:':'Email:')+'</span><span class="val">'+email+'</span></div>'
+      +'<div class="row"><span class="lbl">'+(isES?'Teléfono:':'Phone:')+'</span><span class="val">'+phone+'</span></div>'
+      +'<div class="row"><span class="lbl">'+(isES?'Fecha del documento:':'Document Date:')+'</span><span class="val">'+today+'</span></div>';
+  }
+
+  // ── Signature block ───────────────────────────────
+  function sigBlock(){
+    return '<div class="sig-grid">'
+      +'<div><div class="sig-line"></div><div class="sig-lbl">'+(isES?'Firma del Cliente':'Customer Signature')+'</div></div>'
+      +'<div><div class="sig-line"></div><div class="sig-lbl">'+(isES?'Nombre (Letra de molde)':'Print Name')+'</div></div>'
+      +'<div><div class="sig-line"></div><div class="sig-lbl">'+(isES?'Fecha':'Date')+'</div></div>'
+      +'<div><div class="sig-line"></div><div class="sig-lbl">'+(isES?'Representante Autorizado':'Authorized Representative')+'</div></div>'
+      +'</div>';
+  }
+
+  var body = '';
+  var docTitle = '';
+
+  if(!docType || docType==='auth'){
+    // ── AUTORIZACIÓN DE PAGO RECURRENTE ───────────────
+    docTitle = isES ? 'AUTORIZACIÓN DE PAGO RECURRENTE' : 'RECURRING PAYMENT AUTHORIZATION';
+    body = header(docTitle, docTitle)
+      +'<h2>'+(isES?'Detalles del Servicio':'Service Details')+'</h2>'
+      +'<div class="row"><span class="lbl">'+(isES?'Programa / Servicio:':'Program / Service:')+'</span><span class="val">'+planName+'</span></div>'
+      +'<div class="row"><span class="lbl">'+(isES?'Frecuencia de cobro:':'Billing Frequency:')+'</span><span class="val">'+freqLabel+'</span></div>'
+      +'<div class="row"><span class="lbl">'+(isES?'Fecha de inicio:':'Start Date:')+'</span><span class="val">'+start+'</span></div>'
+      +'<div class="row"><span class="lbl">'+(isES?'Método de pago:':'Payment Method:')+'</span><span class="val">'+methodLabel+'</span></div>'
+      +'<h2>'+(isES?'Resumen de Cargos':'Charge Summary')+'</h2>'
+      +'<table><tr><th>'+(isES?'Concepto':'Item')+'</th><th>'+(isES?'Monto':'Amount')+'</th></tr>'
+      +'<tr><td>'+(isES?'Monto base del servicio':'Base service amount')+'</td><td><b>$'+amt.toFixed(2)+'</b></td></tr>'
+      +'<tr><td>'+(isES?'Cargo por conveniencia (3.50%) · FL Stat. §501.0117':'Convenience fee (3.50%) · FL Stat. §501.0117')+'</td><td style="color:#b45309"><b>$'+fee+'</b></td></tr>'
+      +'<tr style="background:#f0fdf4"><td style="font-weight:900;color:#166534">'+(isES?'TOTAL A COBRAR':'TOTAL CHARGED')+'</td><td style="font-weight:900;color:#16a34a;font-size:16px">$'+total+'</td></tr>'
+      +'</table>'
+      +'<div class="box box-warn"><b>'+(isES?'Pago Rechazado / Tarjeta Declinada:':'Declined / Returned Payment:')+'</b><br/>'
+      +(isES?'Si su pago es rechazado o devuelto, se aplicará automáticamente un cargo de <b>$25–$50</b> según el motivo, conforme a FL Stat. §68.065. Tiene 3–5 días hábiles para regularizar.'
+            :'If your payment is declined or returned for any reason, a fee of <b>$25–$50</b> applies automatically per FL Stat. §68.065. You have 3–5 business days to cure.')+'</div>'
+      +'<div class="box box-green"><b>'+(isES?'Autorización:':'Authorization:')+'</b><br/>'
+      +(isES?'Yo, el/la abajo firmante, autorizo a <b>'+biz+'</b> a realizar cargos recurrentes a mi método de pago por el monto y frecuencia indicados. Entiendo que se aplica un cargo adicional del 3.50% (FL Stat. §501.0117). Este acuerdo permanece vigente hasta su cancelación por escrito con 30 días de anticipación. Autorizo cargos según el calendario acordado.'
+            :'I, the undersigned, authorize <b>'+biz+'</b> to charge my payment method on a recurring basis at the amount and frequency described above. I understand a 3.50% convenience fee applies per FL Stat. §501.0117. This agreement remains in effect until cancelled in writing with 30 days notice.')+'</div>'
+      +(notes?'<div class="row"><span class="lbl">'+(isES?'Notas:':'Notes:')+'</span><span class="val" style="text-align:left;max-width:380px">'+notes+'</span></div>':'')
+      +'<div class="legal">⚖️ FL Stat. §501.0117 · §68.065 · FDUTPA Ch.501 · FCBA 15 U.S.C. §1666 · Dodd-Frank §1075</div>'
+      +sigBlock()
+      +'<div class="footer">'+(isES?'Documento generado por':'Document generated by')+' '+biz+' · '+today+'</div>';
+
+  } else if(docType==='waiver'){
+    // ── WAIVER ────────────────────────────────────────
+    docTitle = isES ? 'EXENCIÓN DE RESPONSABILIDAD / WAIVER' : 'LIABILITY WAIVER / RELEASE OF LIABILITY';
+    var waiverText = '';
+    try {
+      waiverText = isES
+        ? (document.getElementById('waiverTextES')||{}).value||''
+        : (document.getElementById('waiverTextEN')||{}).value||'';
+    } catch(e){}
+    if(!waiverText) waiverText = isES
+      ? 'Yo, '+fullName+', me inscribo voluntariamente en el programa indicado y acepto cumplir con todas las normas y reglamentos. Entiendo que la participación puede implicar actividades físicas y acepto los riesgos inherentes. Exonero a '+biz+' y a sus representantes de toda responsabilidad por lesiones, daños o pérdidas que pudieran ocurrir durante la participación, salvo negligencia grave. Autorizo a la organización a usar mi información para comunicación y gestión de membresía.'
+      : 'I, '+fullName+', voluntarily enroll in the indicated program and agree to comply with all rules and regulations. I understand that participation may involve physical activities and I accept the inherent risks. I release '+biz+' and its representatives from any liability for injuries, damages, or losses that may occur during participation, except for gross negligence. I authorize the organization to use my information for communication and membership management.';
+    body = header(docTitle, docTitle)
+      +'<h2>'+(isES?'Detalles del Programa':'Program Details')+'</h2>'
+      +'<div class="row"><span class="lbl">'+(isES?'Programa / Servicio:':'Program / Service:')+'</span><span class="val">'+planName+'</span></div>'
+      +'<div class="row"><span class="lbl">'+(isES?'Fecha de inicio:':'Start Date:')+'</span><span class="val">'+start+'</span></div>'
+      +'<h2>'+(isES?'Términos y Condiciones':'Terms & Conditions')+'</h2>'
+      +'<div class="box box-blue" style="white-space:pre-wrap">'+waiverText+'</div>'
+      +'<div class="box box-warn"><b>'+(isES?'Política de Pagos incluida:':'Payment Policy included:')+'</b><br/>'
+      +(isES?'Se aplica cargo de conveniencia del <b>3.50%</b> en todos los pagos. Pago rechazado: <b>$25–$50</b>. FL Stat. §501.0117 · §68.065'
+            :'A <b>3.50%</b> convenience fee applies to all payments. Declined payment fee: <b>$25–$50</b>. FL Stat. §501.0117 · §68.065')+'</div>'
+      +sigBlock()
+      +'<div class="footer">'+(isES?'Documento generado por':'Document generated by')+' '+biz+' · '+today+'</div>';
+
+  } else if(docType==='contrato'){
+    // ── CONTRATO DE MEMBRESÍA ─────────────────────────
+    docTitle = isES ? 'CONTRATO DE MEMBRESÍA' : 'MEMBERSHIP AGREEMENT';
+    body = header(docTitle, docTitle)
+      +'<h2>1. '+(isES?'Objeto del Contrato':'Agreement Purpose')+'</h2>'
+      +'<p>'+(isES?'Este contrato establece los términos y condiciones de la membresía de <b>'+fullName+'</b> en <b>'+biz+'</b> para el programa <b>'+planName+'</b>, con vigencia a partir del <b>'+start+'</b>.'
+                  :'This agreement sets forth the terms and conditions of membership for <b>'+fullName+'</b> at <b>'+biz+'</b> for the program <b>'+planName+'</b>, effective as of <b>'+start+'</b>.')+'</p>'
+      +'<h2>2. '+(isES?'Términos de Pago':'Payment Terms')+'</h2>'
+      +'<table><tr><th>'+(isES?'Concepto':'Item')+'</th><th>'+(isES?'Detalle':'Detail')+'</th></tr>'
+      +'<tr><td>'+(isES?'Plan':'Plan')+'</td><td><b>'+planName+'</b></td></tr>'
+      +'<tr><td>'+(isES?'Frecuencia':'Frequency')+'</td><td><b>'+freqLabel+'</b></td></tr>'
+      +'<tr><td>'+(isES?'Monto base':'Base amount')+'</td><td><b>$'+amt.toFixed(2)+'</b></td></tr>'
+      +'<tr><td>'+(isES?'Cargo conveniencia (3.50%)':'Convenience fee (3.50%)')+'</td><td><b>$'+fee+'</b></td></tr>'
+      +'<tr style="background:#f0fdf4"><td style="font-weight:900;color:#166534">'+(isES?'Total':'Total')+'</td><td style="font-weight:900;color:#16a34a">$'+total+'</td></tr>'
+      +'<tr><td>'+(isES?'Método de pago':'Payment method')+'</td><td><b>'+methodLabel+'</b></td></tr>'
+      +'</table>'
+      +'<h2>3. '+(isES?'Política de Pagos':'Payment Policy')+'</h2>'
+      +'<div class="box box-warn">'
+      +(isES?'<b>Cargo por conveniencia:</b> El 3.50% se aplica a TODOS los pagos (FL Stat. §501.0117).<br/><b>Pago rechazado:</b> Se aplicará un cargo de $25–$50 según el motivo (FL Stat. §68.065). Plazo de 3–5 días para regularizar. El incumplimiento resulta en suspensión inmediata del servicio.'
+            :'<b>Convenience fee:</b> 3.50% applies to ALL payments (FL Stat. §501.0117).<br/><b>Declined payment:</b> A $25–$50 fee applies based on reason (FL Stat. §68.065). 3–5 business days to cure. Non-payment results in immediate service suspension.')+'</div>'
+      +'<h2>4. '+(isES?'Cancelación':'Cancellation')+'</h2>'
+      +'<p>'+(isES?'Cualquiera de las partes puede cancelar este contrato con 30 días de aviso por escrito. Los pagos ya realizados no son reembolsables salvo acuerdo escrito.'
+                  :'Either party may cancel this agreement with 30 days written notice. Payments already made are non-refundable unless otherwise agreed in writing.')+'</p>'
+      +'<div class="legal">⚖️ FL Stat. §501.0117 · §68.065 · FDUTPA Ch.501 · Dodd-Frank §1075</div>'
+      +sigBlock()
+      +'<div class="footer">'+(isES?'Documento generado por':'Document generated by')+' '+biz+' · '+today+'</div>';
+
+  } else if(docType==='health'){
+    // ── FORMULARIO DE SALUD ───────────────────────────
+    docTitle = isES ? 'FORMULARIO DE HISTORIAL DE SALUD' : 'HEALTH HISTORY FORM';
+    body = header(docTitle, docTitle)
+      +'<h2>'+(isES?'Información de Salud General':'General Health Information')+'</h2>'
+      +'<table>'
+      +'<tr><td style="width:60%">'+(isES?'¿Padece alguna condición médica actualmente?':'Do you have any current medical conditions?')+'</td><td>☐ '+(isES?'Sí / Yes':'Yes')+'&nbsp;&nbsp;☐ '+(isES?'No':'No')+'</td></tr>'
+      +'<tr><td>'+(isES?'¿Toma algún medicamento?':'Are you currently taking any medications?')+'</td><td>☐ '+(isES?'Sí':'Yes')+'&nbsp;&nbsp;☐ No</td></tr>'
+      +'<tr><td>'+(isES?'¿Ha tenido cirugías o lesiones recientes?':'Have you had recent surgeries or injuries?')+'</td><td>☐ '+(isES?'Sí':'Yes')+'&nbsp;&nbsp;☐ No</td></tr>'
+      +'<tr><td>'+(isES?'¿Tiene alergias conocidas?':'Do you have any known allergies?')+'</td><td>☐ '+(isES?'Sí':'Yes')+'&nbsp;&nbsp;☐ No</td></tr>'
+      +'<tr><td>'+(isES?'¿Tiene alguna restricción física?':'Do you have any physical restrictions?')+'</td><td>☐ '+(isES?'Sí':'Yes')+'&nbsp;&nbsp;☐ No</td></tr>'
+      +'</table>'
+      +'<h2>'+(isES?'Si respondió Sí, por favor explique:':'If you answered Yes, please explain:')+'</h2>'
+      +'<div style="border:1px solid #ccc;border-radius:6px;padding:10px;min-height:80px;margin-bottom:14px"></div>'
+      +'<h2>'+(isES?'Contacto de Emergencia':'Emergency Contact')+'</h2>'
+      +'<table>'
+      +'<tr><td style="width:40%">'+(isES?'Nombre completo:':'Full name:')+'</td><td style="border-bottom:1px solid #ccc;min-width:200px">&nbsp;</td></tr>'
+      +'<tr><td>'+(isES?'Parentesco:':'Relationship:')+'</td><td style="border-bottom:1px solid #ccc">&nbsp;</td></tr>'
+      +'<tr><td>'+(isES?'Teléfono:':'Phone:')+'</td><td style="border-bottom:1px solid #ccc">&nbsp;</td></tr>'
+      +'</table>'
+      +'<div class="box box-green" style="margin-top:16px">'
+      +(isES?'Al firmar, confirmo que la información proporcionada es correcta y autorizo a '+biz+' a contactar a mi persona de emergencia si fuera necesario.'
+            :'By signing, I confirm the information provided is accurate and authorize '+biz+' to contact my emergency contact if necessary.')+'</div>'
+      +sigBlock()
+      +'<div class="footer">'+(isES?'Documento generado por':'Document generated by')+' '+biz+' · '+today+'</div>';
+  }
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"/>'+css+'</head><body>'+body+'</body></html>';
+  var win = window.open('','_blank','width=800,height=960');
+  if(win){ win.document.write(html); win.document.close(); setTimeout(function(){ win.print(); },500); }
+  else showToast('⚠️ '+(lang==='es'?'Permite popups para generar documentos':'Allow popups to generate documents'),'var(--warn)');
 }
 
 function cwSaveToCloud(){
-  // Guarda el registro y redirige a Firebase / muestra confirmación
+  var fname = (document.getElementById('cw-fname')||{}).value||'';
+  var lname = (document.getElementById('cw-lname')||{}).value||'';
+  if(!fname||!lname){ showToast('⚠️ Completa la información del cliente primero','var(--warn)'); cwShowStep(1); return; }
   cwSavePayment();
-  showToast('☁️ Guardado en la nube correctamente');
+  showToast('☁️ Guardado en la nube — '+fname+' '+lname);
 }
 function openTrialConfigModal(){
   document.getElementById('trialDuration').value = '2';
@@ -10708,47 +10867,53 @@ function cwStep3Next(){
 }
 function cwBuildStep4(){
   // Summary
-  var fname = (document.getElementById('cw-fname')||{}).value||'';
-  var lname = (document.getElementById('cw-lname')||{}).value||'';
-  var amount= (document.getElementById('cw-amount')||{}).value||'';
-  var method= (document.getElementById('cw-method')||{}).value||'';
-  var progs = (typeof customProgs !== 'undefined') ? customProgs : [];
-  var prog  = progs.find(function(p){ return p.id===_cwSelectedProg; });
-  var progName = prog ? ((typeof _progLabelMaster==='function')?_progLabelMaster(prog):(prog.nameES||prog.id)) : ((document.getElementById('cw-prog-otro')||{}).value||'—');
-  var freqMap = {monthly:'Mensual',quarterly:'Trimestral',semiannual:'Semestral',annual:'Anual',otro:(document.getElementById('cw-plan-otro-name')||{}).value||'Otro'};
-  var sumEl = document.getElementById('cw-step4-summary');
-  if(sumEl) sumEl.innerHTML = [
-    '<span style="color:var(--text);font-weight:700">👤 '+fname+' '+lname+'</span>',
-    '<span style="color:var(--muted)"> · '+_cwRelation+'</span>',
-    '<br/><span style="color:var(--muted)">📋 '+progName+'</span>',
-    '<span style="color:var(--muted)"> · '+freqMap[_cwPlanFreq||'monthly']+'</span>',
-    '<span style="color:var(--accent);font-weight:700"> · $'+parseFloat(amount||0).toFixed(2)+'</span>',
-    '<br/><span style="color:var(--muted)">💳 '+method+'</span>'
-  ].join('');
+  var fname  = (document.getElementById('cw-fname')||{}).value||'';
+  var lname  = (document.getElementById('cw-lname')||{}).value||'';
+  var amount = (document.getElementById('cw-amount')||{}).value||'';
+  var method = (document.getElementById('cw-method')||{}).value||'';
+  var progs  = (typeof customProgs !== 'undefined') ? customProgs : [];
+  var prog   = progs.find(function(p){ return p.id===_cwSelectedProg; });
+  var progName = prog ? ((typeof _progLabelMaster==='function')?_progLabelMaster(prog):(prog.nameES||prog.id))
+                      : ((document.getElementById('cw-prog-otro')||{}).value||'—');
+  var freqMap = {monthly:'Mensual',quarterly:'Trimestral',semiannual:'Semestral',annual:'Anual',
+                 otro:(document.getElementById('cw-plan-otro-name')||{}).value||'Otro'};
+  var otherMethodName = (document.getElementById('cw-other-name')||{}).value||'';
+  var methodDisplay = method==='other' ? (otherMethodName||'Otro') : method;
 
-  // Doc buttons for selected docs
+  var sumEl = document.getElementById('cw-step4-summary');
+  if(sumEl) sumEl.innerHTML =
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+    +'<div><span style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700">Cliente</span><br/><span style="color:var(--text);font-weight:700">'+fname+' '+lname+'</span> <span style="color:var(--muted);font-size:12px">· '+(_cwRelation||'—')+'</span></div>'
+    +'<div><span style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700">Programa / Program</span><br/><span style="color:var(--text);font-weight:600">'+progName+'</span></div>'
+    +'<div><span style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700">Plan · Frecuencia</span><br/><span style="color:var(--accent);font-weight:800">$'+parseFloat(amount||0).toFixed(2)+'</span> <span style="color:var(--muted);font-size:12px">· '+(freqMap[_cwPlanFreq||'monthly']||'Mensual')+'</span></div>'
+    +'<div><span style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700">Método de Pago</span><br/><span style="color:var(--text);font-weight:600">'+methodDisplay+'</span></div>'
+    +'</div>';
+
+  // Doc buttons — only for checked docs
   var docsEl = document.getElementById('cw-doc-btns');
   if(!docsEl) return;
   var docs = [
-    {id:'cwdoc-waiver',    label:'📋 Waiver / Exención',            fn:function(){ generarAutorizacion ? generarAutorizacion(_cwReg&&_cwReg.id) : showToast('Función no disponible'); }},
-    {id:'cwdoc-auth',      label:'💳 Autorización de Cargo Recurrente', fn:function(){ cwGenerateDoc ? cwGenerateDoc('es') : showToast('Función no disponible'); }},
-    {id:'cwdoc-contrato',  label:'📃 Contrato de Membresía',        fn:function(){ wiGenerateEnrollmentDoc ? wiGenerateEnrollmentDoc(_cwReg||{}) : showToast('Función no disponible'); }},
-    {id:'cwdoc-health',    label:'🏥 Formulario de Salud',          fn:function(){ showToast('📄 Health Form — próximamente'); }}
+    {id:'cwdoc-waiver',   labelES:'📋 Waiver / Exención',                   labelEN:'📋 Waiver / Liability Release', docType:'waiver'},
+    {id:'cwdoc-auth',     labelES:'💳 Autorización de Cargo Recurrente',     labelEN:'💳 Recurring Charge Authorization', docType:'auth'},
+    {id:'cwdoc-contrato', labelES:'📃 Contrato de Membresía',                labelEN:'📃 Membership Agreement', docType:'contrato'},
+    {id:'cwdoc-health',   labelES:'🏥 Formulario de Salud',                  labelEN:'🏥 Health History Form', docType:'health'}
   ];
-  docsEl.innerHTML = docs.map(function(d){
-    var checked = document.getElementById(d.id) && document.getElementById(d.id).checked;
-    if(!checked) return '';
-    return '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px">'
-      +'<span style="font-size:13px;color:var(--text);font-weight:600">'+d.label+'</span>'
-      +'<div style="display:flex;gap:7px">'
-      +'<button onclick="cwGenerateDoc(\'es\')" style="padding:6px 12px;border-radius:7px;border:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;font-family:\'Syne\',sans-serif;font-weight:800;font-size:10px;cursor:pointer">🇪🇸 ES</button>'
-      +'<button onclick="cwGenerateDoc(\'en\')" style="padding:6px 12px;border-radius:7px;border:none;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-family:\'Syne\',sans-serif;font-weight:800;font-size:10px;cursor:pointer">🇺🇸 EN</button>'
+  var html = '';
+  docs.forEach(function(d){
+    var el = document.getElementById(d.id);
+    if(!el || !el.checked) return;
+    html += '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:13px 15px">'
+      +'<div style="font-size:13px;color:var(--text);font-weight:700;margin-bottom:10px">'+d.labelES+' / '+d.labelEN+'</div>'
+      +'<div style="display:flex;gap:8px;flex-wrap:wrap">'
+      +'<button onclick="cwGenerateDoc(\'es\',\''+d.docType+'\')" style="flex:1;min-width:120px;padding:9px 12px;border-radius:8px;border:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;font-family:\'Syne\',sans-serif;font-weight:800;font-size:12px;cursor:pointer">🇪🇸 Generar Español</button>'
+      +'<button onclick="cwGenerateDoc(\'en\',\''+d.docType+'\')" style="flex:1;min-width:120px;padding:9px 12px;border-radius:8px;border:none;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-family:\'Syne\',sans-serif;font-weight:800;font-size:12px;cursor:pointer">🇺🇸 Generate English</button>'
       +'</div>'
       +'</div>';
-  }).join('');
-  if(!docsEl.innerHTML.trim()){
-    docsEl.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:10px">No se seleccionaron documentos en el Paso 2.</div>';
+  });
+  if(!html){
+    html = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:16px 0;border:2px dashed var(--border);border-radius:10px">No se seleccionaron documentos en el Paso ② — <button onclick="cwShowStep(2)" style="background:transparent;border:none;color:var(--accent);font-weight:700;cursor:pointer;font-size:13px">← Volver a Programa</button></div>';
   }
+  docsEl.innerHTML = html;
 }
 
 // ── Override cwShowStep to handle 4 steps ──────────────────
