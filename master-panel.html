@@ -7969,6 +7969,7 @@ function cwGenerateDoc(lang, docType){
   var cardExpiry = (document.getElementById('cw-expiry')||{}).value||'';
   var cardZip  = (document.getElementById('cw-zip2')||{}).value||'';
   var cardCountry = ((document.getElementById('cw-country')||{}).value)||'USA';
+  var cardBillingAddr = (document.getElementById('cw-billing-addr')||{}).value||'';
 
   var progs   = (typeof customProgs !== 'undefined') ? customProgs : [];
   var prog    = progs.find(function(p){ return p.id===_cwSelectedProg; });
@@ -8083,25 +8084,41 @@ function cwGenerateDoc(lang, docType){
     +'<tr class="total-row"><td>'+(isES?'TOTAL A COBRAR / TOTAL CHARGED':'TOTAL CHARGED / TOTAL A COBRAR')+'</td><td style="text-align:right">$'+total+'</td></tr>'
     +'</table>'
 
-    // Payment Method section (Intuit fields)
+    // Payment Method section — full Intuit fields
     +'<h2>'+(isES?'Método de Pago / Payment Method':'Payment Method / Método de Pago')+'</h2>'
     +'<div class="section">'
-    +'<div class="row"><span class="lbl">'+(isES?'Método / Method:':'Method / Método:')+'</span><span class="val">'+methodLabel+'</span></div>'
+    +'<div class="row"><span class="lbl">'+(isES?'Método seleccionado / Selected Method:':'Selected Method / Método:')+'</span><span class="val">'+methodLabel+'</span></div>'
     +(method==='card'?
-      '<div class="row"><span class="lbl">'+(isES?'Número de Tarjeta (últimos 4) / Card Number (last 4):':'Card Number (last 4) / Últimos 4:')+'</span><span class="val">'+(cardLast4?'•••• •••• •••• '+cardLast4:'____')+'</span></div>'
-      +'<div class="row"><span class="lbl">'+(isES?'Fecha de Vencimiento / Expiration Date:':'Expiration Date / Vencimiento:')+'</span><span class="val">'+(cardExpiry||'MM/YY')+'</span></div>'
-      +'<div class="row"><span class="lbl">'+(isES?'Nombre en Tarjeta / Name on Card:':'Name on Card / Nombre en Tarjeta:')+'</span><span class="val">'+(cardName||fullName)+'</span></div>'
-      +'<div class="row"><span class="lbl">'+(isES?'ZIP de Facturación / Billing ZIP:':'Billing ZIP / ZIP de Facturación:')+'</span><span class="val">'+(cardZip||'_____')+'</span></div>'
-      +'<div class="row"><span class="lbl">'+(isES?'País / Country:':'Country / País:')+'</span><span class="val">'+cardCountry+'</span></div>'
-      : '')
+      // Card Number row — masked except last 4
+      '<div class="row"><span class="lbl">'+(isES?'Número de Tarjeta / Card Number (no spaces):':'Card Number (no spaces) / Número de Tarjeta:')+'</span><span class="val" style="font-family:monospace;letter-spacing:.1em">'
+        +(cardLast4 ? '•••• •••• •••• '+cardLast4 : '________________________________')+'</span></div>'
+      // Expiration Date
+      +'<div class="row"><span class="lbl">'+(isES?'Fecha de Vencimiento / Expiration Date:':'Expiration Date / Fecha Vencimiento:')+'</span><span class="val">'+(cardExpiry||'___ / ___')+'</span></div>'
+      // Name as shown on card
+      +'<div class="row"><span class="lbl">'+(isES?'Nombre en Tarjeta / Name (as shown on card):':'Name (as shown on card):')+'</span><span class="val" style="text-transform:uppercase">'+(cardName||fullName.toUpperCase())+'</span></div>'
+      // Billing Address
+      +'<div class="row"><span class="lbl">'+(isES?'Dirección de Facturación / Billing Address:':'Billing Address / Dirección Facturación:')+'</span><span class="val">'+(cardBillingAddr||'______________________________')+'</span></div>'
+      // Billing ZIP
+      +'<div class="row"><span class="lbl">'+(isES?'Código ZIP de Facturación / Billing ZIP Code:':'Billing ZIP Code / Código ZIP:')+'</span><span class="val">'+(cardZip||'_________')+'</span></div>'
+      // Billing Country
+      +'<div class="row"><span class="lbl">'+(isES?'País de Facturación / Billing Country:':'Billing Country / País Facturación:')+'</span><span class="val">'+cardCountry+'</span></div>'
+      // Separator line
+      +'<div style="border-top:1px dashed #ccc;margin:10px 0"></div>'
+      // Signed Auth checkbox (Intuit required)
+      +'<div class="check-row"><div class="check-box" style="background:#f0fdf4;border-color:#22c55e">✓</div>'
+        +'<div style="font-weight:600">'+(isES?'Tengo la autorización firmada del cliente para procesar esta tarjeta.':'I have the signed authorization from customer to process this card.')+'</div></div>'
+      // Commercial card checkbox (Intuit optional)
+      +'<div class="check-row"><div class="check-box"></div>'
+        +'<div>'+(isES?'Esta es una tarjeta comercial / This is a commercial card':'This is a commercial card / Esta es una tarjeta comercial')
+        +'<span style="font-size:10px;color:#6b7280;margin-left:6px">'+(isES?'[¿Qué es esto? Una tarjeta emitida a nombre de una empresa, con tasas de procesamiento diferentes a una tarjeta personal.]':'[What\'s this? A card issued in the name of a business or entity, with different processing rates than a personal card.]')+'</span></div></div>'
+      : '<div class="row"><span class="lbl">'+(isES?'Referencia / Reference:':'Reference / Referencia:')+'</span><span class="val">'+methodLabel+'</span></div>')
     +'</div>'
 
-    // Notifications / Checkboxes (Intuit style)
-    +'<h2>'+(isES?'Notificaciones y Autorizaciones / Notifications & Authorizations':'Notifications & Authorizations / Notificaciones y Autorizaciones')+'</h2>'
+    // Notifications section (Intuit style — separate section)
+    +'<h2>'+(isES?'Notificaciones / Notifications':'Notifications / Notificaciones')+'</h2>'
     +'<div class="section">'
-    +'<div class="check-row"><div class="check-box">✓</div><div>'+(isES?'Tengo la autorización firmada del cliente para procesar este método de pago.':'I have the signed authorization from customer to process this payment method.')+'</div></div>'
-    +(method==='card'?'<div class="check-row"><div class="check-box"></div><div>'+(isES?'Esta es una tarjeta comercial (Business Card).':'This is a commercial card (Business Card).')+'</div></div>':'')
-    +'<div class="check-row"><div class="check-box">✓</div><div>'+(isES?'Notificar al cliente que se configuró este pago recurrente.':'Notify customer that this recurring payment has been set up.')+'</div></div>'
+    +'<div style="font-size:12px;color:#555;margin-bottom:8px">'+(isES?'Cada vez que ocurra un pago, recibirá una notificación automática.':'Each time a payment occurs, you will get an automated notification.')+'</div>'
+    +'<div class="check-row"><div class="check-box">✓</div><div>'+(isES?'Notificar al cliente que se configuró este pago recurrente.':'Notify my customer that I set up this recurring payment.')+'</div></div>'
     +'</div>'
 
     // Authorization text
@@ -10795,16 +10812,20 @@ async function savePaymentActivation(activate){
             </div>
           </div>
           <div style="margin-bottom:12px">
-            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Nombre en Tarjeta / Name on Card *</label>
-            <input id="cw-cardname" type="text" placeholder="Nombre completo" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Nombre en Tarjeta / Name (as shown on card) *</label>
+            <input id="cw-cardname" type="text" placeholder="JOHN DOE" oninput="this.value=this.value.toUpperCase()" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none;text-transform:uppercase" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+          </div>
+          <div style="margin-bottom:12px">
+            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Dirección de Facturación / Billing Address</label>
+            <input id="cw-billing-addr" type="text" placeholder="123 Main St, City, State" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
             <div>
-              <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">ZIP *</label>
+              <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Billing ZIP Code *</label>
               <input id="cw-zip2" type="text" maxlength="10" placeholder="33301" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
             </div>
             <div>
-              <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">País / Country *</label>
+              <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Billing Country *</label>
               <select id="cw-country" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none;cursor:pointer" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
                 <option value="USA" selected>United States</option>
                 <option value="MEX">Mexico</option><option value="CAN">Canada</option>
@@ -11163,7 +11184,7 @@ function openNewClientManual(){
   // Clear all fields
   ['cw-fname','cw-lname','cw-email','cw-phone','cw-bizname','cw-notes',
    'cw-prog-otro','cw-amount','cw-other-name','cw-other-link',
-   'cw-cardnum','cw-expiry','cw-cvv','cw-cardname','cw-zip2'].forEach(function(id){
+   'cw-cardnum','cw-expiry','cw-cvv','cw-cardname','cw-zip2','cw-billing-addr'].forEach(function(id){
     var el = document.getElementById(id);
     if(el) el.value='';
   });
