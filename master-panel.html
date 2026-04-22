@@ -731,6 +731,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         <div class="page-title" data-i18n="pgClients">👥 Clientes</div>
         <div class="topbar-actions" id="clientsTopbarActions">
           <input class="search-inp" type="text" placeholder="🔍 Buscar..." oninput="filterClients(this.value)" id="searchInp"/>
+          <button class="btn btn-accent" style="font-size:12px;padding:8px 16px;white-space:nowrap" onclick="openNewClientManual()">➕ Nuevo Cliente</button>
         </div>
       </div>
 
@@ -7571,7 +7572,6 @@ function renderLeadsInbox(){
             +'</div>'
             +'<button style="width:100%;padding:8px;border-radius:8px;border:none;background:var(--accent);color:#000;font-family:Syne,sans-serif;font-weight:800;font-size:12px;cursor:pointer;margin-bottom:8px" onclick="saveLeadTracking(\''+lead.id+'\')">💾 Guardar seguimiento</button>'
             +buildLeadTrialSection(lead)
-            +buildLeadMembershipSection(lead)
           +'</div>'
         +'</details>'
       +'</div>'
@@ -10225,169 +10225,303 @@ async function savePaymentActivation(activate){
 
       <!-- ── TABS ── -->
       <div style="display:flex;border-bottom:1px solid var(--border);margin-bottom:18px">
-        <div id="cw-tab-1" onclick="cwShowStep(1)" style="flex:1;padding:11px 8px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--accent);border-bottom:2px solid var(--accent);cursor:pointer;text-align:center">① Customer</div>
-        <div id="cw-tab-2" onclick="cwShowStep(2)" style="flex:1;padding:11px 8px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;text-align:center">② Payment Details</div>
-        <div id="cw-tab-3" onclick="cwShowStep(3)" style="flex:1;padding:11px 8px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;text-align:center">③ Card Info</div>
+        <div id="cw-tab-1" onclick="cwShowStep(1)" style="flex:1;padding:11px 6px;font-family:'Syne',sans-serif;font-weight:700;font-size:11px;color:var(--accent);border-bottom:2px solid var(--accent);cursor:pointer;text-align:center">① Info</div>
+        <div id="cw-tab-2" onclick="cwShowStep(2)" style="flex:1;padding:11px 6px;font-family:'Syne',sans-serif;font-weight:700;font-size:11px;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;text-align:center">② Programa</div>
+        <div id="cw-tab-3" onclick="cwShowStep(3)" style="flex:1;padding:11px 6px;font-family:'Syne',sans-serif;font-weight:700;font-size:11px;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;text-align:center">③ Pago</div>
+        <div id="cw-tab-4" onclick="cwShowStep(4)" style="flex:1;padding:11px 6px;font-family:'Syne',sans-serif;font-weight:700;font-size:11px;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;text-align:center">④ Docs</div>
       </div>
 
-      <!-- ── STEP 1: CUSTOMER ── -->
+      <!-- ── STEP 1: INFORMACIÓN PERSONAL ── -->
       <div id="cw-step-1">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-          <div>
-            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">First Name *</label>
-            <input id="cw-fname" type="text" placeholder="First name" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
-          </div>
-          <div>
-            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Last Name *</label>
-            <input id="cw-lname" type="text" placeholder="Last name" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
-          </div>
-        </div>
-        <div style="margin-bottom:12px">
-          <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Email</label>
-          <input id="cw-email" type="email" placeholder="customer@email.com" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
-        </div>
-        <div style="margin-bottom:12px">
-          <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Phone</label>
-          <input id="cw-phone" type="tel" placeholder="(305) 000-0000" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
-        </div>
-        <div style="margin-bottom:16px">
-          <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Notes</label>
-          <textarea id="cw-notes" rows="2" placeholder="Optional notes..." style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none;resize:vertical" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
-        </div>
-        <div style="display:flex;justify-content:flex-end">
-          <button onclick="cwShowStep(2)" style="background:var(--accent);color:#000;border:none;border-radius:9px;padding:11px 28px;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;cursor:pointer">Next →</button>
-        </div>
-      </div>
 
-      <!-- ── STEP 2: PAYMENT DETAILS ── -->
-      <div id="cw-step-2" style="display:none">
-        <div style="margin-bottom:12px">
-          <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Name Recurring Payment <span style="color:var(--muted2);font-weight:400;text-transform:none;letter-spacing:0">— visible to customer</span></label>
-          <input id="cw-plan" type="text" placeholder="e.g. Monthly Membership Plan" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+        <!-- Avatar upload -->
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+          <div id="cw-avatar-preview" onclick="document.getElementById('cw-avatar-file').click()" style="width:64px;height:64px;border-radius:14px;background:var(--surface2);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;cursor:pointer;font-family:'Syne',sans-serif;flex-shrink:0;overflow:hidden;transition:border-color .2s;position:relative" title="Subir foto">
+            <span id="cw-avatar-initials" style="color:var(--accent)">?</span>
+          </div>
+          <input type="file" id="cw-avatar-file" accept="image/*" style="display:none" onchange="cwAvatarChanged(this)"/>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:3px">Foto / Avatar</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px">Haz clic para subir imagen · Click to upload photo</div>
+            <div style="display:flex;gap:6px">
+              <button onclick="document.getElementById('cw-avatar-file').click()" style="padding:5px 12px;border-radius:7px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">📷 Subir</button>
+              <button onclick="cwClearAvatar()" style="padding:5px 12px;border-radius:7px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">🗑 Quitar</button>
+            </div>
+          </div>
         </div>
+
+        <!-- Nombre + Apellido -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
           <div>
-            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Frequency *</label>
-            <select id="cw-frequency" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none;cursor:pointer" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
-              <option value="">Please Select</option>
-              <option value="monthly">Monthly</option>
-              <option value="weekly">Weekly</option>
-              <option value="yearly">Yearly</option>
-              <option value="quarterly">Quarterly</option>
-              <option value="daily">Daily</option>
+            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Nombre / First Name *</label>
+            <input id="cw-fname" type="text" placeholder="Nombre" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)';cwUpdateAvatarInitials()"/>
+          </div>
+          <div>
+            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Apellido / Last Name *</label>
+            <input id="cw-lname" type="text" placeholder="Apellido" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)';cwUpdateAvatarInitials()"/>
+          </div>
+        </div>
+
+        <!-- Email + Phone -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div>
+            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Email</label>
+            <input id="cw-email" type="email" placeholder="correo@email.com" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+          </div>
+          <div>
+            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Teléfono / Phone</label>
+            <input id="cw-phone" type="tel" placeholder="(305) 000-0000" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+          </div>
+        </div>
+
+        <!-- Negocio + Tipo -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div>
+            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Negocio / Business</label>
+            <input id="cw-bizname" type="text" placeholder="Nombre del negocio" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+          </div>
+          <div>
+            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Tipo / Type</label>
+            <select id="cw-biztype" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none;cursor:pointer" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+              <option value="">— Seleccionar —</option>
+              <option value="Barbería / Salón">💇 Barbería / Salón</option>
+              <option value="Gym / Fitness">💪 Gym / Fitness</option>
+              <option value="Artes Marciales">🥋 Artes Marciales</option>
+              <option value="Clínica / Spa">🏥 Clínica / Spa</option>
+              <option value="Restaurante / Café">🍽️ Restaurante / Café</option>
+              <option value="Escuela / Academia">🏫 Escuela / Academia</option>
+              <option value="Tienda / Retail">🛍️ Tienda / Retail</option>
+              <option value="Otro">🔗 Otro</option>
             </select>
           </div>
-          <div>
-            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Amount ($) *</label>
-            <input id="cw-amount" type="number" min="0" step="0.01" placeholder="0.00" oninput="cwCalcFee()" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+        </div>
+
+        <!-- Tipo de Relación -->
+        <div style="margin-bottom:16px">
+          <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:8px">Tipo de Relación / Relationship Type *</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap" id="cw-relation-btns">
+            <button type="button" onclick="cwSetRelation('cliente')" id="cwrel-cliente" style="flex:1;min-width:100px;padding:10px 8px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'Syne',sans-serif;font-weight:800;font-size:11px;cursor:pointer;transition:all .15s;text-align:center">👤<br/>Cliente</button>
+            <button type="button" onclick="cwSetRelation('estudiante')" id="cwrel-estudiante" style="flex:1;min-width:100px;padding:10px 8px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'Syne',sans-serif;font-weight:800;font-size:11px;cursor:pointer;transition:all .15s;text-align:center">🎓<br/>Estudiante</button>
+            <button type="button" onclick="cwSetRelation('referido')" id="cwrel-referido" style="flex:1;min-width:100px;padding:10px 8px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'Syne',sans-serif;font-weight:800;font-size:11px;cursor:pointer;transition:all .15s;text-align:center">🔗<br/>Referido</button>
+            <button type="button" onclick="cwSetRelation('partner')" id="cwrel-partner" style="flex:1;min-width:100px;padding:10px 8px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'Syne',sans-serif;font-weight:800;font-size:11px;cursor:pointer;transition:all .15s;text-align:center">🏢<br/>Partner</button>
           </div>
         </div>
 
-        <!-- Fee preview -->
-        <div id="cw-fee-box" style="display:none;background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.25);border-radius:9px;padding:10px 14px;margin-bottom:12px;font-size:12px">
-          <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--muted)">Base amount:</span><span id="cw-fee-base" style="font-weight:700"></span></div>
-          <div style="display:flex;justify-content:space-between;padding:3px 0"><span style="color:var(--muted)">3.50% fee:</span><span id="cw-fee-amt" style="color:#fbbf24;font-weight:700"></span></div>
-          <div style="display:flex;justify-content:space-between;padding:3px 0;border-top:1px solid rgba(234,179,8,.2);margin-top:4px"><span style="font-weight:700">Total charged:</span><span id="cw-fee-total" style="color:var(--accent);font-family:'Syne',sans-serif;font-weight:800;font-size:14px"></span></div>
+        <!-- Notas -->
+        <div style="margin-bottom:16px">
+          <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Notas / Notes</label>
+          <textarea id="cw-notes" rows="2" placeholder="Notas opcionales..." style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none;resize:vertical" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></textarea>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+        <div style="display:flex;justify-content:flex-end">
+          <button onclick="cwStep1Next()" style="background:var(--accent);color:#000;border:none;border-radius:9px;padding:11px 28px;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;cursor:pointer">Siguiente →</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 2: PROGRAMA & PLAN ── -->
+      <div id="cw-step-2" style="display:none">
+
+        <!-- Programa / Servicio -->
+        <div style="margin-bottom:14px">
+          <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:6px">Programa / Servicio · Program / Service *</label>
+          <div id="cw-prog-list" style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px"></div>
+          <!-- Otro programa -->
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="cw-prog-otro" type="text" placeholder="✏️ Otro programa / Other program..." style="flex:1;background:var(--surface2);border:1.5px dashed var(--border);border-radius:9px;padding:9px 13px;color:var(--text);font-size:12px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+          </div>
+        </div>
+
+        <!-- Plan de Pago -->
+        <div style="margin-bottom:14px">
+          <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:6px">Plan de Pago / Payment Plan *</label>
+          <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px" id="cw-planfreq-btns">
+            <button type="button" onclick="cwSetPlanFreq('monthly')" id="cwpf-monthly" style="flex:1;min-width:80px;padding:9px 8px;border-radius:9px;border:2px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'Syne',sans-serif;font-weight:800;font-size:11px;cursor:pointer;transition:all .15s">Mensual</button>
+            <button type="button" onclick="cwSetPlanFreq('quarterly')" id="cwpf-quarterly" style="flex:1;min-width:80px;padding:9px 8px;border-radius:9px;border:2px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'Syne',sans-serif;font-weight:800;font-size:11px;cursor:pointer;transition:all .15s">Trimestral</button>
+            <button type="button" onclick="cwSetPlanFreq('semiannual')" id="cwpf-semiannual" style="flex:1;min-width:80px;padding:9px 8px;border-radius:9px;border:2px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'Syne',sans-serif;font-weight:800;font-size:11px;cursor:pointer;transition:all .15s">Semestral</button>
+            <button type="button" onclick="cwSetPlanFreq('annual')" id="cwpf-annual" style="flex:1;min-width:80px;padding:9px 8px;border-radius:9px;border:2px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'Syne',sans-serif;font-weight:800;font-size:11px;cursor:pointer;transition:all .15s">Anual</button>
+            <button type="button" onclick="cwSetPlanFreq('otro')" id="cwpf-otro" style="flex:1;min-width:80px;padding:9px 8px;border-radius:9px;border:2px dashed var(--border);background:var(--surface2);color:var(--muted);font-family:'Syne',sans-serif;font-weight:800;font-size:11px;cursor:pointer;transition:all .15s">✏️ Otro</button>
+          </div>
+          <!-- Otro plan custom -->
+          <div id="cw-plan-otro-row" style="display:none;gap:10px;margin-bottom:8px">
+            <input id="cw-plan-otro-name" type="text" placeholder="Nombre del plan / Plan name" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:9px 13px;color:var(--text);font-size:12px;outline:none;margin-bottom:6px" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+          </div>
+        </div>
+
+        <!-- Precio -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
           <div>
-            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Start Date *</label>
+            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Precio / Amount *</label>
+            <input id="cw-amount" type="number" min="0" step="0.01" placeholder="0.00" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)';cwCalcFee()"/>
+          </div>
+          <div>
+            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Inicio / Start Date</label>
             <input id="cw-startdate" type="date" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
           </div>
-          <div>
-            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">End Date <span style="font-weight:400;text-transform:none">(optional)</span></label>
-            <input id="cw-enddate" type="date" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+        </div>
+
+        <!-- Fee notice -->
+        <div id="cw-fee-notice" style="display:none;background:rgba(234,179,8,.09);border:1px solid rgba(234,179,8,.3);border-radius:9px;padding:9px 14px;margin-bottom:12px;font-size:12px;color:#fbbf24;font-weight:700"></div>
+
+        <!-- Documentos a generar -->
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:14px;margin-bottom:14px">
+          <div style="font-size:10px;text-transform:uppercase;color:var(--accent2);font-weight:700;letter-spacing:.08em;margin-bottom:10px">📄 Documentos a Generar / Documents to Generate</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--text)">
+              <input type="checkbox" id="cwdoc-waiver" style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer" checked/>
+              <span>📋 Waiver / Exención de Responsabilidad</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--text)">
+              <input type="checkbox" id="cwdoc-auth" style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer" checked/>
+              <span>💳 Autorización de Cargo Recurrente / Recurring Charge Authorization</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--text)">
+              <input type="checkbox" id="cwdoc-contrato" style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer"/>
+              <span>📃 Contrato de Membresía / Membership Agreement</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--text)">
+              <input type="checkbox" id="cwdoc-health" style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer"/>
+              <span>🏥 Formulario de Salud / Health Form</span>
+            </label>
           </div>
         </div>
 
+        <div style="display:flex;justify-content:space-between;gap:10px">
+          <button onclick="cwShowStep(1)" style="background:transparent;color:var(--muted);border:1.5px solid var(--border);border-radius:9px;padding:10px 20px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer">← Atrás</button>
+          <button onclick="cwShowStep(3)" style="background:var(--accent);color:#000;border:none;border-radius:9px;padding:10px 28px;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;cursor:pointer">Siguiente →</button>
+        </div>
+      </div>
+      <!-- ── STEP 3: MÉTODO DE PAGO ── -->
+      <div id="cw-step-3" style="display:none">
+
+        <!-- Método principal -->
         <div style="margin-bottom:14px">
-          <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Payment Method *</label>
-          <select id="cw-method" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none;cursor:pointer" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
-            <option value="">— Select Method —</option>
-            <option value="card">💳 Credit / Debit Card</option>
+          <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:6px">Método de Pago / Payment Method *</label>
+          <select id="cw-method" onchange="cwMethodChanged()" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none;cursor:pointer" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+            <option value="">— Seleccionar / Select —</option>
+            <option value="card">💳 Tarjeta Crédito / Débito</option>
             <option value="paypal">💰 PayPal</option>
             <option value="zelle">💸 Zelle</option>
             <option value="venmo">💜 Venmo</option>
             <option value="cashapp">💚 Cash App</option>
             <option value="stripe">🔵 Stripe</option>
             <option value="ach">🏦 ACH Transfer</option>
-            <option value="check">📝 Check</option>
-            <option value="cash">💵 Cash / Efectivo</option>
-            <option value="other">🔗 Other</option>
+            <option value="check">📝 Cheque / Check</option>
+            <option value="cash">💵 Efectivo / Cash</option>
+            <option value="other">🔗 Otro / Other</option>
           </select>
         </div>
 
-        <div style="margin-bottom:14px">
-          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--text)">
-            <input type="checkbox" id="cw-notify" style="width:15px;height:15px;accent-color:var(--accent)"/> Notify my customer that I set up this recurring payment
+        <!-- Tarjeta fields (only when card) -->
+        <div id="cw-card-fields" style="display:none">
+          <div style="margin-bottom:12px">
+            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Número de Tarjeta / Card Number *</label>
+            <input id="cw-cardnum" type="text" maxlength="19" placeholder="•••• •••• •••• ••••" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none;letter-spacing:.1em" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div>
+              <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Vencimiento / Expiry *</label>
+              <input id="cw-expiry" type="text" maxlength="5" placeholder="MM/YY" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+            </div>
+            <div>
+              <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">CVV</label>
+              <input id="cw-cvv" type="text" maxlength="4" placeholder="•••" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+            </div>
+          </div>
+          <div style="margin-bottom:12px">
+            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Nombre en Tarjeta / Name on Card *</label>
+            <input id="cw-cardname" type="text" placeholder="Nombre completo" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div>
+              <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">ZIP *</label>
+              <input id="cw-zip2" type="text" maxlength="10" placeholder="33301" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+            </div>
+            <div>
+              <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">País / Country *</label>
+              <select id="cw-country" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none;cursor:pointer" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+                <option value="USA" selected>United States</option>
+                <option value="MEX">Mexico</option><option value="CAN">Canada</option>
+                <option value="GBR">United Kingdom</option><option value="COL">Colombia</option>
+                <option value="ARG">Argentina</option><option value="DOM">Dominican Republic</option>
+                <option value="PRI">Puerto Rico</option><option value="OTHER">Other</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Otro método — link field -->
+        <div id="cw-other-fields" style="display:none">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div>
+              <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Nombre del método *</label>
+              <input id="cw-other-name" type="text" placeholder="Ej: Square, Venmo, Crypto..." style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+            </div>
+            <div>
+              <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Link de Pago (opcional)</label>
+              <input id="cw-other-link" type="url" placeholder="https://..." style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Política de Tarjeta de Crédito — siempre visible -->
+        <div style="background:rgba(60,255,212,.04);border:1.5px solid rgba(60,255,212,.2);border-radius:11px;padding:13px 15px;margin-bottom:14px">
+          <div style="font-size:10px;text-transform:uppercase;color:var(--accent2);font-weight:700;letter-spacing:.08em;margin-bottom:8px">📄 Política de Pago · Payment Policy</div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;font-size:12px">
+            <span style="color:#fbbf24;font-weight:700">💳 3.50% cargo conveniencia / convenience fee</span>
+            <span style="color:var(--danger);font-weight:700">🚫 $25–$50 pago rechazado / declined payment</span>
+          </div>
+          <div style="font-size:10px;color:var(--muted);margin-bottom:10px">⚖️ FL Stat. §501.0117 · §68.065 · FDUTPA Ch.501 · Dodd-Frank §1075</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+            <button type="button" onclick="openCCPolicyModal('es')" style="padding:5px 11px;border-radius:7px;border:1.5px solid var(--accent2);background:transparent;color:var(--accent2);font-size:11px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">🇪🇸 Ver Español</button>
+            <button type="button" onclick="openCCPolicyModal('en')" style="padding:5px 11px;border-radius:7px;border:1.5px solid #60a5fa;background:transparent;color:#60a5fa;font-size:11px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">🇺🇸 View English</button>
+          </div>
+          <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:12px;color:var(--text)">
+            <input type="checkbox" id="cw-policy-accept" style="width:15px;height:15px;accent-color:var(--accent);margin-top:2px;flex-shrink:0"/>
+            <span>✅ Cliente confirma haber leído y aceptado la Política de Pagos / Client confirms reading and accepting the Payment Policy</span>
           </label>
         </div>
 
-        <div style="display:flex;justify-content:space-between;gap:10px">
-          <button onclick="cwShowStep(1)" style="background:transparent;color:var(--muted);border:1.5px solid var(--border);border-radius:9px;padding:10px 20px;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;cursor:pointer">← Back</button>
-          <button onclick="cwShowStep(3)" style="background:var(--accent);color:#000;border:none;border-radius:9px;padding:10px 28px;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;cursor:pointer">Next →</button>
-        </div>
-      </div>
-
-      <!-- ── STEP 3: CARD INFO ── -->
-      <div id="cw-step-3" style="display:none">
-        <div style="margin-bottom:12px">
-          <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Card Number (no spaces) *</label>
-          <input id="cw-cardnum" type="text" maxlength="19" placeholder="•••• •••• •••• ••••" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none;letter-spacing:.1em" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-          <div>
-            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Expiration Date *</label>
-            <input id="cw-expiry" type="text" maxlength="5" placeholder="MM/YY" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
-          </div>
-          <div>
-            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">CVV</label>
-            <input id="cw-cvv" type="text" maxlength="4" placeholder="•••" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
-          </div>
-        </div>
-        <div style="margin-bottom:12px">
-          <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Name (as shown on card) *</label>
-          <input id="cw-cardname" type="text" placeholder="Full name on card" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-          <div>
-            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Billing ZIP *</label>
-            <input id="cw-zip2" type="text" maxlength="10" placeholder="33301" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
-          </div>
-          <div>
-            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Billing Country *</label>
-            <select id="cw-country" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none;cursor:pointer" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
-              <option value="USA" selected>United States</option>
-              <option value="MEX">Mexico</option><option value="CAN">Canada</option>
-              <option value="GBR">United Kingdom</option><option value="COL">Colombia</option>
-              <option value="ARG">Argentina</option><option value="DOM">Dominican Republic</option>
-              <option value="PRI">Puerto Rico</option><option value="OTHER">Other</option>
-            </select>
-          </div>
-        </div>
-        <div style="background:var(--surface2);border-radius:9px;padding:12px 14px;margin-bottom:14px">
+        <!-- Autorización de tarjeta -->
+        <div id="cw-card-auth-row" style="display:none;background:var(--surface2);border-radius:9px;padding:12px 14px;margin-bottom:14px">
           <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:var(--text)">
-            <input type="checkbox" id="cw-auth" style="width:15px;height:15px;accent-color:var(--accent);margin-top:2px;flex-shrink:0"/> I have the signed authorization from customer to process this card.
+            <input type="checkbox" id="cw-auth" style="width:15px;height:15px;accent-color:var(--accent);margin-top:2px;flex-shrink:0"/>
+            <span>🔐 Tengo la autorización firmada del cliente para procesar esta tarjeta / I have the signed authorization to process this card.</span>
           </label>
         </div>
 
         <div id="cw-error" style="color:var(--danger);font-size:12px;min-height:16px;margin-bottom:8px;font-weight:700"></div>
 
-        <!-- ACTION BUTTONS -->
-        <div style="display:flex;justify-content:space-between;gap:10px;margin-bottom:10px">
-          <button onclick="cwShowStep(2)" style="background:transparent;color:var(--muted);border:1.5px solid var(--border);border-radius:9px;padding:10px 18px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;cursor:pointer">← Back</button>
-          <button onclick="cwSavePayment()" style="flex:1;background:var(--accent);color:#000;border:none;border-radius:9px;padding:11px;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;cursor:pointer">✅ Confirm &amp; Save</button>
+        <div style="display:flex;justify-content:space-between;gap:10px">
+          <button onclick="cwShowStep(2)" style="background:transparent;color:var(--muted);border:1.5px solid var(--border);border-radius:9px;padding:10px 18px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;cursor:pointer">← Atrás</button>
+          <button onclick="cwStep3Next()" style="flex:1;background:var(--accent);color:#000;border:none;border-radius:9px;padding:11px;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;cursor:pointer">Siguiente → Documentos</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 4: DOCUMENTOS ── -->
+      <div id="cw-step-4" style="display:none">
+
+        <!-- Resumen del cliente -->
+        <div id="cw-step4-summary" style="background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:13px 15px;margin-bottom:14px;font-size:12px;line-height:1.8;color:var(--muted)"></div>
+
+        <!-- Documentos seleccionados -->
+        <div style="font-size:10px;text-transform:uppercase;color:var(--accent);font-weight:700;letter-spacing:.08em;margin-bottom:10px">📄 Generar Documentos / Generate Documents</div>
+
+        <div id="cw-doc-btns" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px"></div>
+
+        <!-- Cloud save -->
+        <div style="margin-bottom:16px">
+          <button onclick="cwSaveToCloud()" style="width:100%;padding:11px;border-radius:9px;border:none;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;cursor:pointer">☁️ Guardar en Cloud / Save to Cloud</button>
         </div>
 
-        <!-- Document + Cloud buttons -->
-        <div style="border-top:1px solid var(--border);padding-top:12px">
-          <div style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;letter-spacing:.08em;margin-bottom:8px">📄 Generar Documento de Autorización</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button onclick="cwGenerateDoc('es')" style="flex:1;min-width:110px;padding:10px 12px;border-radius:9px;border:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:11px;cursor:pointer">🇪🇸 Español</button>
-            <button onclick="cwGenerateDoc('en')" style="flex:1;min-width:110px;padding:10px 12px;border-radius:9px;border:none;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:11px;cursor:pointer">🇺🇸 English</button>
-            <button onclick="cwSaveToCloud()" style="flex:1;min-width:110px;padding:10px 12px;border-radius:9px;border:none;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:11px;cursor:pointer">☁️ Save to Cloud</button>
-          </div>
+        <!-- Confirmar y crear cliente -->
+        <div style="background:rgba(34,197,94,.06);border:1.5px solid rgba(34,197,94,.25);border-radius:11px;padding:13px 15px;margin-bottom:14px">
+          <div style="font-size:11px;color:var(--success);font-weight:700;margin-bottom:8px">✅ Todo listo — confirmar creación del cliente</div>
+          <div id="cw-final-error" style="color:var(--danger);font-size:12px;min-height:14px;margin-bottom:8px;font-weight:700"></div>
+          <button onclick="cwSavePayment()" style="width:100%;padding:12px;border-radius:9px;border:none;background:var(--success);color:#000;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;cursor:pointer">🚀 Confirmar &amp; Crear Cliente</button>
+        </div>
+
+        <div style="display:flex;justify-content:flex-start">
+          <button onclick="cwShowStep(3)" style="background:transparent;color:var(--muted);border:1.5px solid var(--border);border-radius:9px;padding:10px 18px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;cursor:pointer">← Atrás</button>
         </div>
       </div>
 
@@ -10404,6 +10538,316 @@ async function savePaymentActivation(activate){
     </div><!-- /scroll body -->
   </div>
 </div>
+
+<!-- ── NEW 4-STEP CLIENT MODAL SCRIPTS ── -->
+<script>
+// ── Avatar helpers ─────────────────────────────────────────
+var _cwAvatarData = null;
+var _cwRelation = '';
+var _cwPlanFreq = '';
+var _cwSelectedProg = '';
+
+var _cwAvatarColors = ['#e8ff3c','#3cffd4','#a855f7','#f59e0b','#22c55e','#f472b6','#60a5fa','#fb923c'];
+function cwAvatarColorForName(name){
+  var n=0; for(var i=0;i<name.length;i++) n+=name.charCodeAt(i);
+  return _cwAvatarColors[n % _cwAvatarColors.length];
+}
+function cwUpdateAvatarInitials(){
+  if(_cwAvatarData) return; // has photo
+  var f=(document.getElementById('cw-fname')||{}).value||'';
+  var l=(document.getElementById('cw-lname')||{}).value||'';
+  var initials = (f[0]||'')+(l[0]||'');
+  var el = document.getElementById('cw-avatar-initials');
+  var pr = document.getElementById('cw-avatar-preview');
+  if(!el||!pr) return;
+  if(initials){
+    var col = cwAvatarColorForName(f+l);
+    el.textContent = initials.toUpperCase();
+    el.style.color = col;
+    pr.style.borderColor = col;
+    pr.style.borderStyle = 'solid';
+  } else {
+    el.textContent = '?';
+    el.style.color = 'var(--accent)';
+    pr.style.borderStyle = 'dashed';
+    pr.style.borderColor = 'var(--border)';
+  }
+}
+function cwAvatarChanged(input){
+  var file = input.files && input.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    _cwAvatarData = e.target.result;
+    var pr = document.getElementById('cw-avatar-preview');
+    var ini = document.getElementById('cw-avatar-initials');
+    if(ini) ini.style.display = 'none';
+    if(pr){
+      pr.style.backgroundImage = 'url('+_cwAvatarData+')';
+      pr.style.backgroundSize = 'cover';
+      pr.style.backgroundPosition = 'center';
+      pr.style.borderStyle = 'solid';
+      pr.style.borderColor = 'var(--accent)';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+function cwClearAvatar(){
+  _cwAvatarData = null;
+  var pr = document.getElementById('cw-avatar-preview');
+  var ini = document.getElementById('cw-avatar-initials');
+  if(pr){ pr.style.backgroundImage='none'; pr.style.borderStyle='dashed'; pr.style.borderColor='var(--border)'; }
+  if(ini){ ini.style.display=''; }
+  cwUpdateAvatarInitials();
+  var fi = document.getElementById('cw-avatar-file');
+  if(fi) fi.value='';
+}
+
+// ── Relation type ──────────────────────────────────────────
+function cwSetRelation(type){
+  _cwRelation = type;
+  ['cliente','estudiante','referido','partner'].forEach(function(t){
+    var btn = document.getElementById('cwrel-'+t);
+    if(!btn) return;
+    if(t===type){
+      btn.style.borderColor='var(--accent)';
+      btn.style.color='var(--accent)';
+      btn.style.background='rgba(232,255,60,.08)';
+    } else {
+      btn.style.borderColor='var(--border)';
+      btn.style.color='var(--muted)';
+      btn.style.background='var(--surface2)';
+    }
+  });
+}
+
+// ── Plan frequency ─────────────────────────────────────────
+function cwSetPlanFreq(freq){
+  _cwPlanFreq = freq;
+  ['monthly','quarterly','semiannual','annual','otro'].forEach(function(f){
+    var btn = document.getElementById('cwpf-'+f);
+    if(!btn) return;
+    if(f===freq){
+      btn.style.borderColor='var(--accent)';
+      btn.style.color='var(--accent)';
+      btn.style.background='rgba(232,255,60,.08)';
+    } else {
+      btn.style.borderColor='var(--border)';
+      btn.style.color='var(--muted)';
+      btn.style.background='var(--surface2)';
+    }
+  });
+  var otroRow = document.getElementById('cw-plan-otro-row');
+  if(otroRow) otroRow.style.display = freq==='otro' ? 'block' : 'none';
+}
+
+// ── Method changed ─────────────────────────────────────────
+function cwMethodChanged(){
+  var method = (document.getElementById('cw-method')||{}).value||'';
+  var cardF = document.getElementById('cw-card-fields');
+  var otherF = document.getElementById('cw-other-fields');
+  var authRow = document.getElementById('cw-card-auth-row');
+  if(cardF)  cardF.style.display  = method==='card' ? '' : 'none';
+  if(otherF) otherF.style.display = method==='other'? '' : 'none';
+  if(authRow)authRow.style.display= method==='card' ? '' : 'none';
+}
+
+// ── Populate programs in step 2 ────────────────────────────
+function cwPopulateProgs(){
+  var list = document.getElementById('cw-prog-list');
+  if(!list) return;
+  var progs = (typeof customProgs !== 'undefined') ? customProgs : [];
+  if(!progs.length){ list.innerHTML='<span style="color:var(--muted);font-size:12px">No hay programas configurados — usa el campo "Otro" abajo</span>'; return; }
+  list.innerHTML = progs.map(function(p){
+    var label = (typeof _progLabelMaster === 'function') ? _progLabelMaster(p) : (p.nameES||p.name||p.id);
+    return '<button type="button" id="cwprog-'+p.id+'" onclick="cwSelectProg(\''+p.id+'\')" style="padding:8px 14px;border-radius:9px;border:2px solid var(--border);background:var(--surface2);color:var(--muted);font-family:\'Syne\',sans-serif;font-weight:700;font-size:12px;cursor:pointer;transition:all .15s">'+label+'</button>';
+  }).join('');
+}
+function cwSelectProg(id){
+  _cwSelectedProg = id;
+  var progs = (typeof customProgs !== 'undefined') ? customProgs : [];
+  progs.forEach(function(p){
+    var btn = document.getElementById('cwprog-'+p.id);
+    if(!btn) return;
+    if(p.id===id){
+      btn.style.borderColor='var(--accent)';
+      btn.style.color='var(--accent)';
+      btn.style.background='rgba(232,255,60,.08)';
+      // auto-fill price
+      var price = p.price||p.priceES||p.monthlyPrice||'';
+      var amt = document.getElementById('cw-amount');
+      if(amt && !amt.value && price) { amt.value=price; cwCalcFee(); }
+    } else {
+      btn.style.borderColor='var(--border)';
+      btn.style.color='var(--muted)';
+      btn.style.background='var(--surface2)';
+    }
+  });
+}
+
+// ── Step navigation guards ──────────────────────────────────
+function cwStep1Next(){
+  var fname = (document.getElementById('cw-fname')||{}).value||'';
+  var lname = (document.getElementById('cw-lname')||{}).value||'';
+  if(!fname.trim()||!lname.trim()){ showToast('⚠️ Nombre y apellido son requeridos','var(--danger)'); return; }
+  if(!_cwRelation){ showToast('⚠️ Selecciona el tipo de relación','var(--danger)'); return; }
+  cwPopulateProgs();
+  cwShowStep(2);
+}
+function cwStep3Next(){
+  var method = (document.getElementById('cw-method')||{}).value||'';
+  if(!method){ showToast('⚠️ Selecciona el método de pago','var(--danger)'); return; }
+  var accepted = document.getElementById('cw-policy-accept');
+  if(accepted && !accepted.checked){ showToast('⚠️ El cliente debe aceptar la Política de Pagos','var(--danger)'); return; }
+  if(method==='card'){
+    var auth = document.getElementById('cw-auth');
+    if(auth && !auth.checked){ showToast('⚠️ Confirma la autorización de tarjeta','var(--danger)'); return; }
+  }
+  cwBuildStep4();
+  cwShowStep(4);
+}
+function cwBuildStep4(){
+  // Summary
+  var fname = (document.getElementById('cw-fname')||{}).value||'';
+  var lname = (document.getElementById('cw-lname')||{}).value||'';
+  var amount= (document.getElementById('cw-amount')||{}).value||'';
+  var method= (document.getElementById('cw-method')||{}).value||'';
+  var progs = (typeof customProgs !== 'undefined') ? customProgs : [];
+  var prog  = progs.find(function(p){ return p.id===_cwSelectedProg; });
+  var progName = prog ? ((typeof _progLabelMaster==='function')?_progLabelMaster(prog):(prog.nameES||prog.id)) : ((document.getElementById('cw-prog-otro')||{}).value||'—');
+  var freqMap = {monthly:'Mensual',quarterly:'Trimestral',semiannual:'Semestral',annual:'Anual',otro:(document.getElementById('cw-plan-otro-name')||{}).value||'Otro'};
+  var sumEl = document.getElementById('cw-step4-summary');
+  if(sumEl) sumEl.innerHTML = [
+    '<span style="color:var(--text);font-weight:700">👤 '+fname+' '+lname+'</span>',
+    '<span style="color:var(--muted)"> · '+_cwRelation+'</span>',
+    '<br/><span style="color:var(--muted)">📋 '+progName+'</span>',
+    '<span style="color:var(--muted)"> · '+freqMap[_cwPlanFreq||'monthly']+'</span>',
+    '<span style="color:var(--accent);font-weight:700"> · $'+parseFloat(amount||0).toFixed(2)+'</span>',
+    '<br/><span style="color:var(--muted)">💳 '+method+'</span>'
+  ].join('');
+
+  // Doc buttons for selected docs
+  var docsEl = document.getElementById('cw-doc-btns');
+  if(!docsEl) return;
+  var docs = [
+    {id:'cwdoc-waiver',    label:'📋 Waiver / Exención',            fn:function(){ generarAutorizacion ? generarAutorizacion(_cwReg&&_cwReg.id) : showToast('Función no disponible'); }},
+    {id:'cwdoc-auth',      label:'💳 Autorización de Cargo Recurrente', fn:function(){ cwGenerateDoc ? cwGenerateDoc('es') : showToast('Función no disponible'); }},
+    {id:'cwdoc-contrato',  label:'📃 Contrato de Membresía',        fn:function(){ wiGenerateEnrollmentDoc ? wiGenerateEnrollmentDoc(_cwReg||{}) : showToast('Función no disponible'); }},
+    {id:'cwdoc-health',    label:'🏥 Formulario de Salud',          fn:function(){ showToast('📄 Health Form — próximamente'); }}
+  ];
+  docsEl.innerHTML = docs.map(function(d){
+    var checked = document.getElementById(d.id) && document.getElementById(d.id).checked;
+    if(!checked) return '';
+    return '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px">'
+      +'<span style="font-size:13px;color:var(--text);font-weight:600">'+d.label+'</span>'
+      +'<div style="display:flex;gap:7px">'
+      +'<button onclick="cwGenerateDoc(\'es\')" style="padding:6px 12px;border-radius:7px;border:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;font-family:\'Syne\',sans-serif;font-weight:800;font-size:10px;cursor:pointer">🇪🇸 ES</button>'
+      +'<button onclick="cwGenerateDoc(\'en\')" style="padding:6px 12px;border-radius:7px;border:none;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-family:\'Syne\',sans-serif;font-weight:800;font-size:10px;cursor:pointer">🇺🇸 EN</button>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+  if(!docsEl.innerHTML.trim()){
+    docsEl.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:10px">No se seleccionaron documentos en el Paso 2.</div>';
+  }
+}
+
+// ── Override cwShowStep to handle 4 steps ──────────────────
+function cwShowStep(n){
+  _cwStep = n;
+  [1,2,3,4].forEach(function(i){
+    var s = document.getElementById('cw-step-'+i);
+    var t = document.getElementById('cw-tab-'+i);
+    if(s) s.style.display = i===n ? '' : 'none';
+    if(t){
+      t.style.color        = i===n ? 'var(--accent)' : 'var(--muted)';
+      t.style.borderBottom = i===n ? '2px solid var(--accent)' : '2px solid transparent';
+    }
+  });
+}
+
+// ── Manual client creation (from Clientes page) ───────────
+function openNewClientManual(){
+  _cwAvatarData = null;
+  _cwRelation   = '';
+  _cwPlanFreq   = '';
+  _cwSelectedProg = '';
+  _cwReg  = null;
+  _cwLead = null;
+  _cwStep = 1;
+
+  // Clear all fields
+  ['cw-fname','cw-lname','cw-email','cw-phone','cw-bizname','cw-notes',
+   'cw-prog-otro','cw-amount','cw-other-name','cw-other-link',
+   'cw-cardnum','cw-expiry','cw-cvv','cw-cardname','cw-zip2'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.value='';
+  });
+  // Reset selects
+  ['cw-biztype','cw-method','cw-country'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.selectedIndex=0;
+  });
+  // Reset checkboxes
+  ['cwdoc-waiver','cwdoc-auth','cwdoc-contrato','cwdoc-health','cw-policy-accept','cw-auth'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el){ el.checked = (id==='cwdoc-waiver'||id==='cwdoc-auth'); }
+  });
+  // Reset avatar
+  cwClearAvatar();
+  // Reset relation + freq buttons
+  ['cliente','estudiante','referido','partner'].forEach(function(t){
+    var b = document.getElementById('cwrel-'+t);
+    if(b){ b.style.borderColor='var(--border)'; b.style.color='var(--muted)'; b.style.background='var(--surface2)'; }
+  });
+  ['monthly','quarterly','semiannual','annual','otro'].forEach(function(f){
+    var b = document.getElementById('cwpf-'+f);
+    if(b){ b.style.borderColor='var(--border)'; b.style.color='var(--muted)'; b.style.background='var(--surface2)'; }
+  });
+  var otroRow = document.getElementById('cw-plan-otro-row');
+  if(otroRow) otroRow.style.display='none';
+  cwMethodChanged();
+
+  // Set header text
+  var nameEl = document.getElementById('cwClientName');
+  if(nameEl) nameEl.textContent = '➕ Nuevo Cliente';
+  var dateEl = document.getElementById('cwDate');
+  if(dateEl) dateEl.textContent = new Date().toLocaleDateString('es-US',{year:'numeric',month:'long',day:'numeric'});
+
+  // Set today as start date
+  var sd = document.getElementById('cw-startdate');
+  if(sd) sd.value = new Date().toISOString().split('T')[0];
+
+  // Pre-populate program list
+  cwPopulateProgs();
+
+  // Hide messaging buttons (no phone yet)
+  ['cwWABtn','cwSMSGVBtn','cwSMSMSBtn'].forEach(function(id){
+    var a = document.getElementById(id);
+    if(a) a.style.display='none';
+  });
+
+  cwShowStep(1);
+  document.getElementById('clientWelcomeModal').style.display='flex';
+}
+
+var _origOpenClientWelcomePopup = openClientWelcomePopup;
+openClientWelcomePopup = function(reg, lead){
+  _cwAvatarData = null;
+  _cwRelation = lead.profileType || 'cliente';
+  _cwPlanFreq = '';
+  _cwSelectedProg = lead.program||'';
+  _origOpenClientWelcomePopup(reg, lead);
+  // Set relation button active
+  cwSetRelation(_cwRelation);
+  // Update avatar initials
+  cwUpdateAvatarInitials();
+  // Populate biz fields if available
+  var bizname = document.getElementById('cw-bizname');
+  if(bizname) bizname.value = lead.bizName||reg.bizName||'';
+  var biztype = document.getElementById('cw-biztype');
+  if(biztype && lead.bizType) biztype.value = lead.bizType;
+};
+</script>
 
 </body>
 </html>
