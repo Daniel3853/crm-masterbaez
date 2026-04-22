@@ -7578,10 +7578,15 @@ function renderLeadsInbox(){
 
       +'<div class="lead-convert-bar">'
         +'<span style="font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.08em;align-self:center;font-family:Syne,sans-serif">CONVERTIR →</span>'
-        +'<button class="lead-convert-btn lcb-trial" onclick="toggleLeadTrial(\''+lead.id+'\',true)">🎯 Trial</button>'
-        +'<button class="lead-convert-btn lcb-client" onclick="convertProspectoToClient(\''+lead.id+'\')">👥 Cliente</button>'
-        +'<button class="lead-convert-btn lcb-ref" onclick="openReferidorModalFromLead(\''+lead.id+'\')">🔗 Referido</button>'
-        +'<button class="lead-convert-btn lcb-partner" onclick="openPartnerModalFromLead(\''+lead.id+'\')">🏢 Partner</button>'
+        +(lead.isStudent
+          ?'<button class="lead-convert-btn" style="border-color:#ff4444;color:#ff4444;font-size:10px" onclick="undoLeadConvert(\''+lead.id+'\')">↩ Deshacer</button>'
+          :(
+            '<button class="lead-convert-btn lcb-trial" onclick="convertLeadToStudent(\''+lead.id+'\');setTimeout(function(){confirmConvertLead(\'trial\')},50)">🎯 Trial</button>'
+           +'<button class="lead-convert-btn lcb-client" onclick="convertLeadToStudent(\''+lead.id+'\');setTimeout(function(){confirmConvertLead(\'cliente\')},50)">👥 Cliente</button>'
+           +'<button class="lead-convert-btn lcb-ref" onclick="openReferidorModalFromLead(\''+lead.id+'\')">🔗 Referido</button>'
+           +'<button class="lead-convert-btn lcb-partner" onclick="openPartnerModalFromLead(\''+lead.id+'\')">🏢 Partner</button>'
+          )
+        )
       +'</div>'
 
     +'</div>';
@@ -7632,70 +7637,111 @@ function saveLeadTracking(id){
   showToast('✅','Seguimiento guardado');
 }
 var _convertPendingLeadId = null;
+
 function convertLeadToStudent(id){
   _convertPendingLeadId = id;
-  var overlay = document.getElementById('convertLeadModal');
-  if(overlay){ overlay.classList.add('open'); }
+  // Don't open the modal — caller decides which profileType directly
 }
+
 async function confirmConvertLead(profileType){
+  var id = _convertPendingLeadId; if(!id) return;
+  var l = leads.find(function(x){ return x.id===id; });
+  if(!l){ _convertPendingLeadId=null; return; }
+
+  // Close convert modal if open
+  var overlay = document.getElementById('convertLeadModal');
+  if(overlay) overlay.classList.remove('open');
+
   if(profileType === 'trial'){
-    // Close convert modal and open trial config
-    var overlay = document.getElementById('convertLeadModal');
-    if(overlay) overlay.classList.remove('open');
     openTrialConfigModal();
     return;
   }
-  var id = _convertPendingLeadId; if(!id) return;
-  var l = leads.find(function(x){ return x.id===id; });
-  if(!l) return;
-  // Update lead
-  l.isStudent=true;
-  l.profileType=profileType;
-  l.convertedAt=new Date().toLocaleDateString('es-US');
-  if(!_demoMode && _fbdb) _fbdb.ref('masterMods/leads/'+id).update({isStudent:true, profileType:profileType, convertedAt:l.convertedAt});
-  // Create registration in clients section
+
+  // Referido / Partner → open their respective modals
+  if(profileType === 'referido'){
+    _convertPendingLeadId = null;
+    openReferidorModalFromLead(id);
+    return;
+  }
+  if(profileType === 'partner'){
+    _convertPendingLeadId = null;
+    openPartnerModalFromLead(id);
+    return;
+  }
+
+  // cliente / prospector
+  l.isStudent    = true;
+  l.profileType  = profileType;
+  l.convertedAt  = new Date().toLocaleDateString('es-US');
+  l._prevProfile = null; // clear any undo
+
+  if(!_demoMode && _fbdb)
+    _fbdb.ref('masterMods/leads/'+id).update({isStudent:true, profileType:profileType, convertedAt:l.convertedAt});
+
   var newReg = {
-    id:         'CLI-'+Date.now().toString(36).toUpperCase(),
-    firstName:  l.firstName||'',
-    lastName:   l.lastName||'',
-    email:      l.email||'',
-    phone:      l.phone||'',
-    bizName:    (l.firstName||'')+' '+(l.lastName||''),
-    bizType:    l.program||'',
-    plan:       profileType==='trial'?'trial':'starter',
-    status:     profileType==='trial'?'trial':'active',
-    trialDays:  profileType==='trial'?14:0,
-    trialStart: profileType==='trial'?fmtDate(new Date()):'',
-    trialEnd:   profileType==='trial'?fmtDate(new Date(Date.now()+14*864e5)):'',
-    profileType:profileType,
-    ref_id:     l.ref_id||'',
-    source:     l.source||'',
+    id:                'CLI-'+Date.now().toString(36).toUpperCase(),
+    firstName:         l.firstName||'',
+    lastName:          l.lastName||'',
+    email:             l.email||'',
+    phone:             l.phone||'',
+    bizName:           (l.firstName||'')+' '+(l.lastName||''),
+    bizType:           l.program||'',
+    plan:              'starter',
+    status:            'active',
+    profileType:       profileType,
+    ref_id:            l.ref_id||'',
+    source:            l.source||'',
     convertedFromLead: id,
-    createdAt:  new Date().toISOString()
+    createdAt:         new Date().toISOString()
   };
   registrations.unshift(newReg);
+  l._linkedRegId = newReg.id; // save for undo
+
   if(!_demoMode && _fbdb){
     try{ await _fbdb.ref('registrations/'+newReg.id).set(newReg); }catch(e){}
+    _fbdb.ref('masterMods/leads/'+id).update({_linkedRegId: newReg.id});
   }
-  var overlay = document.getElementById('convertLeadModal');
-  if(overlay){ overlay.classList.remove('open'); }
-  _convertPendingLeadId = null;
-  renderLeadsInbox();
-  renderClients();
-  renderDashboard();
-  updateNavBadge();
 
-  // If converting to cliente, open the welcome payment popup
+  _convertPendingLeadId = null;
+  renderLeadsInbox(); renderClients(); renderDashboard(); updateNavBadge();
+
   if(profileType === 'cliente'){
     openClientWelcomePopup(newReg, l);
     return;
   }
-  showToast('🏅','Lead convertido a '+profileType+' — aparece en Clientes');
+  showToast('🏅 Lead convertido a '+profileType+' — aparece en Clientes');
 }
+
 function closeConvertLeadModal(){
   var overlay = document.getElementById('convertLeadModal');
   if(overlay){ overlay.classList.remove('open'); }
   _convertPendingLeadId = null;
+}
+
+// ── UNDO: revertir conversión ──────────────────────────
+async function undoLeadConvert(id){
+  var l = leads.find(function(x){ return x.id===id; });
+  if(!l) return;
+  if(!confirm('¿Revertir la conversión de '+l.firstName+' '+l.lastName+'? Se eliminará de Clientes y volverá a ser un Lead.')) return;
+
+  // Remove from registrations
+  var regId = l._linkedRegId;
+  if(regId){
+    registrations = registrations.filter(function(r){ return r.id !== regId; });
+    if(!_demoMode && _fbdb) _fbdb.ref('registrations/'+regId).remove();
+  }
+
+  // Reset lead flags
+  l.isStudent    = false;
+  l.profileType  = null;
+  l.convertedAt  = null;
+  l._linkedRegId = null;
+
+  if(!_demoMode && _fbdb)
+    _fbdb.ref('masterMods/leads/'+id).update({isStudent:false, profileType:null, convertedAt:null, _linkedRegId:null});
+
+  renderLeadsInbox(); renderClients(); renderDashboard(); updateNavBadge();
+  showToast('↩ Conversión revertida — '+l.firstName+' volvió a Leads');
 }
 
 // ── WELCOME CLIENT POPUP (programa + pago) ──────────────────────────
