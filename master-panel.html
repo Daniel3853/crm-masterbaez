@@ -7540,9 +7540,9 @@ function renderLeadsInbox(){
           +(lead.phone?'<a class="lead-act-btn" style="background:var(--accent2);color:#000;text-decoration:none;display:flex;align-items:center;justify-content:center" href="'+buildLeadSMSGVHref(lead)+'" target="_blank">💬</a>':'')
           +(lead.phone?'<a class="lead-act-btn btn-wa-s" href="'+buildLeadWAHref(lead)+'" target="_blank" style="text-decoration:none;display:flex;align-items:center;justify-content:center">📲</a>':'')
           +(!lead._read
-            ?'<button class="lead-act-btn" style="background:var(--surface2);color:var(--accent)" onclick="markLeadRead(''+lead.id+'')">✓</button>'
-            :'<button class="lead-act-btn" style="background:var(--surface2);color:var(--muted)" onclick="markLeadRead(''+lead.id+'')">↩</button>')
-          +'<button class="lead-act-btn btn-del-s" onclick="deleteLeadToTrash(''+lead.id+'')">🗑</button>'
+            ?'<button class="lead-act-btn" style="background:var(--surface2);color:var(--accent)" onclick="markLeadRead(\''+lead.id+'\')">✓</button>'
+            :'<button class="lead-act-btn" style="background:var(--surface2);color:var(--muted)" onclick="markLeadRead(\''+lead.id+'\')">↩</button>')
+          +'<button class="lead-act-btn btn-del-s" onclick="deleteLeadToTrash(\''+lead.id+'\')">🗑</button>'
         +'</div>'
       +'</div>'
 
@@ -7550,7 +7550,7 @@ function renderLeadsInbox(){
         +'<details style="background:var(--surface2);border-radius:10px;padding:12px;border:1px solid var(--border)">'
           +'<summary style="cursor:pointer;font-family:Syne,sans-serif;font-weight:800;font-size:12px;color:var(--muted);letter-spacing:.05em;list-style:none;display:flex;align-items:center;gap:6px">📋 SEGUIMIENTO &amp; ASISTENCIA <span style="margin-left:auto">▼</span></summary>'
           +'<div style="margin-top:12px">'
-            +'<label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:'+(lead.attended?'var(--success)':'var(--muted)')+';font-weight:700;font-size:13px;margin-bottom:10px" onclick="toggleLeadAttended(''+lead.id+'')">'
+            +'<label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:'+(lead.attended?'var(--success)':'var(--muted)')+';font-weight:700;font-size:13px;margin-bottom:10px" onclick="toggleLeadAttended(\''+lead.id+'\')">'
               +'<input type="checkbox" '+(lead.attended?'checked':'')+' onclick="event.stopPropagation()" style="width:16px;height:16px;accent-color:var(--success)"/>'
               +(lead.attended?'✅ Asistió a la cita':'⬜ Pendiente de cita')
             +'</label>'
@@ -7568,7 +7568,7 @@ function renderLeadsInbox(){
               +'<label style="font-size:12px;color:var(--muted);font-weight:700">Notas:</label>'
               +'<input type="text" id="lnote_'+lead.id+'" value="'+esc(lead.trackNote||'')+'" placeholder="Agregar nota..." style="flex:1;padding:5px 8px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:12px"/>'
             +'</div>'
-            +'<button style="width:100%;padding:8px;border-radius:8px;border:none;background:var(--accent);color:#000;font-family:Syne,sans-serif;font-weight:800;font-size:12px;cursor:pointer;margin-bottom:8px" onclick="saveLeadTracking(''+lead.id+'')">💾 Guardar seguimiento</button>'
+            +'<button style="width:100%;padding:8px;border-radius:8px;border:none;background:var(--accent);color:#000;font-family:Syne,sans-serif;font-weight:800;font-size:12px;cursor:pointer;margin-bottom:8px" onclick="saveLeadTracking(\''+lead.id+'\')">💾 Guardar seguimiento</button>'
             +buildLeadTrialSection(lead)
             +buildLeadMembershipSection(lead)
           +'</div>'
@@ -7577,10 +7577,10 @@ function renderLeadsInbox(){
 
       +'<div class="lead-convert-bar">'
         +'<span style="font-size:10px;font-weight:800;color:var(--muted);letter-spacing:.08em;align-self:center;font-family:Syne,sans-serif">CONVERTIR →</span>'
-        +'<button class="lead-convert-btn lcb-trial" onclick="toggleLeadTrial(''+lead.id+'',true)">🎯 Trial</button>'
-        +'<button class="lead-convert-btn lcb-client" onclick="convertProspectoToClient(''+lead.id+'')">👥 Cliente</button>'
-        +'<button class="lead-convert-btn lcb-ref" onclick="openReferidorModalFromLead(''+lead.id+'')">🔗 Referido</button>'
-        +'<button class="lead-convert-btn lcb-partner" onclick="openPartnerModalFromLead(''+lead.id+'')">🏢 Partner</button>'
+        +'<button class="lead-convert-btn lcb-trial" onclick="toggleLeadTrial(\''+lead.id+'\',true)">🎯 Trial</button>'
+        +'<button class="lead-convert-btn lcb-client" onclick="convertProspectoToClient(\''+lead.id+'\')">👥 Cliente</button>'
+        +'<button class="lead-convert-btn lcb-ref" onclick="openReferidorModalFromLead(\''+lead.id+'\')">🔗 Referido</button>'
+        +'<button class="lead-convert-btn lcb-partner" onclick="openPartnerModalFromLead(\''+lead.id+'\')">🏢 Partner</button>'
       +'</div>'
 
     +'</div>';
