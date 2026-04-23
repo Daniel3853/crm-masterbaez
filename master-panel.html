@@ -8924,7 +8924,7 @@ async function fbLoadMasterMods(){
 </div>
 
 <!-- CC POLICY MODAL -->
-<div class="modal-overlay" id="ccPolicyModal" style="z-index:10015;padding:12px;">
+<div class="modal-overlay" id="ccPolicyModal" style="z-index:10700;padding:12px;">
   <div style="background:#fdfcf8;border-radius:16px;width:100%;max-width:780px;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.6);">
     <div style="position:sticky;top:0;z-index:10;background:#1a3a5c;padding:12px 20px;border-radius:16px 16px 0 0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
       <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:#fff;">💳 Política de Tarjeta <span style="color:#d4a017;font-weight:400;font-size:12px">· Credit Card Payment Policy</span></div>
@@ -10777,91 +10777,147 @@ async function savePaymentActivation(activate){
       <!-- ── STEP 3: MÉTODO DE PAGO ── -->
       <div id="cw-step-3" style="display:none">
 
-        <!-- Método principal -->
-        <div style="margin-bottom:14px">
-          <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:6px">Método de Pago / Payment Method *</label>
-          <select id="cw-method" onchange="cwMethodChanged()" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none;cursor:pointer" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
-            <option value="">— Seleccionar / Select —</option>
-            <option value="card">💳 Tarjeta Crédito / Débito</option>
+        <!-- ── PAYMENT METHOD SELECTOR ── -->
+        <div style="margin-bottom:16px">
+          <label style="font-size:11px;text-transform:uppercase;color:var(--accent);font-weight:800;display:block;margin-bottom:8px;letter-spacing:.08em">💳 Payment Method *</label>
+          <select id="cw-method" onchange="cwMethodChanged()" style="width:100%;background:var(--surface2);border:2px solid var(--accent);border-radius:9px;padding:11px 14px;color:var(--text);font-size:14px;outline:none;cursor:pointer;font-weight:700">
+            <option value="">— Select Payment Method —</option>
+            <option value="card">💳 Credit / Debit Card (Intuit)</option>
             <option value="paypal">💰 PayPal</option>
             <option value="zelle">💸 Zelle</option>
             <option value="venmo">💜 Venmo</option>
             <option value="cashapp">💚 Cash App</option>
-            <option value="stripe">🔵 Stripe</option>
             <option value="ach">🏦 ACH Transfer</option>
-            <option value="check">📝 Cheque / Check</option>
-            <option value="cash">💵 Efectivo / Cash</option>
-            <option value="other">🔗 Otro / Other</option>
+            <option value="check">📝 Check / Cheque</option>
+            <option value="cash">💵 Cash / Efectivo</option>
+            <option value="other">🔗 Other / Otro</option>
           </select>
         </div>
 
-        <!-- Tarjeta fields (only when card) -->
+        <!-- ══════════════════════════════════════════
+             INTUIT CARD FIELDS — shown when card selected
+        ══════════════════════════════════════════ -->
         <div id="cw-card-fields" style="display:none">
-          <div style="margin-bottom:12px">
-            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Número de Tarjeta / Card Number *</label>
-            <input id="cw-cardnum" type="text" maxlength="19" placeholder="•••• •••• •••• ••••" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none;letter-spacing:.1em" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-            <div>
-              <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Vencimiento / Expiry *</label>
-              <input id="cw-expiry" type="text" maxlength="5" placeholder="MM/YY" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+          <div style="background:rgba(232,255,60,.04);border:2px solid rgba(232,255,60,.3);border-radius:13px;padding:16px;margin-bottom:14px">
+
+            <div style="font-size:11px;text-transform:uppercase;color:var(--accent);font-weight:800;letter-spacing:.08em;margin-bottom:14px;display:flex;align-items:center;gap:8px">
+              💳 Card Information
+              <span style="display:flex;gap:5px;margin-left:auto">
+                <span style="font-size:18px">💳</span><span style="font-size:18px">🏧</span><span style="font-size:18px">💵</span>
+              </span>
             </div>
-            <div>
-              <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">CVV</label>
-              <input id="cw-cvv" type="text" maxlength="4" placeholder="•••" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+
+            <!-- Card Number -->
+            <div style="margin-bottom:12px">
+              <label style="font-size:10px;text-transform:uppercase;color:#bbb;font-weight:700;display:block;margin-bottom:5px">Card Number (no spaces) *</label>
+              <input id="cw-cardnum" type="text" maxlength="19" placeholder="1234 5678 9012 3456"
+                oninput="this.value=this.value.replace(/[^0-9 ]/g,'');cwFormatCardNum(this)"
+                style="width:100%;background:#1a1a1a;border:1.5px solid #333;border-radius:9px;padding:12px 14px;color:#f0f0f0;font-size:16px;outline:none;letter-spacing:.15em;font-family:'Syne',sans-serif;font-weight:700"
+                onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='#333'"/>
             </div>
-          </div>
-          <div style="margin-bottom:12px">
-            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Nombre en Tarjeta / Name (as shown on card) *</label>
-            <input id="cw-cardname" type="text" placeholder="JOHN DOE" oninput="this.value=this.value.toUpperCase()" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none;text-transform:uppercase" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
-          </div>
-          <div style="margin-bottom:12px">
-            <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Dirección de Facturación / Billing Address</label>
-            <input id="cw-billing-addr" type="text" placeholder="123 Main St, City, State" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-            <div>
-              <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Billing ZIP Code *</label>
-              <input id="cw-zip2" type="text" maxlength="10" placeholder="33301" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+
+            <!-- Expiration + CVV -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+              <div>
+                <label style="font-size:10px;text-transform:uppercase;color:#bbb;font-weight:700;display:block;margin-bottom:5px">Expiration Date * <span style="color:#888;text-transform:none;font-size:9px">(MM/YY)</span></label>
+                <input id="cw-expiry" type="text" maxlength="5" placeholder="MM/YY"
+                  oninput="cwFormatExpiry(this)"
+                  style="width:100%;background:#1a1a1a;border:1.5px solid #333;border-radius:9px;padding:12px 14px;color:#f0f0f0;font-size:15px;outline:none;letter-spacing:.1em;font-family:'Syne',sans-serif;font-weight:700"
+                  onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='#333'"/>
+              </div>
+              <div>
+                <label style="font-size:10px;text-transform:uppercase;color:#bbb;font-weight:700;display:block;margin-bottom:5px">CVV / CVC <span style="color:#888;text-transform:none;font-size:9px">(3-4 digits)</span></label>
+                <input id="cw-cvv" type="text" maxlength="4" placeholder="•••"
+                  oninput="this.value=this.value.replace(/\D/g,'')"
+                  style="width:100%;background:#1a1a1a;border:1.5px solid #333;border-radius:9px;padding:12px 14px;color:#f0f0f0;font-size:15px;outline:none;letter-spacing:.2em;font-family:'Syne',sans-serif;font-weight:700"
+                  onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='#333'"/>
+              </div>
             </div>
-            <div>
-              <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Billing Country *</label>
-              <select id="cw-country" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none;cursor:pointer" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
-                <option value="USA" selected>United States</option>
-                <option value="MEX">Mexico</option><option value="CAN">Canada</option>
-                <option value="GBR">United Kingdom</option><option value="COL">Colombia</option>
-                <option value="ARG">Argentina</option><option value="DOM">Dominican Republic</option>
-                <option value="PRI">Puerto Rico</option><option value="OTHER">Other</option>
-              </select>
+
+            <!-- Name on Card -->
+            <div style="margin-bottom:12px">
+              <label style="font-size:10px;text-transform:uppercase;color:#bbb;font-weight:700;display:block;margin-bottom:5px">Name (as shown on card) *</label>
+              <input id="cw-cardname" type="text" placeholder="JOHN DOE"
+                oninput="this.value=this.value.toUpperCase()"
+                style="width:100%;background:#1a1a1a;border:1.5px solid #333;border-radius:9px;padding:12px 14px;color:#f0f0f0;font-size:14px;outline:none;text-transform:uppercase;letter-spacing:.03em"
+                onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='#333'"/>
+            </div>
+
+            <!-- Billing Address -->
+            <div style="margin-bottom:12px">
+              <label style="font-size:10px;text-transform:uppercase;color:#bbb;font-weight:700;display:block;margin-bottom:5px">Billing Address</label>
+              <input id="cw-billing-addr" type="text" placeholder="123 Main St, Miami, FL"
+                style="width:100%;background:#1a1a1a;border:1.5px solid #333;border-radius:9px;padding:12px 14px;color:#f0f0f0;font-size:14px;outline:none"
+                onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='#333'"/>
+            </div>
+
+            <!-- ZIP + Country -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+              <div>
+                <label style="font-size:10px;text-transform:uppercase;color:#bbb;font-weight:700;display:block;margin-bottom:5px">Billing ZIP Code *</label>
+                <input id="cw-zip2" type="text" maxlength="10" placeholder="33301"
+                  oninput="this.value=this.value.replace(/[^0-9-]/g,'')"
+                  style="width:100%;background:#1a1a1a;border:1.5px solid #333;border-radius:9px;padding:12px 14px;color:#f0f0f0;font-size:14px;outline:none;letter-spacing:.05em;font-family:'Syne',sans-serif;font-weight:700"
+                  onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='#333'"/>
+              </div>
+              <div>
+                <label style="font-size:10px;text-transform:uppercase;color:#bbb;font-weight:700;display:block;margin-bottom:5px">Billing Country *</label>
+                <select id="cw-country" style="width:100%;background:#1a1a1a;border:1.5px solid #333;border-radius:9px;padding:12px 14px;color:#f0f0f0;font-size:13px;outline:none;cursor:pointer"
+                  onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='#333'">
+                  <option value="USA" selected>🇺🇸 United States</option>
+                  <option value="MEX">🇲🇽 Mexico</option>
+                  <option value="CAN">🇨🇦 Canada</option>
+                  <option value="GBR">🇬🇧 United Kingdom</option>
+                  <option value="COL">🇨🇴 Colombia</option>
+                  <option value="ARG">🇦🇷 Argentina</option>
+                  <option value="DOM">🇩🇴 Dominican Republic</option>
+                  <option value="PRI">🇵🇷 Puerto Rico</option>
+                  <option value="OTHER">🌐 Other</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Intuit Auth checkboxes — inside card box -->
+            <div style="border-top:1px solid rgba(232,255,60,.2);padding-top:12px;display:flex;flex-direction:column;gap:10px">
+              <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:#e0e0e0;font-weight:600">
+                <input type="checkbox" id="cw-auth" style="width:16px;height:16px;accent-color:var(--accent);margin-top:2px;flex-shrink:0"/>
+                <span>🔐 I have the signed authorization from customer to process this card.</span>
+              </label>
+              <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:12px;color:#aaa">
+                <input type="checkbox" id="cw-commercial" style="width:16px;height:16px;accent-color:var(--accent);margin-top:2px;flex-shrink:0"/>
+                <span>This is a commercial card <span style="color:#60a5fa;font-size:11px;cursor:pointer" onclick="alert('A commercial card is issued to a business rather than an individual. Commercial cards may have different processing rates. Check if your customer\'s card shows a company name.')"> [What\'s this?]</span></span>
+              </label>
             </div>
           </div>
         </div>
 
-        <!-- Otro método — link field -->
+        <!-- ── OTHER METHOD fields ── -->
         <div id="cw-other-fields" style="display:none">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-            <div>
-              <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Nombre del método *</label>
-              <input id="cw-other-name" type="text" placeholder="Ej: Square, Venmo, Crypto..." style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
-            </div>
-            <div>
-              <label style="font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:700;display:block;margin-bottom:5px">Link de Pago (opcional)</label>
-              <input id="cw-other-link" type="url" placeholder="https://..." style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text);font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"/>
+          <div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:11px;padding:14px;margin-bottom:14px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div>
+                <label style="font-size:10px;text-transform:uppercase;color:#bbb;font-weight:700;display:block;margin-bottom:5px">Method Name *</label>
+                <input id="cw-other-name" type="text" placeholder="e.g. Square, Venmo, Crypto..." style="width:100%;background:#1a1a1a;border:1.5px solid #333;border-radius:9px;padding:11px 13px;color:#f0f0f0;font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='#333'"/>
+              </div>
+              <div>
+                <label style="font-size:10px;text-transform:uppercase;color:#bbb;font-weight:700;display:block;margin-bottom:5px">Payment Link (optional)</label>
+                <input id="cw-other-link" type="url" placeholder="https://..." style="width:100%;background:#1a1a1a;border:1.5px solid #333;border-radius:9px;padding:11px 13px;color:#f0f0f0;font-size:13px;outline:none" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='#333'"/>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Política de Tarjeta de Crédito — siempre visible -->
+        <!-- ── PAYMENT POLICY — always visible ── -->
         <div style="background:rgba(60,255,212,.04);border:1.5px solid rgba(60,255,212,.2);border-radius:11px;padding:13px 15px;margin-bottom:14px">
-          <div style="font-size:10px;text-transform:uppercase;color:var(--accent2);font-weight:700;letter-spacing:.08em;margin-bottom:8px">📄 Política de Pago · Payment Policy</div>
+          <div style="font-size:10px;text-transform:uppercase;color:var(--accent2);font-weight:800;letter-spacing:.08em;margin-bottom:8px">📄 Política de Pago · Payment Policy</div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;font-size:12px">
             <span style="color:#fbbf24;font-weight:700">💳 3.50% cargo conveniencia / convenience fee</span>
             <span style="color:var(--danger);font-weight:700">🚫 $25–$50 pago rechazado / declined payment</span>
           </div>
           <div style="font-size:10px;color:var(--muted);margin-bottom:10px">⚖️ FL Stat. §501.0117 · §68.065 · FDUTPA Ch.501 · Dodd-Frank §1075</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
-            <button type="button" onclick="openCCPolicyModal('es')" style="padding:5px 11px;border-radius:7px;border:1.5px solid var(--accent2);background:transparent;color:var(--accent2);font-size:11px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">🇪🇸 Ver Español</button>
-            <button type="button" onclick="openCCPolicyModal('en')" style="padding:5px 11px;border-radius:7px;border:1.5px solid #60a5fa;background:transparent;color:#60a5fa;font-size:11px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">🇺🇸 View English</button>
+            <button type="button" onclick="openCCPolicyModal('es')" style="padding:6px 14px;border-radius:7px;border:1.5px solid var(--accent2);background:rgba(60,255,212,.08);color:var(--accent2);font-size:12px;font-weight:800;cursor:pointer;font-family:'Syne',sans-serif">🇪🇸 Ver Política Español</button>
+            <button type="button" onclick="openCCPolicyModal('en')" style="padding:6px 14px;border-radius:7px;border:1.5px solid #60a5fa;background:rgba(96,165,250,.08);color:#60a5fa;font-size:12px;font-weight:800;cursor:pointer;font-family:'Syne',sans-serif">🇺🇸 View Policy English</button>
           </div>
           <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:12px;color:var(--text)">
             <input type="checkbox" id="cw-policy-accept" style="width:15px;height:15px;accent-color:var(--accent);margin-top:2px;flex-shrink:0"/>
@@ -10869,19 +10925,14 @@ async function savePaymentActivation(activate){
           </label>
         </div>
 
-        <!-- Autorización de tarjeta -->
-        <div id="cw-card-auth-row" style="display:none;background:var(--surface2);border-radius:9px;padding:12px 14px;margin-bottom:14px">
-          <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:var(--text)">
-            <input type="checkbox" id="cw-auth" style="width:15px;height:15px;accent-color:var(--accent);margin-top:2px;flex-shrink:0"/>
-            <span>🔐 Tengo la autorización firmada del cliente para procesar esta tarjeta / I have the signed authorization to process this card.</span>
-          </label>
-        </div>
+        <!-- card-auth-row kept empty for JS compatibility -->
+        <div id="cw-card-auth-row" style="display:none"></div>
 
         <div id="cw-error" style="color:var(--danger);font-size:12px;min-height:16px;margin-bottom:8px;font-weight:700"></div>
 
         <div style="display:flex;justify-content:space-between;gap:10px">
           <button onclick="cwShowStep(2)" style="background:transparent;color:var(--muted);border:1.5px solid var(--border);border-radius:9px;padding:10px 18px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;cursor:pointer">← Atrás</button>
-          <button onclick="cwStep3Next()" style="flex:1;background:var(--accent);color:#000;border:none;border-radius:9px;padding:11px;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;cursor:pointer">Siguiente → Documentos</button>
+          <button onclick="cwStep3Next()" style="flex:1;background:var(--accent);color:#000;border:none;border-radius:9px;padding:11px;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;cursor:pointer">Siguiente → ④ Docs</button>
         </div>
       </div>
 
@@ -10939,6 +10990,17 @@ function cwFormatPhone(input){
   else if(digits.length <= 10){ fmt = '('+digits.substring(0,3)+') '+digits.substring(3,6)+'-'+digits.substring(6); }
   else { fmt = '('+digits.substring(0,3)+') '+digits.substring(3,6)+'-'+digits.substring(6,10)+digits.substring(10); }
   input.value = fmt;
+}
+function cwFormatCardNum(input){
+  var digits = input.value.replace(/\D/g,'').substring(0,16);
+  var groups = [];
+  for(var i=0;i<digits.length;i+=4) groups.push(digits.substring(i,i+4));
+  input.value = groups.join(' ');
+}
+function cwFormatExpiry(input){
+  var val = input.value.replace(/\D/g,'').substring(0,4);
+  if(val.length>=3) input.value = val.substring(0,2)+'/'+val.substring(2);
+  else input.value = val;
 }
 
 // ── Avatar helpers ─────────────────────────────────────────
