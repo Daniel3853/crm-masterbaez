@@ -3974,6 +3974,7 @@ function toggleQRItem(key){
   var active = el ? el.checked : true;
   qrContactInfo[stateMap[key]] = active;
   if(row){ row.classList.toggle('qr-disabled', !active); }
+  fbSaveMasterMods && fbSaveMasterMods();
 }
 // QR Flyer Builder state
 var _flyerState = {
@@ -13717,11 +13718,16 @@ function restoreFlyerForm(){
     var dimEl = document.querySelector('.flyer-dim-chip[data-ratio="'+_flyerState.dimRatio+'"]');
     if(dimEl) dimEl.classList.add('active');
   }
-  // Restore master active state — always start as active (true)
-  // masterActive=false should NOT auto-lock on page load to avoid getting stuck
+  // Al cargar el panel, siempre iniciamos el módulo activo visualmente
+  // (evita que el admin quede bloqueado fuera del panel)
+  // El estado real en Firebase sí se guarda para que qr.html pueda bloquear QRs
   _flyerState.masterActive = true;
   var sw = document.getElementById('flyer_master_active');
   if(sw){ sw.checked = true; applyFlyerMaster(true); }
+  // Limpiar el bloqueo en Firebase también (por si quedó bloqueado de antes)
+  if(!_demoMode && _fbdb){
+    _fbdb.ref('masterMods/flyerState/masterActive').set(true).catch(function(){});
+  }
   // Restore QR active states
   var setChkEl = function(id,val){ var el=document.getElementById(id); if(el) el.checked=val; };
   setChkEl('qr_wa_active',  qrContactInfo.waActive  !== false);
@@ -13750,14 +13756,13 @@ async function fbSaveMasterMods(){
     // ⚠️ NO incluimos 'leads' aquí — los leads los escribe el Lead Page
     // como nodos individuales en masterMods/leads/lead_XXXXX
     // Si los incluimos acá se sobreescriben y se pierden
-    // ⚠️ masterActive siempre se guarda como true para evitar bloqueo persistente
-    var flyerStateToSave = Object.assign({}, _flyerState, { masterActive: true });
+    // Guardar el estado real de masterActive para que qr.html pueda bloquearlo
     await _fbdb.ref('masterMods').update({
       logoDataUrl, customProgs,
       enabledDays: Array.from(enabledDays),
       customTimes, waiverTextES, waiverTextEN,
       geminiApiKey, callMeBotPhone, callMeBotApiKey,
-      qrContactInfo, flyerState: flyerStateToSave
+      qrContactInfo, flyerState: _flyerState
     });
   } catch(e){ console.error('fbSaveMasterMods:', e); }
 }
