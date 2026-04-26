@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Verificando QR...</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#09090b;font-family:'Segoe UI',system-ui,sans-serif;padding:20px;}
+  .card{background:#18181b;border:1px solid #3f3f46;border-radius:20px;padding:36px 28px;max-width:380px;width:100%;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,.5);}
+  .icon{font-size:56px;margin-bottom:16px;display:block;}
+  .title{font-size:22px;font-weight:800;margin-bottom:8px;letter-spacing:-.3px;}
+  .sub{font-size:14px;color:#a1a1aa;line-height:1.6;margin-bottom:24px;}
+  .spinner{width:48px;height:48px;border:4px solid #3f3f46;border-top-color:#eab308;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 20px;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 28px;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;text-decoration:none;border:none;width:100%;transition:opacity .15s;}
+  .btn:hover{opacity:.85;}
+  .btn-wa{background:#25D366;color:#fff;}
+  .btn-sms{background:#3b82f6;color:#fff;}
+  .btn-tg{background:#0088cc;color:#fff;}
+  .btn-link{background:#eab308;color:#000;}
+  .btn-teams{background:#6264A7;color:#fff;}
+  .blocked-box{background:rgba(239,68,68,.08);border:1.5px solid rgba(239,68,68,.3);border-radius:12px;padding:16px;margin-bottom:20px;font-size:13px;color:#a1a1aa;line-height:1.7;text-align:left;}
+  .blocked-box strong{color:#fafafa;}
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:16px;}
+  .badge-active{background:rgba(34,197,94,.15);color:#22c55e;}
+  .badge-blocked{background:rgba(239,68,68,.15);color:#ef4444;}
+  #state-loading{display:block;}
+  #state-blocked,#state-redirect,#state-error{display:none;}
+</style>
+</head>
+<body>
+
+<div class="card" id="state-loading">
+  <div class="spinner"></div>
+  <div class="title" style="color:#eab308">Verificando...</div>
+  <div class="sub">Comprobando si este QR está activo</div>
+</div>
+
+<div class="card" id="state-blocked" style="border-color:rgba(239,68,68,.4)">
+  <span class="icon">🔒</span>
+  <span class="badge badge-blocked">Inactivo</span>
+  <div class="title" style="color:#ef4444">QR Desactivado</div>
+  <div class="blocked-box">
+    Este código QR ha sido <strong>desactivado por el administrador</strong>.<br><br>
+    Si necesitas comunicarte, por favor contacta directamente al negocio.
+  </div>
+  <div class="sub" style="font-size:12px;color:#52525b">Este QR no puede ser usado hasta que sea reactivado.</div>
+</div>
+
+<div class="card" id="state-redirect">
+  <span class="icon">✅</span>
+  <span class="badge badge-active">Activo</span>
+  <div class="title" style="color:#22c55e">QR Verificado</div>
+  <div class="sub">Redirigiendo en un momento...</div>
+  <a id="redirect-btn" href="#" class="btn btn-link" style="margin-top:8px">Ir ahora</a>
+</div>
+
+<div class="card" id="state-error">
+  <span class="icon">⚠️</span>
+  <div class="title" style="color:#f59e0b">QR no encontrado</div>
+  <div class="sub">Este código QR no existe o fue eliminado.</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script>
+var FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyDpjqJFZxh1ErjbfTJ8nq-uzB3oHXDo-iA",
+  authDomain:        "crm-leads-baez.firebaseapp.com",
+  databaseURL:       "https://crm-leads-baez-default-rtdb.firebaseio.com",
+  projectId:         "crm-leads-baez",
+  storageBucket:     "crm-leads-baez.firebasestorage.app",
+  messagingSenderId: "583732725999",
+  appId:             "1:583732725999:web:b38aa0a3ffc9e809c3b31a"
+};
+
+var STATES = ['state-loading','state-blocked','state-redirect','state-error'];
+function show(id){ STATES.forEach(function(s){ document.getElementById(s).style.display = s===id?'block':'none'; }); }
+
+function doRedirect(url, type){
+  var btn = document.getElementById('redirect-btn');
+  var cls = {whatsapp:'btn-wa',sms:'btn-sms',telegram:'btn-tg',teams:'btn-teams'};
+  var lbl = {whatsapp:'📲 Abrir WhatsApp',sms:'💬 Abrir SMS',telegram:'✈️ Abrir Telegram',teams:'🟦 Abrir Teams'};
+  btn.className = 'btn '+(cls[type]||'btn-link');
+  btn.textContent = lbl[type]||'🌐 Ir al sitio';
+  btn.href = url;
+  show('state-redirect');
+  setTimeout(function(){ window.location.href = url; }, 1200);
+}
+
+function clientUrl(c){
+  var ph = (c.phone||'').replace(/\D/g,'');
+  var mg = encodeURIComponent(c.msg||'');
+  switch(c.type){
+    case 'whatsapp': return {url:ph?'https://wa.me/'+ph+(c.msg?'?text='+mg:''):null, type:'whatsapp'};
+    case 'sms':      return {url:ph?'sms:+'+ph+(c.msg?'?body='+mg:''):null, type:'sms'};
+    case 'telegram':
+      if(c.phone&&c.phone.trim().startsWith('@')) return {url:'https://t.me/'+c.phone.trim().replace('@',''), type:'telegram'};
+      return {url:ph?'https://t.me/+'+ph:null, type:'telegram'};
+    case 'teams': return {url:c.link||null, type:'teams'};
+    default:      return {url:c.link||null, type:'link'};
+  }
+}
+
+(function(){
+  var params = new URLSearchParams(window.location.search);
+  var id = params.get('id');
+  if(!id){ show('state-error'); return; }
+
+  try{
+    firebase.initializeApp(FIREBASE_CONFIG);
+    var db = firebase.database();
+
+    // ── FLYER QRs ──────────────────────────────────────────
+    if(id==='flyer_wa'||id==='flyer_sms'||id==='flyer_web'){
+      db.ref('masterMods').once('value', function(snap){
+        if(!snap.exists()){ show('state-error'); return; }
+        var d = snap.val();
+        var fs  = d.flyerState    || {};
+        var qrc = d.qrContactInfo || {};
+
+        // Master switch
+        if(fs.masterActive===false){ show('state-blocked'); return; }
+
+        if(id==='flyer_wa'){
+          if(qrc.waActive===false){ show('state-blocked'); return; }
+          var ph = (qrc.whatsapp||'').replace(/\D/g,'');
+          if(!ph){ show('state-error'); return; }
+          doRedirect('https://wa.me/'+ph, 'whatsapp');
+
+        } else if(id==='flyer_sms'){
+          if(qrc.gvActive===false){ show('state-blocked'); return; }
+          var ph2 = (qrc.phone||'').replace(/\D/g,'');
+          if(!ph2){ show('state-error'); return; }
+          doRedirect('sms:+'+ph2, 'sms');
+
+        } else if(id==='flyer_web'){
+          if(qrc.webActive===false){ show('state-blocked'); return; }
+          var url = qrc.flyerUrl||'';
+          if(!url){ show('state-error'); return; }
+          doRedirect(url, 'link');
+        }
+      }, function(){ show('state-error'); });
+      return;
+    }
+
+    // ── QR CLIENTES ─────────────────────────────────────────
+    db.ref('qrClientes/'+id).once('value', function(snap){
+      if(!snap.exists()){ show('state-error'); return; }
+      var c = snap.val();
+      if(c.qrEnabled===false){ show('state-blocked'); return; }
+      var r = clientUrl(c);
+      if(!r.url){ show('state-error'); return; }
+      doRedirect(r.url, r.type);
+    }, function(){ show('state-error'); });
+
+  } catch(e){ show('state-error'); }
+})();
+</script>
+</body>
+</html>
