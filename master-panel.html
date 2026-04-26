@@ -13445,9 +13445,9 @@ function renderQRPageCards(){
   // Update QR individual cards (compact)
   var el = document.getElementById('qrCardsWrap'); if(!el) return;
   var items = [
-    {title:'WhatsApp', icon:'💬', value: qrContactInfo.whatsapp ? 'https://wa.me/'+qrContactInfo.whatsapp : '', hint:'WhatsApp'},
-    {title:'SMS / GV', icon:'📞', value: qrContactInfo.phone ? 'sms:'+qrContactInfo.phone : '', hint:'SMS'},
-    {title:'Web', icon:'🌐', value: qrContactInfo.flyerUrl || '', hint:'Formulario'}
+    {title:'WhatsApp', icon:'💬', value: qrContactInfo.whatsapp ? 'https://daniel3853.github.io/crm-masterbaez/qr.html?id=flyer_wa' : '', hint:'WhatsApp'},
+    {title:'SMS / GV', icon:'📞', value: qrContactInfo.phone ? 'https://daniel3853.github.io/crm-masterbaez/qr.html?id=flyer_sms' : '', hint:'SMS'},
+    {title:'Web', icon:'🌐', value: qrContactInfo.flyerUrl ? 'https://daniel3853.github.io/crm-masterbaez/qr.html?id=flyer_web' : '', hint:'Formulario'}
   ];
   el.innerHTML = items.map(function(item){
     var qrUrl = item.value ? 'https://api.qrserver.com/v1/create-qr-code/?size=120x120&data='+encodeURIComponent(item.value) : '';
@@ -13538,9 +13538,9 @@ function updateFlyerPreview(){
   var qrSize = qrContactInfo.qrSize || 70;
   var qrImgSize = qrSize - 6;
   var allQrItems = [
-    {label:'WhatsApp', value: qrContactInfo.whatsapp ? 'https://wa.me/'+qrContactInfo.whatsapp : '', active: getChkEl('qr_wa_active')},
-    {label:'SMS / GV', value: qrContactInfo.phone ? 'sms:'+qrContactInfo.phone : '', active: getChkEl('qr_gv_active')},
-    {label:'Web', value: qrContactInfo.flyerUrl || '', active: getChkEl('qr_web_active')}
+    {label:'WhatsApp', value: qrContactInfo.whatsapp ? 'https://daniel3853.github.io/crm-masterbaez/qr.html?id=flyer_wa' : '', active: getChkEl('qr_wa_active')},
+    {label:'SMS / GV', value: qrContactInfo.phone ? 'https://daniel3853.github.io/crm-masterbaez/qr.html?id=flyer_sms' : '', active: getChkEl('qr_gv_active')},
+    {label:'Web', value: qrContactInfo.flyerUrl ? 'https://daniel3853.github.io/crm-masterbaez/qr.html?id=flyer_web' : '', active: getChkEl('qr_web_active')}
   ];
   var qrItems = allQrItems.filter(function(qi){ return qi.active; });
   var qrGap = qrItems.length===1?'0':qrItems.length===2?'22px':'14px';
@@ -13580,9 +13580,9 @@ function updateFlyerPreview(){
   // Also update individual QR cards
   var el = document.getElementById('qrCardsWrap'); if(!el) return;
   var items2 = [
-    {title:'WhatsApp', icon:'💬', value: qrContactInfo.whatsapp ? 'https://wa.me/'+qrContactInfo.whatsapp : '', hint:'WhatsApp'},
-    {title:'SMS / GV', icon:'📞', value: qrContactInfo.phone ? 'sms:'+qrContactInfo.phone : '', hint:'SMS'},
-    {title:'Web', icon:'🌐', value: qrContactInfo.flyerUrl || '', hint:'Formulario'}
+    {title:'WhatsApp', icon:'💬', value: qrContactInfo.whatsapp ? 'https://daniel3853.github.io/crm-masterbaez/qr.html?id=flyer_wa' : '', hint:'WhatsApp'},
+    {title:'SMS / GV', icon:'📞', value: qrContactInfo.phone ? 'https://daniel3853.github.io/crm-masterbaez/qr.html?id=flyer_sms' : '', hint:'SMS'},
+    {title:'Web', icon:'🌐', value: qrContactInfo.flyerUrl ? 'https://daniel3853.github.io/crm-masterbaez/qr.html?id=flyer_web' : '', hint:'Formulario'}
   ];
   el.innerHTML = items2.map(function(item){
     var qUrl = item.value ? 'https://api.qrserver.com/v1/create-qr-code/?size=120x120&data='+encodeURIComponent(item.value) : '';
