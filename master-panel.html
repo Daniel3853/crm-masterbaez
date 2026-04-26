@@ -1891,8 +1891,23 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
       <div id="anunciosSubTab-qr" style="display:none">
       <div style="padding:0 0 40px">
 
+        <!-- 🔒 CONTROL MAESTRO — FUERA del flyerBuilderContent para que siempre sea clickeable -->
+        <div class="flyer-section" style="border-color:var(--danger);background:rgba(239,68,68,.04);margin-bottom:12px" id="flyerMasterControlBox">
+          <div class="flyer-sec-title" style="color:var(--danger)">🔒 Control Maestro</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+            <div>
+              <div style="font-size:13px;font-weight:700;color:var(--text)" id="flyerMasterStatusLabel">Módulo QR Flyer: Activo</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px" id="flyerMasterStatusSub">Desactívalo si el cliente dejó de pagar</div>
+            </div>
+            <label class="flyer-switch" style="pointer-events:auto;position:relative;z-index:10">
+              <input type="checkbox" id="flyer_master_active" checked onchange="toggleFlyerMaster(this.checked)"/>
+              <span class="flyer-slider" style="background:var(--success)"></span>
+            </label>
+          </div>
+        </div>
+
         <!-- 🔒 MASTER DISABLE BANNER -->
-        <div id="flyerDisabledBanner" style="display:none;background:rgba(239,68,68,.12);border:1.5px solid var(--danger);border-radius:12px;padding:14px 18px;margin-bottom:16px;display:none;align-items:center;gap:12px">
+        <div id="flyerDisabledBanner" style="display:none;background:rgba(239,68,68,.12);border:1.5px solid var(--danger);border-radius:12px;padding:14px 18px;margin-bottom:16px;align-items:center;gap:12px">
           <span style="font-size:22px">🔒</span>
           <div>
             <div style="font-weight:800;font-size:14px;color:var(--danger)" id="flyerDisabledTitle">QR Flyer desactivado</div>
@@ -1905,21 +1920,6 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
           <!-- ══ LEFT: FORM CONTROLS ══ -->
           <div>
-
-            <!-- 0. CONTROL MAESTRO -->
-            <div class="flyer-section" style="border-color:var(--danger);background:rgba(239,68,68,.04)">
-              <div class="flyer-sec-title" style="color:var(--danger)">🔒 Control Maestro</div>
-              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-                <div>
-                  <div style="font-size:13px;font-weight:700;color:var(--text)" id="flyerMasterStatusLabel">Módulo QR Flyer: Activo</div>
-                  <div style="font-size:11px;color:var(--muted);margin-top:2px" id="flyerMasterStatusSub">Desactívalo si el cliente dejó de pagar</div>
-                </div>
-                <label class="flyer-switch">
-                  <input type="checkbox" id="flyer_master_active" checked onchange="toggleFlyerMaster(this.checked)"/>
-                  <span class="flyer-slider" style="background:var(--success)"></span>
-                </label>
-              </div>
-            </div>
 
             <!-- 0b. DIMENSIONES DEL FLYER -->
             <div class="flyer-section">
@@ -3850,31 +3850,119 @@ function setFlyerDim(ratio, label, el){
 }
 
 function toggleFlyerMaster(active){
+  // Intercept the checkbox click and show a confirmation popup instead
+  // We need to revert the checkbox to its previous state first, then confirm
+  var sw = document.getElementById('flyer_master_active');
+  var currentlyActive = _flyerState.masterActive !== false;
+
+  // Revert checkbox — the confirm popup will apply the change if confirmed
+  if(sw) sw.checked = currentlyActive;
+
+  if(!active){
+    // Trying to DEACTIVATE — show confirmation
+    showFlyerDeactivateConfirm();
+  } else {
+    // Trying to ACTIVATE — show confirmation
+    showFlyerActivateConfirm();
+  }
+}
+
+function applyFlyerMaster(active){
   var banner  = document.getElementById('flyerDisabledBanner');
-  var content = document.getElementById('flyerBuilderContent');
+  var builder = document.getElementById('flyerBuilderContent');
   var sw      = document.getElementById('flyer_master_active');
   var lbl     = document.getElementById('flyerMasterStatusLabel');
   var sub     = document.getElementById('flyerMasterStatusSub');
   var isEN    = _masterLang === 'en';
   if(active){
     if(banner)  banner.style.display  = 'none';
-    if(content) content.style.opacity = '1';
-    if(content) content.style.pointerEvents = 'auto';
+    if(builder) builder.style.opacity = '1';
+    if(builder) builder.style.pointerEvents = 'auto';
     if(lbl) lbl.textContent = isEN ? 'QR Flyer Module: Active' : 'Módulo QR Flyer: Activo';
     if(sub) sub.textContent = isEN ? 'Disable it if the client stops paying' : 'Desactívalo si el cliente dejó de pagar';
-    if(sw)  sw.parentElement.querySelector('.flyer-slider').style.background = 'var(--success)';
+    if(sw){ sw.checked = true; sw.parentElement.querySelector('.flyer-slider').style.background = 'var(--success)'; }
     showToast && showToast('✅', isEN ? 'QR Flyer activated' : 'QR Flyer activado');
   } else {
     if(banner)  banner.style.display  = 'flex';
-    if(content) content.style.opacity = '0.25';
-    if(content) content.style.pointerEvents = 'none';
+    if(builder) builder.style.opacity = '0.25';
+    if(builder) builder.style.pointerEvents = 'none';
     if(lbl) lbl.textContent = isEN ? 'QR Flyer Module: DISABLED' : 'Módulo QR Flyer: DESACTIVADO';
     if(sub) sub.textContent = isEN ? 'Re-enable when the client pays' : 'Reactívalo cuando el cliente pague';
-    if(sw)  sw.parentElement.querySelector('.flyer-slider').style.background = 'var(--danger)';
+    if(sw){ sw.checked = false; sw.parentElement.querySelector('.flyer-slider').style.background = 'var(--danger)'; }
     showToast && showToast('🔒', isEN ? 'QR Flyer disabled' : 'QR Flyer desactivado');
   }
   _flyerState.masterActive = active;
   fbSaveMasterMods && fbSaveMasterMods();
+}
+
+function showFlyerDeactivateConfirm(){
+  var existing = document.getElementById('flyerToggleConfirmOverlay');
+  if(existing) existing.remove();
+  var overlay = document.createElement('div');
+  overlay.id = 'flyerToggleConfirmOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:20000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
+
+  var box = document.createElement('div');
+  box.style.cssText = 'background:var(--surface);border:1.5px solid rgba(239,68,68,.4);border-radius:20px;padding:28px 24px;max-width:360px;width:100%;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,.6)';
+  box.innerHTML =
+    '<div style="font-size:44px;margin-bottom:12px">🔒</div>'+
+    '<div style="font-family:Syne,sans-serif;font-weight:800;font-size:18px;color:var(--danger);margin-bottom:8px">Desactivar QR Flyer</div>'+
+    '<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:12px 14px;margin:14px 0;font-size:12px;color:var(--text-secondary);text-align:left;line-height:1.8">'+
+      '⚠️ <strong>Al desactivarlo:</strong><br>'+
+      '&nbsp;• El módulo QR Flyer quedará bloqueado<br>'+
+      '&nbsp;• No se podrán editar ni descargar flyers<br>'+
+      '&nbsp;• Los QR impresos o compartidos seguirán activos<br>'+
+      '&nbsp;• Puedes reactivarlo cuando el cliente pague'+
+    '</div>'+
+    '<div style="display:flex;gap:10px;margin-top:4px" id="flyerConfirmBtns"></div>';
+
+  var btnCancel = document.createElement('button');
+  btnCancel.style.cssText = 'flex:1;padding:12px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--text-secondary);font-family:Syne,sans-serif;font-weight:700;font-size:13px;cursor:pointer';
+  btnCancel.textContent = 'Cancelar';
+  btnCancel.onclick = function(){ overlay.remove(); };
+
+  var btnConfirm = document.createElement('button');
+  btnConfirm.style.cssText = 'flex:2;padding:12px;border-radius:10px;border:none;background:var(--danger);color:#fff;font-family:Syne,sans-serif;font-weight:800;font-size:13px;cursor:pointer';
+  btnConfirm.textContent = '🚫 Sí, desactivar';
+  btnConfirm.onclick = function(){ overlay.remove(); applyFlyerMaster(false); };
+
+  box.querySelector('#flyerConfirmBtns').appendChild(btnCancel);
+  box.querySelector('#flyerConfirmBtns').appendChild(btnConfirm);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
+
+function showFlyerActivateConfirm(){
+  var existing = document.getElementById('flyerToggleConfirmOverlay');
+  if(existing) existing.remove();
+  var overlay = document.createElement('div');
+  overlay.id = 'flyerToggleConfirmOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:20000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
+
+  var box = document.createElement('div');
+  box.style.cssText = 'background:var(--surface);border:1.5px solid rgba(34,197,94,.4);border-radius:20px;padding:28px 24px;max-width:360px;width:100%;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,.6)';
+  box.innerHTML =
+    '<div style="font-size:44px;margin-bottom:12px">✅</div>'+
+    '<div style="font-family:Syne,sans-serif;font-weight:800;font-size:18px;color:var(--success);margin-bottom:8px">Activar QR Flyer</div>'+
+    '<div style="font-size:13px;color:var(--text-secondary);line-height:1.7;margin:12px 0">'+
+      'El módulo QR Flyer volverá a estar disponible para editar y descargar flyers.'+
+    '</div>'+
+    '<div style="display:flex;gap:10px" id="flyerConfirmBtns2"></div>';
+
+  var btnCancel = document.createElement('button');
+  btnCancel.style.cssText = 'flex:1;padding:12px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--text-secondary);font-family:Syne,sans-serif;font-weight:700;font-size:13px;cursor:pointer';
+  btnCancel.textContent = 'Cancelar';
+  btnCancel.onclick = function(){ overlay.remove(); };
+
+  var btnConfirm = document.createElement('button');
+  btnConfirm.style.cssText = 'flex:2;padding:12px;border-radius:10px;border:none;background:var(--success);color:#fff;font-family:Syne,sans-serif;font-weight:800;font-size:13px;cursor:pointer';
+  btnConfirm.textContent = '✅ Sí, activar';
+  btnConfirm.onclick = function(){ overlay.remove(); applyFlyerMaster(true); };
+
+  box.querySelector('#flyerConfirmBtns2').appendChild(btnCancel);
+  box.querySelector('#flyerConfirmBtns2').appendChild(btnConfirm);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
 }
 
 function toggleQRItem(key){
@@ -13633,7 +13721,7 @@ function restoreFlyerForm(){
   // masterActive=false should NOT auto-lock on page load to avoid getting stuck
   _flyerState.masterActive = true;
   var sw = document.getElementById('flyer_master_active');
-  if(sw){ sw.checked = true; toggleFlyerMaster(true); }
+  if(sw){ sw.checked = true; applyFlyerMaster(true); }
   // Restore QR active states
   var setChkEl = function(id,val){ var el=document.getElementById(id); if(el) el.checked=val; };
   setChkEl('qr_wa_active',  qrContactInfo.waActive  !== false);
