@@ -2021,6 +2021,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
                 </label>
                 <span class="flyer-lbl">📲 WhatsApp</span>
                 <input id="qr_wa_phone" type="tel" class="flyer-inp" placeholder="Número (ej: 19543801340)" oninput="qrContactInfo.whatsapp=this.value.replace(/\D/g,'');updateFlyerPreview()"/>
+                <input id="qr_wa_msg" type="text" class="flyer-inp" placeholder="💬 Mensaje que recibirá (ej: Hola, quiero info...)" style="margin-top:5px" oninput="qrContactInfo.waMsg=this.value;updateFlyerPreview()"/>
               </div>
 
               <!-- SMS / GV -->
@@ -2031,6 +2032,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
                 </label>
                 <span class="flyer-lbl">💬 SMS / Google Voice</span>
                 <input id="qr_gv_phone" type="tel" class="flyer-inp" placeholder="Número (ej: 9543801340)" oninput="qrContactInfo.phone=this.value.replace(/\D/g,'');updateFlyerPreview()"/>
+                <input id="qr_gv_msg" type="text" class="flyer-inp" placeholder="💬 Mensaje que recibirá (ej: Hola, me interesa...)" style="margin-top:5px" oninput="qrContactInfo.smsMsg=this.value;updateFlyerPreview()"/>
               </div>
 
               <!-- Web -->
@@ -2093,7 +2095,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
             <!-- DOWNLOAD BTN -->
             <button onclick="downloadQRFlyer()" id="qrDownloadFlyerBtn" style="width:100%;padding:13px;border-radius:12px;border:none;background:var(--accent);color:#000;font-weight:900;font-size:15px;cursor:pointer;font-family:'Syne',sans-serif;transition:opacity .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-              📥 Descargar Flyer con los 3 QR
+              📥 Descargar Flyer
             </button>
             <canvas id="flyerCanvas" style="display:none"></canvas>
 
@@ -3837,7 +3839,7 @@ var geminiApiKey = '';
 var callMeBotPhone = '';
 var callMeBotApiKey = '';
 var masterBusinessEmail = '';
-var qrContactInfo = {whatsapp:'', phone:'', flyerUrl:'', qrSize:70, waActive:true, gvActive:true, webActive:true};
+var qrContactInfo = {whatsapp:'', phone:'', flyerUrl:'', qrSize:70, waActive:true, gvActive:true, webActive:true, waMsg:'', smsMsg:''};
 
 function setFlyerDim(ratio, label, el){
   _flyerState.dimRatio = ratio;
@@ -13562,6 +13564,21 @@ function updateFlyerPreview(){
   }
   qrHtml += '</div>';
 
+  // Update download button text based on active QR count
+  var dlBtn = document.getElementById('qrDownloadFlyerBtn');
+  if(dlBtn && !dlBtn.disabled){
+    var activeCount = qrItems.length;
+    if(activeCount === 0){
+      dlBtn.textContent = '📥 Descargar Flyer (sin QR)';
+    } else if(activeCount === 1){
+      dlBtn.textContent = '📥 Descargar Flyer con 1 QR';
+    } else if(activeCount === 2){
+      dlBtn.textContent = '📥 Descargar Flyer con 2 QR';
+    } else {
+      dlBtn.textContent = '📥 Descargar Flyer con 3 QR';
+    }
+  }
+
   // Accent line
   var accentLine = '<div style="width:40px;height:3px;border-radius:2px;background:'+acc+';margin:6px auto"></div>';
 
@@ -13621,7 +13638,14 @@ async function downloadQRFlyer(){
     console.error('downloadQRFlyer:', err);
     showToast('⚠️','Error al generar. Intenta de nuevo.');
   } finally {
-    if(btn){ btn.disabled=false; btn.textContent='📥 Descargar Flyer con los 3 QR'; }
+    if(btn){
+      btn.disabled=false;
+      var waOn  = document.getElementById('qr_wa_active')  ? document.getElementById('qr_wa_active').checked  : false;
+      var gvOn  = document.getElementById('qr_gv_active')  ? document.getElementById('qr_gv_active').checked  : false;
+      var webOn = document.getElementById('qr_web_active') ? document.getElementById('qr_web_active').checked : false;
+      var cnt = (waOn?1:0)+(gvOn?1:0)+(webOn?1:0);
+      btn.textContent = cnt===0 ? '📥 Descargar Flyer (sin QR)' : cnt===1 ? '📥 Descargar Flyer con 1 QR' : cnt===2 ? '📥 Descargar Flyer con 2 QR' : '📥 Descargar Flyer con 3 QR';
+    }
   }
 }
 
@@ -13710,6 +13734,8 @@ function restoreFlyerForm(){
   set('qr_wa_phone',  qrContactInfo.whatsapp||'');
   set('qr_gv_phone',  qrContactInfo.phone||'');
   set('qr_flyer_url', qrContactInfo.flyerUrl||'');
+  set('qr_wa_msg',    qrContactInfo.waMsg||'');
+  set('qr_gv_msg',    qrContactInfo.smsMsg||'');
   // Restore flyer dimension
   if(_flyerState.dimRatio){
     var preview = document.getElementById('flyerPreview');
@@ -17067,7 +17093,7 @@ function emailContratoReferidor(ref){ emailDocFlow('contrato_referidor', {ref: r
 function openLead(id){
   var lead = leads.find(function(l){ return l.id===id; });
   if(!lead) return;
-  var isEN = _lang==='en';
+  var isEN = _masterLang==='en';
   var customProgs = _customPrograms||[];
   var prog = customProgs.find(function(pr){ return pr.id===lead.program; });
   var progName = prog ? _progLabelMaster(prog) : (lead.program||'');
