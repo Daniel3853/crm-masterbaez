@@ -7868,12 +7868,15 @@ function lsmStatus(msg) {
 
 // ── 22. LISTENER FIREBASE: ACTUALIZAR LEAD CUANDO LLEGA UN ENROLLMENT ──
 (function listenForEnrollments() {
-  // Esperar hasta que Firebase esté listo
+  // Esperar hasta que Firebase y los datos estén listos
   setTimeout(function() {
     if (typeof _fbdb === 'undefined' || !_fbdb) return;
     if (typeof _demoMode !== 'undefined' && _demoMode) return;
 
-    _fbdb.ref('enrollments').on('child_added', function(snap) {
+    // Solo escuchar enrollments nuevos a partir de AHORA (no históricos)
+    var listenFrom = new Date().toISOString();
+
+    _fbdb.ref('enrollments').orderByChild('submittedAt').startAt(listenFrom).on('child_added', function(snap) {
       var enr = snap.val();
       if (!enr || !enr.id) return;
 
@@ -7902,7 +7905,7 @@ function lsmStatus(msg) {
             } catch(e) {}
             if (typeof renderLeadsInbox === 'function') try { renderLeadsInbox(); } catch(e) {}
             if (typeof showToast === 'function') {
-              showToast('\u270d\ufe0f', (enr.firstName||'') + ' ' + (enr.lastName||'') + ' complet\u00f3 el formulario!');
+              showToast('✍️ ' + (enr.firstName||'') + ' ' + (enr.lastName||'') + ' completó el formulario!');
             }
           }
         }
@@ -7931,7 +7934,7 @@ function lsmStatus(msg) {
               } catch(e2) {}
               if (typeof renderProspectos === 'function') try { renderProspectos(); } catch(e2) {}
               if (typeof showToast === 'function') {
-                showToast('✍️', (enr.firstName||'') + ' ' + (enr.lastName||'') + ' completó el formulario!');
+                showToast('✍️ ' + (enr.firstName||'') + ' ' + (enr.lastName||'') + ' completó el formulario!');
               }
             }
           }
@@ -7973,7 +7976,7 @@ function lsmStatus(msg) {
         if (typeof updateNavBadgeProspectos === 'function') try { updateNavBadgeProspectos(); } catch(e) {}
         if (typeof renderProspectos === 'function') try { renderProspectos(); } catch(e) {}
         if (typeof showToast === 'function') {
-          showToast('\ud83d\udd14', (enr.firstName||'') + ' ' + (enr.lastName||'') + ' \u2014 nuevo enrollment sin lead previo');
+          showToast('🔔 ' + (enr.firstName||'') + ' ' + (enr.lastName||'') + ' — nuevo enrollment sin lead previo');
         }
       }
     });
@@ -12166,8 +12169,20 @@ function openClient(id, prefillDays, prefillStart, prefillEnd){
 function _loadClientWaiver(r, isEN){
   var area = document.getElementById('clientWaiverArea');
   if(!area) return;
-  if(!_fbdb){ _renderClientWaiver([], area, isEN); return; }
-  _fbdb.ref('waiverEnrollments').once('value').then(function(all){
+
+  // Si el cliente ya tiene enrollmentId guardado, cargar directo
+  if(r.enrollmentId && _fbdb){
+    _fbdb.ref('enrollments/'+r.enrollmentId).once('value').then(function(snap){
+      var rec = snap.val();
+      _renderClientWaiver(rec ? [rec] : [], area, isEN, r);
+    }).catch(function(){ _renderClientWaiver([], area, isEN, r); });
+    return;
+  }
+
+  if(!_fbdb){ _renderClientWaiver([], area, isEN, r); return; }
+
+  // Buscar por teléfono o email en enrollments
+  _fbdb.ref('enrollments').once('value').then(function(all){
     var recs = [];
     if(all && all.exists()){
       all.forEach(function(c){
@@ -12176,25 +12191,39 @@ function _loadClientWaiver(r, isEN){
         var rPhone = (r.phone||'').replace(/\D/g,'');
         var phoneMatch = vPhone && rPhone && vPhone===rPhone;
         var emailMatch = v.email && r.email && v.email.toLowerCase()===r.email.toLowerCase();
-        var nameMatch = v.firstName && v.lastName && r.firstName && r.lastName &&
-          v.firstName.toLowerCase()===r.firstName.toLowerCase() &&
-          v.lastName.toLowerCase()===r.lastName.toLowerCase();
-        if(phoneMatch||emailMatch||nameMatch) recs.push(v);
+        var linkedMatch = v.linkedClientId && v.linkedClientId === r.id;
+        if(phoneMatch||emailMatch||linkedMatch) recs.push(v);
       });
     }
-    _renderClientWaiver(recs, area, isEN);
+    // También revisar waiverEnrollments por compatibilidad
+    _fbdb.ref('waiverEnrollments').once('value').then(function(all2){
+      if(all2 && all2.exists()){
+        all2.forEach(function(c){
+          var v = c.val(); if(!v) return;
+          var vPhone = (v.phone||'').replace(/\D/g,'');
+          var rPhone = (r.phone||'').replace(/\D/g,'');
+          var phoneMatch = vPhone && rPhone && vPhone===rPhone;
+          var emailMatch = v.email && r.email && v.email.toLowerCase()===r.email.toLowerCase();
+          if(phoneMatch||emailMatch) recs.push(v);
+        });
+      }
+      _renderClientWaiver(recs, area, isEN, r);
+    }).catch(function(){ _renderClientWaiver(recs, area, isEN, r); });
   }).catch(function(){
-    _renderClientWaiver([], area, isEN);
+    _renderClientWaiver([], area, isEN, r);
   });
 }
 
-function _renderClientWaiver(records, area, isEN){
+function _renderClientWaiver(records, area, isEN, clientReg){
   if(!records||!records.length){
+    var sendUrl = typeof ENR_GITHUB_URL !== 'undefined' ? ENR_GITHUB_URL : '';
+    if(clientReg && clientReg.id) sendUrl += '?cid=' + clientReg.id;
     area.innerHTML =
       '<div style="text-align:center;padding:10px 0">'+
         '<div style="font-size:28px;margin-bottom:8px;opacity:.3">📋</div>'+
         '<div style="font-size:13px;color:var(--muted)">'+(isEN?'No signed waiver on file yet.':'No hay waiver firmado aún.')+'</div>'+
-        '<div style="font-size:11px;color:var(--muted);margin-top:4px">'+(isEN?'The client can sign via the enrollment QR.':'El cliente puede firmar via el QR de enrollment.')+'</div>'+
+        '<div style="font-size:11px;color:var(--muted);margin-top:4px;margin-bottom:14px">'+(isEN?'Send the enrollment form to the client:':'Envía el formulario de inscripción al cliente:')+'</div>'+
+        (sendUrl ? '<button onclick="enrShowQRModal()" style="width:100%;padding:10px;border-radius:10px;border:none;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:Syne,sans-serif">📲 '+(isEN?'Send Enrollment Form':'Enviar Formulario de Inscripción')+'</button>' : '')+
       '</div>';
     return;
   }
@@ -16339,7 +16368,7 @@ function permanentDeleteLead(id){
   renderLeadsInbox(); showToast('🗑','Eliminado permanentemente');
 }
 function updateLeadsBadge(){
-  var n = leads.filter(function(l){ return !l._read; }).length;
+  var n = leads.filter(function(l){ return l && (l._read === false || l._read === undefined || l._read === null); }).length;
   var b = document.getElementById('navBadgeLeads');
   if(b){ b.textContent=n; b.style.display=n>0?'flex':'none'; }
 }
@@ -22086,10 +22115,10 @@ function _enrShowQRFromUrl(url){
 
 function enrCopyUrl(){
   var url = _enrFormUrl || (typeof ENR_GITHUB_URL !== 'undefined' ? ENR_GITHUB_URL : '');
-  if(!url){ if(typeof showToast==='function') showToast('⚠️','No hay URL disponible'); return; }
+  if(!url){ if(typeof showToast==='function') showToast('⚠️ No hay URL disponible'); return; }
   if(navigator.clipboard && window.isSecureContext){
     navigator.clipboard.writeText(url).then(function(){
-      if(typeof showToast==='function') showToast('📋','URL copiada al portapapeles');
+      if(typeof showToast==='function') showToast('📋 Link copiado!');
     }).catch(function(){ _enrCopyUrlFallback(url); });
   } else {
     _enrCopyUrlFallback(url);
@@ -22103,9 +22132,9 @@ function _enrCopyUrlFallback(url){
   ta.focus(); ta.select();
   try{
     document.execCommand('copy');
-    if(typeof showToast==='function') showToast('📋','URL copiada al portapapeles');
+    if(typeof showToast==='function') showToast('📋 Link copiado!');
   }catch(e){
-    if(typeof showToast==='function') showToast('⚠️','Copia manual: '+url);
+    prompt('Copia esta URL:', url);
   }
   document.body.removeChild(ta);
 }
