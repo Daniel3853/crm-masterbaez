@@ -20752,12 +20752,11 @@ function enrShowValidationPopup(errors, isEN){
   document.body.appendChild(overlay);
 }
 
-async function enrSubmitForm(){
+function enrSubmitForm(){
   enrShowErr('');
   var isEN = _enrLang === 'en';
   var errors = [];
 
-  // Required fields — collect ALL errors at once
   var fname = (document.getElementById('enr_fname').value||'').trim();
   var lname = (document.getElementById('enr_lname').value||'').trim();
   if(!fname||!lname) errors.push({en:'First and last name', es:'Nombre y apellido'});
@@ -20775,50 +20774,38 @@ async function enrSubmitForm(){
 
   if(!document.getElementById('enr_agree').checked)
     errors.push({en:'Accept the Liability Waiver', es:'Acepta el Relevo de Responsabilidad'});
-
   if(!_enrHasSig)
     errors.push({en:'Provide a signature', es:'Provee una firma'});
 
   var signerName = (document.getElementById('enr_signerName').value||'').trim();
   if(!signerName) errors.push({en:'Full name of signer', es:'Nombre completo del firmante'});
 
-  if(errors.length > 0){
-    enrShowValidationPopup(errors, isEN);
-    return;
-  }
+  if(errors.length > 0){ enrShowValidationPopup(errors, isEN); return; }
 
-  // Build signature dataURL
-  var canvas = document.getElementById('enr_sigCanvas');
-  var sigData = canvas ? canvas.toDataURL('image/png') : '';
-
-  // Collect selected program info
-  var progSel = document.getElementById('enr_progSelect');
-  var progOpt = progSel && progSel.selectedIndex>0 ? progSel.options[progSel.selectedIndex] : null;
-  var progNameEN = progOpt ? (progOpt.getAttribute('data-name-en')||prog) : prog;
-  var progNameES = progOpt ? (progOpt.getAttribute('data-name-es')||prog) : prog;
+  // ── Passed validation — save async ──────────────────────────────
+  var canvas   = document.getElementById('enr_sigCanvas');
+  var sigData  = canvas ? canvas.toDataURL('image/png') : '';
+  var progSel  = document.getElementById('enr_progSelect');
+  var progOpt  = progSel && progSel.selectedIndex>0 ? progSel.options[progSel.selectedIndex] : null;
+  var progNameEN  = progOpt ? (progOpt.getAttribute('data-name-en')||prog) : prog;
+  var progNameES  = progOpt ? (progOpt.getAttribute('data-name-es')||prog) : prog;
   var progPriceEN = progOpt ? progOpt.getAttribute('data-price-en') : '';
   var progTrial   = progOpt ? parseInt(progOpt.getAttribute('data-trial')||0) : 0;
-
   var isMinor = _enrAge !== null && _enrAge < 18;
 
   var record = {
-    id:          'ENR-'+Date.now().toString(36).toUpperCase(),
+    id:            'ENR-'+Date.now().toString(36).toUpperCase(),
     linkedClientId: _enrLinkedId || null,
-    lang:        _enrLang,
-    submittedAt: new Date().toISOString(),
-
-    // Participant
-    firstName:   fname,
-    lastName:    lname,
-    dob:         (document.getElementById('enr_dob').value||''),
-    age:         _enrAge,
-    gender:      (document.getElementById('enr_gender').value||''),
-    phone:       (document.getElementById('enr_phone').value||'').trim(),
-    email:       (document.getElementById('enr_email').value||'').trim(),
-    address:     (document.getElementById('enr_addr').value||'').trim(),
-    isMinor:     isMinor,
-
-    // Guardian (if minor)
+    lang:           _enrLang,
+    submittedAt:    new Date().toISOString(),
+    firstName:      fname, lastName: lname,
+    dob:            (document.getElementById('enr_dob').value||''),
+    age:            _enrAge,
+    gender:         (document.getElementById('enr_gender').value||''),
+    phone:          (document.getElementById('enr_phone').value||'').trim(),
+    email:          (document.getElementById('enr_email').value||'').trim(),
+    address:        (document.getElementById('enr_addr').value||'').trim(),
+    isMinor:        isMinor,
     guardian: isMinor ? {
       firstName: (document.getElementById('enr_gfname').value||'').trim(),
       lastName:  (document.getElementById('enr_glname').value||'').trim(),
@@ -20826,103 +20813,73 @@ async function enrSubmitForm(){
       phone:     (document.getElementById('enr_gphone').value||'').trim(),
       idNum:     (document.getElementById('enr_gid').value||'').trim()
     } : null,
-
-    // Health
-    medical:     (document.getElementById('enr_medical').value||'').trim(),
-    medications: (document.getElementById('enr_meds').value||'').trim(),
-    ecName:      ecName,
-    ecPhone:     ecPhone,
-    ecRelation:  (document.getElementById('enr_ecrel').value||'').trim(),
-
-    // Program
-    programKey:    prog,
-    programNameEN: progNameEN,
-    programNameES: progNameES,
-    programPrice:  progPriceEN,
-    trialDays:     progTrial,
-    startDate:     (document.getElementById('enr_startDate').value||''),
-    schedule:      (document.getElementById('enr_schedule').value||'').trim(),
-    source:        (document.getElementById('enr_source').value||''),
-    notes:         (document.getElementById('enr_notes').value||'').trim(),
-
-    // Waiver & Signature
-    waiverAgreed:    document.getElementById('enr_agree').checked,
-    photoConsent:    document.getElementById('enr_photo').checked,
-    signerName:      signerName,
-    signerRole:      (document.getElementById('enr_signerRole').value||''),
-    signatureDate:   (document.getElementById('enr_sigDate').value||new Date().toISOString().split('T')[0]),
-    signaturePlace:  (document.getElementById('enr_sigPlace').value||'Sunrise, FL'),
-    signatureData:   sigData   // base64 PNG del canvas
+    medical:        (document.getElementById('enr_medical').value||'').trim(),
+    medications:    (document.getElementById('enr_meds').value||'').trim(),
+    ecName:         ecName, ecPhone: ecPhone,
+    ecRelation:     (document.getElementById('enr_ecrel').value||'').trim(),
+    programKey:     prog, programNameEN: progNameEN, programNameES: progNameES,
+    programPrice:   progPriceEN, trialDays: progTrial,
+    startDate:      (document.getElementById('enr_startDate').value||''),
+    schedule:       (document.getElementById('enr_schedule').value||'').trim(),
+    source:         (document.getElementById('enr_source').value||''),
+    notes:          (document.getElementById('enr_notes').value||'').trim(),
+    waiverAgreed:   document.getElementById('enr_agree').checked,
+    photoConsent:   document.getElementById('enr_photo').checked,
+    signerName:     signerName,
+    signerRole:     (document.getElementById('enr_signerRole').value||''),
+    signatureDate:  (document.getElementById('enr_sigDate').value||new Date().toISOString().split('T')[0]),
+    signaturePlace: (document.getElementById('enr_sigPlace').value||'Sunrise, FL'),
+    signatureData:  sigData
   };
 
-  // ── Guardar en Firebase ──────────────────────────────────────────
   var savedOk = false;
-  if(typeof _fbdb !== 'undefined' && _fbdb && typeof _demoMode !== 'undefined' && !_demoMode){
-    try{
-      await _fbdb.ref('enrollments/'+record.id).set(record);
-      savedOk = true;
-    } catch(e){
-      console.error('Firebase enrollment save error:', e);
+  var patch   = _enrLinkedId ? {
+    enrollmentId: record.id, enrolledAt: record.submittedAt,
+    waiverSigned: true, waiverSignedAt: record.submittedAt,
+    signatureData: sigData, signerName: signerName,
+    ecName: ecName, ecPhone: ecPhone,
+    medical: record.medical, medications: record.medications, address: record.address
+  } : null;
+
+  function _showEnrSuccess(){
+    var msg = document.getElementById('enr_saveMsg');
+    if(msg){
+      var isFb = typeof _fbdb!=='undefined' && _fbdb && !_demoMode;
+      msg.textContent = isFb
+        ? (isEN?'✅ Enrollment saved to Firebase':'✅ Enrollment guardado en Firebase')
+          + (_enrLinkedId?(isEN?' — client updated!':' — ¡cliente actualizado!'):'')
+        : (isEN?'✅ Enrollment saved (demo mode)':'✅ Enrollment guardado (modo demo)');
+      msg.style.display='';
+      setTimeout(function(){ msg.style.display='none'; }, 5000);
     }
+    if(typeof showToast==='function')
+      showToast('📋', isEN?'Enrollment saved — '+fname+' '+lname:'Enrollment guardado — '+fname+' '+lname);
+    enrUpdateRecordsBadge();
   }
 
-  // ── Si hay cliente vinculado, actualizar su record en Firebase ───
-  if(_enrLinkedId && typeof _fbdb !== 'undefined' && _fbdb && !_demoMode){
-    try{
-      var patch = {
-        enrollmentId:   record.id,
-        enrolledAt:     record.submittedAt,
-        waiverSigned:   true,
-        waiverSignedAt: record.submittedAt,
-        signatureData:  sigData,
-        signerName:     signerName,
-        ecName:         ecName,
-        ecPhone:        ecPhone,
-        medical:        record.medical,
-        medications:    record.medications,
-        address:        record.address
-      };
-      await _fbdb.ref('registrations/'+_enrLinkedId).update(patch);
-      // Update local array too
-      if(typeof registrations !== 'undefined'){
-        var idx = registrations.findIndex(function(x){ return x.id===_enrLinkedId; });
-        if(idx>=0) Object.assign(registrations[idx], patch);
-      }
-    } catch(e){ console.error('Firebase client update error:', e); }
-  }
-
-  // ── Demo mode fallback: localStorage ────────────────────────────
-  if(!savedOk){
-    try{
-      var existing = JSON.parse(localStorage.getItem('enrollments')||'[]');
-      existing.unshift(record);
-      localStorage.setItem('enrollments', JSON.stringify(existing.slice(0,500)));
+  if(typeof _fbdb!=='undefined' && _fbdb && typeof _demoMode!=='undefined' && !_demoMode){
+    _fbdb.ref('enrollments/'+record.id).set(record).then(function(){
       savedOk = true;
-    } catch(e){}
+      if(patch) return _fbdb.ref('registrations/'+_enrLinkedId).update(patch);
+    }).then(function(){
+      _showEnrSuccess();
+    }).catch(function(e){
+      console.error('Firebase enrollment save error:', e);
+      // fallback localStorage
+      try{
+        var ex = JSON.parse(localStorage.getItem('enrollments')||'[]');
+        ex.unshift(record); localStorage.setItem('enrollments', JSON.stringify(ex.slice(0,500)));
+      }catch(e2){}
+      _showEnrSuccess();
+    });
+  } else {
+    try{
+      var ex = JSON.parse(localStorage.getItem('enrollments')||'[]');
+      ex.unshift(record); localStorage.setItem('enrollments', JSON.stringify(ex.slice(0,500)));
+    }catch(e){}
+    _showEnrSuccess();
   }
-
-  // ── Success UI ───────────────────────────────────────────────────
-  var msg = document.getElementById('enr_saveMsg');
-  if(msg){
-    var isFb = typeof _fbdb !== 'undefined' && _fbdb && !_demoMode;
-    msg.textContent = isFb
-      ? (isEN?'✅ Enrollment saved to Firebase':'✅ Enrollment guardado en Firebase')
-      + (_enrLinkedId ? (isEN?' — client record updated!':' — ¡registro del cliente actualizado!') : '')
-      : (isEN?'✅ Enrollment saved (demo mode)':'✅ Enrollment guardado (modo demo)');
-    msg.style.display='';
-    setTimeout(function(){ msg.style.display='none'; }, 5000);
-  }
-
-  if(typeof showToast==='function') showToast('📋', (isEN?'Enrollment saved — '+fname+' '+lname:'Enrollment guardado — '+fname+' '+lname));
-
-  // Update badge
-  enrUpdateRecordsBadge();
-
-  // Optional: reset
-  // enrResetForm();
 }
-
-// ── Load records tab ──────────────────────────────────────────────
 async function enrLoadRecords(){
   var container = document.getElementById('enrRecordsContainer');
   if(!container) return;
