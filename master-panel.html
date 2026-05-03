@@ -20929,6 +20929,7 @@ async function enrLoadRecords(){
           +(hasSig?'<span style="padding:3px 10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);border-radius:20px;font-size:10px;color:#22c55e;font-weight:700">✍️ Firmado</span>':'')+
           +(r.waiverAgreed?'<span style="padding:3px 10px;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.25);border-radius:20px;font-size:10px;color:#c084fc;font-weight:700">⚖️ Waiver ✓</span>':'')+
           '<button onclick="enrViewRecord(\''+r.id+'\')" style="padding:5px 12px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:11px;font-weight:700;cursor:pointer;font-family:\'Syne\',sans-serif">👁 Ver</button>'+
+          +'<button onclick="enrDownloadPDF(\''+r.id+'\')" style="padding:5px 12px;border-radius:7px;border:none;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:\'Syne\',sans-serif">⬇️ PDF</button>'+
         '</div>'
       +'</div>'
       // Mini signature preview
@@ -20985,6 +20986,163 @@ function enrViewRecord(id){
   win.document.write(html);
   win.document.close();
 }
+
+function enrDownloadPDF(id){
+  var r = _enrRecords.find(function(x){ return x.id===id; });
+  if(!r){ if(typeof showToast==='function') showToast('❌','Record not found'); return; }
+  if(typeof window.jspdf === 'undefined' && typeof window.jsPDF === 'undefined'){
+    if(typeof showToast==='function') showToast('❌','jsPDF not loaded');
+    return;
+  }
+  var jsPDF = window.jspdf ? window.jspdf.jsPDF : window.jsPDF;
+  var doc = new jsPDF({unit:'mm', format:'letter'});
+  var lm=20, rm=190, y=20, lh=7;
+
+  function line(txt, opts){
+    opts = opts||{};
+    var sz = opts.size||11;
+    var style = opts.bold ? 'bold' : 'normal';
+    doc.setFontSize(sz);
+    doc.setFont('helvetica', style);
+    doc.setTextColor(opts.color||0);
+    if(opts.bg){
+      doc.setFillColor.apply(doc, opts.bg);
+      doc.rect(lm-2, y-5, rm-lm+4, lh+1, 'F');
+    }
+    doc.text(txt||'', lm + (opts.indent||0), y);
+    y += lh * (opts.gap||1);
+    if(y > 265){ doc.addPage(); y = 20; }
+  }
+
+  function field(label, val, x, w){
+    doc.setFontSize(7.5); doc.setFont('helvetica','bold');
+    doc.setTextColor(120); doc.text(label.toUpperCase(), x, y);
+    doc.setFontSize(11); doc.setFont('helvetica','normal');
+    doc.setTextColor(0);
+    var lines2 = doc.splitTextToSize(val||'—', w||80);
+    doc.text(lines2, x, y+4);
+    return 4 + (lines2.length * 5.5);
+  }
+
+  // ── Header ──────────────────────────────────────────────────────
+  doc.setFillColor(168,85,247);
+  doc.rect(0,0,216,22,'F');
+  doc.setFontSize(16); doc.setFont('helvetica','bold'); doc.setTextColor(255);
+  doc.text('ENROLLMENT FORM', lm, 14);
+  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  doc.text(r.id + '  ·  ' + (r.submittedAt||'').substring(0,10), rm, 14, {align:'right'});
+  y = 32;
+
+  // ── Name banner ─────────────────────────────────────────────────
+  doc.setFontSize(15); doc.setFont('helvetica','bold'); doc.setTextColor(30);
+  doc.text((r.firstName||'') + ' ' + (r.lastName||''), lm, y);
+  doc.setFontSize(10); doc.setFont('helvetica','normal'); doc.setTextColor(120);
+  doc.text((r.programNameEN||r.programKey||'No program') + '  ·  ' + (r.startDate||''), lm, y+6);
+  y += 16;
+
+  // ── Section helper ───────────────────────────────────────────────
+  function section(title){
+    doc.setFillColor(245,240,255);
+    doc.rect(lm-2, y-4, rm-lm+4, 7, 'F');
+    doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(120,50,200);
+    doc.text(title, lm, y);
+    y += 8;
+    doc.setTextColor(0);
+  }
+
+  // ── Participant ──────────────────────────────────────────────────
+  section('1 · PARTICIPANT');
+  var h1 = Math.max(field('Phone', r.phone, lm, 80), field('Email', r.email, 110, 80));
+  y += h1 + 2;
+  var h2 = Math.max(field('Date of Birth', r.dob, lm, 80), field('Age', r.age ? r.age+' yrs' : '', 110, 40));
+  y += h2 + 2;
+  var h3 = field('Address', r.address, lm, 160);
+  y += h3 + 4;
+
+  // ── Emergency ────────────────────────────────────────────────────
+  section('2 · EMERGENCY CONTACT');
+  if(r.emergency){
+    var h4 = Math.max(
+      field('Name', r.emergency.name, lm, 80),
+      field('Phone', r.emergency.phone, 110, 80)
+    );
+    y += h4 + 2;
+    field('Relation', r.emergency.relation, lm, 80);
+    y += 9;
+  }
+  if(r.medicalNotes){
+    field('Medical Notes', r.medicalNotes, lm, 160);
+    y += 9;
+  }
+  y += 2;
+
+  // ── Guardian ─────────────────────────────────────────────────────
+  if(r.guardian && (r.guardian.firstName||r.guardian.lastName)){
+    section('3 · GUARDIAN');
+    var hg = Math.max(
+      field('Name', (r.guardian.firstName||'')+' '+(r.guardian.lastName||''), lm, 80),
+      field('Phone', r.guardian.phone, 110, 80)
+    );
+    y += hg + 2;
+    field('Relation', r.guardian.relation, lm, 80);
+    y += 9;
+  }
+
+  // ── Program ──────────────────────────────────────────────────────
+  section('4 · PROGRAM');
+  var hp = Math.max(
+    field('Program', r.programNameEN||r.programKey, lm, 80),
+    field('Start Date', r.startDate, 110, 80)
+  );
+  y += hp + 2;
+  var hs = Math.max(
+    field('Schedule', r.schedule, lm, 80),
+    field('Source', r.source, 110, 80)
+  );
+  y += hs + 4;
+
+  // ── Waiver ───────────────────────────────────────────────────────
+  section('5 · WAIVER & SIGNATURE');
+  doc.setFontSize(10); doc.setFont('helvetica','normal'); doc.setTextColor(0);
+  doc.text('Waiver agreed: ' + (r.waiverAgreed?'YES':'NO') +
+           '   Photo consent: ' + (r.photoConsent?'YES':'NO'), lm, y);
+  y += 8;
+  var hw = Math.max(
+    field('Signer', r.signerName, lm, 80),
+    field('Role', r.signerRole||'Participant', 110, 80)
+  );
+  y += hw + 2;
+  var hd = Math.max(
+    field('Date', r.signatureDate, lm, 80),
+    field('Place', r.signaturePlace, 110, 80)
+  );
+  y += hd + 4;
+
+  // ── Signature image ──────────────────────────────────────────────
+  if(r.signatureData){
+    doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(120);
+    doc.text('SIGNATURE', lm, y);
+    y += 4;
+    try{
+      doc.addImage(r.signatureData,'PNG', lm, y, 80, 22);
+      y += 26;
+    }catch(e){}
+  }
+
+  // ── Footer ───────────────────────────────────────────────────────
+  var pageCount = doc.internal.getNumberOfPages();
+  for(var p=1; p<=pageCount; p++){
+    doc.setPage(p);
+    doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(160);
+    doc.text('Generated ' + new Date().toLocaleDateString() + '  ·  ' + r.id,
+             lm, 275);
+    doc.text('Page '+p+'/'+pageCount, rm, 275, {align:'right'});
+  }
+
+  doc.save('enrollment-' + (r.firstName||'').toLowerCase() + '-' + (r.lastName||'').toLowerCase() + '-' + r.id + '.pdf');
+  if(typeof showToast==='function') showToast('⬇️', 'PDF descargado — '+(r.firstName||'')+' '+(r.lastName||''));
+}
+
 
 function enrUpdateRecordsBadge(){
   var badge = document.getElementById('waiverRecordsBadge');
@@ -21455,12 +21613,15 @@ function enrBuildStandaloneFormHTML(){
     +'function submitForm(){'
     +'showErr("");'
     +'var errs=[];'
-    +'var fn=document.getElementById("fn").value.trim();var ln=document.getElementById("ln").value.trim();'
+    +'var fn=document.getElementById("fn").value.trim();'
+    +'var ln=document.getElementById("ln").value.trim();'
     +'if(!fn||!ln)errs.push({en:"First and last name",es:"Nombre y apellido"});'
-    +'var ecn=document.getElementById("ecn").value.trim();var ecp=document.getElementById("ecp").value.trim();'
+    +'var ecn=document.getElementById("ecn").value.trim();'
+    +'var ecp=document.getElementById("ecp").value.trim();'
     +'if(!ecn)errs.push({en:"Emergency contact name",es:"Nombre del contacto de emergencia"});'
     +'if(!ecp)errs.push({en:"Emergency contact phone",es:"Teléfono del contacto de emergencia"});'
-    +'var progVal=document.getElementById("prog").value.trim();var progManual=(document.getElementById("progManual")||{value:""}).value.trim();'
+    +'var progVal=document.getElementById("prog").value.trim();'
+    +'var progManual=(document.getElementById("progManual")||{value:""}).value.trim();'
     +'if(progVal==="__manual__")progVal=progManual;'
     +'if(!progVal)errs.push({en:"Select or enter a program",es:"Selecciona o escribe un programa"});'
     +'if(!document.getElementById("agree").checked)errs.push({en:"Accept the Liability Waiver",es:"Acepta el Relevo de Responsabilidad"});'
@@ -21468,10 +21629,16 @@ function enrBuildStandaloneFormHTML(){
     +'var signer=document.getElementById("signer").value.trim();'
     +'if(!signer)errs.push({en:"Full name of signer",es:"Nombre completo del firmante"});'
     +'if(errs.length>0){showValPopup(errs);return;}'
-    +'var btn=document.getElementById("submitBtn");btn.disabled=true;btn.textContent="⏳ Submitting...";'
+    +'var btn=document.getElementById("submitBtn");'
+    +'btn.disabled=true;btn.textContent="⏳ Submitting...";'
     +'var sigData=document.getElementById("sigCanvas").toDataURL("image/png");'
-    +'var record={'
+    +'var urlId=new URLSearchParams(window.location.search).get("cid")||null;'
+    +'var rec={'
     +'id:"ENR-"+Date.now().toString(36).toUpperCase(),'
+    +'linkedClientId:urlId,'
+    +'source_form:"standalone_qr",'
+    +'submittedAt:new Date().toISOString(),'
+    +'lang:_lang,'
     +'firstName:fn,lastName:ln,'
     +'dob:document.getElementById("dob").value,'
     +'age:document.getElementById("age").value,'
@@ -21490,16 +21657,29 @@ function enrBuildStandaloneFormHTML(){
     +'photoConsent:document.getElementById("photo").checked,'
     +'signerName:signer,'
     +'signatureDate:document.getElementById("sigDate").value,'
-    +'signatureData:sigData,'
-    +'lang:_lang,'
-    +'submittedAt:new Date().toISOString(),'
-    +'source_form:"tablet_standalone"'
+    +'signatureData:sigData'
     +'};'
-    +'function doSave(){'  
-    +'if(_fbdb){_fbdb.ref("waiverEnrollments/"+record.id).set(record).then(function(){document.getElementById("successMsg").style.display="";btn.style.display="none";}).catch(function(e2){showErr("❌ Error: "+e2.message);btn.disabled=false;btn.textContent=isEN()?"✅ Submit Enrollment":"✅ Enviar Inscripción";});}'
-    +'else{document.getElementById("successMsg").style.display="";btn.style.display="none";}'
+    +'function _showSuccess(){'
+    +'btn.style.display="none";'
+    +'document.getElementById("successMsg").style.display="";'
+    +'// Also update linked client if cid param present'
+    +'if(urlId&&_fbdb){'
+    +'_fbdb.ref("registrations/"+urlId).update({'
+    +'enrollmentId:rec.id,enrolledAt:rec.submittedAt,'
+    +'waiverSigned:true,waiverSignedAt:rec.submittedAt,'
+    +'signatureData:sigData,signerName:signer,'
+    +'ecName:ecn,ecPhone:ecp'
+    +'}).catch(function(){});'
     +'}'
-    +'doSave();'
+    +'}'
+    +'if(_fbdb){'
+    +'_fbdb.ref("enrollments/"+rec.id).set(rec)'
+    +'.then(function(){_showSuccess();})'
+    +'.catch(function(e){'
+    +'showErr("❌ "+e.message);'
+    +'btn.disabled=false;btn.textContent=_lang==="en"?"✅ Submit Enrollment":"✅ Enviar Inscripción";'
+    +'});'
+    +'}else{_showSuccess();}'
     +'}'
     +'loadPlans();'
     +'setLang("en");'
