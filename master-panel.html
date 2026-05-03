@@ -7134,6 +7134,881 @@ function generarContratoReferidor(ref){
   var filename = 'contrato-referidor-' + ref.cid + '.pdf';
   _openPrintWindow(docTitle, html, '#f97316', filename);
 }
+</script>
+
+<!-- ══════════════════════════════════════════════════
+     📋 LEAD → ENROLLMENT FORM SEND MODULE v2.0
+     Instalado automáticamente por Claude
+══════════════════════════════════════════════════ -->
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   📋 LEAD → ENROLLMENT FORM SEND MODULE  v2.0
+   ─────────────────────────────────────────────────────────────────────
+   DÓNDE PEGARLO: Justo antes de </body> en master-panel.html
+   ─────────────────────────────────────────────────────────────────────
+   FLUJO COMPLETO:
+   1. Botón "📋 Enviar Formulario" aparece en cada lead card (tabla + cards)
+   2. Modal con 4 tabs: QR ▸ Email ▸ WhatsApp ▸ PDF Imprimible
+   3. Los datos del lead pre-llenan el mensaje (nombre, email, teléfono)
+   4. Firebase escucha nuevos enrollments y los marca como vinculados al lead
+   5. Botón "🖨️ Imprimir Expediente" desde el modal de detalle del lead
+   ═══════════════════════════════════════════════════════════════════════ */
+
+// ── 1. INYECTAR MODAL HTML ────────────────────────────────────────────
+(function injectLeadSendModal(){
+  var modalHtml = `
+<!-- ══ LEAD ENROLLMENT SEND MODAL ══ -->
+<div id="leadSendModal" style="
+  display:none;position:fixed;inset:0;z-index:10500;
+  background:rgba(0,0,0,.82);align-items:center;justify-content:center;
+  padding:16px;overflow-y:auto;
+">
+<div style="
+  background:#0f0f0f;border:1px solid #2a2a2a;border-radius:20px;
+  width:100%;max-width:520px;margin:auto;position:relative;overflow:hidden;
+  box-shadow:0 24px 60px rgba(0,0,0,.7);
+">
+
+  <!-- Stripe top -->
+  <div style="height:4px;background:linear-gradient(90deg,#a855f7,#7c3aed,#e8ff3c);"></div>
+
+  <!-- Header -->
+  <div style="padding:18px 20px 14px;border-bottom:1px solid #1e1e1e;display:flex;align-items:center;justify-content:space-between;">
+    <div>
+      <div id="lsmTitle" style="font-family:Syne,sans-serif;font-weight:800;font-size:17px;color:#fff;display:flex;align-items:center;gap:8px;">
+        📋 <span>Enviar Formulario de Inscripción</span>
+      </div>
+      <div id="lsmLeadName" style="font-size:12px;color:#888;margin-top:3px;font-family:Syne,sans-serif;"></div>
+    </div>
+    <button onclick="closeLSM()" style="
+      background:#1a1a1a;border:1px solid #333;border-radius:8px;
+      color:#888;width:32px;height:32px;cursor:pointer;font-size:16px;
+      display:flex;align-items:center;justify-content:center;
+    ">✕</button>
+  </div>
+
+  <!-- Tabs -->
+  <div style="display:flex;border-bottom:1px solid #1e1e1e;padding:0 20px;">
+    <button id="lsmTab_qr"    onclick="lsmSwitch('qr')"    class="lsm-tab-btn" style="padding:12px 14px;font-family:Syne,sans-serif;font-weight:700;font-size:12px;background:transparent;border:none;border-bottom:2px solid #a855f7;color:#a855f7;cursor:pointer;">📱 QR</button>
+    <button id="lsmTab_email" onclick="lsmSwitch('email')"  class="lsm-tab-btn" style="padding:12px 14px;font-family:Syne,sans-serif;font-weight:700;font-size:12px;background:transparent;border:none;border-bottom:2px solid transparent;color:#555;cursor:pointer;">📧 Email</button>
+    <button id="lsmTab_wa"    onclick="lsmSwitch('wa')"     class="lsm-tab-btn" style="padding:12px 14px;font-family:Syne,sans-serif;font-weight:700;font-size:12px;background:transparent;border:none;border-bottom:2px solid transparent;color:#555;cursor:pointer;">💬 WhatsApp</button>
+    <button id="lsmTab_print" onclick="lsmSwitch('print')"  class="lsm-tab-btn" style="padding:12px 14px;font-family:Syne,sans-serif;font-weight:700;font-size:12px;background:transparent;border:none;border-bottom:2px solid transparent;color:#555;cursor:pointer;">🖨️ Imprimir</button>
+  </div>
+
+  <!-- Panel: QR -->
+  <div id="lsmPanel_qr" style="padding:18px 20px;">
+    <div style="background:rgba(168,85,247,.07);border:1px solid rgba(168,85,247,.2);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:11px;color:#c084fc;line-height:1.5;">
+      <strong style="font-family:Syne,sans-serif;">📱 Dale la tableta al cliente o muéstrale este QR</strong><br/>
+      Escanea → completa → queda guardado automáticamente en Firebase.
+    </div>
+    <!-- QR Code container -->
+    <div style="text-align:center;margin-bottom:16px;">
+      <div id="lsmQRCode" style="display:inline-block;background:#fff;padding:10px;border-radius:12px;border:1px solid #333;"></div>
+    </div>
+    <!-- URL display -->
+    <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:9px 12px;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+      <span id="lsmQRUrl" style="font-size:10px;color:#666;font-family:monospace;flex:1;word-break:break-all;"></span>
+      <button onclick="lsmCopyUrl()" style="
+        padding:4px 10px;border-radius:6px;border:1px solid #a855f7;
+        background:rgba(168,85,247,.12);color:#a855f7;font-size:10px;
+        font-weight:700;cursor:pointer;font-family:Syne,sans-serif;white-space:nowrap;
+      ">📋 Copiar</button>
+    </div>
+    <!-- Open form button -->
+    <button onclick="lsmOpenForm()" style="
+      width:100%;padding:12px;border-radius:10px;border:none;
+      background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;
+      font-family:Syne,sans-serif;font-weight:800;font-size:13px;cursor:pointer;
+      box-shadow:0 4px 14px rgba(168,85,247,.35);margin-bottom:8px;
+    ">📋 Abrir Formulario Pre-llenado (Tableta/PC)</button>
+    <div style="text-align:center;font-size:10px;color:#444;">Se abre en una ventana nueva — ideal para dar la tablet al cliente</div>
+  </div>
+
+  <!-- Panel: Email -->
+  <div id="lsmPanel_email" style="display:none;padding:18px 20px;">
+    <div style="background:rgba(234,67,53,.07);border:1px solid rgba(234,67,53,.2);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:11px;color:#f87171;line-height:1.5;">
+      <strong style="font-family:Syne,sans-serif;">📧 Se abrirá tu app de correo con el mensaje listo</strong><br/>
+      Solo revisa y envía. El cliente recibirá el link para completar el formulario.
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#666;margin-bottom:5px;">Email del Cliente *</label>
+      <input id="lsmEmailAddr" type="email" placeholder="cliente@email.com"
+        style="width:100%;background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:8px;padding:9px 12px;color:#f0f0f0;font-size:13px;outline:none;"/>
+    </div>
+    <div style="margin-bottom:14px;">
+      <label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#666;margin-bottom:5px;">Idioma del mensaje</label>
+      <div style="display:flex;gap:8px;">
+        <button id="lsmEmailEN" onclick="lsmEmailLang('en')" style="flex:1;padding:7px;border-radius:7px;border:1.5px solid #EA4335;background:rgba(234,67,53,.12);color:#EA4335;font-size:11px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif;">🇺🇸 English</button>
+        <button id="lsmEmailES" onclick="lsmEmailLang('es')" style="flex:1;padding:7px;border-radius:7px;border:1px solid #333;background:transparent;color:#555;font-size:11px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif;">🇪🇸 Español</button>
+      </div>
+    </div>
+    <button onclick="lsmSendEmail()" style="
+      width:100%;padding:13px;border-radius:10px;border:none;
+      background:linear-gradient(135deg,#EA4335,#c0392b);color:#fff;
+      font-family:Syne,sans-serif;font-weight:800;font-size:13px;cursor:pointer;
+      box-shadow:0 4px 14px rgba(234,67,53,.3);
+    ">📧 Abrir App de Correo</button>
+  </div>
+
+  <!-- Panel: WhatsApp -->
+  <div id="lsmPanel_wa" style="display:none;padding:18px 20px;">
+    <div style="background:rgba(37,211,102,.07);border:1px solid rgba(37,211,102,.2);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:11px;color:#4ade80;line-height:1.5;">
+      <strong style="font-family:Syne,sans-serif;">💬 Se abrirá WhatsApp con el mensaje listo</strong><br/>
+      Si ingresas el número, abre directamente el chat. Si no, abre para que elijas el contacto.
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#666;margin-bottom:5px;">Teléfono del Cliente (opcional)</label>
+      <input id="lsmWAPhone" type="tel" placeholder="19545550000 (con código de país, sin +)"
+        style="width:100%;background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:8px;padding:9px 12px;color:#f0f0f0;font-size:13px;outline:none;"/>
+    </div>
+    <div style="margin-bottom:14px;">
+      <label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#666;margin-bottom:5px;">Idioma del mensaje</label>
+      <div style="display:flex;gap:8px;">
+        <button id="lsmWaEN" onclick="lsmWaLang('en')" style="flex:1;padding:7px;border-radius:7px;border:1.5px solid #25d366;background:rgba(37,211,102,.1);color:#25d366;font-size:11px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif;">🇺🇸 English</button>
+        <button id="lsmWaES" onclick="lsmWaLang('es')" style="flex:1;padding:7px;border-radius:7px;border:1px solid #333;background:transparent;color:#555;font-size:11px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif;">🇪🇸 Español</button>
+      </div>
+    </div>
+    <button onclick="lsmSendWhatsApp()" style="
+      width:100%;padding:13px;border-radius:10px;border:none;
+      background:linear-gradient(135deg,#25d366,#16a34a);color:#fff;
+      font-family:Syne,sans-serif;font-weight:800;font-size:13px;cursor:pointer;
+      box-shadow:0 4px 14px rgba(37,211,102,.3);
+    ">💬 Abrir WhatsApp</button>
+  </div>
+
+  <!-- Panel: Imprimir -->
+  <div id="lsmPanel_print" style="display:none;padding:18px 20px;">
+    <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:11px;color:#86efac;line-height:1.5;">
+      <strong style="font-family:Syne,sans-serif;">🖨️ Formulario físico para firma presencial</strong><br/>
+      Genera el formulario en blanco (o con datos del lead). El cliente lo llena y firma. Guarda en el expediente.
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#666;margin-bottom:5px;">Tipo de formulario</label>
+      <div style="display:flex;gap:8px;">
+        <button id="lsmPrintPrefilled" onclick="lsmPrintType('prefilled')"
+          style="flex:1;padding:8px;border-radius:8px;border:1.5px solid #22c55e;background:rgba(34,197,94,.12);color:#22c55e;font-size:11px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif;">
+          📝 Con datos del lead
+        </button>
+        <button id="lsmPrintBlank" onclick="lsmPrintType('blank')"
+          style="flex:1;padding:8px;border-radius:8px;border:1px solid #333;background:transparent;color:#555;font-size:11px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif;">
+          📄 En blanco
+        </button>
+      </div>
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#666;margin-bottom:5px;">Idioma</label>
+      <div style="display:flex;gap:8px;">
+        <button id="lsmPrintEN" onclick="lsmPrintLang('en')"
+          style="flex:1;padding:7px;border-radius:7px;border:1.5px solid #22c55e;background:rgba(34,197,94,.12);color:#22c55e;font-size:11px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif;">🇺🇸 English</button>
+        <button id="lsmPrintES" onclick="lsmPrintLang('es')"
+          style="flex:1;padding:7px;border-radius:7px;border:1px solid #333;background:transparent;color:#555;font-size:11px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif;">🇪🇸 Español</button>
+      </div>
+    </div>
+    <button onclick="lsmPrintForm()" style="
+      width:100%;padding:13px;border-radius:10px;border:none;
+      background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;
+      font-family:Syne,sans-serif;font-weight:800;font-size:13px;cursor:pointer;
+      box-shadow:0 4px 14px rgba(34,197,94,.3);margin-bottom:8px;
+    ">🖨️ Abrir para Imprimir / Guardar PDF</button>
+    <!-- Print enrolled record button (shown if lead has enrollment) -->
+    <div id="lsmPrintEnrollmentWrap" style="display:none;border-top:1px solid #1e1e1e;padding-top:12px;margin-top:4px;">
+      <div style="font-size:11px;color:#666;margin-bottom:8px;">✅ Este lead ya tiene un enrollment guardado:</div>
+      <button onclick="lsmPrintEnrollmentRecord()" style="
+        width:100%;padding:11px;border-radius:9px;border:1.5px solid #a855f7;
+        background:rgba(168,85,247,.1);color:#a855f7;
+        font-family:Syne,sans-serif;font-weight:800;font-size:12px;cursor:pointer;
+      ">📋 Imprimir Expediente Completo (con firma)</button>
+    </div>
+  </div>
+
+  <!-- Footer status -->
+  <div style="padding:10px 20px 16px;border-top:1px solid #1a1a1a;">
+    <div id="lsmStatus" style="font-size:11px;color:#555;text-align:center;min-height:16px;"></div>
+  </div>
+
+</div>
+</div>
+<!-- ══ END LEAD SEND MODAL ══ -->
+`;
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+})();
+
+
+// ── 2. ESTADO GLOBAL DEL MÓDULO ────────────────────────────────────────
+var _lsm = {
+  lead:        null,     // lead object activo
+  formUrl:     '',       // URL del enrollment form
+  emailLang:   'en',
+  waLang:      'en',
+  printLang:   'en',
+  printType:   'prefilled', // 'prefilled' | 'blank'
+  enrollmentId: null     // si el lead ya tiene un enrollment guardado
+};
+
+
+// ── 3. ABRIR MODAL DESDE UN LEAD ──────────────────────────────────────
+function openLeadSendModal(leadId) {
+  var lead = (typeof leads !== 'undefined' ? leads : []).find(function(l){ return l.id === leadId; });
+  if (!lead) return;
+
+  _lsm.lead = lead;
+  _lsm.formUrl = '';
+  _lsm.enrollmentId = lead.enrollmentId || null;
+
+  // Pre-llenar datos del lead en los campos del modal
+  var nameEl = document.getElementById('lsmLeadName');
+  if (nameEl) nameEl.textContent = (lead.firstName||'') + ' ' + (lead.lastName||'') + (lead.email ? ' · ' + lead.email : '') + (lead.phone ? ' · ' + lead.phone : '');
+
+  // Pre-llenar email y phone en los inputs
+  var emailEl = document.getElementById('lsmEmailAddr');
+  if (emailEl) emailEl.value = lead.email || '';
+  var phoneEl = document.getElementById('lsmWAPhone');
+  if (phoneEl) {
+    var rawPhone = (lead.phone || '').replace(/\D/g, '');
+    if (rawPhone.length === 10) rawPhone = '1' + rawPhone; // add US country code
+    phoneEl.value = rawPhone;
+  }
+
+  // Obtener URL del formulario
+  _lsmLoadFormUrl(function(url) {
+    _lsm.formUrl = url;
+    _lsmBuildQR(url);
+    var urlEl = document.getElementById('lsmQRUrl');
+    if (urlEl) urlEl.textContent = url;
+  });
+
+  // Verificar si el lead ya tiene un enrollment
+  _lsmCheckExistingEnrollment(lead);
+
+  // Mostrar/ocultar botón "Imprimir Expediente"
+  var printEnrWrap = document.getElementById('lsmPrintEnrollmentWrap');
+  if (printEnrWrap) printEnrWrap.style.display = _lsm.enrollmentId ? '' : 'none';
+
+  // Resetear tabs
+  lsmSwitch('qr');
+  lsmEmailLang('en');
+  lsmWaLang('en');
+  lsmPrintLang('en');
+  lsmPrintType('prefilled');
+
+  // Mostrar modal
+  var modal = document.getElementById('leadSendModal');
+  if (modal) modal.style.display = 'flex';
+
+  // Marcar formulario como enviado en Firebase
+  _lsmMarkFormSent(leadId);
+}
+
+
+// ── 4. CERRAR MODAL ────────────────────────────────────────────────────
+function closeLSM() {
+  var modal = document.getElementById('leadSendModal');
+  if (modal) modal.style.display = 'none';
+  _lsm.lead = null;
+}
+
+
+// ── 5. CARGAR URL DEL FORMULARIO ────────────────────────────────────────
+function _lsmLoadFormUrl(callback) {
+  var fallback = (typeof ENR_GITHUB_URL !== 'undefined') 
+    ? ENR_GITHUB_URL 
+    : 'https://daniel3853.github.io/crm-masterbaez/enrollment-form.html';
+
+  if (typeof _fbdb !== 'undefined' && _fbdb) {
+    _fbdb.ref('masterMods/enrollFormUrl').once('value').then(function(snap) {
+      callback(snap.val() || fallback);
+    }).catch(function() { callback(fallback); });
+  } else {
+    callback(fallback);
+  }
+}
+
+
+// ── 6. BUILD QR ────────────────────────────────────────────────────────
+function _lsmBuildQR(url) {
+  var container = document.getElementById('lsmQRCode');
+  if (!container) return;
+  container.innerHTML = '';
+  try {
+    new QRCode(container, {
+      text: url,
+      width: 180,
+      height: 180,
+      colorDark: '#1a1a2e',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  } catch(e) {
+    // Fallback: img tag con API externa
+    container.innerHTML = '<img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&color=1a1a2e&bgcolor=ffffff&margin=8&data='+encodeURIComponent(url)+'" style="border-radius:8px;width:180px;height:180px;"/>';
+  }
+}
+
+
+// ── 7. TAB SWITCHER ────────────────────────────────────────────────────
+function lsmSwitch(tab) {
+  ['qr','email','wa','print'].forEach(function(t) {
+    var btn   = document.getElementById('lsmTab_' + t);
+    var panel = document.getElementById('lsmPanel_' + t);
+    var on    = t === tab;
+    if (btn) {
+      btn.style.color       = on ? '#a855f7' : '#555';
+      btn.style.fontWeight  = on ? '800' : '700';
+      btn.style.borderBottom = on ? '2px solid #a855f7' : '2px solid transparent';
+    }
+    if (panel) panel.style.display = on ? '' : 'none';
+  });
+}
+
+
+// ── 8. COPIAR URL ──────────────────────────────────────────────────────
+function lsmCopyUrl() {
+  var url = _lsm.formUrl;
+  if (!url) return;
+  try {
+    navigator.clipboard.writeText(url).then(function() {
+      lsmStatus('📋 Link copiado al portapapeles');
+    });
+  } catch(e) { prompt('Copia este link:', url); }
+}
+
+
+// ── 9. ABRIR FORMULARIO PRE-LLENADO (TABLETA) ─────────────────────────
+function lsmOpenForm() {
+  var lead = _lsm.lead;
+  if (!lead) return;
+  if (typeof openWaiverForLead === 'function') {
+    closeLSM();
+    openWaiverForLead(lead);
+  } else {
+    window.open(_lsm.formUrl, '_blank');
+  }
+}
+
+
+// ── 10. IDIOMA EMAIL ────────────────────────────────────────────────────
+function lsmEmailLang(l) {
+  _lsm.emailLang = l;
+  var enBtn = document.getElementById('lsmEmailEN');
+  var esBtn = document.getElementById('lsmEmailES');
+  if (enBtn) {
+    enBtn.style.borderColor = l==='en' ? '#EA4335' : '#333';
+    enBtn.style.color       = l==='en' ? '#EA4335' : '#555';
+    enBtn.style.background  = l==='en' ? 'rgba(234,67,53,.12)' : 'transparent';
+  }
+  if (esBtn) {
+    esBtn.style.borderColor = l==='es' ? '#EA4335' : '#333';
+    esBtn.style.color       = l==='es' ? '#EA4335' : '#555';
+    esBtn.style.background  = l==='es' ? 'rgba(234,67,53,.12)' : 'transparent';
+  }
+}
+
+
+// ── 11. ENVIAR EMAIL ───────────────────────────────────────────────────
+function lsmSendEmail() {
+  var lead  = _lsm.lead;
+  var email = (document.getElementById('lsmEmailAddr') || {}).value || '';
+  var url   = _lsm.formUrl;
+  var biz   = (typeof _getDisplayNameMaster === 'function') ? _getDisplayNameMaster() : 'la academia';
+  var name  = lead ? (lead.firstName || '') : '';
+
+  if (!email) { lsmStatus('⚠️ Ingresa el email del cliente'); return; }
+
+  var subject, body;
+  if (_lsm.emailLang === 'en') {
+    subject = 'Your Enrollment Form — ' + biz;
+    body    = 'Hello' + (name ? ' ' + name : '') + ',\n\n'
+            + 'Please complete your enrollment form and liability waiver using the link below.\n'
+            + 'You can fill it out from your phone, tablet, or computer.\n\n'
+            + '📋 ENROLLMENT FORM:\n' + url + '\n\n'
+            + 'Once completed, your information will be saved automatically to your file.\n\n'
+            + 'Thank you,\n' + biz;
+  } else {
+    subject = 'Tu Formulario de Inscripción — ' + biz;
+    body    = 'Hola' + (name ? ' ' + name : '') + ',\n\n'
+            + 'Por favor completa tu formulario de inscripción y waiver de responsabilidad usando el link de abajo.\n'
+            + 'Puedes hacerlo desde tu celular, tablet o computadora.\n\n'
+            + '📋 FORMULARIO DE INSCRIPCIÓN:\n' + url + '\n\n'
+            + 'Al completarlo, tu información queda guardada automáticamente en tu expediente.\n\n'
+            + 'Gracias,\n' + biz;
+  }
+
+  var mailtoUrl = 'mailto:' + encodeURIComponent(email)
+                + '?subject=' + encodeURIComponent(subject)
+                + '&body='    + encodeURIComponent(body);
+  window.open(mailtoUrl, '_blank');
+  lsmStatus('✉️ Email listo — revisa tu app de correo');
+
+  // Marcar como enviado en Firebase
+  if (lead) _lsmMarkFormSent(lead.id);
+}
+
+
+// ── 12. IDIOMA WHATSAPP ────────────────────────────────────────────────
+function lsmWaLang(l) {
+  _lsm.waLang = l;
+  var enBtn = document.getElementById('lsmWaEN');
+  var esBtn = document.getElementById('lsmWaES');
+  if (enBtn) {
+    enBtn.style.borderColor = l==='en' ? '#25d366' : '#333';
+    enBtn.style.color       = l==='en' ? '#25d366' : '#555';
+    enBtn.style.background  = l==='en' ? 'rgba(37,211,102,.1)' : 'transparent';
+  }
+  if (esBtn) {
+    esBtn.style.borderColor = l==='es' ? '#25d366' : '#333';
+    esBtn.style.color       = l==='es' ? '#25d366' : '#555';
+    esBtn.style.background  = l==='es' ? 'rgba(37,211,102,.1)' : 'transparent';
+  }
+}
+
+
+// ── 13. ENVIAR WHATSAPP ────────────────────────────────────────────────
+function lsmSendWhatsApp() {
+  var lead  = _lsm.lead;
+  var phone = (document.getElementById('lsmWAPhone') || {}).value.replace(/\D/g, '');
+  var url   = _lsm.formUrl;
+  var biz   = (typeof _getDisplayNameMaster === 'function') ? _getDisplayNameMaster() : 'la academia';
+  var name  = lead ? (lead.firstName || '') : '';
+
+  var msg;
+  if (_lsm.waLang === 'en') {
+    msg = '👋 Hello' + (name ? ' ' + name : '') + '!\n\n'
+        + 'Please complete your enrollment form for ' + biz + ':\n\n'
+        + '📋 ' + url + '\n\n'
+        + 'You can fill it out directly from your phone. Thank you! 🙏';
+  } else {
+    msg = '👋 Hola' + (name ? ' ' + name : '') + '!\n\n'
+        + 'Por favor completa tu formulario de inscripción de ' + biz + ':\n\n'
+        + '📋 ' + url + '\n\n'
+        + 'Puedes llenarlo directamente desde tu celular. ¡Gracias! 🙏';
+  }
+
+  var waUrl = phone
+    ? 'https://wa.me/' + phone + '?text=' + encodeURIComponent(msg)
+    : 'https://wa.me/?text=' + encodeURIComponent(msg);
+  window.open(waUrl, '_blank');
+  lsmStatus('💬 WhatsApp abierto');
+
+  if (lead) _lsmMarkFormSent(lead.id);
+}
+
+
+// ── 14. IDIOMA IMPRESIÓN ───────────────────────────────────────────────
+function lsmPrintLang(l) {
+  _lsm.printLang = l;
+  var enBtn = document.getElementById('lsmPrintEN');
+  var esBtn = document.getElementById('lsmPrintES');
+  if (enBtn) {
+    enBtn.style.borderColor = l==='en' ? '#22c55e' : '#333';
+    enBtn.style.color       = l==='en' ? '#22c55e' : '#555';
+    enBtn.style.background  = l==='en' ? 'rgba(34,197,94,.12)' : 'transparent';
+  }
+  if (esBtn) {
+    esBtn.style.borderColor = l==='es' ? '#22c55e' : '#333';
+    esBtn.style.color       = l==='es' ? '#22c55e' : '#555';
+    esBtn.style.background  = l==='es' ? 'rgba(34,197,94,.12)' : 'transparent';
+  }
+}
+
+
+// ── 15. TIPO DE IMPRESIÓN ──────────────────────────────────────────────
+function lsmPrintType(type) {
+  _lsm.printType = type;
+  var preFill = document.getElementById('lsmPrintPrefilled');
+  var blank   = document.getElementById('lsmPrintBlank');
+  if (preFill) {
+    preFill.style.borderColor = type==='prefilled' ? '#22c55e' : '#333';
+    preFill.style.color       = type==='prefilled' ? '#22c55e' : '#555';
+    preFill.style.background  = type==='prefilled' ? 'rgba(34,197,94,.12)' : 'transparent';
+  }
+  if (blank) {
+    blank.style.borderColor = type==='blank' ? '#22c55e' : '#333';
+    blank.style.color       = type==='blank' ? '#22c55e' : '#555';
+    blank.style.background  = type==='blank' ? 'rgba(34,197,94,.12)' : 'transparent';
+  }
+}
+
+
+// ── 16. IMPRIMIR FORMULARIO ────────────────────────────────────────────
+function lsmPrintForm() {
+  var lead = _lsm.lead;
+  var lang = _lsm.printLang;
+
+  if (_lsm.printType === 'prefilled' && lead && typeof openWaiverForLead === 'function') {
+    // Usar el sistema existente del CRM que pre-llena y abre el formulario
+    closeLSM();
+    openWaiverForLead(lead);
+    return;
+  }
+
+  // Formulario en blanco o sin función disponible — generar PDF imprimible
+  var isEN = lang === 'en';
+  var biz  = (typeof _getDisplayNameMaster === 'function') ? _getDisplayNameMaster() : 'Academia';
+  var today = new Date().toLocaleDateString(isEN ? 'en-US' : 'es-US', {year:'numeric', month:'long', day:'numeric'});
+
+  var prefillData = (_lsm.printType === 'prefilled' && lead) ? {
+    name:  (lead.firstName||'') + ' ' + (lead.lastName||''),
+    phone: lead.phone || '',
+    email: lead.email || ''
+  } : null;
+
+  var html = _lsmBuildPrintableForm(isEN, biz, today, prefillData);
+  var win  = window.open('', '_blank', 'width=900,height=1100,scrollbars=yes');
+  if (!win) { lsmStatus('❌ Permite popups en el navegador'); return; }
+  win.document.write(html);
+  win.document.close();
+  setTimeout(function() { try { win.print(); } catch(e) {} }, 800);
+}
+
+
+// ── 17. GENERAR HTML DEL FORMULARIO IMPRIMIBLE ─────────────────────────
+function _lsmBuildPrintableForm(isEN, biz, today, prefill) {
+  var f = prefill || {};
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"/>'
+    + '<title>' + (isEN ? 'Enrollment Form' : 'Formulario de Inscripción') + ' — ' + biz + '</title>'
+    + '<style>'
+    + '*{margin:0;padding:0;box-sizing:border-box;}'
+    + 'body{font-family:Georgia,serif;color:#111;background:#fff;padding:36px 44px;max-width:780px;margin:auto;font-size:13px;line-height:1.6}'
+    + '.hdr{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #111;padding-bottom:14px;margin-bottom:20px}'
+    + '.hdr-biz{font-size:22px;font-weight:900;}'
+    + '.hdr-doc{font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:#777;margin-top:4px}'
+    + '.badge{background:#111;color:#fff;padding:4px 12px;border-radius:4px;font-size:9px;letter-spacing:.1em;text-transform:uppercase}'
+    + '.sec{margin-bottom:18px}'
+    + '.sec-title{font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:#777;font-weight:bold;margin-bottom:10px;padding-bottom:5px;border-bottom:1.5px solid #e5e5e5;font-family:Arial}'
+    + '.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px}'
+    + '.field label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#888;margin-bottom:3px;font-family:Arial}'
+    + '.field .line{border-bottom:1px solid #bbb;min-height:22px;font-size:13px;padding-bottom:2px;color:#333}'
+    + '.waiver-box{background:#f9f5ff;border:1px solid #d8b4fe;border-radius:6px;padding:14px 18px;font-size:11px;line-height:1.8;color:#333;margin:10px 0}'
+    + '.sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:24px}'
+    + '.sig-line{border-bottom:1.5px solid #333;min-height:52px;margin-bottom:5px}'
+    + '.sig-label{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#888;font-family:Arial}'
+    + '.footer{margin-top:24px;padding-top:10px;border-top:1px solid #e5e5e5;font-size:9px;color:#aaa;text-align:center}'
+    + '@media print{body{padding:16px 24px}@page{margin:12mm}}'
+    + '</style></head><body>'
+    + '<div class="hdr">'
+      + '<div><div class="hdr-biz">' + biz + '</div>'
+      + '<div class="hdr-doc">' + (isEN ? 'Enrollment Form & Liability Waiver' : 'Formulario de Inscripción y Waiver de Responsabilidad') + '</div></div>'
+      + '<div><span class="badge">' + (isEN ? 'ENROLLMENT' : 'INSCRIPCIÓN') + '</span><br/>'
+      + '<div style="font-size:10px;color:#888;text-align:right;margin-top:6px">' + today + '</div></div>'
+    + '</div>'
+    + '<div class="sec"><div class="sec-title">' + (isEN ? '1. Participant Information' : '1. Información del Participante') + '</div>'
+    + '<div class="grid">'
+      + '<div class="field"><label>' + (isEN ? 'First Name' : 'Nombre') + '</label><div class="line">' + (f.name ? f.name.split(' ')[0] : '') + '</div></div>'
+      + '<div class="field"><label>' + (isEN ? 'Last Name' : 'Apellido') + '</label><div class="line">' + (f.name ? f.name.split(' ').slice(1).join(' ') : '') + '</div></div>'
+      + '<div class="field"><label>' + (isEN ? 'Date of Birth' : 'Fecha de Nacimiento') + '</label><div class="line"></div></div>'
+      + '<div class="field"><label>' + (isEN ? 'Gender' : 'Género') + '</label><div class="line"></div></div>'
+      + '<div class="field"><label>' + (isEN ? 'Phone' : 'Teléfono') + '</label><div class="line">' + (f.phone||'') + '</div></div>'
+      + '<div class="field"><label>Email</label><div class="line">' + (f.email||'') + '</div></div>'
+      + '<div class="field" style="grid-column:span 2"><label>' + (isEN ? 'Address' : 'Dirección') + '</label><div class="line"></div></div>'
+    + '</div></div>'
+    + '<div class="sec"><div class="sec-title">' + (isEN ? '2. Health & Emergency Contact' : '2. Salud y Contacto de Emergencia') + '</div>'
+    + '<div class="grid">'
+      + '<div class="field" style="grid-column:span 2"><label>' + (isEN ? 'Medical Conditions / Allergies' : 'Condiciones Médicas / Alergias') + '</label><div class="line" style="min-height:36px"></div></div>'
+      + '<div class="field"><label>' + (isEN ? 'Emergency Contact Name' : 'Nombre Contacto de Emergencia') + '</label><div class="line"></div></div>'
+      + '<div class="field"><label>' + (isEN ? 'Emergency Phone' : 'Teléfono de Emergencia') + '</label><div class="line"></div></div>'
+      + '<div class="field"><label>' + (isEN ? 'Relationship' : 'Relación') + '</label><div class="line"></div></div>'
+    + '</div></div>'
+    + '<div class="sec"><div class="sec-title">' + (isEN ? '3. Program & Schedule' : '3. Programa y Horario') + '</div>'
+    + '<div class="grid">'
+      + '<div class="field"><label>' + (isEN ? 'Program of Interest' : 'Programa de Interés') + '</label><div class="line"></div></div>'
+      + '<div class="field"><label>' + (isEN ? 'Start Date' : 'Fecha de Inicio') + '</label><div class="line"></div></div>'
+      + '<div class="field" style="grid-column:span 2"><label>' + (isEN ? 'Schedule / Days & Times' : 'Horario / Días y Horas') + '</label><div class="line"></div></div>'
+    + '</div></div>'
+    + '<div class="sec"><div class="sec-title">' + (isEN ? '4. Liability Waiver & Release' : '4. Relevo de Responsabilidad') + '</div>'
+    + '<div class="waiver-box">'
+      + (isEN
+        ? '<strong>ASSUMPTION OF RISK & RELEASE OF LIABILITY</strong><br/><br/>I, the undersigned, voluntarily agree to participate in the programs and activities offered by ' + biz + '. I understand that physical activities carry inherent risks of injury or illness. I hereby release ' + biz + ', its officers, employees, and agents from any and all claims arising from my participation, including those caused by negligence. I agree to follow all rules and safety guidelines established by ' + biz + '. This release is binding on myself, my heirs, and legal representatives.'
+        : '<strong>ASUNCIÓN DE RIESGO Y RELEVO DE RESPONSABILIDAD</strong><br/><br/>Yo, el/la abajo firmante, acepto voluntariamente participar en los programas y actividades de ' + biz + '. Entiendo que las actividades físicas conllevan riesgos inherentes de lesión o enfermedad. Por medio de la presente, libero a ' + biz + ', sus directivos, empleados y agentes de todo reclamo derivado de mi participación, incluyendo aquellos causados por negligencia. Acepto seguir todas las normas y medidas de seguridad establecidas por ' + biz + '. Este relevo es vinculante para mí, mis herederos y representantes legales.')
+      + '</div>'
+    + '<div style="margin-top:10px;font-size:11px;color:#333">'
+      + '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:6px;">'
+        + '<input type="checkbox" style="width:14px;height:14px;"/> '
+        + '<span>' + (isEN ? 'I have read, understood, and agree to the terms of this Liability Waiver.' : 'He leído, entendido y acepto los términos de este Relevo de Responsabilidad.') + '</span>'
+      + '</label>'
+      + '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;">'
+        + '<input type="checkbox" style="width:14px;height:14px;"/> '
+        + '<span>' + (isEN ? 'I consent to the use of photos and videos for promotional purposes.' : 'Consiento el uso de fotos y videos con fines promocionales.') + '</span>'
+      + '</label>'
+    + '</div></div>'
+    + '<div class="sig-grid">'
+      + '<div><div class="sig-line"></div><div class="sig-label">' + (isEN ? 'Participant / Parent Signature' : 'Firma del Participante / Padre-Tutor') + '</div></div>'
+      + '<div><div class="sig-line"></div><div class="sig-label">' + (isEN ? 'Full Name (Print)' : 'Nombre Completo (Letra de Molde)') + '</div></div>'
+      + '<div><div class="sig-line"></div><div class="sig-label">' + (isEN ? 'Date' : 'Fecha') + '</div></div>'
+      + '<div><div class="sig-line"></div><div class="sig-label">' + (isEN ? 'Instructor / Academy Representative' : 'Instructor / Representante de la Academia') + '</div></div>'
+    + '</div>'
+    + '<div class="footer">' + biz + ' · ' + today + ' · ' + (isEN ? 'Generated by CRM Master Panel' : 'Generado por CRM Master Panel') + '</div>'
+    + '<scr' + 'ipt>window.print();<\/script>'
+    + '</body></html>';
+}
+
+
+// ── 18. VERIFICAR ENROLLMENT EXISTENTE ─────────────────────────────────
+function _lsmCheckExistingEnrollment(lead) {
+  if (!lead) return;
+  // Check si el lead ya tiene un enrollmentId guardado
+  var existingId = lead.enrollmentId || null;
+  _lsm.enrollmentId = existingId;
+
+  // También buscar en Firebase por teléfono/email
+  if (typeof _fbdb !== 'undefined' && _fbdb && (lead.phone || lead.email)) {
+    _fbdb.ref('enrollments').orderByChild('submittedAt').limitToLast(200).once('value').then(function(snap) {
+      if (!snap.exists()) return;
+      snap.forEach(function(child) {
+        var enr = child.val();
+        var phoneMatch = lead.phone && enr.phone && 
+          enr.phone.replace(/\D/g,'') === lead.phone.replace(/\D/g,'');
+        var emailMatch = lead.email && enr.email && 
+          enr.email.toLowerCase() === lead.email.toLowerCase();
+        if (phoneMatch || emailMatch) {
+          _lsm.enrollmentId = enr.id;
+          var wrap = document.getElementById('lsmPrintEnrollmentWrap');
+          if (wrap) wrap.style.display = '';
+        }
+      });
+    }).catch(function() {});
+  }
+}
+
+
+// ── 19. IMPRIMIR EXPEDIENTE COMPLETO (con firma) ───────────────────────
+function lsmPrintEnrollmentRecord() {
+  if (!_lsm.enrollmentId) { lsmStatus('❌ No se encontró enrollment vinculado'); return; }
+  if (typeof enrViewRecord === 'function') {
+    enrViewRecord(_lsm.enrollmentId);
+  } else {
+    lsmStatus('❌ Función enrViewRecord no disponible');
+  }
+}
+
+
+// ── 20. MARCAR FORMULARIO COMO ENVIADO EN FIREBASE ─────────────────────
+function _lsmMarkFormSent(leadId) {
+  if (typeof _fbdb === 'undefined' || !_fbdb || typeof _demoMode === 'undefined' || _demoMode) return;
+  try {
+    _fbdb.ref('masterMods/leads/' + leadId).update({
+      formSent: true,
+      formSentAt: new Date().toISOString()
+    });
+    // Actualizar el objeto local también
+    if (typeof leads !== 'undefined') {
+      var l = leads.find(function(x){ return x.id === leadId; });
+      if (l) { l.formSent = true; l.formSentAt = new Date().toISOString(); }
+    }
+  } catch(e) {}
+}
+
+
+// ── 21. STATUS MESSAGE ─────────────────────────────────────────────────
+function lsmStatus(msg) {
+  var el = document.getElementById('lsmStatus');
+  if (el) {
+    el.textContent = msg;
+    setTimeout(function() { el.textContent = ''; }, 4000);
+  }
+}
+
+
+// ── 22. LISTENER FIREBASE: ACTUALIZAR LEAD CUANDO LLEGA UN ENROLLMENT ──
+(function listenForEnrollments() {
+  // Esperar hasta que Firebase esté listo
+  setTimeout(function() {
+    if (typeof _fbdb === 'undefined' || !_fbdb) return;
+    if (typeof _demoMode !== 'undefined' && _demoMode) return;
+
+    _fbdb.ref('enrollments').on('child_added', function(snap) {
+      var enr = snap.val();
+      if (!enr || !enr.id) return;
+
+      // Buscar el lead correspondiente por teléfono o email
+      var leadArr = typeof leads !== 'undefined' ? leads : [];
+      leadArr.forEach(function(lead) {
+        var phoneMatch = enr.phone && lead.phone &&
+          enr.phone.replace(/\D/g,'') === lead.phone.replace(/\D/g,'');
+        var emailMatch = enr.email && lead.email &&
+          enr.email.toLowerCase() === lead.email.toLowerCase();
+
+        if (phoneMatch || emailMatch) {
+          // Actualizar el lead localmente
+          if (!lead.enrollmentId) {
+            lead.enrollmentId  = enr.id;
+            lead.waiverSigned  = true;
+            lead.enrolledAt    = enr.submittedAt;
+
+            // Actualizar en Firebase
+            try {
+              _fbdb.ref('masterMods/leads/' + lead.id).update({
+                enrollmentId: enr.id,
+                waiverSigned: true,
+                enrolledAt:   enr.submittedAt
+              });
+            } catch(e) {}
+
+            // Re-renderizar si estamos en la página de leads
+            if (typeof renderLeadsInbox === 'function') {
+              try { renderLeadsInbox(); } catch(e) {}
+            }
+
+            // Mostrar toast
+            if (typeof showToast === 'function') {
+              showToast('✍️', '¡' + (enr.firstName||'') + ' ' + (enr.lastName||'') + ' completó el formulario!');
+            }
+          }
+        }
+      });
+    });
+  }, 3000); // dar tiempo a que Firebase y leads[] se carguen
+})();
+
+
+// ── 23. AGREGAR BOTÓN "📋 SEND FORM" A LA TABLA DE LEADS ──────────────
+// Esto intercepta renderLeadsInbox para agregar el botón en cada card
+(function patchRenderLeadsInbox() {
+  // Esperamos a que renderLeadsInbox esté definido
+  var maxTries = 20, tries = 0;
+  var check = setInterval(function() {
+    tries++;
+    if (tries > maxTries) { clearInterval(check); return; }
+    if (typeof renderLeadsInbox !== 'function') return;
+    clearInterval(check);
+
+    var _orig = renderLeadsInbox;
+    renderLeadsInbox = function() {
+      _orig.apply(this, arguments);
+      // Después del render, inyectar botones
+      setTimeout(_injectSendButtons, 100);
+    };
+  }, 500);
+})();
+
+function _injectSendButtons() {
+  // Buscar todos los lead-convert-bar y agregar el botón si no está
+  var bars = document.querySelectorAll('.lead-convert-bar');
+  bars.forEach(function(bar) {
+    if (bar.querySelector('.lsm-send-btn')) return; // ya tiene el botón
+
+    // Obtener el lead ID desde el card padre
+    var card = bar.closest('.lead-card');
+    if (!card) return;
+    // Buscar el lead ID buscando el botón de trash o email que ya tiene el ID
+    var trashBtn = bar.querySelector('[onclick*="deleteLeadToTrash"]') ||
+                   bar.querySelector('[onclick*="openLead"]');
+    var leadId = null;
+    if (trashBtn) {
+      var match = (trashBtn.getAttribute('onclick') || '').match(/['"]([A-Z0-9\-]+)['"]/);
+      if (match) leadId = match[1];
+    }
+
+    // Si no lo encontramos por onclick, buscar en los botones lcb
+    if (!leadId) {
+      var btns = bar.querySelectorAll('[onclick]');
+      btns.forEach(function(btn) {
+        var oc = btn.getAttribute('onclick') || '';
+        var m  = oc.match(/['"]([A-Z][A-Z0-9\-]{3,})['"]/);
+        if (m && !leadId) leadId = m[1];
+      });
+    }
+
+    if (!leadId) return;
+
+    // Crear el botón
+    var btn = document.createElement('button');
+    btn.className = 'lead-convert-btn lsm-send-btn';
+    btn.style.cssText = 'border-color:#a855f7;color:#a855f7;';
+    btn.innerHTML = '📋 Send Form';
+    btn.onclick = function(e) {
+      e.stopPropagation();
+      openLeadSendModal(leadId);
+    };
+    bar.appendChild(btn);
+  });
+}
+
+
+// ── 24. AGREGAR BOTÓN EN EL MODAL DE DETALLE DEL LEAD ─────────────────
+// Parchear openLead para agregar el botón de send form al modal
+(function patchOpenLead() {
+  var maxTries = 20, tries = 0;
+  var check = setInterval(function() {
+    tries++;
+    if (tries > maxTries) { clearInterval(check); return; }
+    if (typeof openLead !== 'function') return;
+    clearInterval(check);
+
+    var _origOpenLead = openLead;
+    openLead = function(id) {
+      _origOpenLead.apply(this, arguments);
+      // Después de abrir el modal, inyectar el botón "Send Form" si no está
+      setTimeout(function() {
+        var modalBody = document.getElementById('leadModalBody');
+        if (!modalBody) return;
+        if (modalBody.querySelector('.lsm-modal-send-btn')) return;
+
+        var sendBtn = document.createElement('button');
+        sendBtn.className = 'lsm-modal-send-btn';
+        sendBtn.style.cssText = [
+          'width:100%','padding:12px','border-radius:12px','border:2px solid #a855f7',
+          'background:rgba(168,85,247,.1)','color:#a855f7','font-family:Syne,sans-serif',
+          'font-weight:800','font-size:13px','cursor:pointer','margin-bottom:10px',
+          'display:flex','align-items:center','justify-content:center','gap:8px',
+          'transition:background .15s'
+        ].join(';');
+        sendBtn.innerHTML = '📤 Enviar Formulario de Inscripción';
+        sendBtn.onmouseover = function() { this.style.background = 'rgba(168,85,247,.2)'; };
+        sendBtn.onmouseout  = function() { this.style.background = 'rgba(168,85,247,.1)'; };
+        sendBtn.onclick = function() {
+          if (typeof closeLeadModal === 'function') closeLeadModal();
+          setTimeout(function() { openLeadSendModal(id); }, 150);
+        };
+
+        // Insertar antes del primer child del body del modal
+        modalBody.insertBefore(sendBtn, modalBody.firstChild);
+      }, 200);
+    };
+  }, 500);
+})();
+
+
+// ── 25. MOSTRAR BADGE "FORM SENT" EN LOS LEAD CARDS ───────────────────
+// Si el lead tiene formSent:true, añadir un badge visual
+(function patchLeadBadges() {
+  var maxTries = 20, tries = 0;
+  var check = setInterval(function() {
+    tries++;
+    if (tries > maxTries) { clearInterval(check); return; }
+    if (typeof renderLeadsInbox !== 'function') return;
+    clearInterval(check);
+
+    // Agregar CSS para el badge
+    var style = document.createElement('style');
+    style.textContent = [
+      '.lsm-sent-badge{',
+        'display:inline-flex;align-items:center;gap:4px;',
+        'padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;',
+        'background:rgba(168,85,247,.12);color:#c084fc;',
+        'border:1px solid rgba(168,85,247,.25);',
+        'font-family:Syne,sans-serif;',
+      '}',
+      '.lsm-enrolled-badge{',
+        'display:inline-flex;align-items:center;gap:4px;',
+        'padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;',
+        'background:rgba(34,197,94,.12);color:#4ade80;',
+        'border:1px solid rgba(34,197,94,.25);',
+        'font-family:Syne,sans-serif;',
+      '}',
+      '.lead-convert-btn.lsm-send-btn:hover{',
+        'background:#a855f7 !important;color:#fff !important;',
+      '}'
+    ].join('');
+    document.head.appendChild(style);
+  }, 500);
+})();
+
+
+console.log('✅ Lead → Form Send Module v2.0 cargado correctamente');
+
+</script>
+<script>
+
 
 function openReferidorModal(id){
   _editReferidorId = id || null;
