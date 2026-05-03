@@ -5154,6 +5154,34 @@ function renderProspectosPipeline(){
   }).join('');
 }
 
+// ── SEND FORM HELPERS (tabla directa) ──────────────────────────────
+function _sendFormToProspecto(id){
+  var p = prospectos.find(function(x){ return x.id===id; });
+  if(!p) return;
+  if(typeof openLeadSendModal==='function'){
+    openLeadSendModal({id:p.id,firstName:p.firstName,lastName:p.lastName,phone:p.phone||'',email:p.email||''});
+  } else if(typeof enrOpenQRModal==='function'){
+    enrOpenQRModal();
+  } else if(typeof enrBuildStandaloneFormHTML==='function'){
+    var html=enrBuildStandaloneFormHTML();
+    var w=window.open('','_blank');
+    if(w){w.document.open();w.document.write(html);w.document.close();}
+  }
+}
+function _sendFormToLead(id){
+  var l = (typeof leads!=='undefined'?leads:[]).find(function(x){ return x.id===id; });
+  if(!l) return;
+  if(typeof openLeadSendModal==='function'){
+    openLeadSendModal(l);
+  } else if(typeof enrOpenQRModal==='function'){
+    enrOpenQRModal();
+  } else if(typeof enrBuildStandaloneFormHTML==='function'){
+    var html=enrBuildStandaloneFormHTML();
+    var w=window.open('','_blank');
+    if(w){w.document.open();w.document.write(html);w.document.close();}
+  }
+}
+
 function renderProspectos(){
   var q    = _prospectoFilter;
   var fuente = _prospectoFiltroFuente;
@@ -5230,6 +5258,9 @@ function renderProspectos(){
         '<td onclick="event.stopPropagation()"><div class="actions-cell">'+
           (p.etapa!=='enrollado'&&p.etapa!=='trial'?
             '<button class="act-btn success-btn" onclick="setProspectoEtapa(\''+p.id+'\',\'interesado\')">🔥</button>':'')+
+          (!p.enrollmentId
+            ? '<button class="act-btn" style="background:rgba(168,85,247,.15);border-color:#a855f7;color:#a855f7" title="Enviar Formulario" onclick="_sendFormToProspecto(\''+p.id+'\')">📋</button>'
+            : '<button class="act-btn" style="background:rgba(34,197,94,.15);border-color:#22c55e;color:#22c55e" title="Ver Waiver" onclick="if(typeof enrViewRecord===\'function\') enrViewRecord(\''+p.enrollmentId+'\')">✍️</button>')+
           '<button class="act-btn" onclick="openProspectoModal(\''+p.id+'\')">✏️</button>'+
           '<button class="act-btn danger" onclick="deleteProspecto(\''+p.id+'\')">🗑</button>'+
         '</div></td>'+
@@ -14502,6 +14533,7 @@ function renderLeadsInbox(){
           +'<button class="act-btn" onclick="openLead(\''+lead.id+'\')" style="border-color:#6366f1;color:#6366f1">👁 Ver</button>'
           +(lead.email?'<a class="act-btn" href="'+buildLeadEmailHref(lead)+'" target="_blank" style="text-decoration:none">📧</a>':'')
           +(lead.phone?'<a class="act-btn" href="'+buildLeadWAHref(lead)+'" target="_blank" style="text-decoration:none;background:#25D366;color:#fff;border-color:#25D366">📲</a>':'')
+          +(!lead.enrollmentId?'<button class="act-btn" style="background:rgba(168,85,247,.15);border-color:#a855f7;color:#a855f7" title="Enviar Formulario" onclick="_sendFormToLead(\''+lead.id+'\')">📋</button>':'<button class="act-btn" style="background:rgba(34,197,94,.15);border-color:#22c55e;color:#22c55e" title="Ver Waiver" onclick="if(typeof enrViewRecord===\'function\') enrViewRecord(\''+lead.enrollmentId+'\')">✍️</button>')
           +'<button class="act-btn danger" onclick="deleteLeadToTrash(\''+lead.id+'\')" title="Papelera">🗑</button>'
         +'</div></td>'
         +'</tr>';
