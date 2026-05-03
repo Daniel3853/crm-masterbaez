@@ -19448,7 +19448,7 @@ function openWaiverForLead(lead){
   // Inject prefill script before </body>
   var prog = customProgs.find(function(pr){ return pr.id===lead.program; });
   var progLabel = prog ? (_masterLang==="es"?(prog.nameES||prog.nameEN):(prog.nameEN||prog.nameES)) : (lead.program||"");
-  var prefill = "<script>"
+  var prefill = "<scr"+"ipt>"
     +"window.addEventListener('load',function(){"
     +"  var f=function(id,v){var el=document.getElementById(id);if(el&&v)el.value=v;};"
     +"  f('fn',"+JSON.stringify(lead.firstName||"")+" );"
@@ -19459,7 +19459,7 @@ function openWaiverForLead(lead){
     +"  var sel=document.getElementById('prog');"
     +"  if(sel){for(var i=0;i<sel.options.length;i++){if(sel.options[i].textContent.indexOf("+JSON.stringify(progLabel)+")>-1){sel.selectedIndex=i;if(typeof updateProg==='function')updateProg();break;}}}"
     +"});"
-    +"</script>";
+    +"<\/script>";
   html = html.replace("</body>", prefill+"</body>");
   var blob = new Blob([html],{type:"text/html;charset=utf-8"});
   var url  = URL.createObjectURL(blob);
@@ -20092,7 +20092,7 @@ function enrViewRecord(id){
       +(r.signatureData?'<img class="sig" src="'+r.signatureData+'" alt="Signature"/>':'<div style="font-size:12px;color:#aaa">No signature on file</div>')
     +'</div>'
     +(r.linkedClientId?'<div style="margin-top:18px;padding:10px 14px;background:#f0fdf4;border:1px solid #86efac;border-radius:6px;font-size:12px;color:#15803d">🔗 Linked to CRM client: '+r.linkedClientId+'</div>':'')
-    +'<script>window.print();<\/script></body></html>';
+    +'<scr'+'ipt>window.print();</scr'+'ipt></body></html>';
   win.document.write(html);
   win.document.close();
 }
@@ -20351,7 +20351,7 @@ function enrDownloadPDF(){
     +'<div class="field"><label>Date / Fecha</label><div class="ln" style="margin-top:30px">&nbsp;</div></div>'
     +'</div></div>'
 
-    +'<script>window.print();<\/script></body></html>';
+    +'<scr'+'ipt>window.print();</scr'+'ipt></body></html>';
   win.document.write(html);
   win.document.close();
 }
