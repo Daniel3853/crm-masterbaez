@@ -5079,10 +5079,8 @@ function openProspectoDetail(id){
     btnEnrForm.style.cssText = 'background:rgba(168,85,247,.12);border-color:#a855f7;color:#a855f7';
     btnEnrForm.onclick = function(){
       closeModal('prospectoDetailModal');
-      if (typeof openLeadSendModal === 'function') {
-        openLeadSendModal({id:p.id,firstName:p.firstName,lastName:p.lastName,phone:p.phone||'',email:p.email||''});
-      } else if (typeof enrOpenQRModal === 'function') {
-        enrOpenQRModal();
+      if (typeof _sendFormToProspecto === 'function') {
+        _sendFormToProspecto(p.id);
       } else if (typeof enrBuildStandaloneFormHTML === 'function') {
         var html = enrBuildStandaloneFormHTML();
         var w = window.open('','_blank');
@@ -5158,27 +5156,26 @@ function renderProspectosPipeline(){
 function _sendFormToProspecto(id){
   var p = prospectos.find(function(x){ return x.id===id; });
   if(!p) return;
-  if(typeof openLeadSendModal==='function'){
-    openLeadSendModal({id:p.id,firstName:p.firstName,lastName:p.lastName,phone:p.phone||'',email:p.email||''});
-  } else if(typeof enrOpenQRModal==='function'){
-    enrOpenQRModal();
-  } else if(typeof enrBuildStandaloneFormHTML==='function'){
-    var html=enrBuildStandaloneFormHTML();
-    var w=window.open('','_blank');
-    if(w){w.document.open();w.document.write(html);w.document.close();}
-  }
+  // openLeadSendModal busca en leads[], no en prospectos[]
+  // Usamos enrShowQRModal y pre-llenamos los campos manualmente
+  if(typeof enrShowQRModal==='function') enrShowQRModal();
+  setTimeout(function(){
+    var emailEl = document.getElementById('enrEmailClientEmail');
+    var nameEl  = document.getElementById('enrEmailClientName');
+    var phoneEl = document.getElementById('enrWaClientPhone');
+    var waNmEl  = document.getElementById('enrWaClientName');
+    if(emailEl) emailEl.value = p.email||'';
+    if(nameEl)  nameEl.value  = (p.firstName||'')+' '+(p.lastName||'');
+    if(phoneEl){ var ph=(p.phone||'').replace(/\D/g,''); if(ph.length===10) ph='1'+ph; phoneEl.value=ph; }
+    if(waNmEl)  waNmEl.value  = (p.firstName||'')+' '+(p.lastName||'');
+  }, 300);
 }
 function _sendFormToLead(id){
-  var l = (typeof leads!=='undefined'?leads:[]).find(function(x){ return x.id===id; });
-  if(!l) return;
+  // openLeadSendModal espera un string ID
   if(typeof openLeadSendModal==='function'){
-    openLeadSendModal(l);
-  } else if(typeof enrOpenQRModal==='function'){
-    enrOpenQRModal();
-  } else if(typeof enrBuildStandaloneFormHTML==='function'){
-    var html=enrBuildStandaloneFormHTML();
-    var w=window.open('','_blank');
-    if(w){w.document.open();w.document.write(html);w.document.close();}
+    openLeadSendModal(id);
+  } else if(typeof enrShowQRModal==='function'){
+    enrShowQRModal();
   }
 }
 
@@ -10499,7 +10496,7 @@ function fmtPhone(raw){
 }
 
 function updateNavBadge(){
-  var total = registrations ? registrations.length : 0;
+  var total = (typeof registrations !== 'undefined' && registrations) ? registrations.length : 0;
   var b = document.getElementById('navBadge');
   if(b){
     b.textContent = total;
