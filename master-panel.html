@@ -16368,9 +16368,17 @@ function permanentDeleteLead(id){
   renderLeadsInbox(); showToast('🗑','Eliminado permanentemente');
 }
 function updateLeadsBadge(){
-  var n = leads.filter(function(l){ return l && (l._read === false || l._read === undefined || l._read === null); }).length;
+  var total  = leads.length;
+  var unread = leads.filter(function(l){ return l && !l._read; }).length;
   var b = document.getElementById('navBadgeLeads');
-  if(b){ b.textContent=n; b.style.display=n>0?'flex':'none'; }
+  if(!b) return;
+  if(total > 0){
+    b.textContent = unread > 0 ? unread : total;
+    b.style.display = 'flex';
+    b.style.background = unread > 0 ? '#22c55e' : '#eab308'; // verde=nuevos, amarillo=todos leídos
+  } else {
+    b.style.display = 'none';
+  }
 }
 
 // ── WAIVER TAB SWITCHER (defined early so renderWaiverTab can call it) ───
