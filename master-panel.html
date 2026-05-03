@@ -7915,7 +7915,26 @@ function lsmStatus(msg) {
             enr.phone.replace(/\D/g,'') === ps.phone.replace(/\D/g,'');
           var emailMatch = enr.email && ps.email &&
             enr.email.toLowerCase() === ps.email.toLowerCase();
-          if (phoneMatch || emailMatch) matched = true;
+          if (phoneMatch || emailMatch) {
+            matched = true;
+            // Actualizar enrollmentId en el prospecto si no lo tiene aún
+            if (!ps.enrollmentId) {
+              ps.enrollmentId = enr.id;
+              ps.waiverSigned = true;
+              ps.enrolledAt   = enr.submittedAt;
+              try {
+                _fbdb.ref('prospectos/' + ps.id).update({
+                  enrollmentId: enr.id,
+                  waiverSigned: true,
+                  enrolledAt:   enr.submittedAt
+                });
+              } catch(e2) {}
+              if (typeof renderProspectos === 'function') try { renderProspectos(); } catch(e2) {}
+              if (typeof showToast === 'function') {
+                showToast('✍️', (enr.firstName||'') + ' ' + (enr.lastName||'') + ' completó el formulario!');
+              }
+            }
+          }
         });
       }
 
@@ -21044,7 +21063,21 @@ async function enrLoadRecords(){
 
 function enrViewRecord(id){
   var r = _enrRecords.find(function(x){ return x.id===id; });
-  if(!r){ if(typeof showToast==='function') showToast('❌','Record not found'); return; }
+  if(!r){
+    // Si no está en cache local, intentar cargar desde Firebase
+    if(typeof _fbdb!=='undefined' && _fbdb && typeof _demoMode!=='undefined' && !_demoMode){
+      if(typeof showToast==='function') showToast('⏳','Cargando registro…');
+      _fbdb.ref('enrollments/'+id).once('value').then(function(snap){
+        var rec = snap.val();
+        if(!rec){ if(typeof showToast==='function') showToast('❌','Enrollment no encontrado'); return; }
+        _enrRecords.push(rec);
+        enrViewRecord(id); // reintentar con cache
+      }).catch(function(){ if(typeof showToast==='function') showToast('❌','Error al cargar enrollment'); });
+    } else {
+      if(typeof showToast==='function') showToast('❌','Record not found');
+    }
+    return;
+  }
   var win = window.open('','_blank','width=700,height=800');
   var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Enrollment — '+r.firstName+' '+r.lastName+'</title>'
     +'<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Georgia,serif;background:#fff;color:#111;padding:40px 48px;max-width:760px;margin:0 auto}'
@@ -21341,12 +21374,6 @@ function _enrShowQRFromUrl(url){
   }
 }
 
-function enrCopyUrl(){
-  if(!_enrFormUrl) return;
-  navigator.clipboard.writeText(_enrFormUrl).then(function(){
-    if(typeof showToast==='function') showToast('📋','URL copiada');
-  }).catch(function(){});
-}
 
 // ── PUBLICAR EN FIREBASE STORAGE ──────────────────────────────────
 async function enrPublishToFirebase(){
@@ -22096,10 +22123,29 @@ function _enrShowQRFromUrl(url){
 }
 
 function enrCopyUrl(){
-  var url = _enrFormUrl || ENR_GITHUB_URL;
-  navigator.clipboard.writeText(url).then(function(){
+  var url = _enrFormUrl || (typeof ENR_GITHUB_URL !== 'undefined' ? ENR_GITHUB_URL : '');
+  if(!url){ if(typeof showToast==='function') showToast('⚠️','No hay URL disponible'); return; }
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(url).then(function(){
+      if(typeof showToast==='function') showToast('📋','URL copiada al portapapeles');
+    }).catch(function(){ _enrCopyUrlFallback(url); });
+  } else {
+    _enrCopyUrlFallback(url);
+  }
+}
+function _enrCopyUrlFallback(url){
+  var ta = document.createElement('textarea');
+  ta.value = url;
+  ta.style.cssText = 'position:fixed;top:-999px;left:-999px;opacity:0';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try{
+    document.execCommand('copy');
     if(typeof showToast==='function') showToast('📋','URL copiada al portapapeles');
-  }).catch(function(){});
+  }catch(e){
+    if(typeof showToast==='function') showToast('⚠️','Copia manual: '+url);
+  }
+  document.body.removeChild(ta);
 }
 
 function enrCloseQRModal(){
