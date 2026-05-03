@@ -7819,22 +7819,22 @@ function lsmStatus(msg) {
       var enr = snap.val();
       if (!enr || !enr.id) return;
 
-      // Buscar el lead correspondiente por teléfono o email
       var leadArr = typeof leads !== 'undefined' ? leads : [];
+      var psArr   = typeof prospectos !== 'undefined' ? prospectos : [];
+      var matched = false;
+
+      // Buscar match en leads existentes por telefono o email
       leadArr.forEach(function(lead) {
         var phoneMatch = enr.phone && lead.phone &&
           enr.phone.replace(/\D/g,'') === lead.phone.replace(/\D/g,'');
         var emailMatch = enr.email && lead.email &&
           enr.email.toLowerCase() === lead.email.toLowerCase();
-
         if (phoneMatch || emailMatch) {
-          // Actualizar el lead localmente
+          matched = true;
           if (!lead.enrollmentId) {
-            lead.enrollmentId  = enr.id;
-            lead.waiverSigned  = true;
-            lead.enrolledAt    = enr.submittedAt;
-
-            // Actualizar en Firebase
+            lead.enrollmentId = enr.id;
+            lead.waiverSigned = true;
+            lead.enrolledAt   = enr.submittedAt;
             try {
               _fbdb.ref('masterMods/leads/' + lead.id).update({
                 enrollmentId: enr.id,
@@ -7842,19 +7842,63 @@ function lsmStatus(msg) {
                 enrolledAt:   enr.submittedAt
               });
             } catch(e) {}
-
-            // Re-renderizar si estamos en la página de leads
-            if (typeof renderLeadsInbox === 'function') {
-              try { renderLeadsInbox(); } catch(e) {}
-            }
-
-            // Mostrar toast
+            if (typeof renderLeadsInbox === 'function') try { renderLeadsInbox(); } catch(e) {}
             if (typeof showToast === 'function') {
-              showToast('✍️', '¡' + (enr.firstName||'') + ' ' + (enr.lastName||'') + ' completó el formulario!');
+              showToast('\u270d\ufe0f', (enr.firstName||'') + ' ' + (enr.lastName||'') + ' complet\u00f3 el formulario!');
             }
           }
         }
       });
+
+      // Buscar match en prospectos
+      if (!matched) {
+        psArr.forEach(function(ps) {
+          var phoneMatch = enr.phone && ps.phone &&
+            enr.phone.replace(/\D/g,'') === ps.phone.replace(/\D/g,'');
+          var emailMatch = enr.email && ps.email &&
+            enr.email.toLowerCase() === ps.email.toLowerCase();
+          if (phoneMatch || emailMatch) matched = true;
+        });
+      }
+
+      // Si no hay match -> crear prospecto nuevo automaticamente
+      if (!matched && (enr.firstName || enr.lastName)) {
+        var alreadyExists = psArr.some(function(ps){ return ps.enrollmentId === enr.id; });
+        if (alreadyExists) return;
+        var newPs = {
+          id:           'PS-ENR-' + enr.id,
+          firstName:    enr.firstName || '',
+          lastName:     enr.lastName  || '',
+          phone:        enr.phone     || '',
+          email:        enr.email     || '',
+          age:          enr.age       || '',
+          address:      enr.address   || '',
+          bizName:      '',
+          bizType:      '',
+          fuente:       'walkin',
+          fuenteId:     'ENROLLMENT FORM',
+          comoLlego:    enr.source    || 'enrollment_form',
+          etapa:        'nuevo',
+          temperatura:  'caliente',
+          plan:         enr.programKey || enr.programName || '',
+          programa:     enr.programName || '',
+          notes:        '\ud83d\udccb [Enrollment Form] Waiver firmado. Programa: ' + (enr.programName||'\u2014') +
+                        (enr.medicalNotes ? ' | M\u00e9dico: ' + enr.medicalNotes : ''),
+          enrollmentId: enr.id,
+          waiverSigned: true,
+          enrolledAt:   enr.submittedAt,
+          lang:         enr.lang || 'en',
+          createdAt:    enr.submittedAt || new Date().toISOString(),
+          updatedAt:    new Date().toISOString()
+        };
+        if (typeof prospectos !== 'undefined') prospectos.unshift(newPs);
+        try { _fbdb.ref('prospectos/' + newPs.id).set(newPs); } catch(e) {}
+        if (typeof updateNavBadgeProspectos === 'function') try { updateNavBadgeProspectos(); } catch(e) {}
+        if (typeof renderProspectos === 'function') try { renderProspectos(); } catch(e) {}
+        if (typeof showToast === 'function') {
+          showToast('\ud83d\udd14', (enr.firstName||'') + ' ' + (enr.lastName||'') + ' \u2014 nuevo enrollment sin lead previo');
+        }
+      }
     });
   }, 3000); // dar tiempo a que Firebase y leads[] se carguen
 })();
