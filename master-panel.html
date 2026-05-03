@@ -5071,10 +5071,40 @@ function openProspectoDetail(id){
   };
   btnRow.appendChild(btnEmail);
 
+  // Enviar Formulario de Inscripcion
+  if (!p.enrollmentId) {
+    var btnEnrForm = document.createElement('button');
+    btnEnrForm.className = 'btn btn-ghost';
+    btnEnrForm.textContent = isEN ? '\ud83d\udccb Send Enrollment Form' : '\ud83d\udccb Enviar Formulario';
+    btnEnrForm.style.cssText = 'background:rgba(168,85,247,.12);border-color:#a855f7;color:#a855f7';
+    btnEnrForm.onclick = function(){
+      closeModal('prospectoDetailModal');
+      if (typeof openLeadSendModal === 'function') {
+        openLeadSendModal({id:p.id,firstName:p.firstName,lastName:p.lastName,phone:p.phone||'',email:p.email||''});
+      } else if (typeof enrOpenQRModal === 'function') {
+        enrOpenQRModal();
+      } else if (typeof enrBuildStandaloneFormHTML === 'function') {
+        var html = enrBuildStandaloneFormHTML();
+        var w = window.open('','_blank');
+        if(w){ w.document.open(); w.document.write(html); w.document.close(); }
+      }
+    };
+    btnRow.appendChild(btnEnrForm);
+  } else {
+    var btnVerEnr = document.createElement('button');
+    btnVerEnr.className = 'btn btn-ghost';
+    btnVerEnr.textContent = isEN ? '\u270d\ufe0f View Waiver' : '\u270d\ufe0f Ver Waiver';
+    btnVerEnr.style.cssText = 'background:rgba(34,197,94,.12);border-color:#22c55e;color:#22c55e';
+    btnVerEnr.onclick = function(){
+      if (typeof enrViewRecord === 'function') enrViewRecord(p.enrollmentId);
+    };
+    btnRow.appendChild(btnVerEnr);
+  }
+
   // Edit
   var btnEdit = document.createElement('button');
   btnEdit.className = 'btn btn-ghost';
-  btnEdit.textContent = isEN ? '✏️ Edit' : '✏️ Editar';
+  btnEdit.textContent = isEN ? '\u270f\ufe0f Edit' : '\u270f\ufe0f Editar';
   btnEdit.onclick = function(){ closeModal('prospectoDetailModal'); openProspectoModal(p.id); };
   btnRow.appendChild(btnEdit);
 
