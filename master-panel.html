@@ -11170,40 +11170,25 @@ function openClient(id, prefillDays, prefillStart, prefillEnd){
 function _loadClientWaiver(r, isEN){
   var area = document.getElementById('clientWaiverArea');
   if(!area) return;
-  if(!_fbdb){
-    area.innerHTML = '<span style="color:var(--muted);font-size:12px">⚠️ '+(isEN?'Firebase not connected':'Firebase no conectado')+'</span>';
-    return;
-  }
-  // Search waiverEnrollments for this client by phone or email
-  _fbdb.ref('waiverEnrollments').orderByChild('phone').equalTo(r.phone||'__none__').once('value').then(function(snap){
-    var records = [];
-    snap.forEach(function(c){ records.push(c.val()); });
-    if(!records.length && r.email){
-      // Try by email
-      _fbdb.ref('waiverEnrollments').orderByChild('email').equalTo(r.email).once('value').then(function(snap2){
-        var recs2 = [];
-        snap2.forEach(function(c){ recs2.push(c.val()); });
-        _renderClientWaiver(recs2, area, isEN);
-      }).catch(function(){ _renderClientWaiver([], area, isEN); });
-    } else {
-      _renderClientWaiver(records, area, isEN);
-    }
-  }).catch(function(){
-    // Fallback: load all and filter client-side
-    _fbdb.ref('waiverEnrollments').once('value').then(function(all){
-      var recs = [];
+  if(!_fbdb){ _renderClientWaiver([], area, isEN); return; }
+  _fbdb.ref('waiverEnrollments').once('value').then(function(all){
+    var recs = [];
+    if(all && all.exists()){
       all.forEach(function(c){
-        var v = c.val();
-        var phone = (v.phone||'').replace(/\D/g,'');
+        var v = c.val(); if(!v) return;
+        var vPhone = (v.phone||'').replace(/\D/g,'');
         var rPhone = (r.phone||'').replace(/\D/g,'');
-        if((phone && rPhone && phone===rPhone)||(v.email && r.email && v.email.toLowerCase()===r.email.toLowerCase())){
-          recs.push(v);
-        }
+        var phoneMatch = vPhone && rPhone && vPhone===rPhone;
+        var emailMatch = v.email && r.email && v.email.toLowerCase()===r.email.toLowerCase();
+        var nameMatch = v.firstName && v.lastName && r.firstName && r.lastName &&
+          v.firstName.toLowerCase()===r.firstName.toLowerCase() &&
+          v.lastName.toLowerCase()===r.lastName.toLowerCase();
+        if(phoneMatch||emailMatch||nameMatch) recs.push(v);
       });
-      _renderClientWaiver(recs, area, isEN);
-    }).catch(function(){
-      area.innerHTML='<span style="color:var(--muted);font-size:12px">❌ '+(isEN?'Error loading waiver':'Error cargando waiver')+'</span>';
-    });
+    }
+    _renderClientWaiver(recs, area, isEN);
+  }).catch(function(){
+    _renderClientWaiver([], area, isEN);
   });
 }
 
