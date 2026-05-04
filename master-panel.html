@@ -5433,28 +5433,41 @@ function _sendFormToLead(id){
 }
 
 function _sendBillingToLead(id){
-  // Abre el modal de Billing Auth con datos del lead pre-llenados
+  // Abre el baSendModal directo — igual que _sendFormToLead abre leadSendModal
   var lead = (typeof leads!=='undefined'?leads:[]).find(function(l){ return l.id===id; });
   if(!lead){ return; }
-  // Store lead id so baSubmit can link it
+
+  // Guardar lead id para que baSubmit lo vincule al guardar
   window._baPendingLeadId = id;
-  goPage('waiver');
-  switchWaiverTab('billing');
-  setTimeout(function(){
-    // Pre-fill form fields from lead
+
+  // Pre-llenar campos del modal con datos del lead
+  var fillFields = function(){
     var flds = {
-      ba_firstName: lead.firstName||'',
-      ba_lastName:  lead.lastName||'',
-      ba_email:     lead.email||'',
-      ba_phone:     lead.phone||''
+      baEmailClientName: (lead.firstName||'')+' '+(lead.lastName||''),
+      baEmailClientEmail: lead.email||'',
+      baWaClientName: lead.firstName||'',
+      baWaClientPhone: (lead.phone||'').replace(/\D/g,'')
     };
     Object.keys(flds).forEach(function(k){
       var el = document.getElementById(k);
-      if(el && !el.value) el.value = flds[k];
+      if(el) el.value = flds[k];
     });
-    // Open the send modal immediately
+  };
+
+  // Abrir modal directamente sin navegar a ninguna página
+  var modal = document.getElementById('baSendModal');
+  if(modal){
+    fillFields();
     if(typeof baOpenSendModal==='function') baOpenSendModal();
-  }, 400);
+  } else {
+    // Si el modal no está en el DOM aún, ir a waiver tab primero
+    goPage('waiver');
+    switchWaiverTab('billing');
+    setTimeout(function(){
+      fillFields();
+      if(typeof baOpenSendModal==='function') baOpenSendModal();
+    }, 500);
+  }
 }
 
 function renderProspectos(){
