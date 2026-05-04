@@ -1618,6 +1618,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
           <button id="waiverTab-editor" onclick="switchWaiverTab('editor')" style="padding:8px 20px;border-radius:9px;border:none;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;font-family:'Syne',sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:all .2s;box-shadow:0 2px 8px rgba(168,85,247,.4)">📝 Editor de Texto</button>
           <button id="waiverTab-form" onclick="switchWaiverTab('form')" style="padding:8px 20px;border-radius:9px;border:none;background:transparent;color:var(--muted);font-family:'Syne',sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:all .2s">📋 Enrollment + Firma</button>
           <button id="waiverTab-records" onclick="switchWaiverTab('records')" style="padding:8px 20px;border-radius:9px;border:none;background:transparent;color:var(--muted);font-family:'Syne',sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:all .2s">🗂 Registros <span id="waiverRecordsBadge" style="background:var(--violet);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px">0</span></button>
+          <button id="waiverTab-billing" onclick="switchWaiverTab('billing')" style="padding:8px 20px;border-radius:9px;border:none;background:transparent;color:var(--muted);font-family:'Syne',sans-serif;font-size:12px;font-weight:800;cursor:pointer;transition:all .2s">💳 Billing Auth</button>
         </div>
 
         <!-- ════ TAB 1: EDITOR ════ -->
@@ -1882,6 +1883,252 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
           </div>
           <div id="enrRecordsContainer">
             <div style="padding:32px;text-align:center;color:var(--muted);font-size:13px">Cargando registros…</div>
+          </div>
+        </div>
+
+        <!-- ════ TAB 4: BILLING AUTH FORM ════ -->
+        <div id="waiverPanel-billing" style="display:none">
+          <div style="background:rgba(34,197,94,.07);border:1.5px solid rgba(34,197,94,.2);border-radius:12px;padding:14px 18px;margin-bottom:18px">
+            <div style="font-size:12px;font-weight:800;color:#4ade80;margin-bottom:6px;font-family:'Syne',sans-serif">⚖️ Autorización de Pago Recurrente / Recurring Billing Authorization</div>
+            <div style="font-size:11px;color:#86efac;line-height:1.7">
+              <strong style="color:#bbf7d0">FL Stat. §501.0117</strong> — Cargo de conveniencia en tarjetas (3.50%)<br/>
+              <strong style="color:#bbf7d0">FL Stat. §68.065</strong> — Cargo por cheque/pago rechazado ($25–$50)<br/>
+              <strong style="color:#bbf7d0">Dodd-Frank §1075</strong> — Regulación de transacciones electrónicas<br/>
+              <strong style="color:#bbf7d0">FDUTPA Ch.501</strong> — Protección al consumidor en Florida
+            </div>
+          </div>
+
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;max-width:680px">
+
+            <!-- Pre-fill from client -->
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+              <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Pre-llenar desde cliente:</div>
+              <select id="ba_clientSelect" onchange="baFillFromClient(this.value)" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;outline:none">
+                <option value="">— Seleccionar cliente —</option>
+              </select>
+            </div>
+
+            <!-- Section 1: Client Info -->
+            <div style="font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#22c55e;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+              <span style="background:#22c55e;color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0">1</span>
+              INFORMACIÓN DEL CLIENTE / CLIENT INFORMATION
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
+              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Nombre / First Name *</label><input type="text" id="ba_firstName" placeholder="John" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Apellido / Last Name *</label><input type="text" id="ba_lastName" placeholder="Doe" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Email *</label><input type="email" id="ba_email" placeholder="john@email.com" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Teléfono / Phone</label><input type="tel" id="ba_phone" placeholder="(954) 000-0000" oninput="enrFmtTel(this)" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+              <div style="grid-column:span 2"><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Dirección de Facturación / Billing Address</label><input type="text" id="ba_address" placeholder="123 Main St, Sunrise, FL 33322" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+            </div>
+
+            <!-- Section 2: Plan & Billing -->
+            <div style="font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#22c55e;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+              <span style="background:#22c55e;color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0">2</span>
+              PLAN Y FACTURACIÓN / PLAN & BILLING
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:18px">
+              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Plan / Program *</label>
+                <select id="ba_plan" onchange="baUpdateAmount()" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none">
+                  <option value="">— Seleccionar —</option>
+                </select>
+              </div>
+              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Monto a Pagar / Amount $</label><input type="text" id="ba_amount" placeholder="0.00" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Día de Cobro / Billing Day</label><input type="number" id="ba_billingDay" placeholder="1" min="1" max="28" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Inicio Trial / Trial Start</label><input type="date" id="ba_trialStart" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Primer Cobro / First Charge</label><input type="date" id="ba_firstCharge" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Frecuencia / Frequency</label>
+                <select id="ba_frequency" onchange="baToggleFreqOther(this.value)" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none">
+                  <option value="monthly">Mensual / Monthly</option>
+                  <option value="weekly">Semanal / Weekly</option>
+                  <option value="biweekly">Quincenal / Bi-weekly</option>
+                  <option value="annual">Anual / Annual</option>
+                  <option value="other">✏️ Other / Otro</option>
+                </select>
+                <input type="text" id="ba_frequencyOther" placeholder="e.g. Every 6 months / Cada 6 meses" style="display:none;margin-top:7px;width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/>
+              </div>
+            </div>
+
+            <!-- Section 3: Payment Method -->
+            <div style="font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#22c55e;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+              <span style="background:#22c55e;color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0">3</span>
+              INFORMACIÓN DE PAGO / PAYMENT INFORMATION
+            </div>
+            <div style="margin-bottom:14px">
+              <label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Tipo de Tarjeta / Card Type</label>
+              <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text)"><input type="radio" name="ba_cardType" value="Visa" onchange="baToggleCardOther(this.value)" style="accent-color:#22c55e"/> Visa</label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text)"><input type="radio" name="ba_cardType" value="Mastercard" onchange="baToggleCardOther(this.value)" style="accent-color:#22c55e"/> Mastercard</label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text)"><input type="radio" name="ba_cardType" value="Amex" onchange="baToggleCardOther(this.value)" style="accent-color:#22c55e"/> Amex</label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text)"><input type="radio" name="ba_cardType" value="Discover" onchange="baToggleCardOther(this.value)" style="accent-color:#22c55e"/> Discover</label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text)"><input type="radio" name="ba_cardType" value="Other" onchange="baToggleCardOther(this.value)" style="accent-color:#22c55e"/> Other</label>
+              </div>
+              <div id="ba_cardOtherWrap" style="display:none;margin-top:9px">
+                <label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Payment Processor Link (Stripe / Square / PayPal…)</label>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <input type="url" id="ba_cardOtherLink" placeholder="https://pay.stripe.com/..." oninput="baUpdatePayLink()" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/>
+                  <button id="ba_cardOtherBtn" onclick="baOpenPayLink()" style="display:none;padding:9px 14px;border-radius:8px;border:none;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;font-family:'Syne',sans-serif">🔗 Abrir</button>
+                </div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:14px">
+              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Nombre en la Tarjeta / Name on Card *</label><input type="text" id="ba_cardName" placeholder="JOHN DOE" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;text-transform:uppercase"/></div>
+              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Expira / Expires *</label><input type="text" id="ba_expiry" placeholder="MM/YY" maxlength="5" oninput="baFmtExpiry(this)" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">ZIP Facturación *</label><input type="text" id="ba_zip" placeholder="33322" maxlength="10" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+            </div>
+            <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:18px">
+              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Número de Tarjeta / Card Number *</label><input type="text" id="ba_cardNumber" placeholder="•••• •••• •••• ••••" maxlength="19" oninput="baFmtCardNumber(this)" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;letter-spacing:.08em"/></div>
+              <div style="display:flex;flex-direction:column;justify-content:flex-end"><label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:12px;color:var(--muted);line-height:1.5"><input type="checkbox" id="ba_isCommercial" style="margin-top:2px;width:14px;height:14px;flex-shrink:0;accent-color:#22c55e"/> Esta es una tarjeta comercial / This is a commercial card</label></div>
+            </div>
+
+            <!-- Section 4: Authorization Text & Signature -->
+            <div style="font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#22c55e;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+              <span style="background:#22c55e;color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0">4</span>
+              AUTORIZACIÓN Y FIRMA / AUTHORIZATION & SIGNATURE
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:14px;font-size:12px;color:var(--muted);line-height:1.7" id="ba_authText">
+              Yo, <strong id="ba_authName" style="color:var(--text)">_____________</strong>, autorizo a <strong id="ba_authBiz" style="color:var(--text)"></strong> a realizar cargos recurrentes a la tarjeta indicada por el monto de <strong id="ba_authAmount" style="color:#22c55e">$___</strong> / mes por el plan <strong id="ba_authPlan" style="color:var(--text)">_____</strong>. Entiendo que esta autorización permanece vigente hasta su cancelación por escrito con 30 días de anticipación. Pagos rechazados generan un cargo de $25–$50 (FL §68.065).
+              <hr style="border:none;border-top:1px solid var(--border);margin:10px 0"/>
+              I, <strong id="ba_authNameEN" style="color:var(--text)">_____________</strong>, authorize <strong id="ba_authBizEN" style="color:var(--text)"></strong> to charge my card <strong id="ba_authAmountEN" style="color:#22c55e">$___</strong>/month for the <strong id="ba_authPlanEN" style="color:var(--text)">_____</strong> plan. I understand this authorization remains in effect until cancelled in writing with 30 days notice. Returned payments incur a $25–$50 fee (FL §68.065).
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
+              <div style="grid-column:span 2"><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Nombre Completo del Firmante *</label><input type="text" id="ba_signerName" placeholder="Print full name" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Fecha / Date *</label><input type="date" id="ba_sigDate" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+            </div>
+
+            <!-- Signature Canvas -->
+            <div style="margin-bottom:20px">
+              <label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Firma Digital / Digital Signature *</label>
+              <div style="border:1.5px solid var(--border);border-radius:10px;background:#fafaf8;position:relative;overflow:hidden">
+                <div id="ba_sigPlaceholder" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:13px;color:#aaa;pointer-events:none;font-style:italic">Sign here / Firme aquí</div>
+                <canvas id="ba_sigCanvas" height="130" style="display:block;cursor:crosshair;touch-action:none;width:100%;height:130px"></canvas>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-top:1px solid #e0ddd6;background:#fff">
+                  <span style="font-size:11px;color:#999">Draw your signature above / Firme arriba</span>
+                  <button onclick="baClearSig()" style="background:none;border:1px solid #c8c4bc;border-radius:6px;padding:4px 12px;font-size:11px;font-weight:600;cursor:pointer;color:#555;font-family:'Syne',sans-serif">Clear</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit row -->
+            <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
+              <button onclick="baResetForm()" style="background:var(--surface);border:1.5px solid var(--border);border-radius:9px;padding:11px 20px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted)">🗑 Limpiar</button>
+              <button onclick="baPrintPreview()" style="background:transparent;border:1.5px solid #22c55e;border-radius:9px;padding:11px 20px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;color:#22c55e">🖨️ Vista Previa / Print</button>
+              <button onclick="baOpenSendModal()" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:9px;padding:11px 20px;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;cursor:pointer;color:#fff;box-shadow:0 4px 14px rgba(59,130,246,.4)">📤 Enviar / Send</button>
+              <button onclick="baSubmit()" style="background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:9px;padding:11px 24px;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;cursor:pointer;color:#fff;box-shadow:0 4px 14px rgba(34,197,94,.4)">💾 Guardar Autorización</button>
+            </div>
+            <div id="ba_status" style="display:none;margin-top:12px;padding:10px 14px;border-radius:8px;font-size:12px;text-align:center"></div>
+          </div>
+
+          <!-- BA Send Modal — identical layout to Enrollment send modal -->
+          <div id="baSendModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(6px);overflow-y:auto" onclick="if(event.target===this)baCloseSendModal()">
+            <div style="background:#18181b;border:1px solid rgba(34,197,94,.45);border-radius:22px;max-width:400px;width:100%;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.8);margin:auto">
+
+              <!-- Header -->
+              <div style="background:linear-gradient(135deg,#22c55e,#16a34a);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+                <div>
+                  <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#fff">💳 Enviar Autorización de Pago</div>
+                  <div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:2px">Elige cómo compartirla</div>
+                </div>
+                <button onclick="baCloseSendModal()" style="background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:6px 10px;color:#fff;font-size:16px;cursor:pointer">✕</button>
+              </div>
+
+              <!-- TABS -->
+              <div style="display:flex;background:#111;border-bottom:1px solid #2a2a2e">
+                <button id="baTab_qr"    onclick="baSwitchTab('qr')"    style="flex:1;padding:10px 2px;border:none;background:transparent;color:#22c55e;font-size:9px;font-weight:800;cursor:pointer;font-family:'Syne',sans-serif;border-bottom:2px solid #22c55e;letter-spacing:.3px">📱 QR</button>
+                <button id="baTab_email" onclick="baSwitchTab('email')" style="flex:1;padding:10px 2px;border:none;background:transparent;color:#555;font-size:9px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;border-bottom:2px solid transparent;letter-spacing:.3px">✉️ EMAIL</button>
+                <button id="baTab_wa"    onclick="baSwitchTab('wa')"    style="flex:1;padding:10px 2px;border:none;background:transparent;color:#555;font-size:9px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;border-bottom:2px solid transparent;letter-spacing:.3px">💬 WHATSAPP</button>
+                <button id="baTab_pdf"   onclick="baSwitchTab('pdf')"   style="flex:1;padding:10px 2px;border:none;background:transparent;color:#555;font-size:9px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;border-bottom:2px solid transparent;letter-spacing:.3px">🖨️ PDF</button>
+              </div>
+
+              <!-- ── PANEL: QR ── -->
+              <div id="baTabPanel_qr" style="padding:18px">
+                <div style="text-align:center;margin-bottom:12px">
+                  <div id="baSendQR" style="display:inline-block;background:#fff;padding:12px;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.4)"></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;background:#111;border:1px solid #2a2a2e;border-radius:8px;padding:7px 10px;margin-bottom:8px">
+                  <div id="baSendQRText" style="flex:1;font-size:9px;color:#22c55e;word-break:break-all;font-family:monospace"></div>
+                  <button onclick="baCopyResumen()" id="baCopyLinkBtn" style="flex-shrink:0;padding:3px 9px;border-radius:6px;border:1px solid #22c55e;background:transparent;color:#22c55e;font-size:10px;font-weight:700;cursor:pointer">Copiar</button>
+                </div>
+                <div style="text-align:center;font-size:11px;color:#22c55e;font-weight:700">✅ Escanea para ver el resumen completo</div>
+              </div>
+
+              <!-- ── PANEL: EMAIL ── -->
+              <div id="baTabPanel_email" style="display:none;padding:18px">
+                <div style="background:rgba(6,182,212,.07);border:1px solid rgba(6,182,212,.2);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:11px;color:#22d3ee;line-height:1.5">
+                  <div style="font-weight:800;margin-bottom:2px;font-family:'Syne',sans-serif">✉️ Cómo funciona</div>
+                  Se abre tu correo (Gmail, Outlook, etc.) con el resumen de la autorización listo. Solo das clic en Enviar.
+                </div>
+                <div style="margin-bottom:10px">
+                  <label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#888;margin-bottom:4px">Nombre del cliente</label>
+                  <input id="baEmailClientName" type="text" placeholder="John Doe" style="width:100%;background:#222;border:1px solid #444;border-radius:8px;padding:9px 12px;color:#f0f0f0;font-size:13px;outline:none;font-family:inherit">
+                </div>
+                <div style="margin-bottom:10px">
+                  <label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#888;margin-bottom:4px">Email del cliente *</label>
+                  <input id="baEmailClientEmail" type="email" placeholder="cliente@email.com" style="width:100%;background:#222;border:1px solid #444;border-radius:8px;padding:9px 12px;color:#f0f0f0;font-size:13px;outline:none;font-family:inherit">
+                </div>
+                <div style="margin-bottom:12px">
+                  <label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#888;margin-bottom:4px">Idioma del mensaje</label>
+                  <div style="display:flex;gap:8px">
+                    <button id="baEmailLangEN" onclick="baSetEmailLang('en')" style="flex:1;padding:7px;border-radius:7px;border:1.5px solid #06b6d4;background:rgba(6,182,212,.12);color:#06b6d4;font-size:11px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">🇺🇸 English</button>
+                    <button id="baEmailLangES" onclick="baSetEmailLang('es')" style="flex:1;padding:7px;border-radius:7px;border:1px solid #333;background:transparent;color:#555;font-size:11px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">🇪🇸 Español</button>
+                  </div>
+                </div>
+                <button onclick="baSendEmailClient()" style="width:100%;padding:13px;border-radius:11px;border:none;background:linear-gradient(135deg,#06b6d4,#0891b2);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:'Syne',sans-serif;box-shadow:0 4px 14px rgba(6,182,212,.3)">
+                  ✉️ Abrir Email con Autorización
+                </button>
+                <div style="margin-top:8px;text-align:center;font-size:10px;color:#444">Se abrirá tu app de correo con el mensaje listo para enviar</div>
+              </div>
+
+              <!-- ── PANEL: WHATSAPP ── -->
+              <div id="baTabPanel_wa" style="display:none;padding:18px">
+                <div style="background:rgba(37,211,102,.07);border:1px solid rgba(37,211,102,.2);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:11px;color:#4ade80;line-height:1.5">
+                  <div style="font-weight:800;margin-bottom:2px;font-family:'Syne',sans-serif">💬 Mensaje de WhatsApp</div>
+                  Ingresa el número del cliente y abre WhatsApp Web con el resumen de la autorización listo para enviar.
+                </div>
+                <div style="margin-bottom:10px">
+                  <label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#888;margin-bottom:4px">Nombre del cliente</label>
+                  <input id="baWaClientName" type="text" placeholder="John" style="width:100%;background:#222;border:1px solid #444;border-radius:8px;padding:9px 12px;color:#f0f0f0;font-size:13px;outline:none;font-family:inherit">
+                </div>
+                <div style="margin-bottom:12px">
+                  <label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#888;margin-bottom:4px">Teléfono (con código de país)</label>
+                  <input id="baWaClientPhone" type="tel" placeholder="+1 954 000 0000" style="width:100%;background:#222;border:1px solid #444;border-radius:8px;padding:9px 12px;color:#f0f0f0;font-size:13px;outline:none;font-family:inherit">
+                </div>
+                <div style="margin-bottom:12px">
+                  <label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#888;margin-bottom:4px">Idioma del mensaje</label>
+                  <div style="display:flex;gap:8px">
+                    <button id="baWaLangEN" onclick="baSetWaLang('en')" style="flex:1;padding:7px;border-radius:7px;border:1.5px solid #25d366;background:rgba(37,211,102,.1);color:#25d366;font-size:11px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">🇺🇸 English</button>
+                    <button id="baWaLangES" onclick="baSetWaLang('es')" style="flex:1;padding:7px;border-radius:7px;border:1px solid #333;background:transparent;color:#555;font-size:11px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">🇪🇸 Español</button>
+                  </div>
+                </div>
+                <button onclick="baSendWhatsAppClient()" style="width:100%;padding:13px;border-radius:11px;border:none;background:linear-gradient(135deg,#25d366,#16a34a);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:'Syne',sans-serif;box-shadow:0 4px 14px rgba(37,211,102,.3)">
+                  💬 Abrir WhatsApp con la Autorización
+                </button>
+              </div>
+
+              <!-- ── PANEL: PDF ── -->
+              <div id="baTabPanel_pdf" style="display:none;padding:18px">
+                <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:11px;color:#86efac;line-height:1.5">
+                  <div style="font-weight:800;margin-bottom:2px;font-family:'Syne',sans-serif">🖨️ Formulario para imprimir</div>
+                  Genera la autorización de pago en PDF para entregar físicamente o guardar como respaldo. Incluye firma digital si ya fue firmada.
+                </div>
+                <button onclick="baPrintPreview()" style="width:100%;padding:13px;border-radius:11px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:'Syne',sans-serif;margin-bottom:8px;box-shadow:0 4px 14px rgba(34,197,94,.3)">
+                  🖨️ Abrir PDF / Vista Previa
+                </button>
+                <div style="text-align:center;font-size:10px;color:#444">Se abrirá una ventana lista para imprimir o guardar como PDF</div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Billing Auth Records -->
+          <div style="margin-top:28px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+              <div style="font-size:12px;font-weight:800;color:var(--muted);letter-spacing:.08em;text-transform:uppercase">🗂 Billing Authorizations guardadas</div>
+              <button onclick="baLoadRecords()" style="padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">🔄 Recargar</button>
+            </div>
+            <div id="baRecordsContainer">
+              <div style="padding:32px;text-align:center;color:var(--muted);font-size:13px">Haz clic en Recargar para ver registros</div>
+            </div>
           </div>
         </div>
 
@@ -12019,8 +12266,20 @@ function openClient(id, prefillDays, prefillStart, prefillEnd){
       '⏳ '+(isEN?'Loading waiver...':'Cargando waiver...')+
     '</div>';
   body.appendChild(waiverSection);
-  // Load async
   _loadClientWaiver(r, isEN);
+
+  // ── BILLING AUTH SECTION ──────────────────────────────────────
+  var billingSection = document.createElement('div');
+  billingSection.style.cssText = 'margin-top:16px;padding-top:16px;border-top:1px solid var(--border)';
+  billingSection.innerHTML =
+    '<div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:12px">'+
+      '💳 '+(isEN?'Billing Authorization':'Autorización de Pago')+
+    '</div>'+
+    '<div id="clientBillingAuthArea" style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;font-size:13px;color:var(--muted);text-align:center">'+
+      '⏳ '+(isEN?'Loading...':'Cargando...')+
+    '</div>';
+  body.appendChild(billingSection);
+  if(typeof _loadClientBillingAuth==='function') _loadClientBillingAuth(r, isEN);
 
   // ── SEPARADOR CONVERSIÓN ──────────────────────────────────────
   var convDiv = document.createElement('div');
@@ -16383,15 +16642,16 @@ function updateLeadsBadge(){
 
 // ── WAIVER TAB SWITCHER (defined early so renderWaiverTab can call it) ───
 function switchWaiverTab(tab){
-  ['editor','form','records'].forEach(function(t){
+  ['editor','form','records','billing'].forEach(function(t){
     var panel = document.getElementById('waiverPanel-'+t);
     var btn   = document.getElementById('waiverTab-'+t);
     if(!panel||!btn) return;
     var isActive = t===tab;
     panel.style.display = isActive ? '' : 'none';
-    btn.style.background = isActive ? 'linear-gradient(135deg,#a855f7,#7c3aed)' : 'transparent';
+    var isGreen = t==='billing';
+    btn.style.background = isActive ? (isGreen ? 'linear-gradient(135deg,#22c55e,#16a34a)' : 'linear-gradient(135deg,#a855f7,#7c3aed)') : 'transparent';
     btn.style.color       = isActive ? '#fff' : 'var(--muted)';
-    btn.style.boxShadow   = isActive ? '0 2px 8px rgba(168,85,247,.4)' : 'none';
+    btn.style.boxShadow   = isActive ? (isGreen ? '0 2px 8px rgba(34,197,94,.4)' : '0 2px 8px rgba(168,85,247,.4)') : 'none';
   });
   if(tab==='form'){
     setTimeout(function(){ var c=document.getElementById('enr_sigCanvas'); if(c){c._enrInited=false;} if(typeof enrInitCanvas==='function') enrInitCanvas(); },60);
@@ -16404,6 +16664,19 @@ function switchWaiverTab(tab){
     if(typeof enrUpdateSignerRole==='function') enrUpdateSignerRole();
   }
   if(tab==='records' && typeof enrLoadRecords==='function') enrLoadRecords();
+  if(tab==='billing'){
+    if(typeof baInitCanvas==='function') baInitCanvas();
+    if(typeof baPopulateClientSelect==='function') baPopulateClientSelect();
+    if(typeof baPopulatePlanSelect==='function') baPopulatePlanSelect();
+    var today2 = new Date().toISOString().split('T')[0];
+    var bd = document.getElementById('ba_sigDate'); if(bd && !bd.value) bd.value = today2;
+    if(typeof baUpdateAuthText==='function') baUpdateAuthText();
+    if(typeof baLoadRecords==='function') baLoadRecords();
+    // Set biz name
+    var biz = (typeof _getDisplayNameMaster==='function') ? _getDisplayNameMaster() : '';
+    var ab = document.getElementById('ba_authBiz'); if(ab) ab.textContent = biz;
+    var abe = document.getElementById('ba_authBizEN'); if(abe) abe.textContent = biz;
+  }
 }
 
 // ── WAIVER ───────────────────────────────────────────────────
@@ -22243,6 +22516,698 @@ function enrSetPdfLang(l){
   document.getElementById('enrPdfLangES').style.borderColor = l==='es'?'#22c55e':'#333';
   document.getElementById('enrPdfLangES').style.color       = l==='es'?'#22c55e':'#555';
   document.getElementById('enrPdfLangES').style.background  = l==='es'?'rgba(34,197,94,.12)':'transparent';
+}
+
+// ══════════════════════════════════════════════════════════════════
+// ██  BILLING AUTHORIZATION FORM  ████████████████████████████████
+// ══════════════════════════════════════════════════════════════════
+
+var _baSigCanvas = null;
+var _baSigCtx    = null;
+var _baDrawing   = false;
+var _baHasSig    = false;
+var _baRecords   = [];
+
+// ── Canvas signature ─────────────────────────────────────────────
+function baInitCanvas(){
+  var canvas = document.getElementById('ba_sigCanvas');
+  if(!canvas || canvas._baInited) return;
+  canvas._baInited = true;
+  _baSigCanvas = canvas;
+  _baSigCtx    = canvas.getContext('2d');
+
+  function getPos(e){
+    var r = canvas.getBoundingClientRect();
+    var src = e.touches ? e.touches[0] : e;
+    return { x:(src.clientX-r.left)*(canvas.width/r.width), y:(src.clientY-r.top)*(canvas.height/r.height) };
+  }
+  function startDraw(e){ e.preventDefault(); _baDrawing=true; var p=getPos(e); _baSigCtx.beginPath(); _baSigCtx.moveTo(p.x,p.y); }
+  function draw(e){ if(!_baDrawing) return; e.preventDefault(); var p=getPos(e); _baSigCtx.lineWidth=2.2; _baSigCtx.lineCap='round'; _baSigCtx.strokeStyle='#1a1a2e'; _baSigCtx.lineTo(p.x,p.y); _baSigCtx.stroke(); _baHasSig=true; var ph=document.getElementById('ba_sigPlaceholder'); if(ph) ph.style.display='none'; }
+  function endDraw(){ _baDrawing=false; _baSigCtx.beginPath(); }
+
+  canvas.addEventListener('mousedown',startDraw); canvas.addEventListener('mousemove',draw); canvas.addEventListener('mouseup',endDraw); canvas.addEventListener('mouseleave',endDraw);
+  canvas.addEventListener('touchstart',startDraw,{passive:false}); canvas.addEventListener('touchmove',draw,{passive:false}); canvas.addEventListener('touchend',endDraw);
+
+  // Set canvas resolution
+  var r = canvas.getBoundingClientRect();
+  canvas.width  = r.width  || 600;
+  canvas.height = 130;
+}
+
+function baClearSig(){
+  if(!_baSigCanvas) return;
+  _baSigCtx.clearRect(0,0,_baSigCanvas.width,_baSigCanvas.height);
+  _baHasSig=false;
+  var ph=document.getElementById('ba_sigPlaceholder'); if(ph) ph.style.display='';
+}
+
+// ── Populate dropdowns ────────────────────────────────────────────
+function baPopulateClientSelect(){
+  var sel = document.getElementById('ba_clientSelect');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">— Seleccionar cliente —</option>';
+  var regs = typeof registrations !== 'undefined' ? registrations : [];
+  regs.forEach(function(r){
+    var opt = document.createElement('option');
+    opt.value = r.id;
+    opt.textContent = (r.firstName||'') + ' ' + (r.lastName||'') + (r.phone?' · '+r.phone:'');
+    sel.appendChild(opt);
+  });
+}
+
+function baPopulatePlanSelect(){
+  var sel = document.getElementById('ba_plan');
+  if(!sel) return;
+  var cur = sel.value;
+  sel.innerHTML = '<option value="">— Seleccionar plan —</option>';
+  var plansObj = typeof plans !== 'undefined' ? plans : {};
+  Object.keys(plansObj).forEach(function(k){
+    var p = plansObj[k];
+    var opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = (p.nameES||p.nameEN||k) + (p.priceEN?' — '+p.priceEN:'');
+    sel.appendChild(opt);
+  });
+  if(cur) sel.value = cur;
+}
+
+function baFillFromClient(id){
+  if(!id) return;
+  var regs = typeof registrations !== 'undefined' ? registrations : [];
+  var r = regs.find(function(x){ return x.id===id; });
+  if(!r) return;
+  var set = function(elId, val){ var el=document.getElementById(elId); if(el&&val) el.value=val; };
+  set('ba_firstName', r.firstName);
+  set('ba_lastName',  r.lastName);
+  set('ba_email',     r.email);
+  set('ba_phone',     r.phone);
+  set('ba_signerName', (r.firstName||'')+' '+(r.lastName||''));
+  set('ba_cardName',  ((r.firstName||'')+' '+(r.lastName||'')).toUpperCase());
+  if(r.plan) { var ps=document.getElementById('ba_plan'); if(ps) ps.value=r.plan; baUpdateAmount(); }
+  baUpdateAuthText();
+}
+
+function baUpdateAmount(){
+  var sel = document.getElementById('ba_plan');
+  if(!sel||!sel.value) return;
+  var plansObj = typeof plans !== 'undefined' ? plans : {};
+  var p = plansObj[sel.value];
+  if(p){
+    var price = p.priceEN || p.priceES || '';
+    var numMatch = price.match(/[\d.]+/);
+    var amtEl = document.getElementById('ba_amount');
+    if(amtEl && numMatch) amtEl.value = numMatch[0];
+  }
+  baUpdateAuthText();
+}
+
+function baFmtExpiry(input){
+  var v = input.value.replace(/\D/g,'').substring(0,4);
+  if(v.length>2) v = v.substring(0,2)+'/'+v.substring(2);
+  input.value = v;
+}
+
+function baUpdateAuthText(){
+  var firstName = (document.getElementById('ba_firstName')||{}).value||'';
+  var lastName  = (document.getElementById('ba_lastName')||{}).value||'';
+  var fullName  = (firstName+' '+lastName).trim() || '_____________';
+  var amtEl     = document.getElementById('ba_amount');
+  var amount    = amtEl&&amtEl.value ? '$'+amtEl.value : '$___';
+  var planSel   = document.getElementById('ba_plan');
+  var planName  = '_____';
+  if(planSel&&planSel.value){
+    var plansObj = typeof plans !== 'undefined' ? plans : {};
+    var p = plansObj[planSel.value];
+    planName = p ? (p.nameES||p.nameEN||planSel.value) : planSel.value;
+  }
+  var biz = (typeof _getDisplayNameMaster==='function') ? _getDisplayNameMaster() : '';
+  var upd = function(id,v){ var el=document.getElementById(id); if(el) el.textContent=v; };
+  upd('ba_authName',     fullName); upd('ba_authNameEN',  fullName);
+  upd('ba_authBiz',      biz);      upd('ba_authBizEN',   biz);
+  upd('ba_authAmount',   amount);   upd('ba_authAmountEN',amount);
+  upd('ba_authPlan',     planName); upd('ba_authPlanEN',  planName);
+}
+
+// ── Live update auth text on input ───────────────────────────────
+setTimeout(function(){
+  ['ba_firstName','ba_lastName','ba_amount'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.addEventListener('input', baUpdateAuthText);
+  });
+}, 2000);
+
+// ── Reset form ───────────────────────────────────────────────────
+function baResetForm(){
+  ['ba_firstName','ba_lastName','ba_email','ba_phone','ba_address',
+   'ba_amount','ba_billingDay','ba_trialStart','ba_firstCharge',
+   'ba_cardName','ba_expiry','ba_zip','ba_cardNumber','ba_signerName',
+   'ba_frequencyOther','ba_cardOtherLink'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.value='';
+  });
+  var ps = document.getElementById('ba_plan'); if(ps) ps.value='';
+  var fs = document.getElementById('ba_frequency'); if(fs) fs.value='monthly';
+  var cs = document.getElementById('ba_clientSelect'); if(cs) cs.value='';
+  document.querySelectorAll('input[name="ba_cardType"]').forEach(function(r){ r.checked=false; });
+  var ic = document.getElementById('ba_isCommercial'); if(ic) ic.checked=false;
+  // Hide toggled fields
+  var fo = document.getElementById('ba_frequencyOther'); if(fo) fo.style.display='none';
+  var cow = document.getElementById('ba_cardOtherWrap'); if(cow) cow.style.display='none';
+  var today = new Date().toISOString().split('T')[0];
+  var sd = document.getElementById('ba_sigDate'); if(sd) sd.value=today;
+  baClearSig();
+  if(_baSigCanvas) _baSigCanvas._baInited=false;
+  baInitCanvas();
+  baUpdateAuthText();
+  var st = document.getElementById('ba_status'); if(st) st.style.display='none';
+}
+
+// ── Submit & save to Firebase ─────────────────────────────────────
+function baSubmit(){
+  var firstName  = (document.getElementById('ba_firstName')||{}).value||'';
+  var lastName   = (document.getElementById('ba_lastName')||{}).value||'';
+  var signerName = (document.getElementById('ba_signerName')||{}).value||'';
+  var sigDate    = (document.getElementById('ba_sigDate')||{}).value||'';
+  var cardName   = (document.getElementById('ba_cardName')||{}).value||'';
+  var expiry     = (document.getElementById('ba_expiry')||{}).value||'';
+  var zip        = (document.getElementById('ba_zip')||{}).value||'';
+
+  if(!firstName||!lastName){ baStatus('⚠️ Nombre requerido / Name required','warn'); return; }
+  if(!cardName||!expiry||!zip){ baStatus('⚠️ Datos de tarjeta incompletos / Card info incomplete','warn'); return; }
+  if(!signerName||!sigDate){ baStatus('⚠️ Nombre y fecha del firmante requeridos','warn'); return; }
+  if(!_baHasSig){ baStatus('⚠️ Se requiere firma digital / Digital signature required','warn'); return; }
+
+  var sigData = _baSigCanvas ? _baSigCanvas.toDataURL('image/png') : null;
+  var rec = Object.assign({}, baCollectFormData(), {
+    id:          'BA-'+Date.now().toString(36).toUpperCase(),
+    submittedAt: new Date().toISOString(),
+    signatureData: sigData
+  });
+
+  baStatus('⏳ Guardando…','info');
+
+  if(!_demoMode && typeof _fbdb !== 'undefined' && _fbdb){
+    var saves = [_fbdb.ref('billingAuths/'+rec.id).set(rec)];
+    // Also update the client record if linked
+    if(rec.linkedClientId){
+      saves.push(_fbdb.ref('registrations/'+rec.linkedClientId).update({
+        billingAuthId: rec.id,
+        billingAuthAt: rec.submittedAt,
+        billingAuthSigner: rec.signerName,
+        cardLast4: rec.last4,
+        cardType: rec.cardType
+      }));
+      // Update local registrations cache
+      var regs = typeof registrations !== 'undefined' ? registrations : [];
+      var cr = regs.find(function(x){ return x.id===rec.linkedClientId; });
+      if(cr){ cr.billingAuthId=rec.id; cr.billingAuthAt=rec.submittedAt; cr.cardLast4=rec.last4; cr.cardType=rec.cardType; }
+    }
+    Promise.all(saves).then(function(){
+      _baRecords.unshift(rec);
+      baStatus('✅ Autorización guardada correctamente!','ok');
+      baRenderRecords();
+      setTimeout(function(){ if(confirm('¿Imprimir / ver PDF de la autorización?')) baPrintRecord(rec); }, 500);
+    }).catch(function(e){
+      baStatus('❌ Error al guardar: '+e.message,'err');
+    });
+  } else {
+    // Demo mode — just save locally
+    _baRecords.unshift(rec);
+    baStatus('✅ Guardado en modo demo','ok');
+    baRenderRecords();
+  }
+}
+
+function baStatus(msg, type){
+  var el = document.getElementById('ba_status');
+  if(!el) return;
+  var colors = { ok:'rgba(34,197,94,.12)', warn:'rgba(245,158,11,.12)', err:'rgba(239,68,68,.12)', info:'rgba(168,85,247,.12)' };
+  var borders= { ok:'rgba(34,197,94,.3)',  warn:'rgba(245,158,11,.3)',  err:'rgba(239,68,68,.3)',  info:'rgba(168,85,247,.3)'  };
+  el.style.display='block'; el.style.background=colors[type]||colors.info;
+  el.style.border='1px solid '+(borders[type]||borders.info);
+  el.style.color='var(--text)'; el.textContent=msg;
+}
+
+// ── Toggle helpers ────────────────────────────────────────────────
+function baToggleCardOther(val){
+  var wrap = document.getElementById('ba_cardOtherWrap');
+  if(wrap) wrap.style.display = (val==='Other') ? 'block' : 'none';
+  if(val!=='Other'){ var b=document.getElementById('ba_cardOtherBtn'); if(b) b.style.display='none'; }
+}
+function baUpdatePayLink(){
+  var inp = document.getElementById('ba_cardOtherLink');
+  var btn = document.getElementById('ba_cardOtherBtn');
+  if(!inp||!btn) return;
+  btn.style.display = inp.value.trim() ? 'inline-block' : 'none';
+}
+function baOpenPayLink(){
+  var inp = document.getElementById('ba_cardOtherLink');
+  if(!inp||!inp.value.trim()) return;
+  var url = inp.value.trim();
+  if(!/^https?:\/\//i.test(url)) url = 'https://'+url;
+  window.open(url,'_blank','noopener');
+}
+function baToggleFreqOther(val){
+  var el = document.getElementById('ba_frequencyOther');
+  if(el) el.style.display = (val==='other') ? 'block' : 'none';
+}
+
+// ── Card number formatter ─────────────────────────────────────────
+function baFmtCardNumber(inp){
+  var v = inp.value.replace(/\D/g,'').substring(0,16);
+  inp.value = v.replace(/(.{4})/g,'$1 ').trim();
+}
+
+// ── Collect all form data in one place ───────────────────────────
+function baCollectFormData(){
+  var cardTypeEl = document.querySelector('input[name="ba_cardType"]:checked');
+  var cardTypeVal = cardTypeEl ? cardTypeEl.value : '';
+  if(cardTypeVal==='Other'){
+    var link = (document.getElementById('ba_cardOtherLink')||{}).value||'';
+    if(link) cardTypeVal = 'Other ('+link+')';
+  }
+  var freqVal = (document.getElementById('ba_frequency')||{}).value||'monthly';
+  if(freqVal==='other'){
+    freqVal = (document.getElementById('ba_frequencyOther')||{}).value||'other';
+  }
+  var rawCard = ((document.getElementById('ba_cardNumber')||{}).value||'').replace(/\s/g,'');
+  var last4 = rawCard.length >= 4 ? rawCard.slice(-4) : rawCard;
+  return {
+    linkedClientId:(document.getElementById('ba_clientSelect')||{}).value||null,
+    firstName:     (document.getElementById('ba_firstName')||{}).value||'',
+    lastName:      (document.getElementById('ba_lastName')||{}).value||'',
+    email:         (document.getElementById('ba_email')||{}).value||'',
+    phone:         (document.getElementById('ba_phone')||{}).value||'',
+    address:       (document.getElementById('ba_address')||{}).value||'',
+    plan:          (document.getElementById('ba_plan')||{}).value||'',
+    amount:        (document.getElementById('ba_amount')||{}).value||'',
+    billingDay:    (document.getElementById('ba_billingDay')||{}).value||'',
+    trialStart:    (document.getElementById('ba_trialStart')||{}).value||'',
+    firstCharge:   (document.getElementById('ba_firstCharge')||{}).value||'',
+    frequency:     freqVal,
+    cardType:      cardTypeVal,
+    cardNumber:    rawCard,
+    last4:         last4,
+    cardName:      (document.getElementById('ba_cardName')||{}).value||'',
+    expiry:        (document.getElementById('ba_expiry')||{}).value||'',
+    zipCode:       (document.getElementById('ba_zip')||{}).value||'',
+    isCommercial:  document.getElementById('ba_isCommercial') ? document.getElementById('ba_isCommercial').checked : false,
+    signerName:    (document.getElementById('ba_signerName')||{}).value||'',
+    sigDate:       (document.getElementById('ba_sigDate')||{}).value||''
+  };
+}
+
+// ── Send Modal ────────────────────────────────────────────────────
+// ── BA Send Modal — full logic (mirrors Enrollment modal) ────────
+var _baEmailLang = 'en';
+var _baWaLang    = 'en';
+
+function baOpenSendModal(){
+  var modal = document.getElementById('baSendModal');
+  if(!modal) return;
+  modal.style.display='flex';
+  baSwitchTab('qr');
+  // Pre-fill name/phone/email from form
+  var d = baCollectFormData();
+  var nameEl  = document.getElementById('baEmailClientName');
+  var emailEl = document.getElementById('baEmailClientEmail');
+  var waNameEl= document.getElementById('baWaClientName');
+  var waPhEl  = document.getElementById('baWaClientPhone');
+  if(nameEl  && !nameEl.value)  nameEl.value  = (d.firstName+' '+d.lastName).trim();
+  if(emailEl && !emailEl.value) emailEl.value = d.email||'';
+  if(waNameEl&& !waNameEl.value)waNameEl.value= d.firstName||'';
+  if(waPhEl  && !waPhEl.value)  waPhEl.value  = d.phone||'';
+  // Build summary text for QR
+  var summary = _baGetSummary(d);
+  var qrWrap  = document.getElementById('baSendQR');
+  var qrText  = document.getElementById('baSendQRText');
+  if(qrText) qrText.textContent = (d.firstName+' '+d.lastName).trim()+' · $'+(d.amount||'0')+' · '+(d.cardType||'—');
+  if(qrWrap){
+    qrWrap.innerHTML='';
+    try{ new QRCode(qrWrap,{text:summary,width:200,height:200,colorDark:'#1a1a2e',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M}); }
+    catch(e){ qrWrap.innerHTML='<div style="font-size:11px;color:#888;padding:20px">QR N/D</div>'; }
+  }
+}
+
+function _baGetSummary(d){
+  d = d || baCollectFormData();
+  var nl='\n';
+  return '--- BILLING AUTHORIZATION ---'+nl
+    +'Cliente: '+(d.firstName+' '+d.lastName).trim()+nl
+    +'Plan: '+(d.plan||'—')+nl
+    +'Monto: $'+(d.amount||'0')+' / '+(d.frequency||'monthly')+nl
+    +'Tarjeta: '+(d.cardType||'—')+(d.last4?' ****'+d.last4:'')+nl
+    +(d.expiry?'Expira: '+d.expiry+nl:'')
+    +(d.signerName?'Firmado por: '+d.signerName+nl:'')
+    +(d.sigDate?'Fecha: '+d.sigDate+nl:'')
+    +'-----------------------------';
+}
+
+function baCloseSendModal(){
+  var modal=document.getElementById('baSendModal');
+  if(modal) modal.style.display='none';
+}
+
+function baSwitchTab(tab){
+  ['qr','email','wa','pdf'].forEach(function(t){
+    var btn   = document.getElementById('baTab_'+t);
+    var panel = document.getElementById('baTabPanel_'+t);
+    var on    = t===tab;
+    if(btn){
+      btn.style.color       = on?'#22c55e':'#555';
+      btn.style.fontWeight  = on?'800':'700';
+      btn.style.borderBottom= on?'2px solid #22c55e':'2px solid transparent';
+    }
+    if(panel) panel.style.display = on?'block':'none';
+  });
+}
+
+function baSetEmailLang(l){
+  _baEmailLang=l;
+  ['EN','ES'].forEach(function(k){
+    var b=document.getElementById('baEmailLang'+k);
+    if(!b) return;
+    var on=(k===l.toUpperCase());
+    b.style.borderColor=on?'#06b6d4':'#333';
+    b.style.color=on?'#06b6d4':'#555';
+    b.style.background=on?'rgba(6,182,212,.12)':'transparent';
+  });
+}
+
+function baSetWaLang(l){
+  _baWaLang=l;
+  ['EN','ES'].forEach(function(k){
+    var b=document.getElementById('baWaLang'+k);
+    if(!b) return;
+    var on=(k===l.toUpperCase());
+    b.style.borderColor=on?'#25d366':'#333';
+    b.style.color=on?'#25d366':'#555';
+    b.style.background=on?'rgba(37,211,102,.1)':'transparent';
+  });
+}
+
+function baSendEmailClient(){
+  var d           = baCollectFormData();
+  var clientEmail = (document.getElementById('baEmailClientEmail')||{}).value||d.email||'';
+  var clientName  = (document.getElementById('baEmailClientName')||{}).value||(d.firstName+' '+d.lastName).trim();
+  var biz         = (typeof _getDisplayNameMaster==='function')?_getDisplayNameMaster():'la academia';
+  if(!clientEmail){ if(typeof showToast==='function') showToast('⚠️ Escribe el email del cliente'); return; }
+  var subject, body;
+  var nl='\n';
+  if(_baEmailLang==='en'){
+    subject = 'Billing Authorization \u2014 '+biz;
+    body    = 'Hello'+(clientName?' '+clientName:'')+','+nl+nl
+            + 'Please review your billing authorization for '+biz+':'+nl+nl
+            + '--- BILLING AUTHORIZATION ---'+nl
+            + 'Plan: '+(d.plan||'\u2014')+nl
+            + 'Amount: $'+(d.amount||'0')+' / '+(d.frequency||'monthly')+nl
+            + 'Card: '+(d.cardType||'\u2014')+(d.last4?' ****'+d.last4:'')+nl
+            + (d.expiry?'Expires: '+d.expiry+nl:'')
+            + '-----------------------------'+nl+nl
+            + 'This authorization will remain in effect until cancelled in writing with 30 days notice.'+nl+nl
+            + 'Thank you,'+nl+biz;
+  } else {
+    subject = 'Autorizaci\u00f3n de Pago \u2014 '+biz;
+    body    = 'Hola'+(clientName?' '+clientName:'')+','+nl+nl
+            + 'A continuaci\u00f3n el detalle de su autorizaci\u00f3n de pago para '+biz+':'+nl+nl
+            + '--- AUTORIZACI\u00d3N DE PAGO ---'+nl
+            + 'Plan: '+(d.plan||'\u2014')+nl
+            + 'Monto: $'+(d.amount||'0')+' / '+(d.frequency||'monthly')+nl
+            + 'Tarjeta: '+(d.cardType||'\u2014')+(d.last4?' ****'+d.last4:'')+nl
+            + (d.expiry?'Expira: '+d.expiry+nl:'')
+            + '----------------------------'+nl+nl
+            + 'Esta autorizaci\u00f3n permanece vigente hasta su cancelaci\u00f3n por escrito con 30 d\u00edas de anticipaci\u00f3n.'+nl+nl
+            + 'Gracias,'+nl+biz;
+  }
+  window.open('mailto:'+encodeURIComponent(clientEmail)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body),'_blank');
+  setTimeout(function(){ if(typeof showToast==='function') showToast('✉️ Email listo — revisa tu app de correo'); },500);
+}
+
+function baSendWhatsAppClient(){
+  var d          = baCollectFormData();
+  var phone      = (document.getElementById('baWaClientPhone')||{}).value.replace(/\D/g,'')||d.phone.replace(/\D/g,'');
+  var clientName = (document.getElementById('baWaClientName')||{}).value||d.firstName||'';
+  var biz        = (typeof _getDisplayNameMaster==='function')?_getDisplayNameMaster():'la academia';
+  var msg;
+  var nl='\n';
+  if(_baWaLang==='en'){
+    msg = '\ud83d\udc4b Hello'+(clientName?' '+clientName:'')+'!'+nl+nl
+        + '\ud83d\udcb3 *Billing Authorization \u2014 '+biz+'*'+nl
+        + 'Plan: '+(d.plan||'\u2014')+nl
+        + 'Amount: $'+(d.amount||'0')+' / '+(d.frequency||'monthly')+nl
+        + 'Card: '+(d.cardType||'\u2014')+(d.last4?' ****'+d.last4:'')+nl
+        + (d.expiry?'Expires: '+d.expiry+nl:'')
+        + nl+'_Reply to confirm. Thank you! \ud83d\ude4f_';
+  } else {
+    msg = '\ud83d\udc4b Hola'+(clientName?' '+clientName:'')+'!'+nl+nl
+        + '\ud83d\udcb3 *Autorizaci\u00f3n de Pago \u2014 '+biz+'*'+nl
+        + 'Plan: '+(d.plan||'\u2014')+nl
+        + 'Monto: $'+(d.amount||'0')+' / '+(d.frequency||'monthly')+nl
+        + 'Tarjeta: '+(d.cardType||'\u2014')+(d.last4?' ****'+d.last4:'')+nl
+        + (d.expiry?'Expira: '+d.expiry+nl:'')
+        + nl+'_Responde para confirmar. \u00a1Gracias! \ud83d\ude4f_';
+  }
+  var waUrl = phone
+    ? 'https://wa.me/'+phone+'?text='+encodeURIComponent(msg)
+    : 'https://wa.me/?text='+encodeURIComponent(msg);
+  window.open(waUrl,'_blank');
+}
+
+function baCopyResumen(){
+  var text = _baGetSummary();
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(text).then(function(){ if(typeof showToast==='function') showToast('📋 Resumen copiado!'); });
+  } else {
+    var ta=document.createElement('textarea'); ta.value=text;
+    ta.style.cssText='position:fixed;top:-999px;opacity:0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    try{ document.execCommand('copy'); if(typeof showToast==='function') showToast('📋 Resumen copiado!'); }catch(e){}
+    document.body.removeChild(ta);
+  }
+  var btn=document.getElementById('baCopyLinkBtn');
+  if(btn){ btn.textContent='✅ Copiado!'; setTimeout(function(){ btn.textContent='Copiar'; },2500); }
+}
+
+// ── Load records from Firebase ────────────────────────────────────
+function baLoadRecords(){
+  var container = document.getElementById('baRecordsContainer');
+  if(!container) return;
+  if(_demoMode || typeof _fbdb==='undefined' || !_fbdb){
+    baRenderRecords(); return;
+  }
+  container.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">⏳ Cargando…</div>';
+  _fbdb.ref('billingAuths').orderByChild('submittedAt').limitToLast(100).once('value').then(function(snap){
+    _baRecords = [];
+    if(snap.exists()) snap.forEach(function(c){ _baRecords.unshift(c.val()); });
+    baRenderRecords();
+  }).catch(function(){ baRenderRecords(); });
+}
+
+function baRenderRecords(){
+  var container = document.getElementById('baRecordsContainer');
+  if(!container) return;
+  if(!_baRecords.length){
+    container.innerHTML='<div style="padding:32px;text-align:center;color:var(--muted);font-size:13px">No hay autorizaciones guardadas aún.</div>';
+    return;
+  }
+  var html = _baRecords.map(function(r){
+    var name = (r.firstName||'')+' '+(r.lastName||'');
+    var date = r.submittedAt ? new Date(r.submittedAt).toLocaleDateString('es-US') : '—';
+    var cardInfo = (r.cardType||'') + (r.last4 ? ' ···'+r.last4 : '');
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;background:var(--surface)">'
+      +'<div>'
+      +'<div style="font-size:13px;font-weight:700;color:var(--text);font-family:\'Syne\',sans-serif">'+name+'</div>'
+      +'<div style="font-size:11px;color:var(--muted);margin-top:2px">'+date+(r.plan?' · '+r.plan:'')+(cardInfo?' · 💳 '+cardInfo:'')+'</div>'
+      +'</div>'
+      +'<div style="display:flex;gap:8px">'
+      +(r.signatureData?'<span style="font-size:10px;background:rgba(34,197,94,.12);color:#22c55e;border-radius:6px;padding:2px 8px;font-weight:700">✍️ Firmado</span>':'')
+      +'<button onclick="baViewRecord(\''+r.id+'\')" style="padding:5px 12px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--text);font-size:11px;font-weight:700;cursor:pointer">👁 Ver</button>'
+      +'<button onclick="baPrintRecord(null,\''+r.id+'\')" style="padding:5px 12px;border-radius:7px;border:1px solid #22c55e;background:transparent;color:#22c55e;font-size:11px;font-weight:700;cursor:pointer">🖨️</button>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+  container.innerHTML = html;
+}
+
+function baViewRecord(id){
+  var r = _baRecords.find(function(x){ return x.id===id; });
+  if(!r){ showToast('❌ Registro no encontrado'); return; }
+  baPrintRecord(r);
+}
+
+// ── Print / Preview ───────────────────────────────────────────────
+function baPrintPreview(){
+  var sigData = (_baHasSig && _baSigCanvas) ? _baSigCanvas.toDataURL('image/png') : null;
+  var rec = Object.assign({}, baCollectFormData(), {
+    signatureData: sigData,
+    submittedAt: new Date().toISOString()
+  });
+  baPrintRecord(rec);
+}
+
+function baPrintRecord(rec, id){
+  if(!rec && id) rec = _baRecords.find(function(x){ return x.id===id; });
+  if(!rec){ showToast('❌ No hay datos para imprimir'); return; }
+
+  var biz     = (typeof _getDisplayNameMaster==='function') ? _getDisplayNameMaster() : 'Business';
+  var plansObj = typeof plans !== 'undefined' ? plans : {};
+  var pl      = plansObj[rec.plan] || {};
+  var planName= pl.nameES || pl.nameEN || rec.plan || '—';
+  var fullName= ((rec.firstName||'')+' '+(rec.lastName||'')).trim();
+  var today   = new Date().toLocaleDateString('es-US',{year:'numeric',month:'long',day:'numeric'});
+  var todayEN = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  var freqMap = {monthly:'Mensual / Monthly', weekly:'Semanal / Weekly', biweekly:'Quincenal / Bi-weekly', annual:'Anual / Annual'};
+
+  var css = '<style>'
+    +'*{box-sizing:border-box;margin:0;padding:0}'
+    +'body{font-family:Arial,Helvetica,sans-serif;max-width:760px;margin:30px auto;padding:0 28px;color:#111;font-size:13.5px;line-height:1.65}'
+    +'h1{font-size:19px;border-bottom:3px solid #15803d;padding-bottom:10px;margin-bottom:22px;text-align:center;color:#15803d;letter-spacing:.03em}'
+    +'h2{font-size:12px;color:#15803d;border-bottom:2px solid #86efac;padding-bottom:5px;margin:18px 0 10px;text-transform:uppercase;letter-spacing:.07em}'
+    +'.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee;gap:12px}'
+    +'.lbl{color:#555;font-weight:600;min-width:200px;flex-shrink:0;font-size:13px}'
+    +'.val{font-weight:700;text-align:right;font-size:13px}'
+    +'.section{background:#f9fdf9;border:1px solid #bbf7d0;border-radius:8px;padding:14px 16px;margin-bottom:14px}'
+    +'.box{border-radius:7px;padding:12px 15px;margin:12px 0;font-size:13px;line-height:1.7}'
+    +'.box-warn{background:#fff8e1;border:1.5px solid #f59e0b}'
+    +'.box-green{background:#f0fdf4;border:1.5px solid #22c55e}'
+    +'.sig-area{margin-top:24px;display:grid;grid-template-columns:2fr 1fr;gap:24px}'
+    +'.sig-line{border-bottom:1.5px solid #333;min-height:50px;margin-bottom:4px;position:relative}'
+    +'.sig-lbl{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.07em}'
+    +'.sig-img{max-height:50px;position:absolute;bottom:4px;left:0}'
+    +'.footer{margin-top:28px;font-size:10px;color:#bbb;text-align:center;border-top:1px solid #eee;padding-top:10px}'
+    +'.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:800;background:#dcfce7;color:#15803d;border:1px solid #86efac}'
+    +'@media print{@page{margin:14mm}body{margin:0}}'
+    +'</style>';
+
+  var docHTML = css
+    +'<h1>💳 AUTORIZACIÓN DE PAGO RECURRENTE<br/><span style="font-size:14px;font-weight:400">Recurring Payment Authorization</span></h1>'
+
+    +'<h2>Información del Cliente / Client Information</h2>'
+    +'<div class="section">'
+    +'<div class="row"><span class="lbl">Empresa / Organization</span><span class="val">'+biz+'</span></div>'
+    +'<div class="row"><span class="lbl">Cliente / Client</span><span class="val">'+fullName+'</span></div>'
+    +(rec.email?'<div class="row"><span class="lbl">Email</span><span class="val">'+rec.email+'</span></div>':'')
+    +(rec.phone?'<div class="row"><span class="lbl">Teléfono / Phone</span><span class="val">'+rec.phone+'</span></div>':'')
+    +(rec.address?'<div class="row"><span class="lbl">Dirección de Facturación / Billing Address</span><span class="val">'+rec.address+'</span></div>':'')
+    +'<div class="row"><span class="lbl">Fecha del Documento / Date</span><span class="val">'+today+' / '+todayEN+'</span></div>'
+    +(rec.id?'<div class="row"><span class="lbl">ID</span><span class="val" style="font-family:monospace;font-size:11px">'+rec.id+'</span></div>':'')
+    +'</div>'
+
+    +'<h2>Plan y Facturación / Plan & Billing</h2>'
+    +'<div class="section">'
+    +'<div class="row"><span class="lbl">Plan / Program</span><span class="val">'+planName+'</span></div>'
+    +'<div class="row"><span class="lbl">Monto Autorizado / Authorized Amount</span><span class="val" style="color:#15803d;font-size:16px">$'+(rec.amount||'—')+'</span></div>'
+    +'<div class="row"><span class="lbl">Frecuencia / Frequency</span><span class="val">'+(freqMap[rec.frequency]||rec.frequency||'Mensual')+'</span></div>'
+    +(rec.billingDay?'<div class="row"><span class="lbl">Día de Cobro / Billing Day</span><span class="val">'+rec.billingDay+' de cada mes</span></div>':'')
+    +(rec.trialStart?'<div class="row"><span class="lbl">Inicio Trial / Trial Start</span><span class="val">'+rec.trialStart+'</span></div>':'')
+    +(rec.firstCharge?'<div class="row"><span class="lbl">Primer Cobro / First Charge</span><span class="val">'+rec.firstCharge+'</span></div>':'')
+    +'</div>'
+
+    +'<h2>Método de Pago / Payment Method</h2>'
+    +'<div class="section">'
+    +'<div class="row"><span class="lbl">Tipo de Tarjeta / Card Type</span><span class="val">'+(rec.cardType||'—')+(rec.isCommercial?' <span class="badge">Commercial</span>':'')+'</span></div>'
+    +'<div class="row"><span class="lbl">Nombre en Tarjeta / Name on Card</span><span class="val">'+(rec.cardName||'—')+'</span></div>'
+    +'<div class="row"><span class="lbl">Expira / Expires</span><span class="val">'+(rec.expiry||'—')+'</span></div>'
+    +'<div class="row"><span class="lbl">ZIP de Facturación / Billing ZIP</span><span class="val">'+(rec.zipCode||'—')+'</span></div>'
+    +(rec.last4?'<div class="row"><span class="lbl">Últimos 4 Dígitos / Last 4 Digits</span><span class="val">···· ···· ···· '+rec.last4+'</span></div>':'')
+    +'</div>'
+
+    +'<div class="box box-warn">'
+    +'<strong>⚠️ Política de Pago Rechazado / Declined Payment Policy</strong><br/>'
+    +'Si su pago es rechazado o devuelto, se aplicará un cargo de <strong>$25–$50</strong>. Tiene <strong>3–5 días hábiles</strong> para regularizar. El incumplimiento resulta en suspensión inmediata del servicio. (FL Stat. §68.065)<br/>'
+    +'A 3.50% convenience fee applies to credit card payments. (FL Stat. §501.0117)'
+    +'</div>'
+
+    +'<div class="box box-green">'
+    +'<strong>✅ Autorización / Authorization</strong><br/>'
+    +'Yo, <strong>'+fullName+'</strong>, autorizo a <strong>'+biz+'</strong> a realizar cargos recurrentes por <strong>$'+rec.amount+' / mes</strong> al plan <strong>'+planName+'</strong> hasta cancelación por escrito con 30 días de anticipación.<br/><br/>'
+    +'I, <strong>'+fullName+'</strong>, hereby authorize <strong>'+biz+'</strong> to charge my card <strong>$'+rec.amount+'/month</strong> for the <strong>'+planName+'</strong> plan until cancelled in writing with 30 days notice.'
+    +'</div>'
+
+    +'<div style="font-size:11px;color:#555;background:#f0f4ff;border-left:3px solid #3b82f6;padding:7px 12px;border-radius:0 5px 5px 0;margin:8px 0">⚖️ FL Stat. §501.0117 · §68.065 · FDUTPA Ch.501 · Dodd-Frank §1075 · Regulation E (12 CFR Part 1005)</div>'
+
+    +'<div class="sig-area">'
+      +'<div><div class="sig-line">'
+      +(rec.signatureData?'<img class="sig-img" src="'+rec.signatureData+'" alt="Firma"/>':'')
+      +'</div><div class="sig-lbl">Firma del Cliente / Customer Signature — '+(rec.signerName||'')+'</div></div>'
+      +'<div><div class="sig-line"></div><div class="sig-lbl">Fecha / Date — '+(rec.sigDate||today)+'</div></div>'
+    +'</div>'
+    +'<div class="sig-area" style="margin-top:20px">'
+      +'<div><div class="sig-line"></div><div class="sig-lbl">Representante Autorizado / Authorized Rep</div></div>'
+      +'<div><div class="sig-line"></div><div class="sig-lbl">Fecha / Date</div></div>'
+    +'</div>'
+
+    +'<div class="footer">Documento generado por <strong>'+biz+'</strong> · '+todayEN+(rec.id?' · ID: '+rec.id:'')+'<br/>Este documento es una autorización de pago — no es un recibo de cargo. / This document is a payment authorization — not a charge receipt.</div>';
+
+  var w = window.open('','_blank','width=820,height=900');
+  if(!w){ showToast('⚠️ Permite ventanas emergentes / Allow popups'); return; }
+  w.document.open();
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Billing Authorization</title></head><body>'+docHTML+'<script>setTimeout(function(){window.print();},400);<\/script></body></html>');
+  w.document.close();
+}
+
+// ── Client modal: load billing auth ──────────────────────────────
+function _loadClientBillingAuth(r, isEN){
+  var area = document.getElementById('clientBillingAuthArea');
+  if(!area) return;
+
+  if(r.billingAuthId && typeof _fbdb!=='undefined' && _fbdb){
+    _fbdb.ref('billingAuths/'+r.billingAuthId).once('value').then(function(snap){
+      _renderClientBillingAuth(snap.val(), area, isEN, r);
+    }).catch(function(){ _renderClientBillingAuth(null, area, isEN, r); });
+    return;
+  }
+
+  if(typeof _fbdb==='undefined'||!_fbdb){ _renderClientBillingAuth(null, area, isEN, r); return; }
+
+  _fbdb.ref('billingAuths').orderByChild('linkedClientId').equalTo(r.id).once('value').then(function(snap){
+    var found = null;
+    if(snap.exists()) snap.forEach(function(c){ found = c.val(); });
+    if(!found){
+      // fallback: search by email/phone
+      _fbdb.ref('billingAuths').once('value').then(function(all){
+        if(all.exists()) all.forEach(function(c){
+          var v=c.val(); if(!v) return;
+          var pm = v.email && r.email && v.email.toLowerCase()===r.email.toLowerCase();
+          var ph = v.phone && r.phone && v.phone.replace(/\D/g,'')===r.phone.replace(/\D/g,'');
+          if(pm||ph) found=v;
+        });
+        _renderClientBillingAuth(found, area, isEN, r);
+      }).catch(function(){ _renderClientBillingAuth(null, area, isEN, r); });
+    } else {
+      _renderClientBillingAuth(found, area, isEN, r);
+    }
+  }).catch(function(){ _renderClientBillingAuth(null, area, isEN, r); });
+}
+
+function _renderClientBillingAuth(rec, area, isEN, clientReg){
+  if(!rec){
+    area.innerHTML =
+      '<div style="text-align:center;padding:10px 0">'
+      +'<div style="font-size:28px;margin-bottom:8px;opacity:.3">💳</div>'
+      +'<div style="font-size:13px;color:var(--muted)">'+(isEN?'No billing authorization on file.':'No hay autorización de pago registrada.')+'</div>'
+      +'<div style="font-size:11px;color:var(--muted);margin:4px 0 14px">'+(isEN?'Create one in Waivers → 💳 Billing Auth':'Crear en Waivers → 💳 Billing Auth')+'</div>'
+      +'<button onclick="closeModal(\'clientModal\');switchWaiverTab(\'billing\');goPage(\'waiver\');setTimeout(function(){baFillFromClient(\''+clientReg.id+'\');document.getElementById(\'ba_clientSelect\').value=\''+clientReg.id+'\';},400)" '
+      +'style="padding:9px 18px;border-radius:9px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:Syne,sans-serif">💳 '
+      +(isEN?'Create Billing Authorization':'Crear Autorización de Pago')+'</button>'
+      +'</div>';
+    return;
+  }
+  var cardInfo = (rec.cardType||'') + (rec.last4?' ···· '+rec.last4:'');
+  var signedDate = rec.sigDate || (rec.submittedAt?rec.submittedAt.split('T')[0]:'');
+  area.innerHTML =
+    '<div style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.25);border-radius:10px;padding:14px">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
+    +'<div style="font-size:12px;font-weight:800;color:#22c55e;font-family:\'Syne\',sans-serif">✅ Billing Authorization</div>'
+    +(rec.id?'<span style="font-size:9px;color:var(--muted);font-family:monospace">'+rec.id+'</span>':'')
+    +'</div>'
+    +(cardInfo?'<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">💳 '+cardInfo+'</div>':'')
+    +(rec.amount?'<div style="font-size:12px;color:var(--muted)">$'+rec.amount+(rec.frequency?' / '+(rec.frequency==='monthly'?'mes':''+rec.frequency):'')+(rec.plan?' · '+rec.plan:'')+'</div>':'')
+    +(signedDate?'<div style="font-size:11px;color:var(--muted);margin-top:4px">Firmado: '+signedDate+(rec.signerName?' por '+rec.signerName:'')+'</div>':'')
+    +(rec.signatureData?'<div style="margin-top:8px"><img src="'+rec.signatureData+'" style="max-height:40px;border-radius:4px;background:#fff;padding:3px 8px;border:1px solid var(--border)" alt="Firma"/></div>':'')
+    +'<div style="margin-top:12px;display:flex;gap:8px">'
+    +'<button onclick="baPrintRecord(null,\''+rec.id+'\')" style="flex:1;padding:7px;border-radius:8px;border:1px solid #22c55e;background:transparent;color:#22c55e;font-size:11px;font-weight:700;cursor:pointer">🖨️ '+(isEN?'Print':'Imprimir')+'</button>'
+    +'</div>'
+    +'</div>';
 }
 </script>
 
