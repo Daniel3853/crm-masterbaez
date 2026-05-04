@@ -23254,20 +23254,20 @@ function _renderClientBillingAuth(rec, area, isEN, clientReg){
   var cardInfo = (rec.cardType||'') + (rec.last4?' ···· '+rec.last4:'');
   var signedDate = rec.sigDate || (rec.submittedAt?rec.submittedAt.split('T')[0]:'');
   area.innerHTML =
-    '<div style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.25);border-radius:10px;padding:14px">'\
-    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px">'\
-    +'<div style="font-size:12px;font-weight:800;color:#22c55e;font-family:\\'Syne\\',sans-serif">✅ Billing Authorization</div>'\
-    +'<span style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700;color:#22c55e">✍️ '+(isEN?'SIGNED':'FIRMADO')+'</span>'\
-    +'</div>'\
-    +(cardInfo?'<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">💳 '+cardInfo+'</div>':'')
-    +(rec.amount?'<div style="font-size:12px;color:var(--muted)">$'+rec.amount+(rec.frequency?' / '+(rec.frequency==='monthly'?'mes':''+rec.frequency):'')+(rec.plan?' · '+rec.plan:'')+'</div>':'')
+    '<div style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.25);border-radius:10px;padding:14px">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px">'
+    +'<div style="font-size:12px;font-weight:800;color:#22c55e;font-family:Syne,sans-serif">\u2705 Billing Authorization</div>'
+    +'<span style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700;color:#22c55e">\u270d\ufe0f '+(isEN?'SIGNED':'FIRMADO')+'</span>'
+    +'</div>'
+    +(cardInfo?'<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">\ud83d\udcb3 '+cardInfo+'</div>':'')
+    +(rec.amount?'<div style="font-size:12px;color:var(--muted)">$'+rec.amount+(rec.frequency?' / '+(rec.frequency==='monthly'?'mes':''+rec.frequency):'')+(rec.plan?' \u00b7 '+rec.plan:'')+'</div>':'')
     +(signedDate?'<div style="font-size:11px;color:var(--muted);margin-top:4px">'+(isEN?'Signed':'Firmado')+': '+signedDate+(rec.signerName?' '+(isEN?'by':'por')+' '+rec.signerName:'')+'</div>':'')
     +(rec.signatureData?'<div style="margin-top:10px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:4px">'+(isEN?'Signature':'Firma')+'</div><div style="background:#fff;border-radius:6px;padding:6px;display:inline-block"><img src="'+rec.signatureData+'" style="max-height:52px;max-width:100%;display:block" alt="Firma"/></div></div>':'')
     +(rec.id?'<div style="font-size:9px;color:var(--muted);font-family:monospace;margin-top:6px">ID: '+rec.id+'</div>':'')
-    +'<div style="margin-top:12px;display:flex;gap:8px">'\
-    +'<button onclick="baPrintRecord(null,\\''+rec.id+'\\')" style="flex:1;padding:8px;border-radius:8px;border:1px solid #22c55e;background:transparent;color:#22c55e;font-size:11px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif">✏️ '+(isEN?'View / Download':'Ver / Descargar')+'</button>'\
-    +'<button onclick="_baOpenSendFromClient(\\''+rec.id+'\\')" style="flex:1;padding:8px;border-radius:8px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif">📤 '+(isEN?'Send':'Enviar')+'</button>'\
-    +'</div>'\
+    +'<div style="margin-top:12px;display:flex;gap:8px">'
+    +'<button onclick="baPrintRecord(null,\''+rec.id+'\')" style="flex:1;padding:8px;border-radius:8px;border:1px solid #22c55e;background:transparent;color:#22c55e;font-size:11px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif">\u270f\ufe0f '+(isEN?'View / Download':'Ver / Descargar')+'</button>'
+    +'<button onclick="_baOpenSendFromClient(\''+rec.id+'\')" style="flex:1;padding:8px;border-radius:8px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif">\ud83d\udce4 '+(isEN?'Send':'Enviar')+'</button>'
+    +'</div>'
     +'</div>';
 }
 
