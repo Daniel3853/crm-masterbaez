@@ -2042,14 +2042,20 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
               <!-- ── PANEL: QR ── -->
               <div id="baTabPanel_qr" style="padding:18px">
+                <div style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:11px;color:#4ade80;line-height:1.5">
+                  <strong style="font-family:'Syne',sans-serif;">📱 Dale la tableta al cliente o muéstrale este QR</strong><br/>
+                  Escanea → el cliente ve el resumen de la autorización de pago.
+                </div>
                 <div style="text-align:center;margin-bottom:12px">
                   <div id="baSendQR" style="display:inline-block;background:#fff;padding:12px;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.4)"></div>
                 </div>
-                <div style="display:flex;align-items:center;gap:8px;background:#111;border:1px solid #2a2a2e;border-radius:8px;padding:7px 10px;margin-bottom:8px">
+                <div style="display:flex;align-items:center;gap:8px;background:#111;border:1px solid #2a2a2e;border-radius:8px;padding:7px 10px;margin-bottom:10px">
                   <div id="baSendQRText" style="flex:1;font-size:9px;color:#22c55e;word-break:break-all;font-family:monospace"></div>
-                  <button onclick="baCopyResumen()" id="baCopyLinkBtn" style="flex-shrink:0;padding:3px 9px;border-radius:6px;border:1px solid #22c55e;background:transparent;color:#22c55e;font-size:10px;font-weight:700;cursor:pointer">Copiar</button>
+                  <button onclick="baCopyResumen()" id="baCopyLinkBtn" style="flex-shrink:0;padding:3px 9px;border-radius:6px;border:1px solid #22c55e;background:transparent;color:#22c55e;font-size:10px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">📋 Copiar</button>
                 </div>
-                <div style="text-align:center;font-size:11px;color:#22c55e;font-weight:700">✅ Escanea para ver el resumen completo</div>
+                <button onclick="baPrintPreview()" style="width:100%;padding:10px;border-radius:9px;border:1px solid rgba(34,197,94,.25);background:rgba(34,197,94,.06);color:#4ade80;font-size:11px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">
+                  📋 Abrir Formulario en esta Tableta / PC
+                </button>
               </div>
 
               <!-- ── PANEL: EMAIL ── -->
@@ -5426,6 +5432,31 @@ function _sendFormToLead(id){
   }
 }
 
+function _sendBillingToLead(id){
+  // Abre el modal de Billing Auth con datos del lead pre-llenados
+  var lead = (typeof leads!=='undefined'?leads:[]).find(function(l){ return l.id===id; });
+  if(!lead){ return; }
+  // Store lead id so baSubmit can link it
+  window._baPendingLeadId = id;
+  goPage('waiver');
+  switchWaiverTab('billing');
+  setTimeout(function(){
+    // Pre-fill form fields from lead
+    var flds = {
+      ba_firstName: lead.firstName||'',
+      ba_lastName:  lead.lastName||'',
+      ba_email:     lead.email||'',
+      ba_phone:     lead.phone||''
+    };
+    Object.keys(flds).forEach(function(k){
+      var el = document.getElementById(k);
+      if(el && !el.value) el.value = flds[k];
+    });
+    // Open the send modal immediately
+    if(typeof baOpenSendModal==='function') baOpenSendModal();
+  }, 400);
+}
+
 function renderProspectos(){
   var q    = _prospectoFilter;
   var fuente = _prospectoFiltroFuente;
@@ -8364,6 +8395,13 @@ function _injectSendButtons() {
         'padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;',
         'background:rgba(34,197,94,.12);color:#4ade80;',
         'border:1px solid rgba(34,197,94,.25);',
+        'font-family:Syne,sans-serif;',
+      '}',
+      '.lsm-billing-badge{',
+        'display:inline-flex;align-items:center;gap:4px;',
+        'padding:2px 8px;border-radius:12px;font-size:10px;font-weight:700;',
+        'background:rgba(34,197,94,.15);color:#22c55e;',
+        'border:1px solid rgba(34,197,94,.35);',
         'font-family:Syne,sans-serif;',
       '}',
       '.lead-convert-btn.lsm-send-btn:hover{',
@@ -14819,6 +14857,8 @@ function renderLeadsInbox(){
           +'<div style="width:34px;height:34px;border-radius:10px;background:rgba(234,179,8,.12);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;font-family:Syne,sans-serif;flex-shrink:0">'+initials+'</div>'
           +'<div><strong>'+esc((lead.firstName||'')+' '+(lead.lastName||''))+'</strong>'
             +(!lead._read?' <span style="display:inline-flex;align-items:center;background:rgba(34,197,94,.15);color:#22c55e;padding:1px 7px;border-radius:20px;font-size:9px;font-weight:800;margin-left:4px;font-family:Syne,sans-serif">NEW</span>':'')
+            +(lead.enrollmentId?'<span class="lsm-enrolled-badge" style="margin-left:4px">✍️</span>':'')
+            +(lead.billingAuthId?'<span class="lsm-billing-badge" style="margin-left:4px">✅💳</span>':'')
           +'</div>'
         +'</div></td>'
         // Contact
@@ -14838,6 +14878,7 @@ function renderLeadsInbox(){
           +(lead.email?'<a class="act-btn" href="'+buildLeadEmailHref(lead)+'" target="_blank" style="text-decoration:none">📧</a>':'')
           +(lead.phone?'<a class="act-btn" href="'+buildLeadWAHref(lead)+'" target="_blank" style="text-decoration:none;background:#25D366;color:#fff;border-color:#25D366">📲</a>':'')
           +(!lead.enrollmentId?'<button class="act-btn" style="background:rgba(168,85,247,.15);border-color:#a855f7;color:#a855f7" title="Enviar Formulario" onclick="_sendFormToLead(\''+lead.id+'\')">📋</button>':'<button class="act-btn" style="background:rgba(34,197,94,.15);border-color:#22c55e;color:#22c55e" title="Ver Waiver" onclick="if(typeof enrViewRecord===\'function\') enrViewRecord(\''+lead.enrollmentId+'\')">✍️</button>')
+          +(!lead.billingAuthId?'<button class="act-btn" style="background:rgba(34,197,94,.08);border-color:#22c55e;color:#22c55e" title="Billing Auth: Pendiente" onclick="_sendBillingToLead(\''+lead.id+'\')">💳</button>':'<button class="act-btn" style="background:rgba(34,197,94,.2);border-color:#22c55e;color:#22c55e" title="Billing Auth: Firmada" onclick="baPrintRecord(null,\''+lead.billingAuthId+'\')">✅💳</button>')
           +'<button class="act-btn danger" onclick="deleteLeadToTrash(\''+lead.id+'\')" title="Papelera">🗑</button>'
         +'</div></td>'
         +'</tr>';
@@ -22721,6 +22762,19 @@ function baSubmit(){
       var cr = regs.find(function(x){ return x.id===rec.linkedClientId; });
       if(cr){ cr.billingAuthId=rec.id; cr.billingAuthAt=rec.submittedAt; cr.cardLast4=rec.last4; cr.cardType=rec.cardType; }
     }
+    // ── Also link to lead if opened from a lead card ──────────────
+    var pendingLeadId = window._baPendingLeadId || null;
+    if(pendingLeadId){
+      saves.push(_fbdb.ref('leads/'+pendingLeadId).update({
+        billingAuthId: rec.id,
+        billingAuthAt: rec.submittedAt
+      }));
+      // Update local leads cache
+      var leadsArr = typeof leads !== 'undefined' ? leads : [];
+      var ld = leadsArr.find(function(x){ return x.id===pendingLeadId; });
+      if(ld){ ld.billingAuthId=rec.id; ld.billingAuthAt=rec.submittedAt; }
+      window._baPendingLeadId = null;
+    }
     Promise.all(saves).then(function(){
       _baRecords.unshift(rec);
       baStatus('✅ Autorización guardada correctamente!','ok');
@@ -23186,28 +23240,54 @@ function _renderClientBillingAuth(rec, area, isEN, clientReg){
       +'<div style="font-size:28px;margin-bottom:8px;opacity:.3">💳</div>'
       +'<div style="font-size:13px;color:var(--muted)">'+(isEN?'No billing authorization on file.':'No hay autorización de pago registrada.')+'</div>'
       +'<div style="font-size:11px;color:var(--muted);margin:4px 0 14px">'+(isEN?'Create one in Waivers → 💳 Billing Auth':'Crear en Waivers → 💳 Billing Auth')+'</div>'
+      +'<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">'
       +'<button onclick="closeModal(\'clientModal\');switchWaiverTab(\'billing\');goPage(\'waiver\');setTimeout(function(){baFillFromClient(\''+clientReg.id+'\');document.getElementById(\'ba_clientSelect\').value=\''+clientReg.id+'\';},400)" '
       +'style="padding:9px 18px;border-radius:9px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:Syne,sans-serif">💳 '
-      +(isEN?'Create Billing Authorization':'Crear Autorización de Pago')+'</button>'
+      +(isEN?'Create Billing Auth':'Crear Autorización de Pago')+'</button>'
+      +'<button onclick="closeModal(\'clientModal\');switchWaiverTab(\'billing\');goPage(\'waiver\');setTimeout(function(){baFillFromClient(\''+clientReg.id+'\');document.getElementById(\'ba_clientSelect\').value=\''+clientReg.id+'\';baOpenSendModal();},600)" '
+      +'style="padding:9px 18px;border-radius:9px;border:1.5px solid #22c55e;background:transparent;color:#22c55e;font-size:12px;font-weight:800;cursor:pointer;font-family:Syne,sans-serif">📤 '
+      +(isEN?'Send via QR / WhatsApp':'Enviar QR / WhatsApp')+'</button>'
+      +'</div>'
       +'</div>';
     return;
   }
   var cardInfo = (rec.cardType||'') + (rec.last4?' ···· '+rec.last4:'');
   var signedDate = rec.sigDate || (rec.submittedAt?rec.submittedAt.split('T')[0]:'');
   area.innerHTML =
-    '<div style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.25);border-radius:10px;padding:14px">'
-    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
-    +'<div style="font-size:12px;font-weight:800;color:#22c55e;font-family:\'Syne\',sans-serif">✅ Billing Authorization</div>'
-    +(rec.id?'<span style="font-size:9px;color:var(--muted);font-family:monospace">'+rec.id+'</span>':'')
-    +'</div>'
+    '<div style="background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.25);border-radius:10px;padding:14px">'\
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px">'\
+    +'<div style="font-size:12px;font-weight:800;color:#22c55e;font-family:\\'Syne\\',sans-serif">✅ Billing Authorization</div>'\
+    +'<span style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700;color:#22c55e">✍️ '+(isEN?'SIGNED':'FIRMADO')+'</span>'\
+    +'</div>'\
     +(cardInfo?'<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">💳 '+cardInfo+'</div>':'')
     +(rec.amount?'<div style="font-size:12px;color:var(--muted)">$'+rec.amount+(rec.frequency?' / '+(rec.frequency==='monthly'?'mes':''+rec.frequency):'')+(rec.plan?' · '+rec.plan:'')+'</div>':'')
-    +(signedDate?'<div style="font-size:11px;color:var(--muted);margin-top:4px">Firmado: '+signedDate+(rec.signerName?' por '+rec.signerName:'')+'</div>':'')
-    +(rec.signatureData?'<div style="margin-top:8px"><img src="'+rec.signatureData+'" style="max-height:40px;border-radius:4px;background:#fff;padding:3px 8px;border:1px solid var(--border)" alt="Firma"/></div>':'')
-    +'<div style="margin-top:12px;display:flex;gap:8px">'
-    +'<button onclick="baPrintRecord(null,\''+rec.id+'\')" style="flex:1;padding:7px;border-radius:8px;border:1px solid #22c55e;background:transparent;color:#22c55e;font-size:11px;font-weight:700;cursor:pointer">🖨️ '+(isEN?'Print':'Imprimir')+'</button>'
-    +'</div>'
+    +(signedDate?'<div style="font-size:11px;color:var(--muted);margin-top:4px">'+(isEN?'Signed':'Firmado')+': '+signedDate+(rec.signerName?' '+(isEN?'by':'por')+' '+rec.signerName:'')+'</div>':'')
+    +(rec.signatureData?'<div style="margin-top:10px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:4px">'+(isEN?'Signature':'Firma')+'</div><div style="background:#fff;border-radius:6px;padding:6px;display:inline-block"><img src="'+rec.signatureData+'" style="max-height:52px;max-width:100%;display:block" alt="Firma"/></div></div>':'')
+    +(rec.id?'<div style="font-size:9px;color:var(--muted);font-family:monospace;margin-top:6px">ID: '+rec.id+'</div>':'')
+    +'<div style="margin-top:12px;display:flex;gap:8px">'\
+    +'<button onclick="baPrintRecord(null,\\''+rec.id+'\\')" style="flex:1;padding:8px;border-radius:8px;border:1px solid #22c55e;background:transparent;color:#22c55e;font-size:11px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif">✏️ '+(isEN?'View / Download':'Ver / Descargar')+'</button>'\
+    +'<button onclick="_baOpenSendFromClient(\\''+rec.id+'\\')" style="flex:1;padding:8px;border-radius:8px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif">📤 '+(isEN?'Send':'Enviar')+'</button>'\
+    +'</div>'\
     +'</div>';
+}
+
+// ── Open billing send modal pre-loaded with a saved record ────────
+function _baOpenSendFromClient(recId){
+  if(!recId) return;
+  var doOpen = function(rec){
+    if(!rec){ if(typeof showToast==='function') showToast('⚠️ Registro no encontrado'); return; }
+    var flds = {ba_firstName:rec.firstName||'',ba_lastName:rec.lastName||'',ba_email:rec.email||'',ba_phone:rec.phone||'',ba_plan:rec.plan||'',ba_amount:rec.amount||'',ba_signerName:rec.signerName||''};
+    Object.keys(flds).forEach(function(k){ var el=document.getElementById(k); if(el) el.value=flds[k]; });
+    closeModal('clientModal');
+    goPage('waiver');
+    switchWaiverTab('billing');
+    setTimeout(function(){ baOpenSendModal(); }, 350);
+  };
+  var cached = (typeof _baRecords!=='undefined'?_baRecords:[]).find(function(x){return x.id===recId;});
+  if(cached){ doOpen(cached); return; }
+  if(typeof _fbdb!=='undefined'&&_fbdb){
+    _fbdb.ref('billingAuths/'+recId).once('value').then(function(snap){ doOpen(snap.val()); }).catch(function(){ if(typeof showToast==='function') showToast('⚠️ Error al cargar'); });
+  }
 }
 </script>
 
