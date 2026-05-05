@@ -3856,7 +3856,7 @@ var FIREBASE_CONFIG = {
   messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
   appId:             "YOUR_APP_ID"
 };
-var _demoMode = FIREBASE_CONFIG.apiKey === "TU_API_KEY";
+var _demoMode = FIREBASE_CONFIG.apiKey === "YOUR_FIREBASE_API_KEY";
 var _fbdb = null;
 if(!_demoMode){
   try{ firebase.initializeApp(FIREBASE_CONFIG); _fbdb = firebase.database(); }
