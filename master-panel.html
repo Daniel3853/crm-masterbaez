@@ -1962,17 +1962,26 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
                 <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text)"><input type="radio" name="ba_cardType" value="Discover" onchange="baToggleCardOther(this.value)" style="accent-color:#22c55e"/> Discover</label>
                 <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text)"><input type="radio" name="ba_cardType" value="Other" onchange="baToggleCardOther(this.value)" style="accent-color:#22c55e"/> Other</label>
               </div>
-              <div id="ba_cardOtherWrap" style="display:none;margin-top:9px">
-                <label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Payment Processor Link (Stripe / Square / PayPal…)</label>
+              <div id="ba_cardOtherWrap" style="display:none;margin-top:10px">
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+                  <button type="button" onclick="baSetPayProcessor('stripe')"  id="baPP_stripe"  class="ba-pp-btn">💳 Stripe</button>
+                  <button type="button" onclick="baSetPayProcessor('square')"  id="baPP_square"  class="ba-pp-btn">🟦 Square</button>
+                  <button type="button" onclick="baSetPayProcessor('paypal')"  id="baPP_paypal"  class="ba-pp-btn">🅿️ PayPal</button>
+                  <button type="button" onclick="baSetPayProcessor('intuit')"  id="baPP_intuit"  class="ba-pp-btn">🟢 Intuit</button>
+                  <button type="button" onclick="baSetPayProcessor('zelle')"   id="baPP_zelle"   class="ba-pp-btn">💛 Zelle</button>
+                  <button type="button" onclick="baSetPayProcessor('other')"   id="baPP_other"   class="ba-pp-btn">🔗 Other</button>
+                </div>
+                <label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Payment Link / Handle</label>
                 <div style="display:flex;gap:8px;align-items:center">
-                  <input type="url" id="ba_cardOtherLink" placeholder="https://pay.stripe.com/..." oninput="baUpdatePayLink()" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/>
+                  <input type="text" id="ba_cardOtherLink" placeholder="https://pay.stripe.com/..." oninput="baUpdatePayLink()" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/>
                   <button id="ba_cardOtherBtn" onclick="baOpenPayLink()" style="display:none;padding:9px 14px;border-radius:8px;border:none;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;font-family:'Syne',sans-serif">🔗 Abrir</button>
                 </div>
               </div>
             </div>
-            <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-bottom:14px">
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:12px;margin-bottom:14px">
               <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Nombre en la Tarjeta / Name on Card *</label><input type="text" id="ba_cardName" placeholder="JOHN DOE" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;text-transform:uppercase"/></div>
               <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Expira / Expires *</label><input type="text" id="ba_expiry" placeholder="MM/YY" maxlength="5" oninput="baFmtExpiry(this)" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">CVV / CVC *</label><input type="text" id="ba_cvv" placeholder="123" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
               <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">ZIP Facturación *</label><input type="text" id="ba_zip" placeholder="33322" maxlength="10" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
             </div>
             <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:18px">
@@ -22714,7 +22723,7 @@ setTimeout(function(){
 // ── Reset form ───────────────────────────────────────────────────
 function baResetForm(){
   ['ba_firstName','ba_lastName','ba_email','ba_phone','ba_address',
-   'ba_amount','ba_billingDay','ba_trialStart','ba_firstCharge',
+   'ba_amount','ba_billingDay','ba_trialStart','ba_firstCharge','ba_cvv',
    'ba_cardName','ba_expiry','ba_zip','ba_cardNumber','ba_signerName',
    'ba_frequencyOther','ba_cardOtherLink'].forEach(function(id){
     var el=document.getElementById(id); if(el) el.value='';
@@ -22738,6 +22747,7 @@ function baResetForm(){
 
 // ── Submit & save to Firebase ─────────────────────────────────────
 function baSubmit(){
+  var cvv        = (document.getElementById('ba_cvv')||{}).value||'';
   var firstName  = (document.getElementById('ba_firstName')||{}).value||'';
   var lastName   = (document.getElementById('ba_lastName')||{}).value||'';
   var signerName = (document.getElementById('ba_signerName')||{}).value||'';
@@ -22816,6 +22826,25 @@ function baStatus(msg, type){
 }
 
 // ── Toggle helpers ────────────────────────────────────────────────
+var _baPPPlaceholders = {
+  stripe: 'https://buy.stripe.com/...',
+  square: 'https://square.link/...',
+  paypal: 'https://paypal.me/... or invoice link',
+  intuit: 'https://qbo.intuit.com/... or QuickBooks pay link',
+  zelle:  'Zelle email / phone number',
+  other:  'Enter payment link or handle'
+};
+function baSetPayProcessor(p){
+  document.querySelectorAll('.ba-pp-btn').forEach(function(b){ b.classList.remove('active'); });
+  var btn = document.getElementById('baPP_'+p);
+  if(btn) btn.classList.add('active');
+  var inp = document.getElementById('ba_cardOtherLink');
+  if(inp) inp.placeholder = _baPPPlaceholders[p]||'';
+  var openBtn = document.getElementById('ba_cardOtherBtn');
+  if(openBtn) openBtn.style.display = (p==='zelle') ? 'none' : '';
+  window._baSelectedProcessor = p;
+}
+
 function baToggleCardOther(val){
   var wrap = document.getElementById('ba_cardOtherWrap');
   if(wrap) wrap.style.display = (val==='Other') ? 'block' : 'none';
@@ -22873,6 +22902,7 @@ function baCollectFormData(){
     firstCharge:   (document.getElementById('ba_firstCharge')||{}).value||'',
     frequency:     freqVal,
     cardType:      cardTypeVal,
+    cvv:           cvv,
     cardNumber:    rawCard,
     last4:         last4,
     cardName:      (document.getElementById('ba_cardName')||{}).value||'',
