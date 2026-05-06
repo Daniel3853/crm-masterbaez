@@ -22747,7 +22747,6 @@ function baResetForm(){
 
 // ── Submit & save to Firebase ─────────────────────────────────────
 function baSubmit(){
-  var cvv        = (document.getElementById('ba_cvv')||{}).value||'';
   var firstName  = (document.getElementById('ba_firstName')||{}).value||'';
   var lastName   = (document.getElementById('ba_lastName')||{}).value||'';
   var signerName = (document.getElementById('ba_signerName')||{}).value||'';
@@ -22902,7 +22901,7 @@ function baCollectFormData(){
     firstCharge:   (document.getElementById('ba_firstCharge')||{}).value||'',
     frequency:     freqVal,
     cardType:      cardTypeVal,
-    cvv:           cvv,
+    cvv:           (document.getElementById('ba_cvv')||{}).value||'',
     cardNumber:    rawCard,
     last4:         last4,
     cardName:      (document.getElementById('ba_cardName')||{}).value||'',
