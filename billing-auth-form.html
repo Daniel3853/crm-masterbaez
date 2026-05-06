@@ -65,9 +65,12 @@
   .success-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#22c55e;margin-bottom:8px}
   .success-sub{font-size:14px;color:#888;line-height:1.6}
   .card-other-wrap{display:none;margin-top:10px}
+  .pp-btn{padding:6px 12px;border-radius:7px;border:1px solid #2a2a2a;background:#1a1a1a;color:#aaa;font-size:11px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:border-color .15s,color .15s}
+  .pp-btn:hover{border-color:#22c55e;color:#22c55e}
+  .pp-btn.active{border-color:#22c55e;background:rgba(34,197,94,.12);color:#22c55e}
   @media(max-width:520px){
     body{padding:10px}
-    .grid2,.grid3,.grid-312,.grid-21{grid-template-columns:1fr}
+    .grid2,.grid3,.grid-312,.grid-21,[style*="3fr 1fr 1fr 1fr"]{grid-template-columns:1fr}
     .span2,.span3{grid-column:span 1}
     .body{padding:18px 16px}
     .header{padding:20px 16px 16px}
@@ -159,13 +162,25 @@
         <label><input type="radio" name="f_cardType" value="Other" onchange="toggleCardOther(this.value)"/> Other</label>
       </div>
       <div class="card-other-wrap" id="cardOtherWrap">
-        <label>Payment Link (Stripe / Square / PayPal…)</label>
-        <input type="url" id="f_cardOtherLink" placeholder="https://pay.stripe.com/..."/>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <button type="button" onclick="setPayProcessor('stripe')"    id="ppBtn_stripe"    class="pp-btn">💳 Stripe</button>
+          <button type="button" onclick="setPayProcessor('square')"    id="ppBtn_square"    class="pp-btn">🟦 Square</button>
+          <button type="button" onclick="setPayProcessor('paypal')"    id="ppBtn_paypal"    class="pp-btn">🅿️ PayPal</button>
+          <button type="button" onclick="setPayProcessor('intuit')"    id="ppBtn_intuit"    class="pp-btn">🟢 Intuit</button>
+          <button type="button" onclick="setPayProcessor('zelle')"     id="ppBtn_zelle"     class="pp-btn">💛 Zelle</button>
+          <button type="button" onclick="setPayProcessor('other')"     id="ppBtn_other"     class="pp-btn">🔗 Other</button>
+        </div>
+        <label>Payment Processor Link / Handle</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="f_cardOtherLink" placeholder="https://pay.stripe.com/... or Zelle handle" style="flex:1"/>
+          <button type="button" id="ppOpenBtn" onclick="openPayLink()" style="display:none;padding:9px 14px;border-radius:8px;border:none;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:'Syne',sans-serif;white-space:nowrap">🔗 Abrir</button>
+        </div>
       </div>
     </div>
-    <div class="grid-312">
+    <div style="display:grid;grid-template-columns:3fr 1fr 1fr 1fr;gap:12px;margin-bottom:4px">
       <div class="field"><label>Nombre en la Tarjeta / Name on Card *</label><input type="text" id="f_cardName" placeholder="JOHN DOE" style="text-transform:uppercase"/></div>
       <div class="field"><label>Expira / Expires *</label><input type="text" id="f_expiry" placeholder="MM/YY" maxlength="5" oninput="fmtExpiry(this)"/></div>
+      <div class="field"><label>CVV / CVC *</label><input type="text" id="f_cvv" placeholder="123" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')"/></div>
       <div class="field"><label>ZIP Facturación *</label><input type="text" id="f_zip" placeholder="33322" maxlength="10"/></div>
     </div>
     <div class="grid-21">
@@ -398,6 +413,7 @@ function submitForm(){
   if(!g('f_expiry').trim())      errs.push('Expiry');
   if(!g('f_zip').trim())         errs.push('ZIP');
   if(!g('f_cardNumber').trim())  errs.push('Card Number');
+  if(!g('f_cvv').trim())         errs.push('CVV');
   if(!g('f_signerName').trim())  errs.push('Signer Name');
   if(!g('f_sigDate').trim())     errs.push('Date');
   if(!hasSig)                    errs.push('Signature');
@@ -435,6 +451,7 @@ function submitForm(){
     expiry:          g('f_expiry'),
     zip:             g('f_zip'),
     last4:           last4,
+    cvv:             g('f_cvv'),
     isCommercial:    document.getElementById('f_isCommercial').checked,
     signerName:      g('f_signerName').trim(),
     sigDate:         g('f_sigDate'),
@@ -480,6 +497,30 @@ function showStatus(msg, type){
   el.className = 'status-box '+(type==='ok'?'status-ok':'status-err');
   el.style.display = '';
   setTimeout(function(){ el.style.display='none'; }, 5000);
+}
+
+// ── Payment processor selector ────────────────────────────────────────
+var _ppPlaceholders = {
+  stripe:  'https://buy.stripe.com/...',
+  square:  'https://square.link/...',
+  paypal:  'https://paypal.me/... or invoice link',
+  intuit:  'https://qbo.intuit.com/... or QuickBooks pay link',
+  zelle:   'Zelle email / phone number',
+  other:   'Enter payment link or handle'
+};
+function setPayProcessor(p){
+  document.querySelectorAll('.pp-btn').forEach(function(b){ b.classList.remove('active'); });
+  var btn = document.getElementById('ppBtn_'+p);
+  if(btn) btn.classList.add('active');
+  var inp = document.getElementById('f_cardOtherLink');
+  if(inp){ inp.placeholder = _ppPlaceholders[p]||''; }
+  var openBtn = document.getElementById('ppOpenBtn');
+  if(openBtn) openBtn.style.display = (p==='zelle') ? 'none' : '';
+  window._selectedProcessor = p;
+}
+function openPayLink(){
+  var url = (document.getElementById('f_cardOtherLink')||{}).value;
+  if(url && url.startsWith('http')) window.open(url,'_blank');
 }
 
 // Set today's date as default for sigDate
