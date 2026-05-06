@@ -1888,8 +1888,16 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
         <!-- ════ TAB 4: BILLING AUTH FORM ════ -->
         <div id="waiverPanel-billing" style="display:none">
+          <!-- Validation error banner -->
+          <div id="ba_validationBanner" style="display:none;background:rgba(239,68,68,.1);border:1.5px solid rgba(239,68,68,.3);border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:12px;color:#f87171;font-family:'Syne',sans-serif">
+            <div style="font-weight:800;margin-bottom:6px">⚠️ <span id="ba_valTitle">Campos requeridos / Required fields:</span></div>
+            <div id="ba_valList" style="line-height:1.8"></div>
+          </div>
           <div style="background:rgba(34,197,94,.07);border:1.5px solid rgba(34,197,94,.2);border-radius:12px;padding:14px 18px;margin-bottom:18px">
-            <div style="font-size:12px;font-weight:800;color:#4ade80;margin-bottom:6px;font-family:'Syne',sans-serif">⚖️ Autorización de Pago Recurrente / Recurring Billing Authorization</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">
+              <div style="font-size:12px;font-weight:800;color:#4ade80;font-family:'Syne',sans-serif">⚖️ Autorización de Pago Recurrente / Recurring Billing Authorization</div>
+              <button onclick="baToggleLang()" id="baLangBtn" style="padding:5px 12px;border-radius:8px;border:1.5px solid rgba(34,197,94,.4);background:rgba(34,197,94,.08);color:#4ade80;font-size:11px;font-weight:800;cursor:pointer;font-family:'Syne',sans-serif">🇺🇸 EN ⇄ 🇪🇸 ES</button>
+            </div>
             <div style="font-size:11px;color:#86efac;line-height:1.7">
               <strong style="color:#bbf7d0">FL Stat. §501.0117</strong> — Cargo de conveniencia en tarjetas (3.50%)<br/>
               <strong style="color:#bbf7d0">FL Stat. §68.065</strong> — Cargo por cheque/pago rechazado ($25–$50)<br/>
@@ -1902,7 +1910,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
             <!-- Pre-fill from client -->
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)">
-              <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Pre-llenar desde cliente:</div>
+              <div id="ba_lbl_prefill" style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em" id="ba_lbl_prefill">Pre-llenar desde cliente:</div>
               <select id="ba_clientSelect" onchange="baFillFromClient(this.value)" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;outline:none">
                 <option value="">— Seleccionar cliente —</option>
               </select>
@@ -1914,11 +1922,11 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
               INFORMACIÓN DEL CLIENTE / CLIENT INFORMATION
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">
-              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Nombre / First Name *</label><input type="text" id="ba_firstName" placeholder="John" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
-              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Apellido / Last Name *</label><input type="text" id="ba_lastName" placeholder="Doe" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
-              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Email *</label><input type="email" id="ba_email" placeholder="john@email.com" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
-              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Teléfono / Phone</label><input type="tel" id="ba_phone" placeholder="(954) 000-0000" oninput="enrFmtTel(this)" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
-              <div style="grid-column:span 2"><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Dirección de Facturación / Billing Address</label><input type="text" id="ba_address" placeholder="123 Main St, Sunrise, FL 33322" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+              <div><label id="ba_lbl_firstName" style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Nombre / First Name *</label><input type="text" id="ba_firstName" placeholder="John" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+              <div><label id="ba_lbl_lastName" style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Apellido / Last Name *</label><input type="text" id="ba_lastName" placeholder="Doe" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+              <div><label id="ba_lbl_email" style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Email *</label><input type="email" id="ba_email" placeholder="john@email.com" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+              <div><label id="ba_lbl_phone" style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Teléfono / Phone</label><input type="tel" id="ba_phone" placeholder="(954) 000-0000" oninput="enrFmtTel(this)" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+              <div style="grid-column:span 2"><label id="ba_lbl_address" style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Dirección de Facturación / Billing Address</label><input type="text" id="ba_address" placeholder="123 Main St, Sunrise, FL 33322" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
             </div>
 
             <!-- Section 2: Plan & Billing -->
@@ -1927,16 +1935,16 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
               PLAN Y FACTURACIÓN / PLAN & BILLING
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:18px">
-              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Plan / Program *</label>
+              <div><label id="ba_lbl_plan" style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Plan / Program *</label>
                 <select id="ba_plan" onchange="baUpdateAmount()" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none">
                   <option value="">— Seleccionar —</option>
                 </select>
               </div>
-              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Monto a Pagar / Amount $</label><input type="text" id="ba_amount" placeholder="0.00" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
-              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Día de Cobro / Billing Day</label><input type="number" id="ba_billingDay" placeholder="1" min="1" max="28" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
-              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Inicio Trial / Trial Start</label><input type="date" id="ba_trialStart" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
-              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Primer Cobro / First Charge</label><input type="date" id="ba_firstCharge" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
-              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Frecuencia / Frequency</label>
+              <div><label id="ba_lbl_amount" style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Monto a Pagar / Amount $</label><input type="text" id="ba_amount" placeholder="0.00" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+              <div><label id="ba_lbl_billingDay" style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Día de Cobro / Billing Day</label><input type="number" id="ba_billingDay" placeholder="1" min="1" max="28" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+              <div><label id="ba_lbl_trialStart" style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Inicio Trial / Trial Start</label><input type="date" id="ba_trialStart" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+              <div><label id="ba_lbl_firstChg" style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Primer Cobro / First Charge</label><input type="date" id="ba_firstCharge" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+              <div><label id="ba_lbl_freq" style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Frecuencia / Frequency</label>
                 <select id="ba_frequency" onchange="baToggleFreqOther(this.value)" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none">
                   <option value="monthly">Mensual / Monthly</option>
                   <option value="weekly">Semanal / Weekly</option>
@@ -1954,7 +1962,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
               INFORMACIÓN DE PAGO / PAYMENT INFORMATION
             </div>
             <div style="margin-bottom:14px">
-              <label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Tipo de Tarjeta / Card Type</label>
+              <label id="ba_lbl_cardType" style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Tipo de Tarjeta / Card Type</label>
               <div style="display:flex;gap:10px;flex-wrap:wrap">
                 <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text)"><input type="radio" name="ba_cardType" value="Visa" onchange="baToggleCardOther(this.value)" style="accent-color:#22c55e"/> Visa</label>
                 <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text)"><input type="radio" name="ba_cardType" value="Mastercard" onchange="baToggleCardOther(this.value)" style="accent-color:#22c55e"/> Mastercard</label>
@@ -1979,13 +1987,13 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
               </div>
             </div>
             <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:12px;margin-bottom:14px">
-              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Nombre en la Tarjeta / Name on Card *</label><input type="text" id="ba_cardName" placeholder="JOHN DOE" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;text-transform:uppercase"/></div>
-              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Expira / Expires *</label><input type="text" id="ba_expiry" placeholder="MM/YY" maxlength="5" oninput="baFmtExpiry(this)" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
-              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">CVV / CVC *</label><input type="text" id="ba_cvv" placeholder="123" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
-              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">ZIP Facturación *</label><input type="text" id="ba_zip" placeholder="33322" maxlength="10" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+              <div><label id="ba_lbl_cardName" style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Nombre en la Tarjeta / Name on Card *</label><input type="text" id="ba_cardName" placeholder="JOHN DOE" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;text-transform:uppercase"/></div>
+              <div><label id="ba_lbl_expiry" style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Expira / Expires *</label><input type="text" id="ba_expiry" placeholder="MM/YY" maxlength="5" oninput="baFmtExpiry(this)" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+              <div><label id="ba_lbl_cvv" style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">CVV / CVC *</label><input type="text" id="ba_cvv" placeholder="123" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+              <div><label id="ba_lbl_zip" style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">ZIP Facturación *</label><input type="text" id="ba_zip" placeholder="33322" maxlength="10" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
             </div>
             <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:18px">
-              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Número de Tarjeta / Card Number *</label><input type="text" id="ba_cardNumber" placeholder="•••• •••• •••• ••••" maxlength="19" oninput="baFmtCardNumber(this)" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;letter-spacing:.08em"/></div>
+              <div><label id="ba_lbl_cardNum" style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Número de Tarjeta / Card Number *</label><input type="text" id="ba_cardNumber" placeholder="•••• •••• •••• ••••" maxlength="19" oninput="baFmtCardNumber(this)" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;letter-spacing:.08em"/></div>
               <div style="display:flex;flex-direction:column;justify-content:flex-end"><label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:12px;color:var(--muted);line-height:1.5"><input type="checkbox" id="ba_isCommercial" style="margin-top:2px;width:14px;height:14px;flex-shrink:0;accent-color:#22c55e"/> Esta es una tarjeta comercial / This is a commercial card</label></div>
             </div>
 
@@ -2001,13 +2009,13 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
             </div>
 
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px">
-              <div style="grid-column:span 2"><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Nombre Completo del Firmante *</label><input type="text" id="ba_signerName" placeholder="Print full name" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
-              <div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Fecha / Date *</label><input type="date" id="ba_sigDate" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+              <div style="grid-column:span 2"><label id="ba_lbl_signerName" style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Nombre Completo del Firmante *</label><input type="text" id="ba_signerName" placeholder="Print full name" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
+              <div><label id="ba_lbl_sigDate" style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Fecha / Date *</label><input type="date" id="ba_sigDate" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/></div>
             </div>
 
             <!-- Signature Canvas -->
             <div style="margin-bottom:20px">
-              <label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Firma Digital / Digital Signature *</label>
+              <label id="ba_lbl_sig" style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Firma Digital / Digital Signature *</label>
               <div style="border:1.5px solid var(--border);border-radius:10px;background:#fafaf8;position:relative;overflow:hidden">
                 <div id="ba_sigPlaceholder" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:13px;color:#aaa;pointer-events:none;font-style:italic">Sign here / Firme aquí</div>
                 <canvas id="ba_sigCanvas" height="130" style="display:block;cursor:crosshair;touch-action:none;width:100%;height:130px"></canvas>
@@ -2023,7 +2031,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
               <button onclick="baResetForm()" style="background:var(--surface);border:1.5px solid var(--border);border-radius:9px;padding:11px 20px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted)">🗑 Limpiar</button>
               <button onclick="baPrintPreview()" style="background:transparent;border:1.5px solid #22c55e;border-radius:9px;padding:11px 20px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;color:#22c55e">🖨️ Vista Previa / Print</button>
               <button onclick="baOpenSendModal()" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);border:none;border-radius:9px;padding:11px 20px;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;cursor:pointer;color:#fff;box-shadow:0 4px 14px rgba(59,130,246,.4)">📤 Enviar / Send</button>
-              <button onclick="baSubmit()" style="background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:9px;padding:11px 24px;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;cursor:pointer;color:#fff;box-shadow:0 4px 14px rgba(34,197,94,.4)">💾 Guardar Autorización</button>
+              <button id="ba_submitBtn" id="ba_submitBtn" onclick="baSubmit()" style="background:linear-gradient(135deg,#22c55e,#16a34a);border:none;border-radius:9px;padding:11px 24px;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;cursor:pointer;color:#fff;box-shadow:0 4px 14px rgba(34,197,94,.4)">💾 Guardar Autorización</button>
             </div>
             <div id="ba_status" style="display:none;margin-top:12px;padding:10px 14px;border-radius:8px;font-size:12px;text-align:center"></div>
           </div>
@@ -22755,10 +22763,40 @@ function baSubmit(){
   var expiry     = (document.getElementById('ba_expiry')||{}).value||'';
   var zip        = (document.getElementById('ba_zip')||{}).value||'';
 
-  if(!firstName||!lastName){ baStatus('⚠️ Nombre requerido / Name required','warn'); return; }
-  if(!cardName||!expiry||!zip){ baStatus('⚠️ Datos de tarjeta incompletos / Card info incomplete','warn'); return; }
-  if(!signerName||!sigDate){ baStatus('⚠️ Nombre y fecha del firmante requeridos','warn'); return; }
-  if(!_baHasSig){ baStatus('⚠️ Se requiere firma digital / Digital signature required','warn'); return; }
+  var _isEN = window._baFormLang === 'en';
+  var d = baCollectFormData();
+  var missingES = [], missingEN = [];
+  var addMissing = function(es, en, val){ if(!val||!val.trim()){ missingES.push(es); missingEN.push(en); } };
+  addMissing('Nombre',               'First Name',        firstName);
+  addMissing('Apellido',             'Last Name',         lastName);
+  addMissing('Email',                'Email',             d.email);
+  addMissing('Nombre en la Tarjeta', 'Name on Card',      cardName);
+  addMissing('Expira',               'Expiry',            expiry);
+  addMissing('CVV / CVC',            'CVV / CVC',         d.cvv);
+  addMissing('ZIP',                  'ZIP',               zip);
+  addMissing('Número de Tarjeta',    'Card Number',       d.cardNumber);
+  addMissing('Nombre del Firmante',  'Signer Name',       signerName);
+  addMissing('Fecha',                'Date',              sigDate);
+  if(!d.cardType){ missingES.push('Tipo de Tarjeta'); missingEN.push('Card Type'); }
+  if(!_baHasSig){ missingES.push('Firma Digital'); missingEN.push('Digital Signature'); }
+  if(missingES.length){
+    var banner = document.getElementById('ba_validationBanner');
+    var title  = document.getElementById('ba_valTitle');
+    var list   = document.getElementById('ba_valList');
+    if(banner && list){
+      banner.style.display = '';
+      if(title) title.textContent = _isEN ? 'Required fields:' : 'Campos requeridos:';
+      list.innerHTML = (_isEN ? missingEN : missingES).map(function(f){
+        return '• '+f;
+      }).join('<br/>');
+      banner.scrollIntoView({behavior:'smooth', block:'nearest'});
+    }
+    baStatus('⚠️ '+(_isEN?'Please complete all required fields':'Por favor completa todos los campos requeridos'),'warn');
+    return;
+  }
+  // Clear banner if all good
+  var bannerOk = document.getElementById('ba_validationBanner');
+  if(bannerOk) bannerOk.style.display='none';
 
   var sigData = _baSigCanvas ? _baSigCanvas.toDataURL('image/png') : null;
   var rec = Object.assign({}, baCollectFormData(), {
@@ -22842,6 +22880,58 @@ function baSetPayProcessor(p){
   var openBtn = document.getElementById('ba_cardOtherBtn');
   if(openBtn) openBtn.style.display = (p==='zelle') ? 'none' : '';
   window._baSelectedProcessor = p;
+}
+
+// ── Billing form language toggle ──────────────────────────────────
+window._baFormLang = 'es';
+function baToggleLang(){
+  var lang = window._baFormLang === 'es' ? 'en' : 'es';
+  window._baFormLang = lang;
+  var btn = document.getElementById('baLangBtn');
+  if(btn) btn.textContent = lang==='en' ? '🇪🇸 ES ⇄ 🇺🇸 EN' : '🇺🇸 EN ⇄ 🇪🇸 ES';
+  // Labels map: [elementId, ES text, EN text]
+  var labels = [
+    ['ba_lbl_firstName',  'Nombre / First Name *',              'First Name *'],
+    ['ba_lbl_lastName',   'Apellido / Last Name *',             'Last Name *'],
+    ['ba_lbl_email',      'Email *',                            'Email *'],
+    ['ba_lbl_phone',      'Teléfono / Phone',                   'Phone'],
+    ['ba_lbl_address',    'Dirección de Facturación / Billing Address', 'Billing Address'],
+    ['ba_lbl_plan',       'Plan / Program *',                   'Program *'],
+    ['ba_lbl_amount',     'Monto a Pagar / Amount $',           'Amount $'],
+    ['ba_lbl_billingDay', 'Día de Cobro / Billing Day',         'Billing Day'],
+    ['ba_lbl_trialStart', 'Inicio Trial / Trial Start',         'Trial Start'],
+    ['ba_lbl_firstChg',   'Primer Cobro / First Charge',        'First Charge'],
+    ['ba_lbl_freq',       'Frecuencia / Frequency',             'Frequency'],
+    ['ba_lbl_cardType',   'Tipo de Tarjeta / Card Type',        'Card Type'],
+    ['ba_lbl_cardName',   'Nombre en la Tarjeta / Name on Card *', 'Name on Card *'],
+    ['ba_lbl_expiry',     'Expira / Expires *',                 'Expires *'],
+    ['ba_lbl_cvv',        'CVV / CVC *',                        'CVV / CVC *'],
+    ['ba_lbl_zip',        'ZIP Facturación *',                  'Billing ZIP *'],
+    ['ba_lbl_cardNum',    'Número de Tarjeta / Card Number *',  'Card Number *'],
+    ['ba_lbl_signerName', 'Nombre Completo del Firmante *',     'Signer Full Name *'],
+    ['ba_lbl_sigDate',    'Fecha / Date *',                     'Date *'],
+    ['ba_lbl_sig',        'Firma Digital / Digital Signature *','Digital Signature *'],
+    ['ba_lbl_prefill',    'Pre-llenar desde cliente:',          'Pre-fill from client:'],
+  ];
+  labels.forEach(function(row){
+    var el = document.getElementById(row[0]);
+    if(el) el.textContent = lang==='en' ? row[2] : row[1];
+  });
+  // Placeholders
+  var phs = {
+    ba_firstName: ['John','John'], ba_lastName: ['Doe','Doe'],
+    ba_signerName: ['Print full name','Nombre completo'],
+    ba_address: ['123 Main St, Sunrise, FL 33322','123 Main St, Sunrise, FL 33322']
+  };
+  Object.keys(phs).forEach(function(id){
+    var el=document.getElementById(id); if(el) el.placeholder=phs[id][lang==='en'?0:1];
+  });
+  // Validation banner title
+  var vt = document.getElementById('ba_valTitle');
+  if(vt) vt.textContent = lang==='en' ? 'Required fields:' : 'Campos requeridos:';
+  // Submit button
+  var sb = document.getElementById('ba_submitBtn');
+  if(sb) sb.innerHTML = lang==='en' ? '💾 Save Authorization' : '💾 Guardar Autorización';
 }
 
 function baToggleCardOther(val){
