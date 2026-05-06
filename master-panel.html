@@ -2027,7 +2027,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
               <div style="background:linear-gradient(135deg,#22c55e,#16a34a);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
                 <div>
                   <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:#fff">💳 Enviar Autorización de Pago</div>
-                  <div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:2px">Elige cómo compartirla</div>
+                  <div id="baSendModalSubtitle" style="font-size:11px;color:rgba(255,255,255,.75);margin-top:2px;font-family:'Syne',sans-serif"></div>
                 </div>
                 <button onclick="baCloseSendModal()" style="background:rgba(255,255,255,.15);border:none;border-radius:8px;padding:6px 10px;color:#fff;font-size:16px;cursor:pointer">✕</button>
               </div>
@@ -2049,13 +2049,14 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
                 <div style="text-align:center;margin-bottom:12px">
                   <div id="baSendQR" style="display:inline-block;background:#fff;padding:12px;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.4)"></div>
                 </div>
-                <div style="display:flex;align-items:center;gap:8px;background:#111;border:1px solid #2a2a2e;border-radius:8px;padding:7px 10px;margin-bottom:10px">
-                  <div id="baSendQRText" style="flex:1;font-size:9px;color:#22c55e;word-break:break-all;font-family:monospace"></div>
-                  <button onclick="baCopyResumen()" id="baCopyLinkBtn" style="flex-shrink:0;padding:3px 9px;border-radius:6px;border:1px solid #22c55e;background:transparent;color:#22c55e;font-size:10px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">📋 Copiar</button>
+                <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:9px 12px;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+                  <span id="baSendQRText" style="font-size:10px;color:#666;font-family:monospace;flex:1;word-break:break-all"></span>
+                  <button onclick="baCopyFormUrl()" style="padding:4px 10px;border-radius:6px;border:1px solid #22c55e;background:rgba(34,197,94,.12);color:#22c55e;font-size:10px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;white-space:nowrap">📋 Copiar</button>
                 </div>
-                <button onclick="baPrintPreview()" style="width:100%;padding:10px;border-radius:9px;border:1px solid rgba(34,197,94,.25);background:rgba(34,197,94,.06);color:#4ade80;font-size:11px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">
-                  📋 Abrir Formulario en esta Tableta / PC
+                <button onclick="baOpenFormInTab()" style="width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;cursor:pointer;box-shadow:0 4px 14px rgba(34,197,94,.35);margin-bottom:8px">
+                  📋 Abrir Formulario Pre-llenado (Tableta/PC)
                 </button>
+                <div style="text-align:center;font-size:10px;color:#444">Se abre en ventana nueva — ideal para dar la tablet al cliente</div>
               </div>
 
               <!-- ── PANEL: EMAIL ── -->
@@ -5458,14 +5459,14 @@ function _sendBillingToLead(id){
   var modal = document.getElementById('baSendModal');
   if(modal){
     fillFields();
-    if(typeof baOpenSendModal==='function') baOpenSendModal();
+    baOpenSendModal();
   } else {
-    // Si el modal no está en el DOM aún, ir a waiver tab primero
+    // Si el modal no está en el DOM aún, ir a waiver tab primero y volver
     goPage('waiver');
     switchWaiverTab('billing');
     setTimeout(function(){
       fillFields();
-      if(typeof baOpenSendModal==='function') baOpenSendModal();
+      baOpenSendModal();
     }, 500);
   }
 }
@@ -22893,26 +22894,126 @@ function baOpenSendModal(){
   if(!modal) return;
   modal.style.display='flex';
   baSwitchTab('qr');
+
   // Pre-fill name/phone/email from form
   var d = baCollectFormData();
   var nameEl  = document.getElementById('baEmailClientName');
   var emailEl = document.getElementById('baEmailClientEmail');
   var waNameEl= document.getElementById('baWaClientName');
   var waPhEl  = document.getElementById('baWaClientPhone');
-  if(nameEl  && !nameEl.value)  nameEl.value  = (d.firstName+' '+d.lastName).trim();
+  var subtitleEl = document.getElementById('baSendModalSubtitle');
+  var fullName = (d.firstName+' '+d.lastName).trim();
+  if(nameEl  && !nameEl.value)  nameEl.value  = fullName;
   if(emailEl && !emailEl.value) emailEl.value = d.email||'';
   if(waNameEl&& !waNameEl.value)waNameEl.value= d.firstName||'';
-  if(waPhEl  && !waPhEl.value)  waPhEl.value  = d.phone||'';
-  // Build summary text for QR
-  var summary = _baGetSummary(d);
-  var qrWrap  = document.getElementById('baSendQR');
-  var qrText  = document.getElementById('baSendQRText');
-  if(qrText) qrText.textContent = (d.firstName+' '+d.lastName).trim()+' · $'+(d.amount||'0')+' · '+(d.cardType||'—');
-  if(qrWrap){
-    qrWrap.innerHTML='';
-    try{ new QRCode(qrWrap,{text:summary,width:200,height:200,colorDark:'#1a1a2e',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M}); }
-    catch(e){ qrWrap.innerHTML='<div style="font-size:11px;color:#888;padding:20px">QR N/D</div>'; }
+  if(waPhEl  && !waPhEl.value)  waPhEl.value  = (d.phone||'').replace(/\D/g,'');
+  if(subtitleEl) subtitleEl.textContent = fullName || 'Cliente';
+
+  // Build real URL for QR — same pattern as enrollment form
+  _baLoadFormUrl(function(url){
+    // Append pre-fill params if we have data
+    var params = [];
+    if(d.firstName) params.push('fn='+encodeURIComponent(d.firstName));
+    if(d.lastName)  params.push('ln='+encodeURIComponent(d.lastName));
+    if(d.email)     params.push('em='+encodeURIComponent(d.email));
+    if(d.phone)     params.push('ph='+encodeURIComponent(d.phone));
+    if(d.plan)      params.push('plan='+encodeURIComponent(d.plan));
+    if(d.amount)    params.push('amt='+encodeURIComponent(d.amount));
+    var fullUrl = url + (params.length ? (url.indexOf('?')>=0?'&':'?')+params.join('&') : '');
+
+    // Store for later use
+    window._baCurrentFormUrl = fullUrl;
+
+    // Update QR
+    var qrWrap = document.getElementById('baSendQR');
+    var qrText = document.getElementById('baSendQRText');
+    if(qrText) qrText.textContent = fullUrl;
+    if(qrWrap){
+      qrWrap.innerHTML='';
+      try{
+        new QRCode(qrWrap,{text:fullUrl,width:200,height:200,colorDark:'#1a1a2e',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+      } catch(e){
+        qrWrap.innerHTML='<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=1a1a2e&bgcolor=ffffff&margin=8&data='+encodeURIComponent(fullUrl)+'" style="border-radius:8px;width:200px;height:200px;"/>';
+      }
+    }
+  });
+}
+
+// ── Load billing auth form URL (from Firebase or fallback) ─────────
+var BA_GITHUB_URL = 'https://daniel3853.github.io/crm-masterbaez/billing-auth-form.html';
+function _baLoadFormUrl(callback){
+  if(typeof _fbdb!=='undefined'&&_fbdb){
+    _fbdb.ref('masterMods/billingFormUrl').once('value').then(function(snap){
+      callback(snap.val()||BA_GITHUB_URL);
+    }).catch(function(){ callback(BA_GITHUB_URL); });
+  } else {
+    callback(BA_GITHUB_URL);
   }
+}
+
+// ── Copy form URL to clipboard ──────────────────────────────────────
+function baCopyFormUrl(){
+  var url = window._baCurrentFormUrl || BA_GITHUB_URL;
+  try{
+    navigator.clipboard.writeText(url).then(function(){
+      var btn = event.target; btn.textContent='✅ Copiado';
+      setTimeout(function(){ btn.textContent='📋 Copiar'; },2000);
+    });
+  } catch(e){ prompt('Copia este link:',url); }
+}
+
+// ── Open form in new tab (tablet mode) ─────────────────────────────
+function baOpenFormInTab(){
+  var url = window._baCurrentFormUrl || BA_GITHUB_URL;
+  window.open(url,'_blank');
+}
+
+// ── Send email with form link (like lsmSendEmail) ──────────────────
+function baSendEmailClient(){
+  var name  = (document.getElementById('baEmailClientName')||{}).value||'';
+  var email = (document.getElementById('baEmailClientEmail')||{}).value||'';
+  var lang  = window._baEmailLang||'en';
+  var url   = window._baCurrentFormUrl||BA_GITHUB_URL;
+  if(!email){ alert(lang==='en'?'Please enter the client email':'Por favor ingresa el email del cliente'); return; }
+  var subj,body;
+  if(lang==='en'){
+    subj = 'Billing Authorization Form';
+    body = 'Hi '+(name||'there')+',\n\nPlease complete your billing authorization using the link below:\n\n'+url+'\n\nThank you!';
+  } else {
+    subj = 'Formulario de Autorización de Pago';
+    body = 'Hola '+(name||'')+',\n\nPor favor completa tu autorización de pago usando el siguiente link:\n\n'+url+'\n\n¡Gracias!';
+  }
+  window.location.href='mailto:'+email+'?subject='+encodeURIComponent(subj)+'&body='+encodeURIComponent(body);
+}
+
+// ── Send WhatsApp with form link (like lsmSendWhatsApp) ─────────────
+function baSendWhatsAppClient(){
+  var name  = (document.getElementById('baWaClientName')||{}).value||'';
+  var phone = ((document.getElementById('baWaClientPhone')||{}).value||'').replace(/\D/g,'');
+  var lang  = window._baWaLang||'en';
+  var url   = window._baCurrentFormUrl||BA_GITHUB_URL;
+  var msg;
+  if(lang==='en'){
+    msg = 'Hi '+(name||'there')+'! Please complete your billing authorization here: '+url;
+  } else {
+    msg = '¡Hola '+(name||'')+'! Por favor completa tu autorización de pago aquí: '+url;
+  }
+  var wa = phone ? 'https://wa.me/'+phone+'?text='+encodeURIComponent(msg) : 'https://wa.me/?text='+encodeURIComponent(msg);
+  window.open(wa,'_blank');
+}
+
+// ── Language toggles for billing send modal ─────────────────────────
+function baSetEmailLang(l){
+  window._baEmailLang=l;
+  var en=document.getElementById('baEmailLangEN'), es=document.getElementById('baEmailLangES');
+  if(en){ en.style.borderColor=l==='en'?'#06b6d4':'#333'; en.style.background=l==='en'?'rgba(6,182,212,.12)':'transparent'; en.style.color=l==='en'?'#06b6d4':'#555'; }
+  if(es){ es.style.borderColor=l==='es'?'#06b6d4':'#333'; es.style.background=l==='es'?'rgba(6,182,212,.12)':'transparent'; es.style.color=l==='es'?'#06b6d4':'#555'; }
+}
+function baSetWaLang(l){
+  window._baWaLang=l;
+  var en=document.getElementById('baWaLangEN'), es=document.getElementById('baWaLangES');
+  if(en){ en.style.borderColor=l==='en'?'#25d366':'#333'; en.style.background=l==='en'?'rgba(37,211,102,.1)':'transparent'; en.style.color=l==='en'?'#25d366':'#555'; }
+  if(es){ es.style.borderColor=l==='es'?'#25d366':'#333'; es.style.background=l==='es'?'rgba(37,211,102,.1)':'transparent'; es.style.color=l==='es'?'#25d366':'#555'; }
 }
 
 function _baGetSummary(d){
