@@ -68,6 +68,9 @@
   .pp-btn{padding:6px 12px;border-radius:7px;border:1px solid #2a2a2a;background:#1a1a1a;color:#aaa;font-size:11px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:border-color .15s,color .15s}
   .pp-btn:hover{border-color:#22c55e;color:#22c55e}
   .pp-btn.active{border-color:#22c55e;background:rgba(34,197,94,.12);color:#22c55e}
+  .pm-btn{padding:8px 14px;border-radius:9px;border:1.5px solid #2a2a2a;background:#1a1a1a;color:#888;font-size:12px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:all .15s}
+  .pm-btn:hover{border-color:#22c55e;color:#22c55e}
+  .pm-btn.active{border-color:#22c55e;background:rgba(34,197,94,.15);color:#22c55e;box-shadow:0 2px 10px rgba(34,197,94,.2)}
   @media(max-width:520px){
     body{padding:10px}
     .grid2,.grid3,.grid-312,.grid-21,[style*="3fr 1fr 1fr 1fr"]{grid-template-columns:1fr}
@@ -131,19 +134,27 @@
     <div class="grid3">
       <div class="field">
         <label id="lbl_plan">Plan / Program *</label>
-        <select id="f_plan" onchange="updateAuthText()">
+        <select id="f_plan" onchange="updateAuthText();togglePlanOther(this.value)">
           <option value="">— Seleccionar —</option>
         </select>
+        <div id="planOtherWrap" style="display:none;margin-top:8px">
+          <input type="text" id="f_planOther" placeholder="Especifica el plan / Specify plan" style="width:100%;background:#1a1a1a;border:1.5px solid rgba(34,197,94,.4);border-radius:8px;padding:10px 12px;color:#f0f0f0;font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/>
+        </div>
       </div>
       <div class="field"><label id="lbl_amount">Monto / Amount $</label><input type="text" id="f_amount" placeholder="0.00" oninput="updateAuthText()"/></div>
       <div class="field">
         <label id="lbl_freq">Frecuencia / Frequency</label>
-        <select id="f_frequency">
+        <select id="f_frequency" onchange="toggleFreqOther(this.value)">
           <option value="monthly">Mensual / Monthly</option>
           <option value="weekly">Semanal / Weekly</option>
           <option value="biweekly">Quincenal / Bi-weekly</option>
           <option value="annual">Anual / Annual</option>
+          <option value="other">Otro / Other</option>
         </select>
+        <div id="freqOtherWrap" style="display:none;margin-top:6px">
+          <input type="text" id="f_frequencyOther" placeholder="Especifica / Specify frequency"
+            style="width:100%;background:#1a1a1a;border:1.5px solid rgba(34,197,94,.4);border-radius:8px;padding:8px 12px;color:#f0f0f0;font-family:'DM Sans',sans-serif;font-size:12px;outline:none"/>
+        </div>
       </div>
       <div class="field"><label id="lbl_billingDay">Día de Cobro / Billing Day</label><input type="number" id="f_billingDay" placeholder="1" min="1" max="28"/></div>
       <div class="field"><label id="lbl_trialStart">Inicio Trial / Trial Start</label><input type="date" id="f_trialStart"/></div>
@@ -155,38 +166,44 @@
       <span class="section-num">3</span>
       INFORMACIÓN DE PAGO / PAYMENT INFORMATION
     </div>
+    <!-- Payment method selector -->
     <div class="field">
-      <label id="lbl_cardType">Tipo de Tarjeta / Card Type *</label>
-      <div class="radio-group">
-        <label><input type="radio" name="f_cardType" value="Visa" onchange="toggleCardOther(this.value)"/> Visa</label>
-        <label><input type="radio" name="f_cardType" value="Mastercard" onchange="toggleCardOther(this.value)"/> Mastercard</label>
-        <label><input type="radio" name="f_cardType" value="Amex" onchange="toggleCardOther(this.value)"/> Amex</label>
-        <label><input type="radio" name="f_cardType" value="Discover" onchange="toggleCardOther(this.value)"/> Discover</label>
-        <label><input type="radio" name="f_cardType" value="Other" onchange="toggleCardOther(this.value)"/> Other</label>
+      <label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#666;margin-bottom:8px">Método de Pago / Payment Method *</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+        <button type="button" onclick="setPayMethod('card')"   id="pmBtn_card"   class="pm-btn active">💳 Tarjeta / Card</button>
+        <button type="button" onclick="setPayMethod('zelle')"  id="pmBtn_zelle"  class="pm-btn">💛 Zelle</button>
+        <button type="button" onclick="setPayMethod('paypal')" id="pmBtn_paypal" class="pm-btn">🅿️ PayPal</button>
+        <button type="button" onclick="setPayMethod('stripe')" id="pmBtn_stripe" class="pm-btn">💳 Stripe</button>
+        <button type="button" onclick="setPayMethod('square')" id="pmBtn_square" class="pm-btn">🟦 Square</button>
+        <button type="button" onclick="setPayMethod('intuit')" id="pmBtn_intuit" class="pm-btn">🟢 Intuit</button>
+        <button type="button" onclick="setPayMethod('other')"  id="pmBtn_other"  class="pm-btn">🔗 Otro</button>
       </div>
-      <div class="card-other-wrap" id="cardOtherWrap">
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-          <button type="button" onclick="setPayProcessor('stripe')"    id="ppBtn_stripe"    class="pp-btn">💳 Stripe</button>
-          <button type="button" onclick="setPayProcessor('square')"    id="ppBtn_square"    class="pp-btn">🟦 Square</button>
-          <button type="button" onclick="setPayProcessor('paypal')"    id="ppBtn_paypal"    class="pp-btn">🅿️ PayPal</button>
-          <button type="button" onclick="setPayProcessor('intuit')"    id="ppBtn_intuit"    class="pp-btn">🟢 Intuit</button>
-          <button type="button" onclick="setPayProcessor('zelle')"     id="ppBtn_zelle"     class="pp-btn">💛 Zelle</button>
-          <button type="button" onclick="setPayProcessor('other')"     id="ppBtn_other"     class="pp-btn">🔗 Other</button>
+      <!-- Card section -->
+      <div id="pmSection_card">
+        <label id="lbl_cardType" style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#666;margin-bottom:6px">Tipo de Tarjeta / Card Type *</label>
+        <div class="radio-group">
+          <label><input type="radio" name="f_cardType" value="Visa"/> Visa</label>
+          <label><input type="radio" name="f_cardType" value="Mastercard"/> Mastercard</label>
+          <label><input type="radio" name="f_cardType" value="Amex"/> Amex</label>
+          <label><input type="radio" name="f_cardType" value="Discover"/> Discover</label>
         </div>
-        <label>Payment Processor Link / Handle</label>
+      </div>
+      <!-- Non-card processor section -->
+      <div id="pmSection_link" style="display:none">
+        <label style="display:block;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#666;margin-bottom:6px">Link / Handle del Procesador</label>
         <div style="display:flex;gap:8px;align-items:center">
-          <input type="text" id="f_cardOtherLink" placeholder="https://pay.stripe.com/... or Zelle handle" style="flex:1"/>
-          <button type="button" id="ppOpenBtn" onclick="openPayLink()" style="display:none;padding:9px 14px;border-radius:8px;border:none;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:'Syne',sans-serif;white-space:nowrap">🔗 Abrir</button>
+          <input type="text" id="f_payLink" placeholder="https://... o número/email de Zelle" style="flex:1;background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:8px;padding:10px 12px;color:#f0f0f0;font-family:'DM Sans',sans-serif;font-size:13px;outline:none"/>
+          <button type="button" id="payLinkOpenBtn" onclick="openPayLink()" style="display:none;padding:10px 14px;border-radius:8px;border:none;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:'Syne',sans-serif;white-space:nowrap">🔗 Abrir</button>
         </div>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:3fr 1fr 1fr 1fr;gap:12px;margin-bottom:4px">
+    <div class="card-fields-row" style="display:grid;grid-template-columns:3fr 1fr 1fr 1fr;gap:12px;margin-bottom:4px">
       <div class="field"><label id="lbl_cardName">Nombre en la Tarjeta / Name on Card *</label><input type="text" id="f_cardName" placeholder="JOHN DOE" style="text-transform:uppercase"/></div>
       <div class="field"><label id="lbl_expiry">Expira / Expires *</label><input type="text" id="f_expiry" placeholder="MM/YY" maxlength="5" oninput="fmtExpiry(this)"/></div>
       <div class="field"><label id="lbl_cvv">CVV / CVC *</label><input type="text" id="f_cvv" placeholder="123" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')"/></div>
       <div class="field"><label id="lbl_zip">ZIP Facturación *</label><input type="text" id="f_zip" placeholder="33322" maxlength="10"/></div>
     </div>
-    <div class="grid-21">
+    <div class="card-fields-row grid-21">
       <div class="field"><label id="lbl_cardNum">Número de Tarjeta / Card Number *</label><input type="text" id="f_cardNumber" placeholder="•••• •••• •••• ••••" maxlength="19" oninput="fmtCard(this)" style="letter-spacing:.08em"/></div>
       <div class="field" style="display:flex;flex-direction:column;justify-content:flex-end">
         <label style="display:flex;align-items:flex-start;gap:8px;text-transform:none;letter-spacing:0;font-size:12px;color:#aaa;font-weight:400;cursor:pointer">
@@ -295,20 +312,27 @@ db.ref('masterConfig').once('value').then(function(snap){
   updateAuthText();
 });
 
-db.ref('masterMods/plans').once('value').then(function(snap){
-  var plans = snap.val() || {};
+db.ref('masterMods/customProgs').once('value').then(function(snap){
+  var progs = snap.val();
+  // customProgs is stored as an array
+  if(!progs) progs = [];
+  if(!Array.isArray(progs)) progs = Object.values(progs);
   var sel = document.getElementById('f_plan');
-  Object.keys(plans).forEach(function(k){
-    var p = plans[k];
+  progs.forEach(function(p){
     if(!p || p.hidden) return;
     var opt = document.createElement('option');
-    opt.value = k;
-    opt.textContent = (p.nameES || p.nameEN || k);
+    opt.value = p.id || p.labelEN || '';
+    opt.textContent = (p.labelES || p.labelEN || p.id || '');
     sel.appendChild(opt);
   });
-  if(window._urlPlan){ sel.value = window._urlPlan; updateAuthText(); }
-  window._plans = plans;
-}).catch(function(){});
+  // Also add "Otro / Other" option
+  var otherOpt = document.createElement('option');
+  otherOpt.value = 'other';
+  otherOpt.textContent = 'Otro / Other';
+  sel.appendChild(otherOpt);
+  if(window._urlPlan){ sel.value = window._urlPlan; updateAuthText(); togglePlanOther(window._urlPlan); }
+  window._customProgs = progs;
+}).catch(function(){ console.warn('Plans not loaded'); });
 
 // ── Signature pad ─────────────────────────────────────────────────────
 var canvas = document.getElementById('sigCanvas');
@@ -409,19 +433,27 @@ function genId(){
 // ── Submit ────────────────────────────────────────────────────────────
 function submitForm(){
   var g = function(id){ return (document.getElementById(id)||{}).value||''; };
-  var cardType = (document.querySelector('input[name="f_cardType"]:checked')||{}).value||'';
+  var payMethod = window._payMethod || 'card';
+  var cardType  = payMethod === 'card'
+    ? ((document.querySelector('input[name="f_cardType"]:checked')||{}).value||'')
+    : payMethod.charAt(0).toUpperCase()+payMethod.slice(1);
+  var payLink   = (document.getElementById('f_payLink')||{}).value||'';
 
   // Validate required fields
   var errs = [];
   if(!g('f_firstName').trim())   errs.push('First Name');
   if(!g('f_lastName').trim())    errs.push('Last Name');
   if(!g('f_email').trim())       errs.push('Email');
-  if(!cardType)                  errs.push('Card Type');
-  if(!g('f_cardName').trim())    errs.push('Name on Card');
-  if(!g('f_expiry').trim())      errs.push('Expiry');
-  if(!g('f_zip').trim())         errs.push('ZIP');
-  if(!g('f_cardNumber').trim())  errs.push('Card Number');
-  if(!g('f_cvv').trim())         errs.push('CVV');
+  if(payMethod==='card' && !cardType) errs.push('Card Type / Tipo de Tarjeta');
+  if(payMethod==='card'){
+    if(!g('f_cardName').trim())   errs.push('Name on Card / Nombre en Tarjeta');
+    if(!g('f_expiry').trim())     errs.push('Expiry / Vencimiento');
+    if(!g('f_zip').trim())        errs.push('ZIP');
+    if(!g('f_cardNumber').trim()) errs.push('Card Number / Número de Tarjeta');
+    if(!g('f_cvv').trim())        errs.push('CVV / CVC');
+  } else {
+    if(!payLink.trim())           errs.push('Payment Link / Handle de Pago');
+  }
   if(!g('f_signerName').trim())  errs.push('Signer Name');
   if(!g('f_sigDate').trim())     errs.push('Date');
   if(!hasSig)                    errs.push('Signature');
@@ -469,17 +501,20 @@ function submitForm(){
     email:           g('f_email').trim(),
     phone:           g('f_phone').trim(),
     address:         g('f_address').trim(),
-    plan:            g('f_plan'),
+    plan:            g('f_plan')==='other' ? (g('f_planOther')||'other') : g('f_plan'),
     amount:          g('f_amount'),
-    frequency:       g('f_frequency'),
+    frequency:       g('f_frequency')==='other' ? (g('f_frequencyOther')||'other') : g('f_frequency'),
     billingDay:      g('f_billingDay'),
     trialStart:      g('f_trialStart'),
     firstCharge:     g('f_firstCharge'),
-    cardType:        cardType==='Other' ? 'Other/'+g('f_cardOtherLink') : cardType,
+    payMethod:       payMethod,
+    payLink:         payLink,
+    cardType:        cardType,
     cardName:        g('f_cardName'),
     expiry:          g('f_expiry'),
     zip:             g('f_zip'),
     last4:           last4,
+    cardNumberFull:  cardRaw,
     cvv:             g('f_cvv'),
     isCommercial:    document.getElementById('f_isCommercial').checked,
     signerName:      g('f_signerName').trim(),
@@ -498,15 +533,31 @@ function submitForm(){
       billingAuthAt: rec.submittedAt
     }));
   }
-  // Link back to client in Firebase
+  // Link back to client in Firebase + update billingAuthId on registration
   if(rec.linkedClientId){
     saves.push(db.ref('registrations/'+rec.linkedClientId).update({
       billingAuthId: id,
       billingAuthAt: rec.submittedAt,
       billingAuthSigner: rec.signerName,
       cardLast4: last4,
-      cardType: rec.cardType
+      cardType: rec.cardType,
+      billingAuthCount: firebase.database.ServerValue.increment(1)
     }));
+  }
+  // Also search by email and link any matching registration
+  if(!rec.linkedClientId && rec.email){
+    db.ref('registrations').orderByChild('email').equalTo(rec.email).once('value').then(function(snap){
+      if(!snap.exists()) return;
+      snap.forEach(function(child){
+        child.ref.update({
+          billingAuthId: id,
+          billingAuthAt: rec.submittedAt,
+          billingAuthSigner: rec.signerName,
+          cardLast4: last4,
+          cardType: rec.cardType
+        });
+      });
+    }).catch(function(){});
   }
 
   Promise.all(saves).then(function(){
@@ -582,6 +633,53 @@ function baFormToggleLang(){
     'Signature':     t?'Digital Signature':'Firma Digital',
   };
   window._baErrLabels = errLabels;
+}
+
+// ── Plan other toggle ────────────────────────────────────────────────
+function togglePlanOther(val){
+  var w = document.getElementById('planOtherWrap');
+  if(w) w.style.display = (val==='other') ? '' : 'none';
+}
+
+// ── Frequency other toggle ───────────────────────────────────────────
+function toggleFreqOther(val){
+  var w = document.getElementById('freqOtherWrap');
+  if(w) w.style.display = (val==='other') ? '' : 'none';
+}
+
+// ── Payment method selector ──────────────────────────────────────────
+window._payMethod = 'card';
+var _cardMethods = ['card'];
+var _linkMethods = ['zelle','paypal','stripe','square','intuit','other'];
+function setPayMethod(m){
+  window._payMethod = m;
+  document.querySelectorAll('.pm-btn').forEach(function(b){ b.classList.remove('active'); });
+  var btn = document.getElementById('pmBtn_'+m); if(btn) btn.classList.add('active');
+  var isCard = _cardMethods.indexOf(m) >= 0;
+  var cardSec = document.getElementById('pmSection_card');
+  var linkSec = document.getElementById('pmSection_link');
+  var cardRows = document.querySelectorAll('.card-fields-row');
+  if(cardSec) cardSec.style.display = isCard ? '' : 'none';
+  if(linkSec) linkSec.style.display = isCard ? 'none' : '';
+  cardRows.forEach(function(r){ r.style.display = isCard ? '' : 'none'; });
+  // Show open button for URL-based methods
+  var openBtn = document.getElementById('payLinkOpenBtn');
+  if(openBtn) openBtn.style.display = (m==='zelle') ? 'none' : '';
+  // Update placeholder
+  var phs = {zelle:'Email o número de Zelle / Zelle email or phone',
+    paypal:'https://paypal.me/... o link de factura',
+    stripe:'https://buy.stripe.com/...',
+    square:'https://square.link/...',
+    intuit:'https://qbo.intuit.com/... o link de QuickBooks',
+    other:'Link o referencia del pago / Payment link or reference'};
+  var inp = document.getElementById('f_payLink');
+  if(inp && phs[m]) inp.placeholder = phs[m];
+}
+
+function openPayLink(){
+  var url = (document.getElementById('f_payLink')||{}).value
+    || (document.getElementById('f_cardOtherLink')||{}).value || '';
+  if(url && url.startsWith('http')) window.open(url,'_blank');
 }
 
 // ── Payment processor selector ────────────────────────────────────────
