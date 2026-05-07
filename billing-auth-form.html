@@ -673,12 +673,17 @@ function submitForm(){
   matchAndSave();
 
   Promise.all(saves).then(function(){
-    document.getElementById('formBody').style.display   = 'none';
-    document.getElementById('successScreen').style.display = '';
-    var refEl = document.getElementById('successRef');
-    if(refEl) refEl.textContent = 'Ref: '+id;
-    // Build the document preview
-    showSuccessWithDoc(rec);
+    // Open PDF immediately for download, then show success screen
+    _savedRec = rec;
+    downloadBillingPDF();
+    // Show success screen after a brief moment
+    setTimeout(function(){
+      document.getElementById('formBody').style.display   = 'none';
+      document.getElementById('successScreen').style.display = '';
+      var refEl = document.getElementById('successRef');
+      if(refEl) refEl.textContent = 'Ref: '+id;
+      showSuccessWithDoc(rec);
+    }, 400);
   }).catch(function(e){
     showStatus('❌ Error: '+e.message,'err');
     btn.disabled = false;
