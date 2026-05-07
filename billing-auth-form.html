@@ -322,27 +322,42 @@ db.ref('masterConfig').once('value').then(function(snap){
   updateAuthText();
 });
 
-db.ref('masterMods/customProgs').once('value').then(function(snap){
-  var progs = snap.val();
-  // customProgs is stored as an array
-  if(!progs) progs = [];
-  if(!Array.isArray(progs)) progs = Object.values(progs);
+var _defaultPlans = [
+  {id:'starter',  labelES:'Starter',       labelEN:'Starter',       price:'49'},
+  {id:'pro',      labelES:'Profesional',   labelEN:'Professional',  price:'97'},
+  {id:'business', labelES:'Empresarial',   labelEN:'Business',      price:'147'}
+];
+
+function _populatePlanSelect(progs){
   var sel = document.getElementById('f_plan');
-  progs.forEach(function(p){
+  if(!sel) return;
+  // Clear existing options except first
+  while(sel.options.length > 1) sel.remove(1);
+  var list = (progs && progs.length > 0) ? progs : _defaultPlans;
+  list.forEach(function(p){
     if(!p || p.hidden) return;
     var opt = document.createElement('option');
     opt.value = p.id || p.labelEN || '';
-    opt.textContent = (p.labelES || p.labelEN || p.id || '');
+    var price = p.price ? ' — $'+p.price : (p.priceEN ? ' — '+p.priceEN : '');
+    opt.textContent = (p.labelES || p.labelEN || p.nameES || p.nameEN || p.id || '') + price;
     sel.appendChild(opt);
   });
-  // Also add "Otro / Other" option
   var otherOpt = document.createElement('option');
-  otherOpt.value = 'other';
-  otherOpt.textContent = 'Otro / Other';
+  otherOpt.value = 'other'; otherOpt.textContent = 'Otro / Other';
   sel.appendChild(otherOpt);
   if(window._urlPlan){ sel.value = window._urlPlan; updateAuthText(); togglePlanOther(window._urlPlan); }
+}
+
+// Load plans — show defaults immediately, replace if Firebase has custom ones
+_populatePlanSelect(_defaultPlans);
+
+db.ref('masterMods/customProgs').once('value').then(function(snap){
+  var progs = snap.val();
+  if(!progs){ return; } // keep defaults
+  if(!Array.isArray(progs)) progs = Object.values(progs).filter(Boolean);
+  if(progs.length > 0) _populatePlanSelect(progs);
   window._customProgs = progs;
-}).catch(function(){ console.warn('Plans not loaded'); });
+}).catch(function(){ /* keep defaults */ });
 
 // ── Signature pad ─────────────────────────────────────────────────────
 var canvas = document.getElementById('sigCanvas');

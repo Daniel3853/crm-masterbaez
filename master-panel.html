@@ -22766,14 +22766,34 @@ function baPopulatePlanSelect(){
   if(!sel) return;
   var cur = sel.value;
   sel.innerHTML = '<option value="">— Seleccionar plan —</option>';
-  var plansObj = typeof plans !== 'undefined' ? plans : {};
-  Object.keys(plansObj).forEach(function(k){
-    var p = plansObj[k];
-    var opt = document.createElement('option');
-    opt.value = k;
-    opt.textContent = (p.nameES||p.nameEN||k) + (p.priceEN?' — '+p.priceEN:'');
-    sel.appendChild(opt);
-  });
+
+  // Try customProgs first (array format from Firebase)
+  var progs = typeof customProgs !== 'undefined' ? customProgs : [];
+  if(Array.isArray(progs) && progs.length > 0){
+    progs.forEach(function(p){
+      if(!p || p.hidden) return;
+      var opt = document.createElement('option');
+      opt.value = p.id || p.labelEN || '';
+      opt.textContent = (p.labelES || p.labelEN || p.id || '') + (p.price?' — $'+p.price:'');
+      sel.appendChild(opt);
+    });
+  } else {
+    // Fallback to plans object
+    var plansObj = typeof plans !== 'undefined' ? plans : {};
+    Object.keys(plansObj).forEach(function(k){
+      var p = plansObj[k];
+      var opt = document.createElement('option');
+      opt.value = k;
+      opt.textContent = (p.nameES||p.nameEN||k) + (p.priceEN?' — '+p.priceEN:'');
+      sel.appendChild(opt);
+    });
+  }
+
+  // Add "Other" option always
+  var othOpt = document.createElement('option');
+  othOpt.value = 'other'; othOpt.textContent = 'Otro / Other';
+  sel.appendChild(othOpt);
+
   if(cur) sel.value = cur;
 }
 
@@ -23458,6 +23478,17 @@ function baPrintPreview(){
 
 function baPrintRecord(rec, id){
   if(!rec && id) rec = _baRecords.find(function(x){ return x.id===id; });
+  // If not in local cache, fetch from Firebase then print
+  if(!rec && id && typeof _fbdb!=='undefined' && _fbdb){
+    showToast('⏳ Cargando documento...');
+    _fbdb.ref('billingAuths/'+id).once('value').then(function(snap){
+      var r = snap.val();
+      if(!r){ showToast('❌ No hay datos para imprimir'); return; }
+      if(!_baRecords.find(function(x){ return x.id===r.id; })) _baRecords.unshift(r);
+      baPrintRecord(r, null);
+    }).catch(function(){ showToast('❌ Error al cargar'); });
+    return;
+  }
   if(!rec){ showToast('❌ No hay datos para imprimir'); return; }
 
   var biz     = (typeof _getDisplayNameMaster==='function') ? _getDisplayNameMaster() : 'Business';
