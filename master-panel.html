@@ -5246,30 +5246,28 @@ function openProspectoDetail(id){
     '<div style="background:var(--surface2);border-radius:12px;padding:14px 16px;margin-bottom:16px">'+
       '<div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:12px">📋 '+(isEN?'Documents':'Documentos')+'</div>'+
       '<div style="display:flex;gap:10px;flex-wrap:wrap">'+
-        // Enrollment/Waiver
         (p.enrollmentId
           ? '<div style="flex:1;min-width:140px;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.25);border-radius:9px;padding:10px 12px">'+
               '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#4ade80;margin-bottom:5px">✍️ WAIVER</div>'+
               '<div style="font-size:11px;color:var(--text);font-weight:600;margin-bottom:6px">'+(isEN?'Signed':'Firmado')+'</div>'+
-              '<button onclick="if(typeof enrViewRecord==='function') enrViewRecord(''+p.enrollmentId+'')" style="width:100%;padding:5px;border-radius:6px;border:1px solid #22c55e;background:transparent;color:#22c55e;font-size:10px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif">✏️ '+(isEN?'View':'Ver')+'</button>'+
+              '<button onclick="if(typeof enrViewRecord===\'function\') enrViewRecord(\''+p.enrollmentId+'\')" style="width:100%;padding:5px;border-radius:6px;border:1px solid #22c55e;background:transparent;color:#22c55e;font-size:10px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif">✏️ '+(isEN?'View':'Ver')+'</button>'+
             '</div>'
           : '<div style="flex:1;min-width:140px;background:rgba(239,68,68,.05);border:1.5px dashed rgba(239,68,68,.3);border-radius:9px;padding:10px 12px">'+
               '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#f87171;margin-bottom:5px">📋 WAIVER</div>'+
               '<div style="font-size:11px;color:var(--muted);margin-bottom:6px">'+(isEN?'Missing':'Faltante')+'</div>'+
-              '<button onclick="_sendFormToProspecto(''+p.id+'')" style="width:100%;padding:5px;border-radius:6px;border:none;background:rgba(168,85,247,.15);color:#a855f7;font-size:10px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif">📤 '+(isEN?'Send':'Enviar')+'</button>'+
+              '<button onclick="_sendFormToProspecto(\''+p.id+'\')" style="width:100%;padding:5px;border-radius:6px;border:none;background:rgba(168,85,247,.15);color:#a855f7;font-size:10px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif">📤 '+(isEN?'Send':'Enviar')+'</button>'+
             '</div>'
         )+
-        // Billing Auth
         (p.billingAuthId
           ? '<div style="flex:1;min-width:140px;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.25);border-radius:9px;padding:10px 12px">'+
               '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#22c55e;margin-bottom:5px">✅ BILLING AUTH</div>'+
               '<div style="font-size:11px;color:var(--text);font-weight:600;margin-bottom:6px">'+(p.cardType?p.cardType+(p.cardLast4?' ···· '+p.cardLast4:''):(isEN?'Signed':'Firmada'))+'</div>'+
-              '<button onclick="baPrintRecord(null,''+p.billingAuthId+'')" style="width:100%;padding:5px;border-radius:6px;border:1px solid #22c55e;background:transparent;color:#22c55e;font-size:10px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif">✏️ '+(isEN?'View':'Ver')+'</button>'+
+              '<button onclick="baPrintRecord(null,\''+p.billingAuthId+'\')" style="width:100%;padding:5px;border-radius:6px;border:1px solid #22c55e;background:transparent;color:#22c55e;font-size:10px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif">✏️ '+(isEN?'View':'Ver')+'</button>'+
             '</div>'
           : '<div style="flex:1;min-width:140px;background:rgba(239,68,68,.05);border:1.5px dashed rgba(239,68,68,.3);border-radius:9px;padding:10px 12px">'+
               '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#f87171;margin-bottom:5px">💳 BILLING AUTH</div>'+
               '<div style="font-size:11px;color:var(--muted);margin-bottom:6px">'+(isEN?'Missing':'Faltante')+'</div>'+
-              '<button onclick="_sendBillingToProspecto(''+p.id+'')" style="width:100%;padding:5px;border-radius:6px;border:none;background:rgba(34,197,94,.12);color:#22c55e;font-size:10px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif">📤 '+(isEN?'Send':'Enviar')+'</button>'+
+              '<button onclick="_sendBillingToProspecto(\''+p.id+'\')" style="width:100%;padding:5px;border-radius:6px;border:none;background:rgba(34,197,94,.12);color:#22c55e;font-size:10px;font-weight:700;cursor:pointer;font-family:Syne,sans-serif">📤 '+(isEN?'Send':'Enviar')+'</button>'+
             '</div>'
         )+
       '</div>'+
