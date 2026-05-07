@@ -93,7 +93,10 @@
         <div class="form-title" style="font-size:14px;color:#4ade80;font-weight:700">Autorización de Pago Recurrente</div>
       </div>
     </div>
-    <div class="form-subtitle">Complete all fields and sign below · Complete todos los campos y firme abajo</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;flex-wrap:wrap;gap:8px">
+      <div class="form-subtitle">Complete all fields · Complete todos los campos</div>
+      <button onclick="baFormToggleLang()" id="baFormLangBtn" style="padding:5px 14px;border-radius:8px;border:1.5px solid rgba(34,197,94,.5);background:rgba(34,197,94,.08);color:#4ade80;font-size:11px;font-weight:800;cursor:pointer;font-family:'Syne',sans-serif;white-space:nowrap">🇺🇸 EN ⇄ 🇪🇸 ES</button>
+    </div>
   </div>
 
   <!-- Legal banner -->
@@ -113,11 +116,11 @@
       INFORMACIÓN DEL CLIENTE / CLIENT INFORMATION
     </div>
     <div class="grid2">
-      <div class="field"><label>Nombre / First Name *</label><input type="text" id="f_firstName" placeholder="John"/></div>
-      <div class="field"><label>Apellido / Last Name *</label><input type="text" id="f_lastName" placeholder="Doe"/></div>
-      <div class="field"><label>Email *</label><input type="email" id="f_email" placeholder="john@email.com"/></div>
-      <div class="field"><label>Teléfono / Phone</label><input type="tel" id="f_phone" placeholder="(954) 000-0000" oninput="fmtTel(this)"/></div>
-      <div class="field span2"><label>Dirección de Facturación / Billing Address</label><input type="text" id="f_address" placeholder="123 Main St, Sunrise, FL 33322"/></div>
+      <div class="field"><label id="lbl_firstName">Nombre / First Name *</label><input type="text" id="f_firstName" placeholder="John"/></div>
+      <div class="field"><label id="lbl_lastName">Apellido / Last Name *</label><input type="text" id="f_lastName" placeholder="Doe"/></div>
+      <div class="field"><label id="lbl_email">Email *</label><input type="email" id="f_email" placeholder="john@email.com"/></div>
+      <div class="field"><label id="lbl_phone">Teléfono / Phone</label><input type="tel" id="f_phone" placeholder="(954) 000-0000" oninput="fmtTel(this)"/></div>
+      <div class="field span2"><label id="lbl_address">Dirección de Facturación / Billing Address</label><input type="text" id="f_address" placeholder="123 Main St, Sunrise, FL 33322"/></div>
     </div>
 
     <!-- Section 2: Plan & Billing -->
@@ -127,14 +130,14 @@
     </div>
     <div class="grid3">
       <div class="field">
-        <label>Plan / Program *</label>
+        <label id="lbl_plan">Plan / Program *</label>
         <select id="f_plan" onchange="updateAuthText()">
           <option value="">— Seleccionar —</option>
         </select>
       </div>
-      <div class="field"><label>Monto / Amount $</label><input type="text" id="f_amount" placeholder="0.00" oninput="updateAuthText()"/></div>
+      <div class="field"><label id="lbl_amount">Monto / Amount $</label><input type="text" id="f_amount" placeholder="0.00" oninput="updateAuthText()"/></div>
       <div class="field">
-        <label>Frecuencia / Frequency</label>
+        <label id="lbl_freq">Frecuencia / Frequency</label>
         <select id="f_frequency">
           <option value="monthly">Mensual / Monthly</option>
           <option value="weekly">Semanal / Weekly</option>
@@ -142,9 +145,9 @@
           <option value="annual">Anual / Annual</option>
         </select>
       </div>
-      <div class="field"><label>Día de Cobro / Billing Day</label><input type="number" id="f_billingDay" placeholder="1" min="1" max="28"/></div>
-      <div class="field"><label>Inicio Trial / Trial Start</label><input type="date" id="f_trialStart"/></div>
-      <div class="field"><label>Primer Cobro / First Charge</label><input type="date" id="f_firstCharge"/></div>
+      <div class="field"><label id="lbl_billingDay">Día de Cobro / Billing Day</label><input type="number" id="f_billingDay" placeholder="1" min="1" max="28"/></div>
+      <div class="field"><label id="lbl_trialStart">Inicio Trial / Trial Start</label><input type="date" id="f_trialStart"/></div>
+      <div class="field"><label id="lbl_firstChg">Primer Cobro / First Charge</label><input type="date" id="f_firstCharge"/></div>
     </div>
 
     <!-- Section 3: Payment -->
@@ -153,7 +156,7 @@
       INFORMACIÓN DE PAGO / PAYMENT INFORMATION
     </div>
     <div class="field">
-      <label>Tipo de Tarjeta / Card Type *</label>
+      <label id="lbl_cardType">Tipo de Tarjeta / Card Type *</label>
       <div class="radio-group">
         <label><input type="radio" name="f_cardType" value="Visa" onchange="toggleCardOther(this.value)"/> Visa</label>
         <label><input type="radio" name="f_cardType" value="Mastercard" onchange="toggleCardOther(this.value)"/> Mastercard</label>
@@ -178,13 +181,13 @@
       </div>
     </div>
     <div style="display:grid;grid-template-columns:3fr 1fr 1fr 1fr;gap:12px;margin-bottom:4px">
-      <div class="field"><label>Nombre en la Tarjeta / Name on Card *</label><input type="text" id="f_cardName" placeholder="JOHN DOE" style="text-transform:uppercase"/></div>
-      <div class="field"><label>Expira / Expires *</label><input type="text" id="f_expiry" placeholder="MM/YY" maxlength="5" oninput="fmtExpiry(this)"/></div>
-      <div class="field"><label>CVV / CVC *</label><input type="text" id="f_cvv" placeholder="123" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')"/></div>
-      <div class="field"><label>ZIP Facturación *</label><input type="text" id="f_zip" placeholder="33322" maxlength="10"/></div>
+      <div class="field"><label id="lbl_cardName">Nombre en la Tarjeta / Name on Card *</label><input type="text" id="f_cardName" placeholder="JOHN DOE" style="text-transform:uppercase"/></div>
+      <div class="field"><label id="lbl_expiry">Expira / Expires *</label><input type="text" id="f_expiry" placeholder="MM/YY" maxlength="5" oninput="fmtExpiry(this)"/></div>
+      <div class="field"><label id="lbl_cvv">CVV / CVC *</label><input type="text" id="f_cvv" placeholder="123" maxlength="4" oninput="this.value=this.value.replace(/\D/g,'')"/></div>
+      <div class="field"><label id="lbl_zip">ZIP Facturación *</label><input type="text" id="f_zip" placeholder="33322" maxlength="10"/></div>
     </div>
     <div class="grid-21">
-      <div class="field"><label>Número de Tarjeta / Card Number *</label><input type="text" id="f_cardNumber" placeholder="•••• •••• •••• ••••" maxlength="19" oninput="fmtCard(this)" style="letter-spacing:.08em"/></div>
+      <div class="field"><label id="lbl_cardNum">Número de Tarjeta / Card Number *</label><input type="text" id="f_cardNumber" placeholder="•••• •••• •••• ••••" maxlength="19" oninput="fmtCard(this)" style="letter-spacing:.08em"/></div>
       <div class="field" style="display:flex;flex-direction:column;justify-content:flex-end">
         <label style="display:flex;align-items:flex-start;gap:8px;text-transform:none;letter-spacing:0;font-size:12px;color:#aaa;font-weight:400;cursor:pointer">
           <input type="checkbox" id="f_isCommercial" style="margin-top:2px"/> Esta es una tarjeta comercial / This is a commercial card
@@ -211,12 +214,12 @@
     </div>
 
     <div class="grid-21" style="margin-bottom:14px">
-      <div class="field"><label>Nombre Completo del Firmante / Signer Full Name *</label><input type="text" id="f_signerName" placeholder="Print full name"/></div>
-      <div class="field"><label>Fecha / Date *</label><input type="date" id="f_sigDate"/></div>
+      <div class="field"><label id="lbl_signerName">Nombre Completo del Firmante / Signer Full Name *</label><input type="text" id="f_signerName" placeholder="Print full name"/></div>
+      <div class="field"><label id="lbl_sigDate">Fecha / Date *</label><input type="date" id="f_sigDate"/></div>
     </div>
 
     <div class="field">
-      <label>Firma Digital / Digital Signature *</label>
+      <label id="lbl_sig">Firma Digital / Digital Signature *</label>
       <div class="sig-wrap">
         <div style="position:relative">
           <div class="sig-placeholder" id="sigPlaceholder">Sign here / Firme aquí</div>
@@ -229,6 +232,11 @@
       </div>
     </div>
 
+    <!-- Validation banner -->
+    <div id="valBanner" style="display:none;background:rgba(239,68,68,.1);border:1.5px solid rgba(239,68,68,.4);border-radius:12px;padding:14px 18px;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:800;color:#f87171;font-family:'Syne',sans-serif;margin-bottom:8px">⚠️ Por favor completa los siguientes campos / Please complete the following fields:</div>
+      <div id="valList" style="font-size:12px;color:#fca5a5;line-height:2"></div>
+    </div>
     <button class="btn-submit" id="submitBtn" onclick="submitForm()">
       💾 Guardar Autorización / Save Authorization
     </button>
@@ -418,9 +426,30 @@ function submitForm(){
   if(!g('f_sigDate').trim())     errs.push('Date');
   if(!hasSig)                    errs.push('Signature');
   if(errs.length){
-    showStatus('❌ Please complete: '+errs.join(', '),'err');
+    // Show banner
+    var banner = document.getElementById('valBanner');
+    var list   = document.getElementById('valList');
+    if(banner && list){
+      list.innerHTML = errs.map(function(f){ return '• '+f; }).join('<br/>');
+      banner.style.display = '';
+      banner.scrollIntoView({behavior:'smooth', block:'center'});
+    }
+    // Highlight empty required inputs
+    var reqIds = ['f_firstName','f_lastName','f_email','f_cardName','f_expiry','f_cvv','f_zip','f_cardNumber','f_signerName','f_sigDate'];
+    reqIds.forEach(function(id){
+      var el = document.getElementById(id);
+      if(el){
+        if(!el.value.trim()){
+          el.style.borderColor='#ef4444';
+          el.addEventListener('input', function(){ el.style.borderColor=''; }, {once:true});
+        }
+      }
+    });
     return;
   }
+  // Clear banner if all good
+  var bannerOk = document.getElementById('valBanner');
+  if(bannerOk) bannerOk.style.display='none';
 
   var btn = document.getElementById('submitBtn');
   btn.disabled = true;
@@ -497,6 +526,62 @@ function showStatus(msg, type){
   el.className = 'status-box '+(type==='ok'?'status-ok':'status-err');
   el.style.display = '';
   setTimeout(function(){ el.style.display='none'; }, 5000);
+}
+
+// ── Language toggle ──────────────────────────────────────────────────
+window._baFormLang = 'en';
+function baFormToggleLang(){
+  var lang = window._baFormLang === 'en' ? 'es' : 'en';
+  window._baFormLang = lang;
+  var btn = document.getElementById('baFormLangBtn');
+  if(btn) btn.textContent = lang==='en' ? '🇺🇸 EN ⇄ 🇪🇸 ES' : '🇪🇸 ES ⇄ 🇺🇸 EN';
+  var t = lang==='en';
+  // Form title
+  var titleEl = document.querySelector('.form-title');
+  // Labels [id, ES, EN]
+  var labels = [
+    ['lbl_firstName',  'Nombre / First Name *',                     'First Name *'],
+    ['lbl_lastName',   'Apellido / Last Name *',                    'Last Name *'],
+    ['lbl_email',      'Email *',                                   'Email *'],
+    ['lbl_phone',      'Teléfono / Phone',                          'Phone'],
+    ['lbl_address',    'Dirección de Facturación / Billing Address','Billing Address'],
+    ['lbl_plan',       'Plan / Program *',                          'Program *'],
+    ['lbl_amount',     'Monto / Amount $',                          'Amount $'],
+    ['lbl_freq',       'Frecuencia / Frequency',                    'Frequency'],
+    ['lbl_billingDay', 'Día de Cobro / Billing Day',                'Billing Day'],
+    ['lbl_trialStart', 'Inicio Trial / Trial Start',                'Trial Start'],
+    ['lbl_firstChg',   'Primer Cobro / First Charge',               'First Charge'],
+    ['lbl_cardType',   'Tipo de Tarjeta / Card Type *',             'Card Type *'],
+    ['lbl_cardName',   'Nombre en la Tarjeta / Name on Card *',     'Name on Card *'],
+    ['lbl_expiry',     'Expira / Expires *',                        'Expires *'],
+    ['lbl_cvv',        'CVV / CVC *',                               'CVV / CVC *'],
+    ['lbl_zip',        'ZIP Facturación *',                         'Billing ZIP *'],
+    ['lbl_cardNum',    'Número de Tarjeta / Card Number *',         'Card Number *'],
+    ['lbl_signerName', 'Nombre Completo del Firmante / Signer Full Name *','Signer Full Name *'],
+    ['lbl_sigDate',    'Fecha / Date *',                            'Date *'],
+    ['lbl_sig',        'Firma Digital / Digital Signature *',       'Digital Signature *'],
+  ];
+  labels.forEach(function(row){
+    var el = document.getElementById(row[0]);
+    if(el) el.textContent = t ? row[2] : row[1];
+  });
+  // Submit button
+  var sb = document.getElementById('submitBtn');
+  if(sb) sb.textContent = t ? '💾 Save Authorization' : '💾 Guardar Autorización / Save Authorization';
+  // Validation banner title
+  var vb = document.querySelector('#valBanner div');
+  if(vb) vb.textContent = t ? '⚠️ Please complete the following fields:' : '⚠️ Por favor completa los siguientes campos:';
+  // Error list labels
+  var errLabels = {
+    'First Name':    t?'First Name':'Nombre',
+    'Last Name':     t?'Last Name':'Apellido',
+    'Card Type':     t?'Card Type':'Tipo de Tarjeta',
+    'Name on Card':  t?'Name on Card':'Nombre en Tarjeta',
+    'Card Number':   t?'Card Number':'Número de Tarjeta',
+    'Signer Name':   t?'Signer Name':'Nombre del Firmante',
+    'Signature':     t?'Digital Signature':'Firma Digital',
+  };
+  window._baErrLabels = errLabels;
 }
 
 // ── Payment processor selector ────────────────────────────────────────
