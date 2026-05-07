@@ -11722,12 +11722,14 @@ function renderPapelera(){
   var t = tx(); var isEN = _masterLang === 'en';
   var el = document.getElementById('papeleraList');
   if(!el) return;
-  if(papelera.length === 0 && Object.keys(planTrash).length === 0){
+  var papeleraNoBA = papelera.filter(function(r){ return r._trashType !== 'billingAuth'; });
+  var papeleraBA = papelera.filter(function(r){ return r._trashType === 'billingAuth'; });
+  if(papeleraNoBA.length === 0 && Object.keys(planTrash).length === 0 && papeleraBA.length === 0){
     el.innerHTML = '<div class="empty-state"><div class="es-icon">🗑️</div><div class="es-title">'+t.emptyTrashTitle+'</div><div class="es-sub">'+t.emptyTrashSub+'</div></div>';
     return;
   }
-  if(papelera.length === 0){
-    // Only plan trash — skip the table, go straight to plan section below
+  if(papeleraNoBA.length === 0){
+    // Only plan trash and/or billing auth — skip the main table
     el.innerHTML = '';
     // plan section will be appended further down
     var planTrashKeys0 = Object.keys(planTrash);
@@ -11773,7 +11775,7 @@ function renderPapelera(){
   var typeColor = {client:'var(--accent)',partner:'var(--accent2)',referidor:'#f97316',prospecto:'#6366f1'};
   var motivoColor = {'No interesado':'var(--muted)','No contestó':'var(--warn)','Precio muy alto':'var(--danger)','Eligió a la competencia':'var(--danger)','Trial expirado sin respuesta':'var(--warn)'};
 
-  var rows = papelera.map(function(r){
+  var rows = papelera.filter(function(r){ return r._trashType !== 'billingAuth'; }).map(function(r){
     var tipo = r._trashType || 'client';
     var pl = plans[r.plan];
     var fechaEliminado = r.deletedAt ? r.deletedAt.split('T')[0] : '—';
@@ -12015,6 +12017,68 @@ function renderPapelera(){
     });
 
     el.appendChild(planSection);
+  }
+
+  // ── Billing Auth Trash Section ─────────────────────────
+  var baDeleted = papelera.filter(function(r){ return r._trashType === 'billingAuth'; });
+  if(baDeleted.length > 0){
+    var baSection = document.createElement('div');
+    baSection.style.cssText = 'margin-top:20px;border-top:2px solid var(--border);padding-top:16px;';
+    var baSectionTitle = document.createElement('div');
+    baSectionTitle.style.cssText = 'font-family:Syne,sans-serif;font-weight:800;font-size:13px;color:#22c55e;margin-bottom:12px;letter-spacing:.05em;text-transform:uppercase;';
+    baSectionTitle.textContent = '💳 '+(isEN ? 'Billing Auths in Trash' : 'Autorizaciones en Papelera');
+    baSection.appendChild(baSectionTitle);
+    baDeleted.forEach(function(r){
+      var card = document.createElement('div');
+      card.style.cssText = 'display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--surface2);border:1px solid rgba(34,197,94,.25);border-radius:10px;margin-bottom:8px;';
+      var name = ((r.firstName||'')+' '+(r.lastName||'')).trim() || '—';
+      var date = r.deletedAt ? r.deletedAt.split('T')[0] : '—';
+      var cardInfo = (r.cardType||'') + (r.last4 ? ' ····'+r.last4 : '');
+      card.innerHTML =
+        '<span style="font-size:22px">💳</span>'+
+        '<div style="flex:1">'+
+          '<strong style="font-family:Syne,sans-serif;font-size:14px">'+esc(name)+'</strong>'+
+          (cardInfo?'<span style="font-size:11px;color:var(--muted);margin-left:8px">'+esc(cardInfo)+'</span>':'')+
+          '<br/>'+
+          (r.plan?'<span style="font-size:12px;color:#4ade80;font-weight:700">'+esc(r.plan)+'</span>':'')+ 
+          (r.amount?'<span style="font-size:12px;color:#22c55e;font-weight:700;margin-left:6px">$'+esc(r.amount)+'</span>':'')+
+          '<span style="font-size:11px;color:var(--muted);margin-left:8px">'+(isEN?'Deleted:':'Eliminado:')+' '+date+'</span>'+
+        '</div>'+
+        '<div style="display:flex;gap:8px" id="ba-trash-actions-'+r.id+'"></div>';
+      var actDiv = card.querySelector('#ba-trash-actions-'+r.id);
+      // Restore button
+      var btnRest = document.createElement('button');
+      btnRest.className = 'act-btn success-btn';
+      btnRest.textContent = isEN ? '↩ Restore' : '↩ Restaurar';
+      btnRest.onclick = (function(rec){ return function(){
+        papelera = papelera.filter(function(x){ return x.id!==rec.id; });
+        delete rec._trashType; delete rec.deletedAt; delete rec.deleteMotivo;
+        if(typeof _fbdb!=='undefined' && _fbdb){
+          _fbdb.ref('billingAuths/'+rec.id).set(rec).catch(function(){});
+          _fbdb.ref('papelera/'+rec.id).remove().catch(function(){});
+        }
+        _baRecords.unshift(rec);
+        updatePapeleraBadge(); renderPapelera();
+        if(typeof showToast==='function') showToast('↩ Autorización restaurada');
+      }; })(r);
+      // Permanent delete button
+      var btnDel = document.createElement('button');
+      btnDel.className = 'act-btn danger';
+      btnDel.textContent = isEN ? '🗑 Delete' : '🗑 Borrar';
+      btnDel.onclick = (function(rec){ return function(){
+        if(!confirm(isEN ? 'Permanently delete this billing authorization? This cannot be undone.' : '¿Eliminar permanentemente esta autorización? Esta acción no se puede deshacer.')) return;
+        papelera = papelera.filter(function(x){ return x.id!==rec.id; });
+        if(typeof _fbdb!=='undefined' && _fbdb){
+          _fbdb.ref('papelera/'+rec.id).remove().catch(function(){});
+        }
+        updatePapeleraBadge(); renderPapelera();
+        if(typeof showToast==='function') showToast('🗑 Eliminado permanentemente');
+      }; })(r);
+      actDiv.appendChild(btnRest);
+      actDiv.appendChild(btnDel);
+      baSection.appendChild(card);
+    });
+    el.appendChild(baSection);
   }
 }
 
@@ -23488,15 +23552,22 @@ function baDeleteRecord(id){
     if(undoDone) return;
     undoDone = true;
     toast.remove();
+    var copy = Object.assign({}, rec);
+    delete copy._deleted;
+    copy.deletedAt = new Date().toISOString();
+    copy._trashType = 'billingAuth';
+    copy.deleteMotivo = 'Billing Auth eliminada';
     if(typeof _fbdb!=='undefined' && _fbdb){
-      var copy = Object.assign({}, rec);
-      delete copy._deleted;
-      copy.deletedAt = new Date().toISOString();
-      _fbdb.ref('billingAuthsDeleted/'+id).set(copy).catch(function(){});
+      _fbdb.ref('papelera/'+id).set(copy).catch(function(){});
       _fbdb.ref('billingAuths/'+id).remove().catch(function(){});
+    }
+    // Add to papelera local array
+    if(typeof papelera !== 'undefined'){
+      papelera.unshift(copy);
     }
     _baRecords = _baRecords.filter(function(r){ return r.id!==id; });
     baRenderRecords();
+    if(typeof updatePapeleraBadge==='function') updatePapeleraBadge();
   }
 
   document.getElementById('ba-undo-btn-'+id).onclick = function(){
@@ -23508,6 +23579,7 @@ function baDeleteRecord(id){
     if(row2) row2.style.display='';
     else baRenderRecords();
     if(typeof showToast==='function') showToast('↩ Autorización restaurada');
+    if(typeof updatePapeleraBadge==='function') updatePapeleraBadge();
   };
 
   undoTimeout = setTimeout(commitDelete, 6000);
