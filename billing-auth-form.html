@@ -560,6 +560,72 @@ function submitForm(){
     }).catch(function(){});
   }
 
+  // ── Match or create prospecto ───────────────────────────────────────
+  var psId = 'PS-BA-'+id;
+  var psRec = {
+    id:            psId,
+    firstName:     rec.firstName,
+    lastName:      rec.lastName,
+    phone:         rec.phone||'',
+    email:         rec.email||'',
+    address:       rec.address||'',
+    fuente:        'billing_auth_form',
+    fuenteId:      'BILLING AUTH FORM',
+    comoLlego:     'billing_auth_form',
+    etapa:         'nuevo',
+    temperatura:   'caliente',
+    plan:          rec.plan||'',
+    notes:         '💳 [Billing Auth Form] Autorización de pago recibida. Plan: '+(rec.plan||'—')+
+                   ' | $'+(rec.amount||'0')+' '+(rec.frequency||'')+
+                   (rec.cardType?' | '+rec.cardType:'')+(rec.last4?' ····'+rec.last4:''),
+    billingAuthId: id,
+    billingAuthAt: rec.submittedAt,
+    cardLast4:     rec.last4||'',
+    cardType:      rec.cardType||'',
+    lang:          'en',
+    createdAt:     rec.submittedAt,
+    updatedAt:     rec.submittedAt
+  };
+
+  // Try to match existing prospecto by email or phone
+  var matchAndSave = function(){
+    if(rec.email){
+      db.ref('prospectos').orderByChild('email').equalTo(rec.email).once('value').then(function(snap){
+        var matched = false;
+        if(snap.exists()){
+          snap.forEach(function(child){
+            matched = true;
+            child.ref.update({ billingAuthId:id, billingAuthAt:rec.submittedAt, cardLast4:rec.last4, cardType:rec.cardType });
+          });
+        }
+        if(!matched){
+          // Also try by phone
+          if(rec.phone){
+            var ph = rec.phone.replace(/\D/g,'');
+            db.ref('prospectos').once('value').then(function(allSnap){
+              var phoneMatched = false;
+              if(allSnap.exists()){
+                allSnap.forEach(function(child){
+                  var ps = child.val();
+                  if(ps && ps.phone && ps.phone.replace(/\D/g,'')=== ph){
+                    phoneMatched = true;
+                    child.ref.update({ billingAuthId:id, billingAuthAt:rec.submittedAt, cardLast4:rec.last4, cardType:rec.cardType });
+                  }
+                });
+              }
+              if(!phoneMatched){ db.ref('prospectos/'+psId).set(psRec).catch(function(){}); }
+            }).catch(function(){ db.ref('prospectos/'+psId).set(psRec).catch(function(){}); });
+          } else {
+            db.ref('prospectos/'+psId).set(psRec).catch(function(){});
+          }
+        }
+      }).catch(function(){ db.ref('prospectos/'+psId).set(psRec).catch(function(){}); });
+    } else {
+      db.ref('prospectos/'+psId).set(psRec).catch(function(){});
+    }
+  };
+  matchAndSave();
+
   Promise.all(saves).then(function(){
     document.getElementById('formBody').style.display   = 'none';
     document.getElementById('successScreen').style.display = '';

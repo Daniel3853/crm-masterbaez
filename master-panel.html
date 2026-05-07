@@ -5450,6 +5450,22 @@ function _sendFormToLead(id){
   }
 }
 
+function _sendBillingToProspecto(id){
+  var ps = (typeof prospectos!=='undefined'?prospectos:[]).find(function(p){ return p.id===id; });
+  if(!ps){ return; }
+  window._baPendingLeadId = null;
+  window._baPendingProspectoId = id;
+  var fillFields = function(){
+    var flds = { baEmailClientName:(ps.firstName||'')+' '+(ps.lastName||''),
+      baEmailClientEmail:ps.email||'', baWaClientName:ps.firstName||'',
+      baWaClientPhone:(ps.phone||'').replace(/\D/g,'') };
+    Object.keys(flds).forEach(function(k){ var el=document.getElementById(k); if(el) el.value=flds[k]; });
+  };
+  var modal = document.getElementById('baSendModal');
+  if(modal){ fillFields(); baOpenSendModal(); }
+  else { goPage('waiver'); switchWaiverTab('billing'); setTimeout(function(){ fillFields(); baOpenSendModal(); },500); }
+}
+
 function _sendBillingToLead(id){
   // Abre el baSendModal directo — igual que _sendFormToLead abre leadSendModal
   var lead = (typeof leads!=='undefined'?leads:[]).find(function(l){ return l.id===id; });
@@ -5544,6 +5560,8 @@ function renderProspectos(){
       return '<tr style="cursor:pointer" onclick="openProspectoDetail(\''+p.id+'\')">'+
         '<td>'+
           '<strong style="font-size:14px">'+esc(p.firstName+' '+p.lastName)+'</strong>'+
+          (p.enrollmentId?'<span style="display:inline-flex;align-items:center;background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.25);border-radius:20px;padding:1px 7px;font-size:9px;font-weight:800;margin-left:5px;font-family:Syne,sans-serif">✍️ WAIVER</span>':'')+
+          (p.billingAuthId?'<span style="display:inline-flex;align-items:center;background:rgba(34,197,94,.18);color:#22c55e;border:1px solid rgba(34,197,94,.35);border-radius:20px;padding:1px 7px;font-size:9px;font-weight:800;margin-left:4px;font-family:Syne,sans-serif">✅💳 BILLING</span>':'')+
           (p.phone?'<br/><span style="font-size:11px;color:var(--muted)">📱 '+esc(fmtPhone(p.phone))+'</span>':'')+
           (p.email&&!p.phone?'<br/><span style="font-size:11px;color:var(--muted)">📧 '+esc(p.email)+'</span>':'')+
         '</td>'+
@@ -5567,6 +5585,9 @@ function renderProspectos(){
           (!p.enrollmentId
             ? '<button class="act-btn" style="background:rgba(168,85,247,.15);border-color:#a855f7;color:#a855f7" title="Enviar Formulario" onclick="_sendFormToProspecto(\''+p.id+'\')">📋</button>'
             : '<button class="act-btn" style="background:rgba(34,197,94,.15);border-color:#22c55e;color:#22c55e" title="Ver Waiver" onclick="if(typeof enrViewRecord===\'function\') enrViewRecord(\''+p.enrollmentId+'\')">✍️</button>')+
+          (!p.billingAuthId
+            ? '<button class="act-btn" style="background:rgba(34,197,94,.08);border-color:#22c55e;color:#22c55e" title="Enviar Billing Auth" onclick="_sendBillingToProspecto(\''+p.id+'\')">💳</button>'
+            : '<button class="act-btn" style="background:rgba(34,197,94,.2);border-color:#22c55e;color:#22c55e" title="Ver Billing Auth" onclick="baPrintRecord(null,\''+p.billingAuthId+'\')">✅💳</button>')+
           '<button class="act-btn" onclick="openProspectoModal(\''+p.id+'\')">✏️</button>'+
           '<button class="act-btn danger" onclick="deleteProspecto(\''+p.id+'\')">🗑</button>'+
         '</div></td>'+
@@ -8294,6 +8315,68 @@ function lsmStatus(msg) {
 
 
 // ── 23. AGREGAR BOTÓN "📋 SEND FORM" A LA TABLA DE LEADS ──────────────
+
+
+// ── 22b. BILLING AUTH → PROSPECTOS (mismo patrón que enrollment) ─────
+(function listenBillingAuths(){
+  var maxTries=20, tries=0;
+  var check = setInterval(function(){
+    tries++;
+    if(tries>maxTries){ clearInterval(check); return; }
+    if(typeof _fbdb==='undefined'||!_fbdb||typeof prospectos==='undefined') return;
+    clearInterval(check);
+    var listenFrom = new Date().toISOString();
+    _fbdb.ref('billingAuths').orderByChild('submittedAt').startAt(listenFrom).on('child_added', function(snap){
+      var ba = snap.val();
+      if(!ba||!ba.id) return;
+      var psArr = typeof prospectos!=='undefined' ? prospectos : [];
+      var matched = false;
+      psArr.forEach(function(ps){
+        var phoneMatch = ba.phone && ps.phone && ba.phone.replace(/\D/g,'')===ps.phone.replace(/\D/g,'');
+        var emailMatch = ba.email && ps.email && ba.email.toLowerCase()===ps.email.toLowerCase();
+        if(phoneMatch||emailMatch){
+          matched = true;
+          if(!ps.billingAuthId){
+            ps.billingAuthId=ba.id; ps.billingAuthAt=ba.submittedAt; ps.cardLast4=ba.last4;
+            try{ _fbdb.ref('prospectos/'+ps.id).update({billingAuthId:ba.id,billingAuthAt:ba.submittedAt,cardLast4:ba.last4,cardType:ba.cardType}); }catch(e){}
+            if(typeof renderProspectos==='function') try{ renderProspectos(); }catch(e){}
+            if(typeof showToast==='function') showToast('\u2705\ud83d\udcb3 '+(ba.firstName||'')+' '+(ba.lastName||'')+' \u2014 Billing Auth recibida!');
+          }
+        }
+      });
+      var leadArr = typeof leads!=='undefined' ? leads : [];
+      leadArr.forEach(function(lead){
+        var phoneMatch = ba.phone && lead.phone && ba.phone.replace(/\D/g,'')===lead.phone.replace(/\D/g,'');
+        var emailMatch = ba.email && lead.email && ba.email.toLowerCase()===lead.email.toLowerCase();
+        if((phoneMatch||emailMatch) && !lead.billingAuthId){
+          lead.billingAuthId=ba.id; lead.billingAuthAt=ba.submittedAt;
+          try{ _fbdb.ref('leads/'+lead.id).update({billingAuthId:ba.id,billingAuthAt:ba.submittedAt}); }catch(e){}
+        }
+      });
+      if(!matched && (ba.firstName||ba.lastName)){
+        var alreadyExists = psArr.some(function(ps){ return ps.billingAuthId===ba.id; });
+        if(alreadyExists) return;
+        var newPs = {
+          id:'PS-BA-'+ba.id, firstName:ba.firstName||'', lastName:ba.lastName||'',
+          phone:ba.phone||'', email:ba.email||'', address:ba.address||'',
+          fuente:'billing_auth_form', fuenteId:'BILLING AUTH FORM',
+          comoLlego:ba.source||'billing_auth_form', etapa:'nuevo', temperatura:'caliente',
+          plan:ba.plan||'',
+          notes:'\ud83d\udcb3 [Billing Auth Form] Plan: '+(ba.plan||'\u2014')+' | $'+(ba.amount||'0')+' '+(ba.frequency||'')+(ba.cardType?' | '+ba.cardType:'')+(ba.last4?' \u00b7\u00b7\u00b7\u00b7'+ba.last4:''),
+          billingAuthId:ba.id, billingAuthAt:ba.submittedAt, cardLast4:ba.last4||'', cardType:ba.cardType||'',
+          lang:'en', createdAt:ba.submittedAt||new Date().toISOString(), updatedAt:new Date().toISOString()
+        };
+        if(typeof prospectos!=='undefined') prospectos.unshift(newPs);
+        try{ _fbdb.ref('prospectos/'+newPs.id).set(newPs); }catch(e){}
+        if(typeof updateNavBadgeProspectos==='function') try{ updateNavBadgeProspectos(); }catch(e){}
+        if(typeof renderProspectos==='function') try{ renderProspectos(); }catch(e){}
+        if(typeof showToast==='function') showToast('\ud83d\udd14 '+(ba.firstName||'')+' '+(ba.lastName||'')+' \u2014 nueva Billing Auth');
+      }
+    });
+  }, 500);
+})();
+
+
 // Esto intercepta renderLeadsInbox para agregar el botón en cada card
 (function patchRenderLeadsInbox() {
   // Esperamos a que renderLeadsInbox esté definido
@@ -22835,6 +22918,17 @@ function baSubmit(){
       var ld = leadsArr.find(function(x){ return x.id===pendingLeadId; });
       if(ld){ ld.billingAuthId=rec.id; ld.billingAuthAt=rec.submittedAt; }
       window._baPendingLeadId = null;
+    }
+    var pendingPsId = window._baPendingProspectoId || null;
+    if(pendingPsId){
+      saves.push(_fbdb.ref('prospectos/'+pendingPsId).update({
+        billingAuthId: rec.id, billingAuthAt: rec.submittedAt,
+        cardLast4: rec.last4, cardType: rec.cardType
+      }));
+      var psArr2 = typeof prospectos!=='undefined' ? prospectos : [];
+      var ps2 = psArr2.find(function(x){ return x.id===pendingPsId; });
+      if(ps2){ ps2.billingAuthId=rec.id; ps2.billingAuthAt=rec.submittedAt; ps2.cardLast4=rec.last4; }
+      window._baPendingProspectoId = null;
     }
     Promise.all(saves).then(function(){
       _baRecords.unshift(rec);
