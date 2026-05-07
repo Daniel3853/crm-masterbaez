@@ -6,7 +6,6 @@
 <title>Billing Authorization / Autorización de Pago</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -262,44 +261,24 @@
   </div>
 
   <!-- Success screen -->
-  <div class="success-screen" id="successScreen">
-    <div class="success-icon">✅</div>
-    <div class="success-title">Authorization Saved!</div>
-    <div class="success-title" style="font-size:16px;color:#4ade80;margin-top:4px">¡Autorización Guardada!</div>
-    <div class="success-sub" style="margin-top:12px">
-      Your billing authorization has been submitted successfully.<br/>
-      <span style="color:#666">Tu autorización de pago ha sido enviada correctamente.</span>
-    </div>
-    <div id="successRef" style="margin-top:10px;font-size:11px;color:#555;font-family:monospace"></div>
-
-    <!-- PDF Preview -->
-    <div id="pdfPreviewWrap" style="margin-top:20px;width:100%;border-radius:12px;overflow:hidden;border:1px solid rgba(34,197,94,.25);display:none">
-      <div style="background:rgba(34,197,94,.08);padding:10px 14px;font-size:11px;font-weight:700;color:#4ade80;text-align:left;letter-spacing:.06em;text-transform:uppercase">
-        📄 Signed Document / Documento Firmado
+  <div class="success-screen" id="successScreen" style="padding:0">
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#22c55e,#16a34a);padding:20px 24px;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff">✅ Authorization Saved! / ¡Guardada!</div>
+        <div id="successRef" style="font-size:11px;color:rgba(255,255,255,.7);margin-top:2px;font-family:monospace"></div>
       </div>
-      <iframe id="pdfPreviewFrame" src="" style="width:100%;height:420px;border:none;background:#fff;display:block"></iframe>
+      <span style="background:rgba(255,255,255,.2);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:800;color:#fff;font-family:'Syne',sans-serif">✍️ SIGNED</span>
     </div>
-
-    <!-- Action buttons -->
-    <div style="display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap">
-      <button id="btnDownloadPDF" onclick="downloadSignedPDF()" style="
-        display:none;padding:13px 24px;border-radius:12px;border:none;
-        background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;
-        font-family:'Syne',sans-serif;font-weight:800;font-size:14px;
-        cursor:pointer;box-shadow:0 6px 20px rgba(34,197,94,.4);
-        transition:transform .15s,box-shadow .15s;display:flex;align-items:center;gap:8px
-      " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-        ⬇️ Download PDF / Descargar PDF
-      </button>
-      <button onclick="closeSuccessScreen()" style="
-        padding:13px 24px;border-radius:12px;
-        border:1.5px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);
-        color:#aaa;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;
-        cursor:pointer;transition:border-color .15s,color .15s
-      " onmouseover="this.style.borderColor='rgba(255,255,255,.35)';this.style.color='#fff'"
-         onmouseout="this.style.borderColor='rgba(255,255,255,.15)';this.style.color='#aaa'">
-        ✖ Close / Cerrar
-      </button>
+    <!-- Document preview -->
+    <div style="padding:20px 24px">
+      <div id="successDocPreview" style="background:#fff;border-radius:12px;padding:0;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.4);margin-bottom:16px;font-family:'DM Sans',sans-serif;color:#1a1a2e;font-size:12px;line-height:1.7"></div>
+      <!-- Action buttons -->
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button onclick="downloadBillingPDF()" style="flex:1;min-width:140px;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;cursor:pointer;box-shadow:0 4px 14px rgba(34,197,94,.35)">🖨️ Descargar PDF / Download</button>
+        <button onclick="window.close()" style="flex:1;min-width:120px;padding:12px;border-radius:10px;border:1.5px solid rgba(34,197,94,.4);background:transparent;color:#4ade80;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;cursor:pointer">✕ Cerrar / Close</button>
+      </div>
+      <div style="text-align:center;font-size:10px;color:#444;margin-top:10px">Una copia fue enviada al gimnasio / A copy was sent to the gym</div>
     </div>
   </div>
 </div>
@@ -575,6 +554,27 @@ function submitForm(){
       billingAuthCount: firebase.database.ServerValue.increment(1)
     }));
   }
+  // Also search leads by email/phone when no linkedLeadId
+  if(!rec.linkedLeadId && rec.email){
+    db.ref('leads').orderByChild('email').equalTo(rec.email).once('value').then(function(snap){
+      if(snap.exists()){
+        snap.forEach(function(child){
+          child.ref.update({ billingAuthId:id, billingAuthAt:rec.submittedAt });
+        });
+      } else if(rec.phone){
+        var ph = rec.phone.replace(/\D/g,'');
+        db.ref('leads').once('value').then(function(all){
+          if(!all.exists()) return;
+          all.forEach(function(child){
+            var l = child.val();
+            if(l && l.phone && l.phone.replace(/\D/g,'')=== ph)
+              child.ref.update({ billingAuthId:id, billingAuthAt:rec.submittedAt });
+          });
+        }).catch(function(){});
+      }
+    }).catch(function(){});
+  }
+
   // Also search by email and link any matching registration
   if(!rec.linkedClientId && rec.email){
     db.ref('registrations').orderByChild('email').equalTo(rec.email).once('value').then(function(snap){
@@ -658,156 +658,12 @@ function submitForm(){
   matchAndSave();
 
   Promise.all(saves).then(function(){
-    document.getElementById('formBody').style.display = 'none';
+    document.getElementById('formBody').style.display   = 'none';
     document.getElementById('successScreen').style.display = '';
-    document.getElementById('successRef').textContent = 'Reference ID: ' + id;
-
-    // ── Generate signed PDF ────────────────────────────────────────────
-    try {
-      var jsPDF = window.jspdf ? window.jspdf.jsPDF : (window.jsPDF || (window.jspdf && window.jspdf.jsPDF));
-      if(!jsPDF && window.jspdf) jsPDF = window.jspdf.jsPDF;
-      if(!jsPDF) throw new Error('jsPDF not loaded');
-
-      var doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'letter' });
-      var W = 215.9, M = 18, cw = W - M*2;
-      var y = 18;
-
-      // Header stripe
-      doc.setFillColor(34,197,94);
-      doc.rect(0, 0, W, 6, 'F');
-
-      // Logo / title block
-      doc.setFillColor(20,20,20);
-      doc.rect(0, 6, W, 28, 'F');
-      doc.setFont('helvetica','bold');
-      doc.setFontSize(9);
-      doc.setTextColor(74,222,128);
-      doc.text((window._bizName||'MASTER BAEZ').toUpperCase(), M, 18);
-      doc.setFontSize(16);
-      doc.setTextColor(255,255,255);
-      doc.text('Billing Authorization', M, 26);
-      doc.setFontSize(9);
-      doc.setTextColor(100,200,140);
-      doc.text('Autorización de Pago Recurrente', M, 32);
-      doc.setFontSize(8);
-      doc.setTextColor(120,120,120);
-      doc.text('Ref: ' + id, W - M, 32, {align:'right'});
-      y = 44;
-
-      // Section helper
-      function sectionHeader(title) {
-        doc.setFillColor(28,38,28);
-        doc.rect(M, y-4, cw, 7, 'F');
-        doc.setFont('helvetica','bold');
-        doc.setFontSize(8);
-        doc.setTextColor(34,197,94);
-        doc.text(title, M+3, y+1);
-        y += 8;
-      }
-      function row(label, value, x, w, sameLine) {
-        if(!sameLine) {}
-        doc.setFont('helvetica','bold');
-        doc.setFontSize(7);
-        doc.setTextColor(140,140,140);
-        doc.text(label.toUpperCase(), x, y);
-        doc.setFont('helvetica','normal');
-        doc.setFontSize(9);
-        doc.setTextColor(30,30,30);
-        doc.text(String(value||'—'), x, y+4.5);
-      }
-      function twoCol(l1,v1,l2,v2) {
-        row(l1,v1,M,cw/2);
-        if(l2) row(l2,v2,M+cw/2+4,cw/2);
-        y += 11;
-      }
-      function oneCol(l,v) {
-        row(l,v,M,cw);
-        y += 11;
-      }
-
-      // ── Section 1: Client ──────────────────────────────────────────────
-      sectionHeader('1. CLIENT INFORMATION / INFORMACIÓN DEL CLIENTE');
-      twoCol('First Name / Nombre', rec.firstName, 'Last Name / Apellido', rec.lastName);
-      twoCol('Email', rec.email, 'Phone / Teléfono', rec.phone||'—');
-      oneCol('Billing Address / Dirección', rec.address||'—');
-
-      // ── Section 2: Plan ────────────────────────────────────────────────
-      sectionHeader('2. PLAN & BILLING / PLAN Y FACTURACIÓN');
-      twoCol('Plan / Program', rec.plan, 'Amount / Monto', rec.amount ? '$'+rec.amount : '—');
-      twoCol('Frequency / Frecuencia', rec.frequency, 'Billing Day / Día de Cobro', rec.billingDay||'—');
-      twoCol('Trial Start / Inicio Trial', rec.trialStart||'—', 'First Charge / Primer Cobro', rec.firstCharge||'—');
-
-      // ── Section 3: Payment ─────────────────────────────────────────────
-      sectionHeader('3. PAYMENT INFORMATION / INFORMACIÓN DE PAGO');
-      if(rec.payMethod==='card'){
-        twoCol('Card Type / Tipo', rec.cardType, 'Name on Card / Nombre', rec.cardName);
-        twoCol('Card Number (Last 4)', '•••• •••• •••• ' + rec.last4, 'Expires / Vence', rec.expiry);
-        twoCol('CVV', '•••', 'ZIP', rec.zip);
-      } else {
-        twoCol('Payment Method', rec.payMethod, 'Link / Handle', rec.payLink||'—');
-      }
-
-      // ── Section 4: Auth text ───────────────────────────────────────────
-      sectionHeader('4. AUTHORIZATION TEXT / TEXTO DE AUTORIZACIÓN');
-      var authLines = doc.splitTextToSize(
-        'I, ' + rec.signerName + ', authorize ' + (window._bizName||'MASTER BAEZ') +
-        ' to charge my card $' + (rec.amount||'___') + ' for the ' + (rec.plan||'_____') +
-        ' plan recurring ' + (rec.frequency||'monthly') + '. This authorization remains in effect until ' +
-        'cancelled in writing with 30 days notice. Returned payments incur a $25–$50 fee (FL §68.065).',
-        cw
-      );
-      doc.setFont('helvetica','normal');
-      doc.setFontSize(8);
-      doc.setTextColor(50,50,50);
-      doc.text(authLines, M, y);
-      y += authLines.length * 4 + 6;
-
-      // ── Section 5: Signature ───────────────────────────────────────────
-      sectionHeader('5. DIGITAL SIGNATURE / FIRMA DIGITAL');
-      twoCol('Signer Name / Firmante', rec.signerName, 'Date / Fecha', rec.sigDate);
-
-      // Signature image box
-      doc.setDrawColor(200,200,200);
-      doc.setFillColor(250,250,248);
-      doc.rect(M, y, cw, 32, 'FD');
-      try {
-        doc.addImage(sigData, 'PNG', M+2, y+2, cw-4, 28);
-      } catch(e2) { /* skip if sig fails */ }
-      doc.setFont('helvetica','italic');
-      doc.setFontSize(7);
-      doc.setTextColor(160,160,160);
-      doc.text('Digital signature captured electronically on ' + new Date().toLocaleString(), M, y+35);
-      y += 40;
-
-      // Footer
-      doc.setFillColor(34,197,94);
-      doc.rect(0, 274, W, 2, 'F');
-      doc.setFont('helvetica','normal');
-      doc.setFontSize(7);
-      doc.setTextColor(140,140,140);
-      doc.text('FL Stat. §501.0117 · FL Stat. §68.065 · Dodd-Frank §1075 · FDUTPA Ch.501', W/2, 279, {align:'center'});
-      doc.text('Generated: ' + new Date().toLocaleString() + ' · ID: ' + id, W/2, 283, {align:'center'});
-
-      // ── Inject into preview ─────────────────────────────────────────
-      var pdfBlob = doc.output('blob');
-      var blobURL = URL.createObjectURL(pdfBlob);
-      window._signedPdfBlob = pdfBlob;
-      window._signedPdfFilename = 'BillingAuth-' + rec.lastName + '-' + id + '.pdf';
-
-      var frame = document.getElementById('pdfPreviewFrame');
-      var wrap  = document.getElementById('pdfPreviewWrap');
-      var dlBtn = document.getElementById('btnDownloadPDF');
-      if(frame) frame.src = blobURL;
-      if(wrap)  wrap.style.display = '';
-      if(dlBtn) dlBtn.style.display = 'flex';
-
-    } catch(pdfErr) {
-      console.warn('PDF generation failed:', pdfErr);
-      // Still show success screen even if PDF fails
-      var dlBtn2 = document.getElementById('btnDownloadPDF');
-      if(dlBtn2) dlBtn2.style.display = 'none';
-    }
-
+    var refEl = document.getElementById('successRef');
+    if(refEl) refEl.textContent = 'Ref: '+id;
+    // Build the document preview
+    showSuccessWithDoc(rec);
   }).catch(function(e){
     showStatus('❌ Error: '+e.message,'err');
     btn.disabled = false;
@@ -950,39 +806,142 @@ function openPayLink(){
   if(url && url.startsWith('http')) window.open(url,'_blank');
 }
 
+// ── Build document preview + PDF download ────────────────────────────
+var _savedRec = null;
+
+function showSuccessWithDoc(rec){
+  _savedRec = rec;
+  var preview = document.getElementById('successDocPreview');
+  if(!preview) return;
+  var cardInfo = rec.cardType ? rec.cardType+(rec.last4?' \u00b7\u00b7\u00b7\u00b7 '+rec.last4:'') : '';
+  var freqMap  = {monthly:'Mensual/Monthly',weekly:'Semanal/Weekly',biweekly:'Quincenal/Bi-weekly',annual:'Anual/Annual'};
+  var freq     = freqMap[rec.frequency]||rec.frequency||'';
+  var bizName  = window._bizName||'MASTER BAEZ';
+  var today    = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  preview.innerHTML =
+    '<div style="background:linear-gradient(135deg,#0a0a0f,#0f1a0f);padding:16px 20px;display:flex;align-items:center;gap:12px">'+
+      '<div style="width:38px;height:38px;background:linear-gradient(135deg,#22c55e,#16a34a);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">\u{1F4B3}</div>'+
+      '<div><div style="font-size:10px;font-weight:700;color:#4ade80;text-transform:uppercase;letter-spacing:.1em;font-family:Syne,sans-serif">'+bizName+'</div>'+
+      '<div style="font-size:13px;font-weight:800;color:#fff;font-family:Syne,sans-serif">Billing Authorization</div>'+
+      '<div style="font-size:9px;color:#555;font-family:monospace">'+rec.id+'</div></div>'+
+    '</div>'+
+    '<div style="padding:14px 20px;border-bottom:1px solid #eee">'+
+      '<div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#22c55e;margin-bottom:8px">CLIENT</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;color:#1a1a2e">'+
+        '<div><strong>Name:</strong> '+rec.firstName+' '+rec.lastName+'</div>'+
+        (rec.email?'<div><strong>Email:</strong> '+rec.email+'</div>':'')+
+        (rec.phone?'<div><strong>Phone:</strong> '+rec.phone+'</div>':'')+
+        (rec.address?'<div style="grid-column:span 2"><strong>Address:</strong> '+rec.address+'</div>':'')+
+      '</div>'+
+    '</div>'+
+    '<div style="padding:14px 20px;border-bottom:1px solid #eee">'+
+      '<div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#22c55e;margin-bottom:8px">PLAN &amp; BILLING</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:12px;color:#1a1a2e">'+
+        '<div><strong>Plan:</strong> '+rec.plan+'</div>'+
+        '<div><strong>Amount:</strong> <span style="color:#16a34a;font-weight:700">$'+rec.amount+'</span></div>'+
+        '<div><strong>Frequency:</strong> '+freq+'</div>'+
+        (rec.billingDay?'<div><strong>Billing Day:</strong> '+rec.billingDay+'</div>':'')+
+        (rec.firstCharge?'<div><strong>First Charge:</strong> '+rec.firstCharge+'</div>':'')+
+      '</div>'+
+    '</div>'+
+    '<div style="padding:14px 20px;border-bottom:1px solid #eee">'+
+      '<div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#22c55e;margin-bottom:8px">PAYMENT</div>'+
+      '<div style="font-size:12px;color:#1a1a2e">'+
+        (cardInfo?'<div><strong>Card:</strong> '+cardInfo+'</div>':'')+
+        (rec.payLink?'<div><strong>Payment Link:</strong> '+rec.payLink+'</div>':'')+
+      '</div>'+
+    '</div>'+
+    '<div style="padding:14px 20px;font-size:11px;color:#374151;background:#f8fff8;border-bottom:1px solid #bbf7d0;line-height:1.8">'+
+      'I, <strong>'+rec.signerName+'</strong>, authorize <strong>'+bizName+'</strong> to charge '+
+      '<strong style="color:#16a34a">$'+rec.amount+'</strong> ('+freq+') for the <strong>'+rec.plan+'</strong> plan. '+
+      'Authorization remains in effect until cancelled in writing with 30 days notice. '+
+      'Returned payments: $25\u2013$50 fee (FL \u00a768.065).'+
+    '</div>'+
+    '<div style="padding:14px 20px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px">'+
+      (rec.signatureData?
+        '<div><div style="font-size:9px;text-transform:uppercase;color:#22c55e;font-weight:700;margin-bottom:5px">SIGNATURE</div>'+
+        '<div style="background:#fafaf8;border:1px solid #d1d5db;border-radius:6px;padding:5px 10px;display:inline-block">'+
+          '<img src="'+rec.signatureData+'" style="max-height:55px;max-width:180px;display:block"/>'+
+        '</div>'+
+        '<div style="font-size:10px;color:#555;margin-top:4px">'+rec.signerName+' \u2022 '+rec.sigDate+'</div></div>'
+      :'')+
+      '<div style="text-align:right;font-size:9px;color:#9ca3af">'+
+        '<div>'+today+'</div><div style="font-family:monospace">'+rec.id+'</div>'+
+      '</div>'+
+    '</div>';
+}
+
+function downloadBillingPDF(){
+  if(!_savedRec){ alert('No record found'); return; }
+  var rec = _savedRec;
+  var bizName  = window._bizName||'MASTER BAEZ';
+  var freqMap  = {monthly:'Mensual/Monthly',weekly:'Semanal/Weekly',biweekly:'Quincenal/Bi-weekly',annual:'Anual/Annual'};
+  var freq     = freqMap[rec.frequency]||rec.frequency||'';
+  var today    = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"/>'+
+    '<title>Billing Auth - '+rec.firstName+' '+rec.lastName+'</title>'+
+    '<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:12px;color:#1a1a2e;padding:28px}'+
+    '.header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #22c55e;padding-bottom:14px;margin-bottom:18px}'+
+    '.title{font-size:20px;font-weight:800}.sub{font-size:10px;color:#666;margin-top:3px}'+
+    '.biz{font-size:13px;font-weight:700;color:#22c55e;text-align:right}'+
+    '.sec{margin-bottom:16px}.sec-title{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#22c55e;margin-bottom:7px;padding-bottom:3px;border-bottom:1px solid #e0f2e9}'+
+    '.g2{display:grid;grid-template-columns:1fr 1fr;gap:5px 18px}'+
+    '.lbl{font-size:9px;text-transform:uppercase;color:#999;letter-spacing:.07em}.val{font-weight:600}'+
+    '.amt{font-size:17px;font-weight:800;color:#16a34a}'+
+    '.auth{background:#f8fff8;border:1px solid #bbf7d0;border-radius:7px;padding:12px;margin:12px 0;font-size:11px;line-height:1.8;color:#374151}'+
+    '.sig-row{display:flex;justify-content:space-between;align-items:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid #e5e7eb}'+
+    '.sig-box{border:1px solid #d1d5db;border-radius:5px;padding:5px 10px;background:#fafaf8}'+
+    '.footer{margin-top:20px;padding-top:8px;border-top:1px solid #e5e7eb;font-size:9px;color:#9ca3af;text-align:center}'+
+    '@media print{body{padding:14px}.no-print{display:none}}</style></head><body>'+
+    '<div class="header">'+
+      '<div><div class="title">Billing Authorization</div>'+
+      '<div class="sub">Recurring Payment Authorization</div>'+
+      '<div class="sub" style="font-family:monospace;color:#999;margin-top:3px">'+rec.id+'</div></div>'+
+      '<div class="biz">'+bizName+'<br/><span style="font-size:10px;color:#666;font-weight:400">'+today+'</span></div>'+
+    '</div>'+
+    '<div class="sec"><div class="sec-title">Client Information</div><div class="g2">'+
+      '<div><div class="lbl">Name</div><div class="val">'+rec.firstName+' '+rec.lastName+'</div></div>'+
+      (rec.email?'<div><div class="lbl">Email</div><div class="val">'+rec.email+'</div></div>':'')+
+      (rec.phone?'<div><div class="lbl">Phone</div><div class="val">'+rec.phone+'</div></div>':'')+
+      (rec.address?'<div style="grid-column:span 2"><div class="lbl">Billing Address</div><div class="val">'+rec.address+'</div></div>':'')+
+    '</div></div>'+
+    '<div class="sec"><div class="sec-title">Plan &amp; Billing</div><div class="g2">'+
+      '<div><div class="lbl">Plan</div><div class="val">'+rec.plan+'</div></div>'+
+      '<div><div class="lbl">Amount</div><div class="amt">$'+rec.amount+'</div></div>'+
+      '<div><div class="lbl">Frequency</div><div class="val">'+freq+'</div></div>'+
+      (rec.billingDay?'<div><div class="lbl">Billing Day</div><div class="val">'+rec.billingDay+'</div></div>':'')+
+      (rec.firstCharge?'<div><div class="lbl">First Charge</div><div class="val">'+rec.firstCharge+'</div></div>':'')+
+    '</div></div>'+
+    '<div class="sec"><div class="sec-title">Payment</div><div class="g2">'+
+      (rec.cardType?'<div><div class="lbl">Card Type</div><div class="val">'+rec.cardType+'</div></div>':'')+
+      (rec.last4?'<div><div class="lbl">Card Ending</div><div class="val">\u00b7\u00b7\u00b7\u00b7 '+rec.last4+'</div></div>':'')+
+      (rec.cardName?'<div><div class="lbl">Name on Card</div><div class="val">'+rec.cardName+'</div></div>':'')+
+      (rec.payLink?'<div style="grid-column:span 2"><div class="lbl">Payment Link</div><div class="val">'+rec.payLink+'</div></div>':'')+
+    '</div></div>'+
+    '<div class="auth">I, <strong>'+rec.signerName+'</strong>, hereby authorize <strong>'+bizName+'</strong> '+
+    'to charge my payment method <strong>$'+rec.amount+'</strong> for the <strong>'+rec.plan+'</strong> plan ('+freq+'). '+
+    'Authorization remains in effect until cancelled in writing with 30 days notice. '+
+    'Returned payments subject to $25\u2013$50 fee (FL \u00a768.065). Convenience fee 3.50% on cards (FL \u00a7501.0117).</div>'+
+    '<div class="sig-row">'+
+      (rec.signatureData?
+        '<div><div class="lbl" style="margin-bottom:5px">Digital Signature</div>'+
+        '<div class="sig-box"><img src="'+rec.signatureData+'" style="max-height:65px;max-width:200px;display:block"/></div>'+
+        '<div style="font-size:10px;color:#555;margin-top:5px">'+rec.signerName+' \u2022 '+rec.sigDate+'</div></div>'
+      :'<div><div style="border-bottom:1px solid #1a1a2e;width:200px;margin-bottom:4px"></div><div class="lbl">Signature / Date</div></div>')+
+      '<div style="text-align:right;font-size:9px;color:#9ca3af"><div>'+today+'</div><div style="font-family:monospace">'+rec.id+'</div></div>'+
+    '</div>'+
+    '<div class="footer">This document is legally binding. Keep a copy for your records. \u2022 Este documento es legalmente vinculante.</div>'+
+    '<div class="no-print" style="text-align:center;margin-top:16px"><button onclick="window.print()" style="padding:10px 24px;background:#22c55e;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer">Print / Save as PDF</button></div>'+
+    '</body></html>';
+
+  var w = window.open('','_blank','width=820,height=920');
+  if(w){ w.document.open(); w.document.write(html); w.document.close(); setTimeout(function(){ w.print(); },700); }
+}
+
+
 // Set today's date as default for sigDate
 document.getElementById('f_sigDate').value = new Date().toISOString().split('T')[0];
-
-// ── Download signed PDF ───────────────────────────────────────────────
-function downloadSignedPDF(){
-  if(!window._signedPdfBlob) return;
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(window._signedPdfBlob);
-  a.download = window._signedPdfFilename || 'BillingAuthorization.pdf';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 1000);
-}
-
-// ── Close / clean exit ────────────────────────────────────────────────
-function closeSuccessScreen(){
-  // If opened as popup/tab from QR, try to close the window
-  if(window.opener || window.history.length <= 1){
-    window.close();
-    // Fallback if window.close() is blocked
-    setTimeout(function(){
-      document.getElementById('successScreen').innerHTML =
-        '<div style="padding:40px;text-align:center">' +
-        '<div style="font-size:48px;margin-bottom:16px">✅</div>' +
-        '<div style="font-family:\'Syne\',sans-serif;font-size:20px;font-weight:800;color:#22c55e;margin-bottom:8px">Done / Listo</div>' +
-        '<div style="font-size:13px;color:#888">You may close this tab.<br/>Puedes cerrar esta pestaña.</div>' +
-        '</div>';
-    }, 300);
-  } else {
-    // Navigated normally — go back or show done state
-    window.history.back();
-  }
-}
 </script>
 </body>
 </html>
