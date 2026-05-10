@@ -17952,10 +17952,10 @@ document.addEventListener('DOMContentLoaded', function(){
     if(typeof updateNavBadge === 'function') updateNavBadge();
     if(typeof updateNavBadgeProspectos === 'function') updateNavBadgeProspectos();
   }, 3000);
-  // Init chatbot — arranca el listener de Firebase para badge + tabla en tiempo real
+  // Iniciar listener de chatbotLeads para badge en tiempo real
   setTimeout(function(){
-    if(typeof initChatbot === 'function') initChatbot();
-  }, 1500);
+    if(typeof window.initChatbotBadge === 'function') window.initChatbotBadge();
+  }, 2000);
   // Init flyer layer list (renders even if tab is hidden)
   setTimeout(function(){
     if(typeof renderFlyerLayerList === 'function') renderFlyerLayerList();
@@ -23593,3 +23593,202 @@ function _baOpenSendFromClient(recId){
         +'</td>'
         +'</tr>';
     }).join('');
+  }
+
+  function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  /* ── Public actions ── */
+  window.cbChangeStatus = function(id, status){
+    _cbLeads.forEach(function(l){ if(l.id===id) l.status=status; });
+    if(typeof _fbdb!=='undefined'&&_fbdb) _fbdb.ref('chatbotLeads/'+id+'/status').set(status);
+    _renderCbLeads();
+    _updateCbBadge();
+    if(typeof showToast==='function') showToast(status==='converted'?'✅ Marcado como convertido':'📞 Marcado como contactado');
+  };
+
+  window.cbDeleteLead = function(id){
+    if(!confirm('¿Eliminar este lead?')) return;
+    _cbLeads = _cbLeads.filter(function(l){ return l.id!==id; });
+    if(typeof _fbdb!=='undefined'&&_fbdb) _fbdb.ref('chatbotLeads/'+id).remove();
+    _renderCbLeads();
+    _updateCbBadge();
+  };
+
+  window.cbSaveConfig = function(){
+    var f = ['schoolName','waNumber','greeting','systemPrompt'];
+    f.forEach(function(k){ var el=document.getElementById('cb_'+k); if(el) _cbConfig[k]=el.value; });
+    if(typeof _fbdb!=='undefined'&&_fbdb){
+      _fbdb.ref('chatbotConfig').set(_cbConfig);
+    } else {
+      localStorage.setItem('cbConfig', JSON.stringify(_cbConfig));
+    }
+    _refreshEmbedCode();
+    if(typeof showToast==='function') showToast('✅ Configuración guardada');
+  };
+
+  window.cbSwitchTab = function(t){
+    _cbTab = t;
+    document.querySelectorAll('.cb-tab').forEach(function(el){ el.classList.toggle('active', el.dataset.tab===t); });
+    document.getElementById('cb-panel-leads').style.display = t==='leads'?'block':'none';
+    document.getElementById('cb-panel-config').style.display = t==='config'?'block':'none';
+    document.getElementById('cb-panel-preview').style.display = t==='preview'?'block':'none';
+    if(t==='leads') _renderCbLeads();
+    if(t==='config') _refreshEmbedCode();
+  };
+
+  window.cbCopyEmbed = function(){
+    var code = document.getElementById('cb-embed-code');
+    if(!code) return;
+    navigator.clipboard.writeText(code.textContent).then(function(){
+      if(typeof showToast==='function') showToast('📋 Código copiado al portapapeles');
+    });
+  };
+
+  /* ── Embed code generator ── */
+  function _refreshEmbedCode(){
+    var box = document.getElementById('cb-embed-code');
+    if(!box) return;
+    var school = _cbConfig.schoolName || 'Mi Escuela';
+    var wa = _cbConfig.waNumber || '1234567890';
+    var greeting = _cbConfig.greeting || '¡Hola! ¿En qué puedo ayudarte hoy?';
+    var sysPrompt = _cbConfig.systemPrompt || 'Eres el asistente virtual de "'+school+'". Responde en español, máximo 3 oraciones, tono motivador y profesional.';
+    var fbRef = '';
+    if(typeof _fbdb!=='undefined'&&_fbdb) fbRef = '"chatbotLeads"'; // firebase path placeholder
+    box.textContent = '<!-- Chatbot Widget: '+school+' -->\n<script>\n(function(){\n  var SCHOOL="'+school+'";\n  var WA="'+wa+'";\n  var SYS='+JSON.stringify(sysPrompt)+';\n  var hist=[]; var lead=null;\n  /* ... widget code auto-generado por tu CRM ... */\n  /* Pega este snippet antes del </body> de tu sitio */\n  /* Los leads se guardan automáticamente en tu CRM  */\n'+'})();\n<\/script>';
+  }
+
+  /* ── Register lead from widget (called externally) ── */
+  window.cbRegisterLead = function(data){
+    var id = 'cbl_'+Date.now();
+    var lead = { id:id, name:data.name||'', phone:data.phone||'', email:data.email||'', status:'new', source:'chatbot-widget', createdAt:new Date().toISOString() };
+    _cbLeads.unshift(lead);
+    if(typeof _fbdb!=='undefined'&&_fbdb) _fbdb.ref('chatbotLeads/'+id).set(lead);
+    _updateCbBadge();
+    if(typeof showToast==='function') showToast('🤖 Nuevo lead del chatbot: '+lead.name);
+  };
+
+  /* ── Badge-only init (runs on page load, no UI needed) ── */
+  window.initChatbotBadge = function(){
+    _loadCbLeads();
+  };
+
+  /* ── Render page ── */
+  window.renderChatbotPage = function(){
+    initChatbot();
+    cbSwitchTab(_cbTab);
+    setTimeout(function(){ _renderCbLeads(); }, 800);
+  };
+
+  /* Hook goPage */
+  var _origGoPage2 = window.goPage;
+  window.goPage = function(p){
+    _origGoPage2(p);
+    if(p==='chatbot') window.renderChatbotPage();
+  };
+})();
+</script>
+
+<!-- CHATBOT PAGE HTML — inserted into .app > .main-wrap > .main -->
+<script>
+(function(){
+  function injectChatbotPage(){
+    var mainEl = document.querySelector('.main');
+    if(!mainEl){ setTimeout(injectChatbotPage, 300); return; }
+    var pg = document.createElement('div');
+    pg.className = 'page'; pg.id = 'page-chatbot';
+    pg.innerHTML = [
+      '<div class="topbar">',
+        '<div class="page-title" style="color:#f43f5e">🤖 Chatbot AI</div>',
+        '<div class="topbar-actions">',
+          '<button class="cb-act-btn" onclick="cbSwitchTab(\'leads\')">📋 Leads</button>',
+          '<button class="cb-act-btn" onclick="cbSwitchTab(\'config\')">⚙️ Configurar</button>',
+          '<button class="cb-act-btn" onclick="cbSwitchTab(\'preview\')">👁️ Vista previa</button>',
+        '</div>',
+      '</div>',
+
+      /* KPIs */
+      '<div class="cb-kpis">',
+        '<div class="cb-kpi ck-a"><div class="cb-kpi-icon">🎯</div><div class="cb-kpi-lbl">Total Leads</div><div class="cb-kpi-val" id="cb-kpi-total">0</div><div class="cb-kpi-sub">capturados por el widget</div></div>',
+        '<div class="cb-kpi ck-b"><div class="cb-kpi-icon">🆕</div><div class="cb-kpi-lbl">Nuevos</div><div class="cb-kpi-val" id="cb-kpi-new">0</div><div class="cb-kpi-sub">sin contactar aún</div></div>',
+        '<div class="cb-kpi ck-c"><div class="cb-kpi-icon">✅</div><div class="cb-kpi-lbl">Convertidos</div><div class="cb-kpi-val" id="cb-kpi-converted">0</div><div class="cb-kpi-sub">inscritos en la escuela</div></div>',
+        '<div class="cb-kpi ck-d"><div class="cb-kpi-icon">📅</div><div class="cb-kpi-lbl">Hoy</div><div class="cb-kpi-val" id="cb-kpi-today">0</div><div class="cb-kpi-sub">leads de hoy</div></div>',
+      '</div>',
+
+      /* Tabs */
+      '<div class="cb-tabs">',
+        '<button class="cb-tab active" data-tab="leads" onclick="cbSwitchTab(\'leads\')">📋 Leads Capturados</button>',
+        '<button class="cb-tab" data-tab="config" onclick="cbSwitchTab(\'config\')">⚙️ Configuración</button>',
+        '<button class="cb-tab" data-tab="preview" onclick="cbSwitchTab(\'preview\')">🔗 Código Embed</button>',
+      '</div>',
+
+      /* LEADS PANEL */
+      '<div id="cb-panel-leads">',
+        '<div class="cb-tbl-wrap">',
+          '<div class="cb-tbl-head">',
+            '<span class="cb-tbl-title">Leads del Chatbot</span>',
+            '<button class="cb-act-btn" onclick="if(typeof showToast===\'function\')showToast(\'Exportando...\')">📤 Exportar CSV</button>',
+          '</div>',
+          '<table class="cb-tbl"><thead><tr>',
+            '<th>Nombre</th><th>Teléfono</th><th>Email</th><th>Estado</th><th>Fecha</th><th>Acciones</th>',
+          '</tr></thead><tbody id="cb-leads-tbody">',
+            '<tr><td colspan="6"><div class="cb-empty"><div class="cb-empty-icon">🤖</div><div class="cb-empty-txt">Cargando leads...</div></div></td></tr>',
+          '</tbody></table>',
+        '</div>',
+      '</div>',
+
+      /* CONFIG PANEL */
+      '<div id="cb-panel-config" style="display:none">',
+        '<div class="cb-cfg-grid">',
+          '<div class="cb-cfg-card">',
+            '<h3>⚙️ Datos de la Escuela</h3>',
+            '<div class="cb-field"><label>Nombre de la Escuela</label><input id="cb_schoolName" placeholder="Ej: Dojo Bushido"/></div>',
+            '<div class="cb-field"><label>Número de WhatsApp (con código de país)</label><input id="cb_waNumber" placeholder="Ej: 17865550100"/></div>',
+            '<div class="cb-field"><label>Mensaje de bienvenida</label><input id="cb_greeting" placeholder="¡Hola! ¿En qué puedo ayudarte?"/></div>',
+            '<div class="cb-field"><label>Instrucciones del asistente (System Prompt)</label>',
+              '<textarea id="cb_systemPrompt" placeholder="Eres el asistente de... Responde sobre clases, precios, horarios..."></textarea>',
+            '</div>',
+            '<button onclick="cbSaveConfig()" style="width:100%;padding:11px;border-radius:10px;border:none;background:linear-gradient(135deg,#f43f5e,#e11d48);color:#fff;font-family:Syne,sans-serif;font-weight:700;font-size:13px;cursor:pointer">💾 Guardar Configuración</button>',
+          '</div>',
+          '<div class="cb-cfg-card">',
+            '<h3>ℹ️ Cómo funciona</h3>',
+            '<div style="display:flex;flex-direction:column;gap:14px">',
+              '<div style="display:flex;gap:12px;align-items:flex-start"><div style="width:28px;height:28px;border-radius:50%;background:rgba(244,63,94,.15);color:#f43f5e;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:Syne,sans-serif;flex-shrink:0">1</div><div style="font-size:13px;color:var(--muted2);line-height:1.5">Configura el nombre y WhatsApp de tu escuela arriba.</div></div>',
+              '<div style="display:flex;gap:12px;align-items:flex-start"><div style="width:28px;height:28px;border-radius:50%;background:rgba(244,63,94,.15);color:#f43f5e;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:Syne,sans-serif;flex-shrink:0">2</div><div style="font-size:13px;color:var(--muted2);line-height:1.5">Ve a la pestaña <strong style="color:var(--text)">Código Embed</strong> y copia el snippet.</div></div>',
+              '<div style="display:flex;gap:12px;align-items:flex-start"><div style="width:28px;height:28px;border-radius:50%;background:rgba(244,63,94,.15);color:#f43f5e;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:Syne,sans-serif;flex-shrink:0">3</div><div style="font-size:13px;color:var(--muted2);line-height:1.5">Pega el código en tu sitio web antes del <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:11px">&lt;/body&gt;</code>.</div></div>',
+              '<div style="display:flex;gap:12px;align-items:flex-start"><div style="width:28px;height:28px;border-radius:50%;background:rgba(244,63,94,.15);color:#f43f5e;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:Syne,sans-serif;flex-shrink:0">4</div><div style="font-size:13px;color:var(--muted2);line-height:1.5">Los leads que deje el chatbot aparecen automáticamente en esta tabla, conectados a tu Firebase.</div></div>',
+              '<div style="display:flex;gap:12px;align-items:flex-start"><div style="width:28px;height:28px;border-radius:50%;background:rgba(34,197,94,.15);color:#22c55e;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:Syne,sans-serif;flex-shrink:0">✓</div><div style="font-size:13px;color:var(--muted2);line-height:1.5">Márcalos como <strong style="color:#f59e0b">Contactado</strong> o <strong style="color:#22c55e">Convertido</strong> para llevar el seguimiento.</div></div>',
+            '</div>',
+          '</div>',
+        '</div>',
+      '</div>',
+
+      /* EMBED CODE PANEL */
+      '<div id="cb-panel-preview" style="display:none">',
+        '<div class="cb-cfg-card" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px">',
+          '<h3>🔗 Código para tu Sitio Web</h3>',
+          '<p style="font-size:13px;color:var(--muted2);margin-bottom:12px">Copia este código y pégalo en tu sitio web justo antes del <code style="background:var(--surface2);padding:1px 6px;border-radius:4px;font-size:12px">&lt;/body&gt;</code>. El widget aparecerá como un botón flotante en todas las páginas.</p>',
+          '<pre class="cb-code-box" id="cb-embed-code">Guardando configuración...</pre>',
+          '<div style="display:flex;gap:10px;margin-top:14px">',
+            '<button onclick="cbCopyEmbed()" style="padding:10px 22px;border-radius:10px;border:none;background:linear-gradient(135deg,#f43f5e,#e11d48);color:#fff;font-family:Syne,sans-serif;font-weight:700;font-size:13px;cursor:pointer">📋 Copiar Código</button>',
+            '<button onclick="cbSwitchTab(\'config\')" style="padding:10px 22px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--text);font-family:Syne,sans-serif;font-weight:700;font-size:13px;cursor:pointer">⚙️ Cambiar configuración</button>',
+          '</div>',
+          '<div style="margin-top:20px;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:14px">',
+            '<div style="font-size:12px;font-weight:700;color:#22c55e;margin-bottom:6px;font-family:Syne,sans-serif">🔥 Integración con Firebase</div>',
+            '<div style="font-size:12px;color:var(--muted2);line-height:1.6">Los leads capturados por el chatbot se guardan directamente en <code style="background:var(--surface2);padding:1px 4px;border-radius:3px">chatbotLeads/</code> en tu Firebase Realtime Database y aparecen en tiempo real en la tabla de arriba.</div>',
+          '</div>',
+        '</div>',
+      '</div>',
+    ].join('');
+
+    mainEl.appendChild(pg);
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', injectChatbotPage);
+  } else {
+    injectChatbotPage();
+  }
+})();
+</script>
+
+</body>
