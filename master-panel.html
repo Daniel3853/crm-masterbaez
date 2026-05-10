@@ -21151,8 +21151,23 @@ function enrLoadClientsDropdown(){
     total += refs.length;
   }
 
+  // Add chatbot leads group
+  if(typeof window._cbLeadsGlobal !== 'undefined' && window._cbLeadsGlobal.length > 0){
+    var grpCb = document.createElement('optgroup');
+    grpCb.label = '🤖 Chatbot Leads ('+window._cbLeadsGlobal.length+')';
+    window._cbLeadsGlobal.slice(0,300).forEach(function(l){
+      var opt = document.createElement('option');
+      opt.value = 'chatbot:'+l.id;
+      var nameParts = (l.name||'').split(' ');
+      opt.textContent = (l.name||'Sin nombre')+(l.phone?' · '+fmtPhone(l.phone):'');
+      grpCb.appendChild(opt);
+    });
+    sel.appendChild(grpCb);
+    total += window._cbLeadsGlobal.length;
+  }
+
   var hint = document.getElementById('enr_crmLinkHint');
-  if(hint) hint.textContent = total > 0 ? total+' registros cargados (Clientes · Leads · Referidos)' : 'No hay registros en el CRM aún';
+  if(hint) hint.textContent = total > 0 ? total+' registros cargados (Clientes · Leads · Referidos · Chatbot)' : 'No hay registros en el CRM aún';
 }
 
 function enrPrefillFromClient(){
@@ -21174,6 +21189,15 @@ function enrPrefillFromClient(){
   } else if(type === 'ref'){
     var refs = typeof referidores !== 'undefined' ? referidores : [];
     r = refs.find(function(x){ return x.id===id; });
+  } else if(type === 'chatbot'){
+    var cbL = window._cbLeadsGlobal || [];
+    var cbRaw = cbL.find(function(x){ return x.id===id; });
+    if(cbRaw){
+      // Normalize chatbot lead to match expected field names
+      var nameParts = (cbRaw.name||'').split(' ');
+      r = { id: cbRaw.id, firstName: nameParts[0]||'', lastName: nameParts.slice(1).join(' ')||'',
+            phone: cbRaw.phone||'', email: cbRaw.email||'', source: 'chatbot-website' };
+    }
   }
 
   if(!r) return;
@@ -23542,6 +23566,7 @@ function _baOpenSendFromClient(recId){
       _fbdb.ref('chatbotLeads').orderByChild('createdAt').limitToLast(200).on('value', function(snap){
         _cbLeads=[];
         if(snap.exists()) snap.forEach(function(c){ _cbLeads.unshift(c.val()); });
+        window._cbLeadsGlobal = _cbLeads;
         _updateCbBadge();
         _renderCbLeads();
       });
@@ -23604,6 +23629,84 @@ function _baOpenSendFromClient(recId){
     _renderCbLeads();
     _updateCbBadge();
     if(typeof showToast==='function') showToast(status==='converted'?'✅ Marcado como convertido':'📞 Marcado como contactado');
+  };
+
+  // Expose leads globally for enrollment dropdown
+  window._cbLeadsGlobal = _cbLeads;
+
+  window.cbOpenEnrollment = function(id){
+    var l = _cbLeads.find(function(x){ return x.id===id; });
+    if(!l) return;
+    // Sync global ref
+    window._cbLeadsGlobal = _cbLeads;
+    if(typeof goPage==='function') goPage('waiver');
+    setTimeout(function(){
+      if(typeof switchWaiverTab==='function') switchWaiverTab('form');
+      setTimeout(function(){
+        if(typeof enrLoadClientsDropdown==='function') enrLoadClientsDropdown();
+        var sel = document.getElementById('enr_clientLink');
+        if(sel){
+          sel.value = 'chatbot:'+id;
+          if(typeof enrPrefillFromClient==='function') enrPrefillFromClient();
+        }
+      }, 300);
+    }, 400);
+  };
+
+  window.cbOpenBilling = function(id){
+    var l = _cbLeads.find(function(x){ return x.id===id; });
+    if(!l) return;
+    if(typeof goPage==='function') goPage('waiver');
+    setTimeout(function(){
+      if(typeof switchWaiverTab==='function') switchWaiverTab('billing');
+      setTimeout(function(){
+        // Pre-fill billing auth fields
+        var fn = (l.name||'').split(' ')[0]||'';
+        var ln = (l.name||'').split(' ').slice(1).join(' ')||'';
+        var setf = function(eid, v){ var el=document.getElementById(eid); if(el&&v) el.value=v; };
+        setf('ba_firstName', fn);
+        setf('ba_lastName',  ln);
+        setf('ba_phone',     l.phone||'');
+        setf('ba_email',     l.email||'');
+        if(typeof showToast==='function') showToast('📋 Datos del chatbot lead cargados en Billing Auth');
+      }, 400);
+    }, 400);
+  };
+
+  window.cbConvertToClient = function(id){
+    var l = _cbLeads.find(function(x){ return x.id===id; });
+    if(!l){ if(typeof showToast==='function') showToast('❌ Lead no encontrado'); return; }
+    if(!confirm('¿Convertir "'+l.name+'" en cliente activo?')) return;
+    var nameParts = (l.name||'').split(' ');
+    var newReg = {
+      id: 'reg_cb_'+Date.now(),
+      firstName: nameParts[0]||'',
+      lastName:  nameParts.slice(1).join(' ')||'',
+      phone:     l.phone||'',
+      email:     l.email||'',
+      status:    'active',
+      source:    'chatbot-website',
+      createdAt: new Date().toISOString(),
+      plan:      '',
+      notes:     'Convertido desde Chatbot Lead'
+    };
+    if(typeof _fbdb!=='undefined'&&_fbdb){
+      _fbdb.ref('registrations/'+newReg.id).set(newReg)
+        .then(function(){
+          // Mark chatbot lead as converted
+          _fbdb.ref('chatbotLeads/'+id+'/status').set('converted');
+          _fbdb.ref('chatbotLeads/'+id+'/linkedRegId').set(newReg.id);
+          _cbLeads.forEach(function(x){ if(x.id===id){ x.status='converted'; x.linkedRegId=newReg.id; } });
+          _renderCbLeads(); _updateCbBadge();
+          if(typeof registrations!=='undefined') registrations.unshift(newReg);
+          if(typeof renderClients==='function') renderClients();
+          if(typeof renderDashboard==='function') renderDashboard();
+          if(typeof showToast==='function') showToast('✅ '+l.name+' convertido a cliente activo');
+        })
+        .catch(function(e){ if(typeof showToast==='function') showToast('❌ Error: '+e.message); });
+    } else {
+      if(typeof showToast==='function') showToast('❌ Firebase no disponible');
+    }
   };
 
   window.cbDeleteLead = function(id){
