@@ -7494,7 +7494,73 @@ function generarContratoReferidor(ref){
   '</div>' +
 
   '<div class="footer">Documento generado el ' + today + ' &nbsp;·&nbsp; ID: ' + ref.cid + ' &nbsp;·&nbsp; ' + bizName + '</div>' +
-  '</body></html>';
+  '
+<!-- CHATBOT LEAD ACTION MODAL -->
+<div id="cbLeadModal">
+  <div class="cblm-box">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+      <div>
+        <div class="cblm-name" id="cblm_name">—</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <span class="cblm-pill" style="background:rgba(244,63,94,.12);color:#f43f5e;border:1px solid rgba(244,63,94,.3)">&#x1F916; Chatbot Lead</span>
+          <span class="cblm-pill" id="cblm_status_badge" style="background:rgba(244,63,94,.12);color:#f43f5e;border:1px solid rgba(244,63,94,.3)">Nuevo</span>
+        </div>
+      </div>
+      <button onclick="cbCloseLead()" style="background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:0 4px;line-height:1">&#x2715;</button>
+    </div>
+    <div class="cblm-info">
+      <div class="cblm-info-item">&#x1F4DE; Telefono<strong id="cblm_phone">—</strong></div>
+      <div class="cblm-info-item">&#x1F4E7; Email<strong id="cblm_email">—</strong></div>
+      <div class="cblm-info-item">&#x1F4C5; Fecha<strong id="cblm_date">—</strong></div>
+      <div class="cblm-info-item">&#x1F4CD; Fuente<strong id="cblm_source">—</strong></div>
+    </div>
+    <div class="cblm-grid">
+      <button class="cblm-btn cblm-wa"      onclick="cbModalWhatsApp()">  <span class="ico">&#x1F4AC;</span>WhatsApp</button>
+      <button class="cblm-btn cblm-contact" onclick="cbModalContacted()"> <span class="ico">&#x1F4DE;</span>Marcar Contactado</button>
+      <button class="cblm-btn cblm-enroll"  onclick="cbModalEnrollment()"><span class="ico">&#x1F4CB;</span>Enrollment / Waiver</button>
+      <button class="cblm-btn cblm-billing" onclick="cbModalBilling()">   <span class="ico">&#x1F4B3;</span>Billing Auth</button>
+      <button class="cblm-btn cblm-convert" onclick="cbModalConvert()">   <span class="ico">&#x1F464;</span>Convertir a Cliente</button>
+      <button class="cblm-btn cblm-del"     onclick="cbModalDelete()">    <span class="ico">&#x1F5D1;</span>Eliminar Lead</button>
+    </div>
+  </div>
+</div>
+<script>
+var _cblmId=null;
+window.cbOpenLeadModal=function(id){
+  var leads=window._cbLeadsGlobal||[];
+  var l=leads.find(function(x){return x.id===id;});
+  if(!l)return;
+  _cblmId=id;
+  document.getElementById('cblm_name').textContent=l.name||'Sin nombre';
+  document.getElementById('cblm_phone').textContent=l.phone||'—';
+  document.getElementById('cblm_email').textContent=l.email||'—';
+  document.getElementById('cblm_source').textContent=l.source||'chatbot-website';
+  document.getElementById('cblm_date').textContent=l.createdAt?new Date(l.createdAt).toLocaleDateString('es',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
+  var sb=document.getElementById('cblm_status_badge');
+  var sm={new:'Nuevo',contacted:'Contactado',converted:'Convertido'};
+  var bg={new:'rgba(244,63,94,.12)',contacted:'rgba(245,158,11,.12)',converted:'rgba(34,197,94,.12)'};
+  var tc={new:'#f43f5e',contacted:'#f59e0b',converted:'#22c55e'};
+  var bc={new:'rgba(244,63,94,.3)',contacted:'rgba(245,158,11,.3)',converted:'rgba(34,197,94,.3)'};
+  var s=l.status||'new';
+  sb.textContent=sm[s]||s;sb.style.background=bg[s];sb.style.color=tc[s];sb.style.borderColor=bc[s];
+  document.getElementById('cbLeadModal').classList.add('open');
+};
+window.cbCloseLead=function(){document.getElementById('cbLeadModal').classList.remove('open');_cblmId=null;};
+window.cbModalWhatsApp=function(){
+  var l=(window._cbLeadsGlobal||[]).find(function(x){return x.id===_cblmId;});
+  if(!l||!l.phone)return;
+  var msg=encodeURIComponent('Hola '+l.name+'! Vi tu interes en Master Baez Martial Arts. Tu primera clase es GRATIS. Cuando puedes venir?');
+  window.open('https://wa.me/1'+l.phone.replace(/\D/g,'')+'?text='+msg,'_blank');
+};
+window.cbModalContacted=function(){if(!_cblmId)return;if(typeof cbChangeStatus==='function')cbChangeStatus(_cblmId,'contacted');cbCloseLead();};
+window.cbModalEnrollment=function(){if(!_cblmId)return;cbCloseLead();if(typeof cbOpenEnrollment==='function')cbOpenEnrollment(_cblmId);};
+window.cbModalBilling=function(){if(!_cblmId)return;cbCloseLead();if(typeof cbOpenBilling==='function')cbOpenBilling(_cblmId);};
+window.cbModalConvert=function(){if(!_cblmId)return;cbCloseLead();if(typeof cbConvertToClient==='function')cbConvertToClient(_cblmId);};
+window.cbModalDelete=function(){if(!_cblmId)return;cbCloseLead();if(typeof cbDeleteLead==='function')cbDeleteLead(_cblmId);};
+document.addEventListener('click',function(e){if(e.target&&e.target.id==='cbLeadModal')window.cbCloseLead();});
+</script>
+
+</body></html>';
 
   var docTitle = 'Contrato Referidor — ' + ref.firstName + ' ' + ref.lastName;
   var filename = 'contrato-referidor-' + ref.cid + '.pdf';
@@ -8283,6 +8349,7 @@ function lsmStatus(msg) {
         try { _fbdb.ref('prospectos/' + newPs.id).set(newPs); } catch(e) {}
         if (typeof updateNavBadgeProspectos === 'function') try { updateNavBadgeProspectos(); } catch(e) {}
         if (typeof renderProspectos === 'function') try { renderProspectos(); } catch(e) {}
+  setTimeout(function(){ if(typeof window.initChatbotBadge==='function') window.initChatbotBadge(); }, 2000);
         if (typeof showToast === 'function') {
           showToast('🔔 ' + (enr.firstName||'') + ' ' + (enr.lastName||'') + ' — nuevo enrollment sin lead previo');
         }
@@ -17952,10 +18019,6 @@ document.addEventListener('DOMContentLoaded', function(){
     if(typeof updateNavBadge === 'function') updateNavBadge();
     if(typeof updateNavBadgeProspectos === 'function') updateNavBadgeProspectos();
   }, 3000);
-  // Iniciar listener de chatbotLeads para badge en tiempo real
-  setTimeout(function(){
-    if(typeof window.initChatbotBadge === 'function') window.initChatbotBadge();
-  }, 2000);
   // Init flyer layer list (renders even if tab is hidden)
   setTimeout(function(){
     if(typeof renderFlyerLayerList === 'function') renderFlyerLayerList();
@@ -21151,23 +21214,8 @@ function enrLoadClientsDropdown(){
     total += refs.length;
   }
 
-  // Add chatbot leads group
-  if(typeof window._cbLeadsGlobal !== 'undefined' && window._cbLeadsGlobal.length > 0){
-    var grpCb = document.createElement('optgroup');
-    grpCb.label = '🤖 Chatbot Leads ('+window._cbLeadsGlobal.length+')';
-    window._cbLeadsGlobal.slice(0,300).forEach(function(l){
-      var opt = document.createElement('option');
-      opt.value = 'chatbot:'+l.id;
-      var nameParts = (l.name||'').split(' ');
-      opt.textContent = (l.name||'Sin nombre')+(l.phone?' · '+fmtPhone(l.phone):'');
-      grpCb.appendChild(opt);
-    });
-    sel.appendChild(grpCb);
-    total += window._cbLeadsGlobal.length;
-  }
-
   var hint = document.getElementById('enr_crmLinkHint');
-  if(hint) hint.textContent = total > 0 ? total+' registros cargados (Clientes · Leads · Referidos · Chatbot)' : 'No hay registros en el CRM aún';
+  if(hint) hint.textContent = total > 0 ? total+' registros cargados (Clientes · Leads · Referidos)' : 'No hay registros en el CRM aún';
 }
 
 function enrPrefillFromClient(){
@@ -21189,15 +21237,6 @@ function enrPrefillFromClient(){
   } else if(type === 'ref'){
     var refs = typeof referidores !== 'undefined' ? referidores : [];
     r = refs.find(function(x){ return x.id===id; });
-  } else if(type === 'chatbot'){
-    var cbL = window._cbLeadsGlobal || [];
-    var cbRaw = cbL.find(function(x){ return x.id===id; });
-    if(cbRaw){
-      // Normalize chatbot lead to match expected field names
-      var nameParts = (cbRaw.name||'').split(' ');
-      r = { id: cbRaw.id, firstName: nameParts[0]||'', lastName: nameParts.slice(1).join(' ')||'',
-            phone: cbRaw.phone||'', email: cbRaw.email||'', source: 'chatbot-website' };
-    }
   }
 
   if(!r) return;
@@ -23526,6 +23565,26 @@ function _baOpenSendFromClient(recId){
 .cb-act-btn:hover{border-color:#f43f5e;color:#f43f5e;background:rgba(244,63,94,.08);}
 .cb-act-btn.danger{border-color:var(--danger);color:var(--danger);}
 .cb-act-btn.danger:hover{background:rgba(239,68,68,.1);}
+/* ── Chatbot Lead Action Modal ── */
+#cbLeadModal{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:10010;display:none;align-items:center;justify-content:center;padding:20px;}
+#cbLeadModal.open{display:flex;}
+.cblm-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px;max-width:480px;width:100%;}
+.cblm-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--text);margin-bottom:6px;}
+.cblm-pill{border-radius:20px;padding:3px 10px;font-size:10px;font-weight:800;font-family:'Syne',sans-serif;}
+.cblm-info{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:16px 0;background:var(--surface2);border-radius:12px;padding:14px;}
+.cblm-info-item{font-size:12px;color:var(--muted2);}
+.cblm-info-item strong{display:block;color:var(--text);font-size:13px;margin-top:2px;}
+.cblm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.cblm-btn{padding:13px 10px;border-radius:12px;border:1.5px solid var(--border);background:transparent;color:var(--text);font-size:12px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:5px;}
+.cblm-btn .ico{font-size:22px;}
+.cblm-btn:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,.3);}
+.cblm-wa{border-color:#22c55e;color:#22c55e;}.cblm-wa:hover{background:rgba(34,197,94,.1);}
+.cblm-enroll{border-color:#a855f7;color:#a855f7;}.cblm-enroll:hover{background:rgba(168,85,247,.1);}
+.cblm-billing{border-color:#60a5fa;color:#60a5fa;}.cblm-billing:hover{background:rgba(96,165,250,.1);}
+.cblm-convert{border-color:#22c55e;color:#22c55e;background:rgba(34,197,94,.08);}.cblm-convert:hover{background:rgba(34,197,94,.18);}
+.cblm-contact{border-color:#f59e0b;color:#f59e0b;}.cblm-contact:hover{background:rgba(245,158,11,.1);}
+.cblm-del{border-color:var(--danger);color:var(--danger);}.cblm-del:hover{background:rgba(239,68,68,.1);}
+
 </style>
 
 <!-- CHATBOT PAGE -->
@@ -23606,15 +23665,14 @@ function _baOpenSendFromClient(recId){
       var dateStr = l.createdAt ? new Date(l.createdAt).toLocaleDateString('es', {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
       var wa = l.phone ? '<a href="https://wa.me/'+l.phone.replace(/\D/g,'')+'" target="_blank" style="color:#22c55e;text-decoration:none;font-size:18px" title="Abrir WhatsApp">💬</a>' : '—';
       return '<tr>'
-        +'<td><strong>'+escHtml(l.name||'Sin nombre')+'</strong></td>'
+        +'<td><strong style="cursor:pointer;color:var(--accent)" onclick="cbOpenLeadModal(\''+l.id+'\')">' +escHtml(l.name||'Sin nombre')+'</strong></td>'
         +'<td style="color:var(--muted2)">'+escHtml(l.phone||'—')+'</td>'
         +'<td style="color:var(--muted2)">'+escHtml(l.email||'—')+'</td>'
         +'<td><span class="'+statusClass+'">'+statusLbl+'</span></td>'
         +'<td style="color:var(--muted2);font-size:12px">'+dateStr+'</td>'
-        +'<td style="display:flex;gap:8px;align-items:center">'+wa
-          +'<button class="cb-act-btn" onclick="cbChangeStatus(\''+l.id+'\',\'contacted\')" title="Marcar contactado">📞</button>'
-          +'<button class="cb-act-btn" onclick="cbChangeStatus(\''+l.id+'\',\'converted\')" title="Marcar convertido" style="border-color:#22c55e;color:#22c55e">✅</button>'
-          +'<button class="cb-act-btn danger" onclick="cbDeleteLead(\''+l.id+'\')" title="Eliminar">🗑️</button>'
+        +'<td style="display:flex;gap:6px;align-items:center">'
+          +'<button class="cb-act-btn" onclick="cbOpenLeadModal(\''+l.id+'\')" style="border-color:#f43f5e;color:#f43f5e;padding:7px 18px;font-size:12px">&#x26A1; Acciones</button>'
+          +'<button class="cb-act-btn danger" onclick="cbDeleteLead(\''+l.id+'\')" title="Eliminar">&#x1F5D1;</button>'
         +'</td>'
         +'</tr>';
     }).join('');
@@ -23631,13 +23689,20 @@ function _baOpenSendFromClient(recId){
     if(typeof showToast==='function') showToast(status==='converted'?'✅ Marcado como convertido':'📞 Marcado como contactado');
   };
 
-  // Expose leads globally for enrollment dropdown
+  window.cbDeleteLead = function(id){
+    if(!confirm('¿Eliminar este lead?')) return;
+    _cbLeads = _cbLeads.filter(function(l){ return l.id!==id; });
+    if(typeof _fbdb!=='undefined'&&_fbdb) _fbdb.ref('chatbotLeads/'+id).remove();
+    _renderCbLeads();
+    _updateCbBadge();
+  };
+
+  // Expose leads globally for modal
   window._cbLeadsGlobal = _cbLeads;
 
   window.cbOpenEnrollment = function(id){
     var l = _cbLeads.find(function(x){ return x.id===id; });
     if(!l) return;
-    // Sync global ref
     window._cbLeadsGlobal = _cbLeads;
     if(typeof goPage==='function') goPage('waiver');
     setTimeout(function(){
@@ -23645,10 +23710,7 @@ function _baOpenSendFromClient(recId){
       setTimeout(function(){
         if(typeof enrLoadClientsDropdown==='function') enrLoadClientsDropdown();
         var sel = document.getElementById('enr_clientLink');
-        if(sel){
-          sel.value = 'chatbot:'+id;
-          if(typeof enrPrefillFromClient==='function') enrPrefillFromClient();
-        }
+        if(sel){ sel.value='chatbot:'+id; if(typeof enrPrefillFromClient==='function') enrPrefillFromClient(); }
       }, 300);
     }, 400);
   };
@@ -23660,62 +23722,37 @@ function _baOpenSendFromClient(recId){
     setTimeout(function(){
       if(typeof switchWaiverTab==='function') switchWaiverTab('billing');
       setTimeout(function(){
-        // Pre-fill billing auth fields
-        var fn = (l.name||'').split(' ')[0]||'';
-        var ln = (l.name||'').split(' ').slice(1).join(' ')||'';
-        var setf = function(eid, v){ var el=document.getElementById(eid); if(el&&v) el.value=v; };
-        setf('ba_firstName', fn);
-        setf('ba_lastName',  ln);
-        setf('ba_phone',     l.phone||'');
-        setf('ba_email',     l.email||'');
-        if(typeof showToast==='function') showToast('📋 Datos del chatbot lead cargados en Billing Auth');
+        var fn=(l.name||'').split(' ')[0]||''; var ln=(l.name||'').split(' ').slice(1).join(' ')||'';
+        var setf=function(eid,v){var el=document.getElementById(eid);if(el&&v)el.value=v;};
+        setf('ba_firstName',fn); setf('ba_lastName',ln); setf('ba_phone',l.phone||''); setf('ba_email',l.email||'');
+        if(typeof showToast==='function') showToast('Datos del lead cargados en Billing Auth');
       }, 400);
     }, 400);
   };
 
   window.cbConvertToClient = function(id){
     var l = _cbLeads.find(function(x){ return x.id===id; });
-    if(!l){ if(typeof showToast==='function') showToast('❌ Lead no encontrado'); return; }
-    if(!confirm('¿Convertir "'+l.name+'" en cliente activo?')) return;
-    var nameParts = (l.name||'').split(' ');
-    var newReg = {
-      id: 'reg_cb_'+Date.now(),
-      firstName: nameParts[0]||'',
-      lastName:  nameParts.slice(1).join(' ')||'',
-      phone:     l.phone||'',
-      email:     l.email||'',
-      status:    'active',
-      source:    'chatbot-website',
-      createdAt: new Date().toISOString(),
-      plan:      '',
-      notes:     'Convertido desde Chatbot Lead'
-    };
+    if(!l){ if(typeof showToast==='function') showToast('Lead no encontrado'); return; }
+    if(!confirm('Convertir "'+l.name+'" en cliente activo?')) return;
+    var np=(l.name||'').split(' ');
+    var newReg={id:'reg_cb_'+Date.now(),firstName:np[0]||'',lastName:np.slice(1).join(' ')||'',
+      phone:l.phone||'',email:l.email||'',status:'active',source:'chatbot-website',
+      createdAt:new Date().toISOString(),plan:'',notes:'Convertido desde Chatbot Lead'};
     if(typeof _fbdb!=='undefined'&&_fbdb){
-      _fbdb.ref('registrations/'+newReg.id).set(newReg)
-        .then(function(){
-          // Mark chatbot lead as converted
-          _fbdb.ref('chatbotLeads/'+id+'/status').set('converted');
-          _fbdb.ref('chatbotLeads/'+id+'/linkedRegId').set(newReg.id);
-          _cbLeads.forEach(function(x){ if(x.id===id){ x.status='converted'; x.linkedRegId=newReg.id; } });
-          _renderCbLeads(); _updateCbBadge();
-          if(typeof registrations!=='undefined') registrations.unshift(newReg);
-          if(typeof renderClients==='function') renderClients();
-          if(typeof renderDashboard==='function') renderDashboard();
-          if(typeof showToast==='function') showToast('✅ '+l.name+' convertido a cliente activo');
-        })
-        .catch(function(e){ if(typeof showToast==='function') showToast('❌ Error: '+e.message); });
-    } else {
-      if(typeof showToast==='function') showToast('❌ Firebase no disponible');
+      _fbdb.ref('registrations/'+newReg.id).set(newReg).then(function(){
+        _fbdb.ref('chatbotLeads/'+id+'/status').set('converted');
+        _fbdb.ref('chatbotLeads/'+id+'/linkedRegId').set(newReg.id);
+        _cbLeads.forEach(function(x){if(x.id===id){x.status='converted';x.linkedRegId=newReg.id;}});
+        window._cbLeadsGlobal=_cbLeads;
+        _renderCbLeads(); _updateCbBadge();
+        if(typeof registrations!=='undefined') registrations.unshift(newReg);
+        if(typeof renderClients==='function') renderClients();
+        if(typeof renderDashboard==='function') renderDashboard();
+        if(typeof showToast==='function') showToast(l.name+' convertido a cliente activo');
+      }).catch(function(e){if(typeof showToast==='function') showToast('Error: '+e.message);});
     }
   };
 
-  window.cbDeleteLead = function(id){
-    if(!confirm('¿Eliminar este lead?')) return;
-    _cbLeads = _cbLeads.filter(function(l){ return l.id!==id; });
-    if(typeof _fbdb!=='undefined'&&_fbdb) _fbdb.ref('chatbotLeads/'+id).remove();
-    _renderCbLeads();
-    _updateCbBadge();
-  };
 
   window.cbSaveConfig = function(){
     var f = ['schoolName','waNumber','greeting','systemPrompt'];
@@ -23770,12 +23807,9 @@ function _baOpenSendFromClient(recId){
     if(typeof showToast==='function') showToast('🤖 Nuevo lead del chatbot: '+lead.name);
   };
 
-  /* ── Badge-only init (runs on page load, no UI needed) ── */
-  window.initChatbotBadge = function(){
-    _loadCbLeads();
-  };
-
   /* ── Render page ── */
+  window.initChatbotBadge = function(){ _loadCbLeads(); };
+
   window.renderChatbotPage = function(){
     initChatbot();
     cbSwitchTab(_cbTab);
