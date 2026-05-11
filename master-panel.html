@@ -127,6 +127,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .sn-item[data-p="papelera"].active{background:linear-gradient(135deg,#f87171,#dc2626);box-shadow:0 4px 14px rgba(248,113,113,.4);}
 .sn-item[data-p="grafica"].active{background:linear-gradient(135deg,#4ade80,#22c55e);box-shadow:0 4px 14px rgba(74,222,128,.4);}
 .sn-item[data-p="chatbot"].active{background:linear-gradient(135deg,#f43f5e,#e11d48);box-shadow:0 4px 14px rgba(244,63,94,.4);}
+.sn-item[data-p="mensajes"].active{background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 4px 14px rgba(16,185,129,.4);}
+.sn-item[data-p="mensajes"]:not(.active):hover{background:rgba(16,185,129,.12);color:#34d399;}
 
 /* Hover accents */
 .sn-item[data-p="config"]:not(.active):hover{background:rgba(99,102,241,.12);color:#818cf8;}
@@ -1256,6 +1258,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     <button class="sn-item" data-p="chatbot" id="nav-chatbot" onclick="goPage('chatbot')">
       <span class="sn-icon">🤖</span><span class="sn-lbl">Chatbot</span>
       <span class="sn-badge" id="navBadgeChatbot" style="display:none">0</span>
+    </button>
+    <button class="sn-item" data-p="mensajes" id="nav-mensajes" onclick="goPage('mensajes')">
+      <span class="sn-icon">💬</span><span class="sn-lbl">Mensajes</span>
     </button>
   </nav>
 
@@ -3033,6 +3038,23 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
   </div>
 </div>
 
+<!-- ── RC CREDIT MODAL (Sistema de Crédito por Referidos) ── -->
+<div class="modal-overlay" id="rcCreditModal" style="z-index:10060">
+  <div class="pro-modal" style="max-width:560px" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-header-info">
+        <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">💳</div>
+        <div>
+          <h3 id="rcCreditTitle" style="font-size:17px;margin:0">Crédito por Referidos</h3>
+          <p id="rcCreditSub" style="font-size:12px;color:var(--muted);margin:0"></p>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModal('rcCreditModal')">✕</button>
+    </div>
+    <div class="modal-body" id="rcCreditBody"></div>
+  </div>
+</div>
+
 <!-- ── CANJE / CREDIT REDEEM MODAL ── -->
 <div class="modal-overlay" id="canjeModal">
   <div class="pro-modal" style="max-width:540px" onclick="event.stopPropagation()">
@@ -4299,7 +4321,7 @@ function goPage(p){
   if(navEl)   navEl.classList.add('active');
   if(tnavEl)  tnavEl.classList.add('active');
   currentPage = p;
-  if(p==='clients')    { renderClients(); switchClientsTab('clientes'); }
+  if(p==='clients')    { filterStatus='all'; searchQuery=''; var si=document.getElementById('searchInp'); if(si) si.value=''; renderClients(); switchClientsTab('clientes'); }
   if(p==='config')     { renderConfig(); loadNotifConfig(); renderVideoSlidesEditor(); }
   if(p==='papelera')   { renderPapelera(); }
   if(p==='partners')   { renderPartners(); }
@@ -4362,7 +4384,7 @@ async function loadData(){
     try{
       var snap = await _fbdb.ref('registrations').once('value');
       var d = snap.val()||{};
-      registrations = Object.values(d).sort(function(a,b){ return new Date(b.createdAt)-new Date(a.createdAt); });
+      registrations = Object.values(d).filter(function(x){ return x && x.id; }).sort(function(a,b){ return new Date(b.createdAt)-new Date(a.createdAt); });
       // Load papelera
       var psSnap = await _fbdb.ref('prospectos').once('value');
       var psd = psSnap.val()||{};
@@ -5320,12 +5342,12 @@ function openProspectoDetail(id){
   btnWA.style.cssText = 'background:#25D366;color:#fff;border-color:#25D366';
   btnWA.onclick = function(){
      var phone = (p.phone||'').replace(/\D/g,'');
-     if(phone.length===10) phone='1'+phone;
-     var msg = (isEN?'Hello ':'Hola ')+p.firstName+'! '+p.bizName;
      if(!phone){ showToast(isEN?'❌ No phone':'❌ Sin teléfono'); return; }
-     // Use api.whatsapp.com/send for better message handling
-     var shortMsg = msg.length > 200 ? msg.substring(0, 200) : msg;
-     window.open('https://api.whatsapp.com/send?phone='+phone+'&text='+encodeURIComponent(shortMsg),'_blank');
+     if(phone.length===10) phone='1'+phone;
+     _getTpl('whatsapp','seguimiento',{nombre:p.firstName,negocio:p.bizName||'',telefono:p.phone||''},function(msg){
+       var shortMsg = msg.length > 200 ? msg.substring(0,200) : msg;
+       window.open('https://api.whatsapp.com/send?phone='+phone+'&text='+encodeURIComponent(shortMsg),'_blank');
+     });
    };
   btnRow.appendChild(btnWA);
 
@@ -5335,9 +5357,10 @@ function openProspectoDetail(id){
   btnEmail.textContent = '📧 Email';
   btnEmail.onclick = function(){
     if(!p.email){ showToast(isEN?'❌ No email':'❌ Sin email'); return; }
-    var sub = encodeURIComponent(isEN?'Your CRM Platform':'Tu CRM Platform');
-    var bod = encodeURIComponent((isEN?'Hello ':'Hola ')+p.firstName+',');
-    window.open('https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(p.email)+'&su='+sub+'&body='+bod,'_blank');
+    _getTpl('email','seguimiento',{nombre:p.firstName,negocio:p.bizName||'',telefono:p.phone||''},function(msg){
+      var sub = encodeURIComponent((isEN?'Message from ':'Mensaje de ')+(p.bizName||''));
+      window.open('https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(p.email)+'&su='+sub+'&body='+encodeURIComponent(msg),'_blank');
+    });
   };
   btnRow.appendChild(btnEmail);
 
@@ -6906,6 +6929,261 @@ function openLostClientAlert(ref, lostClientName, nb){
   openModal('lostClientAlertModal');
 }
 
+/* ══════════════════════════════════════════════════════════════════════
+   SISTEMA DE CRÉDITO POR REFERIDOS
+   ─────────────────────────────────────────────────────────────────────
+   Cada referidor tiene un pago base (lo que paga mensual/semanal).
+   Por cada referido ACTIVO gana un % de crédito → su pago baja.
+   Cuando llega a $0 → el exceso se convierte en crédito canjeable.
+   Bono inicial al convertirse + crédito recurrente mensual.
+   ══════════════════════════════════════════════════════════════════════ */
+
+// Configuración global (editable en Ajustes o aquí)
+var RC_CONFIG = {
+  creditPct:      10,    // % del pago base que genera cada referido activo
+  bonusInicial:   15,    // $ de bono único cuando el referido se convierte
+  maxDescPct:     100,   // % máximo de descuento sobre el pago base (100 = puede llegar a $0)
+  modoCalculo:    'pct', // 'pct' | 'fijo' (cantidad fija por referido)
+  montoFijo:      20,    // $ fijo por referido (si modoCalculo === 'fijo')
+};
+
+// Carga/guarda RC_CONFIG desde Firebase o localStorage
+function loadRCConfig(){
+  // Solo localStorage — Firebase se carga después si es necesario
+  try{ var s=localStorage.getItem('rcConfig'); if(s) Object.assign(RC_CONFIG,JSON.parse(s)); }catch(e){}
+}
+function saveRCConfig(){
+  // Guarda en localStorage siempre; Firebase solo si las reglas lo permiten
+  try{ localStorage.setItem('rcConfig',JSON.stringify(RC_CONFIG)); }catch(e){}
+  if(typeof _fbdb!=='undefined'&&_fbdb){
+    try{ _fbdb.ref('masterMods/rcConfig').set(RC_CONFIG); }catch(e){}
+  }
+}
+loadRCConfig();
+
+// ── Obtener balance de crédito de un referidor ────────────────────────
+// Retorna: { pagoBase, referidosActivos, creditoMensual, pagoActual,
+//            bonusAcumulado, creditoDisponible, historial }
+function calcCreditoReferidor(ref){
+  var pagoBase   = +(ref.pagoBase || 0);
+  var activos    = getReferidorLeads(ref.cid).filter(function(l){ return getStatus(l)==='active'; });
+  var nActivos   = activos.length;
+
+  // Crédito mensual por referido activo
+  var creditoXRef = RC_CONFIG.modoCalculo==='fijo'
+    ? RC_CONFIG.montoFijo
+    : +(pagoBase * RC_CONFIG.creditPct / 100).toFixed(2);
+  var descBruto   = +(creditoXRef * nActivos).toFixed(2);
+  var descMax     = +(pagoBase * RC_CONFIG.maxDescPct / 100).toFixed(2);
+  var descReal    = Math.min(descBruto, descMax);
+  var pagoActual  = Math.max(0, +(pagoBase - descReal).toFixed(2));
+  var exceso      = pagoBase > 0 ? Math.max(0, +(descBruto - descMax).toFixed(2)) : 0;
+
+  // Balance guardado: bonos iniciales + canjes usados
+  var bal = _getRefBal(ref.id);
+  var bonusAcum = +(bal.bonusInicial || 0); // bonos iniciales acumulados
+  var excAcum   = +(bal.excesoAcum  || 0); // exceso mensual acumulado manualmente
+  var usado     = +(bal.usado       || 0); // cuánto ya se canjeó del bonus pool
+  var creditoDisponible = Math.max(0, +(bonusAcum + excAcum - usado).toFixed(2));
+
+  return {
+    pagoBase, nActivos, creditoXRef, descBruto, descReal,
+    pagoActual, exceso, bonusAcum, excAcum, usado, creditoDisponible,
+    activos, bal
+  };
+}
+
+// ── Registrar bono inicial cuando un referido se convierte ────────────
+function registrarBonusInicial(refCid, clienteNombre){
+  var ref = referidores.find(function(x){ return x.cid===refCid; });
+  if(!ref) return;
+  var bal = _getRefBal(ref.id);
+  bal.bonusInicial = +((bal.bonusInicial||0) + RC_CONFIG.bonusInicial).toFixed(2);
+  bal.histBonus    = bal.histBonus || [];
+  bal.histBonus.push({ tipo:'inicial', cliente:clienteNombre, monto:RC_CONFIG.bonusInicial, fecha:new Date().toISOString() });
+  _saveRefBal(ref.id, bal);
+  showToast('🎁 Bono inicial $'+RC_CONFIG.bonusInicial+' acreditado a '+(ref.firstName||'Referidor'), '#a855f7');
+}
+
+// ── Registrar exceso mensual acumulado (llamar cada mes) ─────────────
+function registrarExcesoMensual(refId){
+  var ref = referidores.find(function(x){ return x.id===refId; });
+  if(!ref) return;
+  var cr  = calcCreditoReferidor(ref);
+  if(cr.exceso <= 0) return;
+  var bal = cr.bal;
+  bal.excesoAcum = +((bal.excesoAcum||0) + cr.exceso).toFixed(2);
+  bal.histBonus  = bal.histBonus || [];
+  bal.histBonus.push({ tipo:'exceso_mensual', cliente:'', monto:cr.exceso, fecha:new Date().toISOString() });
+  _saveRefBal(refId, bal);
+}
+
+// ── Modal de crédito del referidor (vista completa) ──────────────────
+var _rcModalRefId = null;
+function openRCModal(refId){
+  _rcModalRefId = refId;
+  renderRCModal();
+  openModal('rcCreditModal');
+}
+function renderRCModal(){
+  var ref = referidores.find(function(x){ return x.id===_rcModalRefId; });
+  if(!ref) return;
+  var cr  = calcCreditoReferidor(ref);
+  var isEN= _masterLang==='en';
+  var body= document.getElementById('rcCreditBody');
+  if(!body) return;
+
+  document.getElementById('rcCreditTitle').textContent = (ref.firstName||'')+' '+(ref.lastName||'');
+  document.getElementById('rcCreditSub').textContent   =
+    cr.nActivos+' referidos activos · Pago base: $'+cr.pagoBase.toFixed(2);
+
+  // ── Color del pago actual ──
+  var pagoColor = cr.pagoActual === 0 ? '#22c55e'
+    : cr.pagoActual < cr.pagoBase * 0.5 ? '#f97316'
+    : '#eab308';
+
+  // ── Barra de progreso del descuento ──
+  var pct = cr.pagoBase > 0 ? Math.round((1 - cr.pagoActual/cr.pagoBase)*100) : 0;
+
+  body.innerHTML =
+
+    // ① Resumen del pago actual
+    '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px">'+
+      '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary);margin-bottom:14px">💳 Pago Mensual Actual</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">'+
+        _rcKpi('$'+cr.pagoBase.toFixed(2), 'Pago Base', '#6b7280')+
+        _rcKpi('-$'+cr.descReal.toFixed(2), 'Descuento Activo', '#22c55e')+
+        _rcKpi('$'+cr.pagoActual.toFixed(2), 'Pago HOY', pagoColor)+
+      '</div>'+
+      // Barra de progreso
+      '<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Descuento alcanzado: <strong style="color:'+pagoColor+'">'+pct+'%</strong></div>'+
+      '<div style="height:8px;background:var(--surface3);border-radius:4px;overflow:hidden">'+
+        '<div style="height:100%;width:'+Math.min(pct,100)+'%;background:linear-gradient(90deg,#22c55e,#a855f7);border-radius:4px;transition:.3s"></div>'+
+      '</div>'+
+      (cr.pagoActual===0
+        ? '<div style="margin-top:10px;text-align:center;font-size:12px;font-weight:700;color:#22c55e">🎉 ¡Pago cubierto completamente por referidos!</div>'
+        : '<div style="margin-top:8px;font-size:11px;color:var(--muted)">'+
+            'Faltan <strong style="color:var(--text)">'+Math.ceil((cr.pagoBase-cr.descBruto)/cr.creditoXRef)+' referido(s) más</strong> para cubrir el pago completo'+
+          '</div>')+
+    '</div>'+
+
+    // ② Configuración del pago base (inline editable)
+    '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px">'+
+      '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary);margin-bottom:12px">⚙️ Configuración de Este Referidor</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">'+
+        '<div>'+
+          '<label style="font-size:10px;font-weight:700;color:var(--muted);display:block;margin-bottom:4px">💲 Pago Base (mensual/semanal)</label>'+
+          '<input type="number" id="rcPagoBase" value="'+cr.pagoBase.toFixed(2)+'" step="0.01" min="0" '+
+            'style="width:100%;background:var(--surface3);border:1.5px solid var(--border);border-radius:8px;padding:8px 11px;color:var(--text);font-size:14px;font-weight:800;outline:none"/>'+
+        '</div>'+
+        '<div>'+
+          '<label style="font-size:10px;font-weight:700;color:var(--muted);display:block;margin-bottom:4px">📋 Frecuencia de Pago</label>'+
+          '<select id="rcFrecuencia" style="width:100%;background:var(--surface3);border:1.5px solid var(--border);border-radius:8px;padding:8px 11px;color:var(--text);font-size:13px;outline:none">'+
+            '<option value="mensual" '+(ref.pagoFrecuencia==='mensual'?'selected':'')+'>Mensual</option>'+
+            '<option value="semanal" '+(ref.pagoFrecuencia==='semanal'?'selected':'')+'>Semanal</option>'+
+            '<option value="otro"    '+(ref.pagoFrecuencia==='otro'   ?'selected':'')+'>Otro</option>'+
+          '</select>'+
+        '</div>'+
+      '</div>'+
+      '<button onclick="rcGuardarConfig()" '+
+        'style="width:100%;padding:9px;border-radius:9px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent-hover));color:#000;font-size:13px;font-weight:800;cursor:pointer;font-family:Syne,sans-serif">'+
+        '💾 Guardar</button>'+
+    '</div>'+
+
+    // ③ Referidos activos (quiénes son)
+    '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px">'+
+      '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#22c55e;margin-bottom:12px">👥 Referidos Activos ('+cr.nActivos+')</div>'+
+      (cr.activos.length === 0
+        ? '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">Sin referidos activos aún</div>'
+        : '<div style="display:flex;flex-direction:column;gap:6px">'+
+            cr.activos.map(function(l){
+              return '<div style="display:flex;align-items:center;gap:10px;background:var(--surface3);border-radius:10px;padding:10px 12px">'+
+                '<div style="width:32px;height:32px;border-radius:8px;background:rgba(34,197,94,.15);color:#22c55e;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:Syne,sans-serif;font-size:12px;flex-shrink:0">'+
+                  (((l.firstName||'?')[0])+((l.lastName||'?')[0])).toUpperCase()+
+                '</div>'+
+                '<div style="flex:1;min-width:0">'+
+                  '<div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc((l.firstName||'')+' '+(l.lastName||''))+'</div>'+
+                  '<div style="font-size:10px;color:var(--muted)">'+(l.program||l.bizType||'—')+'</div>'+
+                '</div>'+
+                '<div style="font-size:12px;font-weight:800;color:#22c55e;white-space:nowrap">-$'+cr.creditoXRef.toFixed(2)+'</div>'+
+              '</div>';
+            }).join('')+
+          '</div>')+
+    '</div>'+
+
+    // ④ Crédito canjeable (bonos)
+    '<div style="background:linear-gradient(135deg,rgba(168,85,247,.08),rgba(124,58,237,.04));border:1.5px solid rgba(168,85,247,.25);border-radius:14px;padding:16px;margin-bottom:16px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'+
+        '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#a855f7">🎁 Crédito Canjeable</div>'+
+        '<div style="font-family:Syne,sans-serif;font-weight:900;font-size:28px;color:#a855f7">$'+cr.creditoDisponible.toFixed(2)+'</div>'+
+      '</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">'+
+        _rcKpi('$'+cr.bonusAcum.toFixed(2), 'Bonos iniciales', '#a855f7')+
+        _rcKpi('$'+cr.excAcum.toFixed(2),   'Exceso acumulado', '#f97316')+
+        _rcKpi('$'+cr.usado.toFixed(2),     'Ya canjeado', '#6b7280')+
+      '</div>'+
+      // Botón acumular exceso manual
+      (cr.exceso > 0
+        ? '<button onclick="rcAcumularExceso()" '+
+            'style="width:100%;padding:9px;border-radius:9px;border:none;background:rgba(249,115,22,.15);color:#f97316;font-size:12px;font-weight:800;cursor:pointer;margin-bottom:8px">'+
+            '⚡ Acumular exceso de este mes: $'+cr.exceso.toFixed(2)+
+          '</button>'
+        : '')+
+      (cr.creditoDisponible > 0
+        ? '<button onclick="closeModal(\'rcCreditModal\');openCanjeModal(\''+ref.id+'\')" '+
+            'style="width:100%;padding:11px;border-radius:9px;border:none;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Syne,sans-serif">'+
+            '🎁 Canjear Crédito'
+          +'</button>'
+        : '<div style="text-align:center;font-size:12px;color:var(--muted)">Sin crédito disponible para canjear</div>')+
+    '</div>'+
+
+    // ⑤ Historial de bonos
+    (cr.bal.histBonus && cr.bal.histBonus.length > 0
+      ? '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px 16px">'+
+          '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary);margin-bottom:10px">📜 Historial de Créditos</div>'+
+          '<div style="display:flex;flex-direction:column;gap:5px;max-height:160px;overflow-y:auto">'+
+            cr.bal.histBonus.slice().reverse().map(function(h){
+              var icon = h.tipo==='inicial'?'🎁':h.tipo==='exceso_mensual'?'⚡':'💳';
+              return '<div style="display:flex;align-items:center;gap:10px;background:var(--surface3);border-radius:8px;padding:8px 12px">'+
+                '<span style="font-size:16px">'+icon+'</span>'+
+                '<div style="flex:1">'+
+                  '<div style="font-size:12px;font-weight:700">'+(h.tipo==='inicial'?'Bono inicial — '+esc(h.cliente||''):'Exceso mensual acumulado')+'</div>'+
+                  '<div style="font-size:10px;color:var(--muted)">'+(h.fecha||'').split('T')[0]+'</div>'+
+                '</div>'+
+                '<div style="font-size:13px;font-weight:800;color:#a855f7">+$'+Number(h.monto).toFixed(2)+'</div>'+
+              '</div>';
+            }).join('')+
+          '</div>'+
+        '</div>'
+      : '');
+}
+
+function _rcKpi(val, lbl, color){
+  return '<div style="background:var(--surface3);border-radius:10px;padding:10px;text-align:center">'+
+    '<div style="font-family:Syne,sans-serif;font-weight:800;font-size:17px;color:'+color+'">'+val+'</div>'+
+    '<div style="font-size:9px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-top:2px">'+lbl+'</div>'+
+  '</div>';
+}
+
+function rcGuardarConfig(){
+  var ref = referidores.find(function(x){ return x.id===_rcModalRefId; });
+  if(!ref) return;
+  var pb = parseFloat(document.getElementById('rcPagoBase').value);
+  var fr = (document.getElementById('rcFrecuencia')||{}).value||'mensual';
+  if(isNaN(pb)||pb<0){ showToast('❌ Monto inválido','var(--danger)'); return; }
+  ref.pagoBase = pb;
+  ref.pagoFrecuencia = fr;
+  if(!_demoMode&&_fbdb) _fbdb.ref('referidores/'+ref.id).update({pagoBase:pb,pagoFrecuencia:fr});
+  showToast('✅ Configuración guardada');
+  renderRCModal();
+}
+
+function rcAcumularExceso(){
+  registrarExcesoMensual(_rcModalRefId);
+  renderRCModal();
+  showToast('⚡ Exceso del mes acumulado al crédito canjeable');
+}
+
 /* ── Sistema de Canje ── */
 var _canjeRefId = null;
 var CANJE_CATEGORIES = [
@@ -7494,73 +7772,7 @@ function generarContratoReferidor(ref){
   '</div>' +
 
   '<div class="footer">Documento generado el ' + today + ' &nbsp;·&nbsp; ID: ' + ref.cid + ' &nbsp;·&nbsp; ' + bizName + '</div>' +
-  '
-<!-- CHATBOT LEAD ACTION MODAL -->
-<div id="cbLeadModal">
-  <div class="cblm-box">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
-      <div>
-        <div class="cblm-name" id="cblm_name">—</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <span class="cblm-pill" style="background:rgba(244,63,94,.12);color:#f43f5e;border:1px solid rgba(244,63,94,.3)">&#x1F916; Chatbot Lead</span>
-          <span class="cblm-pill" id="cblm_status_badge" style="background:rgba(244,63,94,.12);color:#f43f5e;border:1px solid rgba(244,63,94,.3)">Nuevo</span>
-        </div>
-      </div>
-      <button onclick="cbCloseLead()" style="background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:0 4px;line-height:1">&#x2715;</button>
-    </div>
-    <div class="cblm-info">
-      <div class="cblm-info-item">&#x1F4DE; Telefono<strong id="cblm_phone">—</strong></div>
-      <div class="cblm-info-item">&#x1F4E7; Email<strong id="cblm_email">—</strong></div>
-      <div class="cblm-info-item">&#x1F4C5; Fecha<strong id="cblm_date">—</strong></div>
-      <div class="cblm-info-item">&#x1F4CD; Fuente<strong id="cblm_source">—</strong></div>
-    </div>
-    <div class="cblm-grid">
-      <button class="cblm-btn cblm-wa"      onclick="cbModalWhatsApp()">  <span class="ico">&#x1F4AC;</span>WhatsApp</button>
-      <button class="cblm-btn cblm-contact" onclick="cbModalContacted()"> <span class="ico">&#x1F4DE;</span>Marcar Contactado</button>
-      <button class="cblm-btn cblm-enroll"  onclick="cbModalEnrollment()"><span class="ico">&#x1F4CB;</span>Enrollment / Waiver</button>
-      <button class="cblm-btn cblm-billing" onclick="cbModalBilling()">   <span class="ico">&#x1F4B3;</span>Billing Auth</button>
-      <button class="cblm-btn cblm-convert" onclick="cbModalConvert()">   <span class="ico">&#x1F464;</span>Convertir a Cliente</button>
-      <button class="cblm-btn cblm-del"     onclick="cbModalDelete()">    <span class="ico">&#x1F5D1;</span>Eliminar Lead</button>
-    </div>
-  </div>
-</div>
-<script>
-var _cblmId=null;
-window.cbOpenLeadModal=function(id){
-  var leads=window._cbLeadsGlobal||[];
-  var l=leads.find(function(x){return x.id===id;});
-  if(!l)return;
-  _cblmId=id;
-  document.getElementById('cblm_name').textContent=l.name||'Sin nombre';
-  document.getElementById('cblm_phone').textContent=l.phone||'—';
-  document.getElementById('cblm_email').textContent=l.email||'—';
-  document.getElementById('cblm_source').textContent=l.source||'chatbot-website';
-  document.getElementById('cblm_date').textContent=l.createdAt?new Date(l.createdAt).toLocaleDateString('es',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
-  var sb=document.getElementById('cblm_status_badge');
-  var sm={new:'Nuevo',contacted:'Contactado',converted:'Convertido'};
-  var bg={new:'rgba(244,63,94,.12)',contacted:'rgba(245,158,11,.12)',converted:'rgba(34,197,94,.12)'};
-  var tc={new:'#f43f5e',contacted:'#f59e0b',converted:'#22c55e'};
-  var bc={new:'rgba(244,63,94,.3)',contacted:'rgba(245,158,11,.3)',converted:'rgba(34,197,94,.3)'};
-  var s=l.status||'new';
-  sb.textContent=sm[s]||s;sb.style.background=bg[s];sb.style.color=tc[s];sb.style.borderColor=bc[s];
-  document.getElementById('cbLeadModal').classList.add('open');
-};
-window.cbCloseLead=function(){document.getElementById('cbLeadModal').classList.remove('open');_cblmId=null;};
-window.cbModalWhatsApp=function(){
-  var l=(window._cbLeadsGlobal||[]).find(function(x){return x.id===_cblmId;});
-  if(!l||!l.phone)return;
-  var msg=encodeURIComponent('Hola '+l.name+'! Vi tu interes en Master Baez Martial Arts. Tu primera clase es GRATIS. Cuando puedes venir?');
-  window.open('https://wa.me/1'+l.phone.replace(/\D/g,'')+'?text='+msg,'_blank');
-};
-window.cbModalContacted=function(){if(!_cblmId)return;if(typeof cbChangeStatus==='function')cbChangeStatus(_cblmId,'contacted');cbCloseLead();};
-window.cbModalEnrollment=function(){if(!_cblmId)return;cbCloseLead();if(typeof cbOpenEnrollment==='function')cbOpenEnrollment(_cblmId);};
-window.cbModalBilling=function(){if(!_cblmId)return;cbCloseLead();if(typeof cbOpenBilling==='function')cbOpenBilling(_cblmId);};
-window.cbModalConvert=function(){if(!_cblmId)return;cbCloseLead();if(typeof cbConvertToClient==='function')cbConvertToClient(_cblmId);};
-window.cbModalDelete=function(){if(!_cblmId)return;cbCloseLead();if(typeof cbDeleteLead==='function')cbDeleteLead(_cblmId);};
-document.addEventListener('click',function(e){if(e.target&&e.target.id==='cbLeadModal')window.cbCloseLead();});
-</script>
-
-</body></html>';
+  '</body></html>';
 
   var docTitle = 'Contrato Referidor — ' + ref.firstName + ' ' + ref.lastName;
   var filename = 'contrato-referidor-' + ref.cid + '.pdf';
@@ -8349,7 +8561,6 @@ function lsmStatus(msg) {
         try { _fbdb.ref('prospectos/' + newPs.id).set(newPs); } catch(e) {}
         if (typeof updateNavBadgeProspectos === 'function') try { updateNavBadgeProspectos(); } catch(e) {}
         if (typeof renderProspectos === 'function') try { renderProspectos(); } catch(e) {}
-  setTimeout(function(){ if(typeof window.initChatbotBadge==='function') window.initChatbotBadge(); }, 2000);
         if (typeof showToast === 'function') {
           showToast('🔔 ' + (enr.firstName||'') + ' ' + (enr.lastName||'') + ' — nuevo enrollment sin lead previo');
         }
@@ -8635,7 +8846,7 @@ function saveAffiliateConfig(){
     localStorage.setItem('affiliateConfig', JSON.stringify(AFFILIATE_CONFIG));
   } catch(e) {}
   if(!_demoMode && _fbdb){
-    _fbdb.ref('affiliateConfig').set(AFFILIATE_CONFIG);
+    _fbdb.ref('masterMods/affiliateConfig').set(AFFILIATE_CONFIG);
   }
 }
 
@@ -8938,7 +9149,7 @@ function saveAffiliateConfig(){
   } catch(e) {}
   
   if(!_demoMode && _fbdb){
-    try { _fbdb.ref('affiliateConfig').set(AFFILIATE_CONFIG); } catch(e) {}
+    try { _fbdb.ref('masterMods/affiliateConfig').set(AFFILIATE_CONFIG); } catch(e) {}
   }
   
   showToast(_masterLang === 'en' ? '✅ Configuration saved' : '✅ Configuración guardada', 'var(--success)');
@@ -9909,6 +10120,18 @@ function openReferidorDetail(id){
   };
   bar.appendChild(btnBalance);
 
+  // ── Botón Crédito por Referidos ──
+  var btnCredito = document.createElement('button');
+  btnCredito.className = 'pro-btn pro-btn-ghost';
+  btnCredito.style.cssText = 'font-size:12px;padding:10px 8px;justify-content:center;border-color:#a855f7;color:#a855f7;background:rgba(168,85,247,.08)';
+  btnCredito.innerHTML = '💳<br><span style="font-size:10px">Crédito</span>';
+  btnCredito.onclick = function(e){
+    e.stopPropagation();
+    openRCModal(ref.id);
+    setTimeout(function(){ closeModal('referidorDetailModal'); }, 50);
+  };
+  bar.appendChild(btnCredito);
+
   // QR
   var btnQR = document.createElement('button');
   btnQR.className = 'pro-btn pro-btn-primary';
@@ -9993,14 +10216,92 @@ function openReferidorDetail(id){
     btnLeads.textContent = '👥 Ver sus Clientes';
     btnLeads.onclick = function(){
       closeModal('referidorDetailModal');
-      goPage('clients');
+      // Aplicar filtro ANTES de goPage (goPage resetea filterStatus a 'all')
       var si = document.getElementById('searchInp');
       if(si) si.value = ref.cid;
       searchQuery = ref.cid.toLowerCase();
-      renderClients();
+      filterStatus = 'all';
+      goPage('clients');
+      // Re-aplicar búsqueda después del reset de goPage
+      setTimeout(function(){
+        searchQuery = ref.cid.toLowerCase();
+        var si2 = document.getElementById('searchInp');
+        if(si2) si2.value = ref.cid;
+        renderClients();
+      }, 50);
     };
     bar2.appendChild(btnLeads);
   }
+
+  // ── Botones de contacto: WA, SMS GV, SMS MS, Email ──
+  var contactBar = document.createElement('div');
+  contactBar.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;margin-top:8px';
+
+  if(ref.phone){
+    // WhatsApp
+    var btnRefWA = document.createElement('button');
+    btnRefWA.className = 'pro-btn';
+    btnRefWA.style.cssText = 'font-size:12px;padding:8px 14px;background:#25D366;color:#fff;border-color:#25D366';
+    btnRefWA.textContent = '📲 WhatsApp';
+    btnRefWA.onclick = function(){
+      var phone = ref.phone.replace(/\D/g,'');
+      if(phone.length===10) phone='1'+phone;
+      _getTpl('whatsapp','seguimiento',{nombre:ref.firstName,negocio:ref.bizName||'Master Baez Martial Arts',telefono:ref.phone},function(msg){
+        window.open('https://api.whatsapp.com/send?phone='+phone+'&text='+encodeURIComponent(msg),'_blank');
+      });
+    };
+    contactBar.appendChild(btnRefWA);
+
+    // SMS Google Voice
+    var btnRefGV = document.createElement('button');
+    btnRefGV.className = 'pro-btn';
+    btnRefGV.style.cssText = 'font-size:12px;padding:8px 14px;background:#34A853;color:#fff;border-color:#34A853';
+    btnRefGV.textContent = '💬 SMS GV';
+    btnRefGV.onclick = function(){
+      var num = ref.phone.replace(/\D/g,'');
+      _getTpl('sms','seguimiento',{nombre:ref.firstName,negocio:ref.bizName||'Master Baez Martial Arts',telefono:ref.phone},function(msg){
+        try{ navigator.clipboard.writeText(msg); }catch(ex){}
+        window.open('https://voice.google.com/u/0/messages?itemId=t.%2B1'+num,'_blank');
+      });
+    };
+    contactBar.appendChild(btnRefGV);
+
+    // SMS Microsoft
+    var btnRefMS = document.createElement('button');
+    btnRefMS.className = 'pro-btn';
+    btnRefMS.style.cssText = 'font-size:12px;padding:8px 14px;background:#0078d4;color:#fff;border-color:#0078d4';
+    btnRefMS.textContent = '💬 SMS MS';
+    btnRefMS.onclick = function(){
+      var num = ref.phone.replace(/\D/g,'');
+      if(num.length===11 && num[0]==='1') num=num.slice(1);
+      _getTpl('sms','seguimiento',{nombre:ref.firstName,negocio:ref.bizName||'Master Baez Martial Arts',telefono:ref.phone},function(msg){
+        var a = document.createElement('a');
+        a.href = 'sms:+1'+num+'?body='+encodeURIComponent(msg);
+        a.style.display='none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function(){ document.body.removeChild(a); },300);
+      });
+    };
+    contactBar.appendChild(btnRefMS);
+  }
+
+  if(ref.email){
+    // Email
+    var btnRefEmail = document.createElement('button');
+    btnRefEmail.className = 'pro-btn pro-btn-ghost';
+    btnRefEmail.style.cssText = 'font-size:12px;padding:8px 14px';
+    btnRefEmail.textContent = '📧 Email';
+    btnRefEmail.onclick = function(){
+      _getTpl('email','seguimiento',{nombre:ref.firstName,negocio:ref.bizName||'Master Baez Martial Arts',telefono:ref.phone||''},function(msg){
+        var sub = encodeURIComponent('Mensaje para '+ref.firstName);
+        window.open('https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(ref.email)+'&su='+sub+'&body='+encodeURIComponent(msg),'_blank');
+      });
+    };
+    contactBar.appendChild(btnRefEmail);
+  }
+
+  if(contactBar.children.length > 0) body.appendChild(contactBar);
 
   body.appendChild(bar2);
   openModal('referidorDetailModal');
@@ -10262,14 +10563,24 @@ function daysLeft(r){
   return Math.ceil(diff/864e5);
 }
 function getStatus(r){
-  if(r.status==='active') return 'active';
+  if(!r) return 'trial';
+  if(r.status==='active')    return 'active';
   if(r.status==='suspended') return 'suspended';
-  if(r.status==='trial'){
+  if(r.status==='expired')   return 'expired';
+  if(r.status==='trial' || !r.status){
     var dl = daysLeft(r);
-    if(dl<=0) return 'expired';
+    if(dl<=0){
+      // ── Protección de referidos: si vino por un referidor y NO ha asistido,
+      //    no se marca expirado automáticamente — queda en "pendiente asistencia"
+      if((r.fuente==='referidor'||r.ref_id) && !r.attended){
+        return 'trial'; // mantener como trial hasta confirmar asistencia
+      }
+      return 'expired';
+    }
     return 'trial';
   }
-  return r.status||'trial';
+  // Cualquier valor desconocido de Firebase → tratar como trial
+  return 'trial';
 }
 function statusBadge(r){
   var s = getStatus(r); var dl = daysLeft(r);
@@ -10937,8 +11248,9 @@ var filterTabs = [
 
 function renderFilterTabs(){
   var t = tx();
+  var validRegs = registrations.filter(function(r){ return r && r.id; });
   document.getElementById('filterTabs').innerHTML = filterTabs.map(function(f){
-    var count = f.id==='all' ? registrations.length : registrations.filter(function(r){ return getStatus(r)===f.id; }).length;
+    var count = f.id==='all' ? validRegs.length : validRegs.filter(function(r){ return getStatus(r)===f.id; }).length;
     return '<button onclick="filterStatus=\''+f.id+'\';renderClients()" style="'+
       'padding:7px 16px;border-radius:20px;border:1.5px solid;cursor:pointer;font-family:Syne,sans-serif;font-weight:700;font-size:12px;transition:all .15s;'+
       (filterStatus===f.id ? 'background:var(--accent);color:#000;border-color:var(--accent);' : 'background:transparent;color:var(--muted);border-color:var(--border);')+
@@ -10952,6 +11264,7 @@ function renderClients(){
   var t = tx(); var isEN = _masterLang === 'en';
   renderFilterTabs();
   var list = registrations.filter(function(r){
+    if(!r || !r.id) return false; // guard contra nulls de Firebase
     var statusMatch = filterStatus==='all' || getStatus(r)===filterStatus;
     var q = searchQuery;
     var textMatch = !q || (r.firstName+' '+r.lastName+' '+r.email+' '+r.bizName+' '+(r.ref_id||'')).toLowerCase().includes(q);
@@ -12314,10 +12627,12 @@ function openClient(id, prefillDays, prefillStart, prefillEnd){
   btnEmail.textContent = '📧 Email';
   btnEmail.addEventListener('click', function(e){
     e.stopPropagation();
-    var subject = encodeURIComponent(isEN?'Your CRM Platform':'Tu CRM Platform');
-    var body = encodeURIComponent((isEN?'Hello ':'Hola ')+r.firstName+',');
-    var gmailUrl = 'https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(r.email)+'&su='+subject+'&body='+body;
-    window.open(gmailUrl, '_blank');
+    if(!r.email){ return; }
+    _getTpl('email','seguimiento',{nombre:r.firstName||'',negocio:r.bizName||'',telefono:r.phone||''},function(msg){
+      var subject = encodeURIComponent((isEN?'Message from ':'Mensaje de ')+(r.bizName||''));
+      var gmailUrl = 'https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(r.email)+'&su='+subject+'&body='+encodeURIComponent(msg);
+      window.open(gmailUrl, '_blank');
+    });
   });
   btnRow.appendChild(btnEmail);
 
@@ -12329,9 +12644,10 @@ function openClient(id, prefillDays, prefillStart, prefillEnd){
   btnSMSgv.addEventListener('click', function(e){
     e.stopPropagation();
     var num = (callMeBotPhone || '').replace(/\D/g,'');
-    var msg = encodeURIComponent((isEN?'Hello ':'Hola ')+r.firstName+'! '+r.bizName);
-    try{ navigator.clipboard.writeText((isEN?'Hello ':'Hola ')+r.firstName+'! '+r.bizName); }catch(ex){}
-    window.open('https://voice.google.com/u/0/messages?itemId=t.%2B'+num, '_blank');
+    _getTpl('sms','seguimiento',{nombre:r.firstName,negocio:r.bizName||'',telefono:r.phone||''},function(msg){
+      try{ navigator.clipboard.writeText(msg); }catch(ex){}
+      window.open('https://voice.google.com/u/0/messages?itemId=t.%2B'+num, '_blank');
+    });
   });
   btnRow.appendChild(btnSMSgv);
 
@@ -12344,9 +12660,15 @@ function openClient(id, prefillDays, prefillStart, prefillEnd){
     e.stopPropagation();
     var clientNum = (r.phone||'').replace(/\D/g,'');
     if(clientNum.length===11 && clientNum[0]==='1') clientNum=clientNum.slice(1);
-    var msg = (isEN?'Hello ':'Hola ')+r.firstName+'! '+r.bizName;
-    var href = clientNum ? 'sms:+1'+clientNum+'?body='+encodeURIComponent(msg) : '#';
-    window.open(href, '_blank');
+    if(!clientNum){ if(typeof showToast==='function') showToast('❌ Sin número de teléfono'); return; }
+    _getTpl('sms','seguimiento',{nombre:r.firstName,negocio:r.bizName||'',telefono:r.phone||''},function(msg){
+      var a = document.createElement('a');
+      a.href = 'sms:+1'+clientNum+'?body='+encodeURIComponent(msg);
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function(){ document.body.removeChild(a); }, 300);
+    });
   });
   btnRow.appendChild(btnSMSms);
 
@@ -12357,14 +12679,14 @@ function openClient(id, prefillDays, prefillStart, prefillEnd){
   btnWA.style.cssText = 'background:#25D366;color:#fff;border-color:#25D366';
   btnWA.addEventListener('click', function(e){
     e.stopPropagation();
-     var msg = (isEN?'Hello ':'Hola ')+r.firstName+'! '+r.bizName;
-     var phone = (r.phone||'').replace(/\D/g,'');
-     if(!phone){ showToast(isEN?'❌ No phone number':'❌ Sin número de teléfono'); return; }
-     if(phone.length===10) phone='1'+phone;
-     // Use api.whatsapp.com/send for better message handling
-     var shortMsg = msg.length > 200 ? msg.substring(0, 200) : msg;
-     window.open('https://api.whatsapp.com/send?phone='+phone+'&text='+encodeURIComponent(shortMsg), '_blank');
-   });
+    var phone = (r.phone||'').replace(/\D/g,'');
+    if(!phone){ showToast(isEN?'❌ No phone number':'❌ Sin número de teléfono'); return; }
+    if(phone.length===10) phone='1'+phone;
+    _getTpl('whatsapp','seguimiento',{nombre:r.firstName,negocio:r.bizName||'',telefono:r.phone||''},function(msg){
+      var shortMsg = msg.length > 200 ? msg.substring(0,200) : msg;
+      window.open('https://api.whatsapp.com/send?phone='+phone+'&text='+encodeURIComponent(shortMsg), '_blank');
+    });
+  });
   btnRow.appendChild(btnWA);
 
   var btnAuth = document.createElement('button');
@@ -14752,24 +15074,49 @@ function buildLeadEmailHref(lead){
   return 'https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(lead.email||'')+'&su='+encodeURIComponent(subj)+'&body='+encodeURIComponent(body);
 }
 function buildLeadSMSGVHref(lead){
-  var prog = customProgs.find(function(p){return p.id===lead.program;});
-  var msg = 'Hola '+lead.firstName+'! Tu cita en '+_getDisplayNameMaster()+' es el '+lead.date+' a las '+(lead.time||'')+'. Programa: '+(prog?_progLabelMaster(prog):(lead.program||')'))+'.'+ ' \xa1Te esperamos!';
+  // Retorna URL base; el mensaje se aplica via _getTpl al hacer click
   var num = ((lead.phone||'')).replace(/\D/g,'');
-  return 'https://voice.google.com/u/0/messages?itemId=t.%2B1'+num+'&body='+encodeURIComponent(msg);
+  return 'https://voice.google.com/u/0/messages?itemId=t.%2B1'+num;
 }
 function buildLeadSMSMSHref(lead){
-  var prog = customProgs.find(function(p){return p.id===lead.program;});
-  var msg = 'Hola '+lead.firstName+'! Tu cita en '+_getDisplayNameMaster()+' es el '+lead.date+' a las '+(lead.time||'')+'. Programa: '+(prog?_progLabelMaster(prog):(lead.program||''))+'.'+ ' \xa1Te esperamos!';
   var num = ((lead.phone||'')).replace(/\D/g,'');
   if(num.length===11 && num[0]==='1') num=num.slice(1);
-  return 'sms:+1'+num+'?body='+encodeURIComponent(msg);
+  return 'sms:+1'+num;
+}
+function _openLeadSMSGV(lead){
+  var num = ((lead.phone||'')).replace(/\D/g,'');
+  var negocio = (typeof _getDisplayNameMaster==='function'?_getDisplayNameMaster():'');
+  _getTpl('sms','cita',{nombre:lead.firstName||'',negocio:negocio,telefono:lead.phone||''},function(msg){
+    try{ navigator.clipboard.writeText(msg); }catch(ex){}
+    window.open('https://voice.google.com/u/0/messages?itemId=t.%2B1'+num,'_blank');
+  });
+}
+function _openLeadSMSMS(lead){
+  var num = ((lead.phone||'')).replace(/\D/g,'');
+  if(num.length===11 && num[0]==='1') num=num.slice(1);
+  if(!num){ if(typeof showToast==='function') showToast('❌ Sin número de teléfono'); return; }
+  var negocio = (typeof _getDisplayNameMaster==='function'?_getDisplayNameMaster():'');
+  _getTpl('sms','cita',{nombre:lead.firstName||'',negocio:negocio,telefono:lead.phone||''},function(msg){
+    var a = document.createElement('a');
+    a.href = 'sms:+1'+num+'?body='+encodeURIComponent(msg);
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){ document.body.removeChild(a); }, 300);
+  });
 }
 function buildLeadWAHref(lead){
-  var prog = customProgs.find(function(p){return p.id===lead.program;});
   var ph = ((lead.phone||'')).replace(/\D/g,'');
   if(ph.length===10) ph='1'+ph;
-  var msg = 'Hola '+lead.firstName+'! 👋\nTu cita en *'+_getDisplayNameMaster()+'* est\xe1 confirmada:\n📅 '+lead.date+' — '+(lead.time||'')+'\n🎓 '+(prog?_progLabelMaster(prog):(lead.program||''))+'\n\n\xa1Te esperamos!';
-  return 'https://wa.me/'+ph+'?text='+encodeURIComponent(msg);
+  return 'https://wa.me/'+ph; // mensaje aplicado via _openLeadWA
+}
+function _openLeadWA(lead){
+  var ph = ((lead.phone||'')).replace(/\D/g,'');
+  if(ph.length===10) ph='1'+ph;
+  var negocio = (typeof _getDisplayNameMaster==='function'?_getDisplayNameMaster():'');
+  _getTpl('whatsapp','cita',{nombre:lead.firstName||'',negocio:negocio,telefono:lead.phone||''},function(msg){
+    window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(msg),'_blank');
+  });
 }
 function getLeadTrialStatus(lead){
   if(!lead.isTrial || !lead.trialEndDate) return null;
@@ -14973,7 +15320,7 @@ function renderLeadsInbox(){
         +'<td onclick="event.stopPropagation()"><div class="actions-cell">'
           +'<button class="act-btn" onclick="openLead(\''+lead.id+'\')" style="border-color:#6366f1;color:#6366f1">👁 Ver</button>'
           +(lead.email?'<a class="act-btn" href="'+buildLeadEmailHref(lead)+'" target="_blank" style="text-decoration:none">📧</a>':'')
-          +(lead.phone?'<a class="act-btn" href="'+buildLeadWAHref(lead)+'" target="_blank" style="text-decoration:none;background:#25D366;color:#fff;border-color:#25D366">📲</a>':'')
+          +(lead.phone?'<a class="act-btn" href="#" onclick="event.preventDefault();_openLeadWA(_getLeadById(\''+lead.id+'\'))" style="text-decoration:none;background:#25D366;color:#fff;border-color:#25D366">📲</a>':'')
           +(!lead.enrollmentId?'<button class="act-btn" style="background:rgba(168,85,247,.15);border-color:#a855f7;color:#a855f7" title="Enviar Formulario" onclick="_sendFormToLead(\''+lead.id+'\')">📋</button>':'<button class="act-btn" style="background:rgba(34,197,94,.15);border-color:#22c55e;color:#22c55e" title="Ver Waiver" onclick="if(typeof enrViewRecord===\'function\') enrViewRecord(\''+lead.enrollmentId+'\')">✍️</button>')
           +(!lead.billingAuthId?'<button class="act-btn" style="background:rgba(34,197,94,.08);border-color:#22c55e;color:#22c55e" title="Billing Auth: Pendiente" onclick="_sendBillingToLead(\''+lead.id+'\')">💳</button>':'<button class="act-btn" style="background:rgba(34,197,94,.2);border-color:#22c55e;color:#22c55e" title="Billing Auth: Firmada" onclick="baPrintRecord(null,\''+lead.billingAuthId+'\')">✅💳</button>')
           +'<button class="act-btn danger" onclick="deleteLeadToTrash(\''+lead.id+'\')" title="Papelera">🗑</button>'
@@ -15098,6 +15445,19 @@ async function confirmConvertLead(profileType){
     if(ref){
       var isFirst = affiliateEarnings.filter(function(e){ return e.refId===ref.id; }).length === 0;
       recordAffiliateEarning(ref.id, l.firstName+' '+l.lastName, 'program', 'Nuevo Cliente', 0, isFirst);
+    }
+  }
+
+  // ── Bono inicial del sistema de crédito por referidos ──
+  if(l.ref_id){
+    var refRC = referidores.find(function(x){ return x.cid===l.ref_id; });
+    if(refRC){
+      var bal2 = _getRefBal(refRC.id);
+      bal2.bonusInicial = +((bal2.bonusInicial||0) + RC_CONFIG.bonusInicial).toFixed(2);
+      bal2.histBonus    = bal2.histBonus || [];
+      bal2.histBonus.push({ tipo:'inicial', cliente:(l.firstName||'')+' '+(l.lastName||''), monto:RC_CONFIG.bonusInicial, fecha:new Date().toISOString() });
+      _saveRefBal(refRC.id, bal2);
+      showToast('🎁 Bono inicial $'+RC_CONFIG.bonusInicial+' → '+(refRC.firstName||'Referidor'), '#a855f7');
     }
   }
   
@@ -15528,16 +15888,23 @@ function openClientWelcomePopup(reg, lead){
    var num   = phone.replace(/\D/g,'');
    if(num.length===10) num='1'+num;
    var numL  = num.length===11&&num[0]==='1'?num.slice(1):num;
-   var msg   = 'Hola '+reg.firstName+'! 👋 Tu inscripción en *'+progName+'* está lista. Por favor realiza tu pago para activar tu cuenta. ¡Gracias!';
-   // Truncate message if too long (WhatsApp has URL length limits)
-   var shortMsg = msg.length > 200 ? msg.substring(0, 200) : msg;
    var waEl  = document.getElementById('cwWABtn');
    var gvEl  = document.getElementById('cwSMSGVBtn');
    var msEl  = document.getElementById('cwSMSMSBtn');
-   // Use api.whatsapp.com/send which handles messages better
-   if(waEl){ waEl.href = phone?'https://api.whatsapp.com/send?phone='+num+'&text='+encodeURIComponent(shortMsg):'#'; waEl.style.display=phone?'':'none'; }
-   if(gvEl){ gvEl.href = phone?'https://voice.google.com/u/0/messages?itemId=t.%2B'+num+'&body='+encodeURIComponent(msg):'#'; gvEl.style.display=phone?'':'none'; }
-   if(msEl){ msEl.href = phone?'sms:+1'+numL+'?body='+encodeURIComponent(msg):'#'; msEl.style.display=phone?'':'none'; }
+   if(waEl){ waEl.style.display=phone?'':'none'; }
+   if(gvEl){ gvEl.style.display=phone?'':'none'; }
+   if(msEl){ msEl.style.display=phone?'':'none'; }
+   var _negocio = progName||'';
+   if(phone){
+     _getTpl('whatsapp','bienvenida',{nombre:reg.firstName||'',negocio:_negocio,telefono:phone},function(msg){
+       var shortMsg=msg.length>200?msg.substring(0,200):msg;
+       if(waEl) waEl.href='https://api.whatsapp.com/send?phone='+num+'&text='+encodeURIComponent(shortMsg);
+     });
+     _getTpl('sms','bienvenida',{nombre:reg.firstName||'',negocio:_negocio,telefono:phone},function(msg){
+       if(gvEl) gvEl.href='https://voice.google.com/u/0/messages?itemId=t.%2B'+num+'&body='+encodeURIComponent(msg);
+       if(msEl) msEl.href='sms:+1'+numL+'?body='+encodeURIComponent(msg);
+     });
+   }
 
   document.getElementById('clientWelcomeModal').style.display='flex';
   showToast('🏅 Lead convertido a Cliente ✅');
@@ -18023,6 +18390,7 @@ document.addEventListener('DOMContentLoaded', function(){
   setTimeout(function(){
     if(typeof renderFlyerLayerList === 'function') renderFlyerLayerList();
   }, 200);
+  setTimeout(function(){ if(typeof window.initChatbotBadge==='function') window.initChatbotBadge(); }, 2000);
 });
 </script>
 
@@ -20756,11 +21124,45 @@ function openLead(id){
   }
 
   // ── Contact buttons ─────────────────────────────────────────────────
+  var _lid = lead.id ? lead.id.replace(/'/g,"\\'") : '';
   var contactBtns =
     (lead.email?'<a class="act-btn" href="'+buildLeadEmailHref(lead)+'" target="_blank" style="text-decoration:none">📧 Email</a>':'')+
-    (lead.phone?'<a class="act-btn" href="'+buildLeadWAHref(lead)+'" target="_blank" style="text-decoration:none;background:#25D366;color:#fff;border-color:#25D366">📲 WA</a>':'')+
-    (lead.phone?'<a class="act-btn" href="'+buildLeadSMSGVHref(lead)+'" target="_blank" style="text-decoration:none;background:#34A853;color:#fff;border-color:#34A853">💬 GV</a>':'')+
-    (lead.phone?'<a class="act-btn" href="'+buildLeadSMSMSHref(lead)+'" target="_blank" style="text-decoration:none;background:#0078d4;color:#fff;border-color:#0078d4">💬 MS</a>':'');
+    (lead.phone?'<a class="act-btn" href="#" onclick="event.preventDefault();_openLeadWA(_getLeadById(\''+_lid+'\'))" style="text-decoration:none;background:#25D366;color:#fff;border-color:#25D366">📲 WA</a>':'')+
+    (lead.phone?'<a class="act-btn" href="#" onclick="event.preventDefault();_openLeadSMSGV(_getLeadById(\''+_lid+'\'))" style="text-decoration:none;background:#34A853;color:#fff;border-color:#34A853">💬 GV</a>':'')+
+    (lead.phone?'<a class="act-btn" href="#" onclick="event.preventDefault();_openLeadSMSMS(_getLeadById(\''+_lid+'\'))" style="text-decoration:none;background:#0078d4;color:#fff;border-color:#0078d4">💬 MS</a>':'');
+
+
+  // ── Mini widget: estado del referidor de este lead ──────────────────
+  var refCreditHtml = '';
+  if(lead.ref_id){
+    var refDeLead = referidores.find(function(x){ return x.cid===lead.ref_id; });
+    if(refDeLead){
+      var crDeLead = calcCreditoReferidor(refDeLead);
+      var refNombreLead = (refDeLead.firstName||'')+' '+(refDeLead.lastName||'');
+      var _rid = refDeLead.id.replace(/'/g,"\\'");
+      refCreditHtml =
+        '<div style="background:linear-gradient(135deg,rgba(168,85,247,.07),rgba(124,58,237,.03));border:1.5px solid rgba(168,85,247,.2);border-radius:12px;padding:14px 16px;margin-bottom:12px">'+
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
+            '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#a855f7">👤 Referidor de este Lead</div>'+
+            '<button onclick="closeLeadModal();openRCModal(\''+_rid+'\')" '+
+              'style="background:rgba(168,85,247,.15);border:1.5px solid #a855f7;border-radius:7px;padding:3px 10px;color:#a855f7;font-size:11px;font-weight:800;cursor:pointer">'+
+              '💳 Ver Crédito</button>'+
+          '</div>'+
+          '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'+
+            '<div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#f97316,#ef4444);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;flex-shrink:0">'+
+              ((refNombreLead.trim()[0]||'?').toUpperCase())+
+            '</div>'+
+            '<div style="flex:1;min-width:0">'+
+              '<div style="font-size:13px;font-weight:700">'+esc(refNombreLead)+'</div>'+
+              '<div style="font-size:10px;color:var(--muted)">'+crDeLead.nActivos+' referidos activos · Pago actual: <strong style="color:'+(crDeLead.pagoActual===0?'#22c55e':'#eab308')+'">'+(crDeLead.pagoBase>0?'$'+crDeLead.pagoActual.toFixed(2):'Sin pago base definido')+'</strong></div>'+
+            '</div>'+
+          '</div>'+
+          (crDeLead.creditoDisponible>0
+            ?'<div style="background:rgba(168,85,247,.1);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;color:#a855f7">🎁 Crédito canjeable: $'+crDeLead.creditoDisponible.toFixed(2)+'</div>'
+            :'')+
+        '</div>';
+    }
+  }
 
   // ── Convert bar (only if not already student) ───────────────────────
   var convertHtml = !lead.isStudent
@@ -20811,7 +21213,10 @@ function openLead(id){
 
       // Card: Appointment
       +'<div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px">'
-        +'<div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;margin-bottom:12px">📅 '+(isEN?'Appointment':'Cita')+'</div>'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'
+          +'<div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700">📅 '+(isEN?'Appointment':'Cita')+'</div>'
+          +'<button id="lmBtnEditAppt" style="background:rgba(234,179,8,.12);border:1.5px solid var(--accent);border-radius:7px;padding:3px 9px;color:var(--accent);font-size:11px;font-weight:800;cursor:pointer">✏️ '+(isEN?'Edit':'Editar')+'</button>'
+        +'</div>'
         +'<div style="display:flex;flex-direction:column;gap:8px">'
           +'<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px">'
             +'<span style="color:var(--muted)">'+(isEN?'Date':'Fecha')+'</span>'
@@ -20823,7 +21228,9 @@ function openLead(id){
           +'</div>'
           +'<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px">'
             +'<span style="color:var(--muted)">'+(isEN?'Attended':'Asistió')+'</span>'
-            +'<span>'+(lead.attended?'✅ '+(isEN?'Yes':'Sí'):'⬜ '+(isEN?'Pending':'Pendiente'))+'</span>'
+            +'<button id="lmBtnAttend" style="background:'+(lead.attended?'rgba(34,197,94,.15)':'rgba(100,100,120,.15)')+';border:1.5px solid '+(lead.attended?'#22c55e':'var(--border-light)')+';border-radius:8px;padding:4px 10px;color:'+(lead.attended?'#22c55e':'var(--muted)')+';font-size:12px;font-weight:700;cursor:pointer">'
+              +(lead.attended?'✅ '+(isEN?'Yes · Undo':'Sí · Deshacer'):'⬜ '+(isEN?'Mark Attended':'Marcar Asistencia'))
+            +'</button>'
           +'</div>'
           +'<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px">'
             +'<span style="color:var(--muted)">'+(isEN?'Classes':'Clases')+'</span>'
@@ -20834,6 +21241,27 @@ function openLead(id){
               +'<span style="color:var(--muted)">Note</span><span style="font-weight:500">'+esc(lead.trackNote)+'</span>'
             +'</div>'
             :'')
+        +'</div>'
+        +'<div id="lmApptEditPanel" style="display:none;margin-top:14px;border-top:1px solid var(--border);padding-top:14px">'
+          +'<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:10px">✏️ '+(isEN?'Edit / Extend Appointment':'Editar / Extender Cita')+'</div>'
+          +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'
+            +'<div><label style="font-size:10px;font-weight:700;color:var(--muted);display:block;margin-bottom:4px">'+(isEN?'Date':'Fecha')+'</label>'
+            +'<input type="date" id="lmApptDate" value="'+(lead.date||'')+'" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-size:13px;outline:none"/></div>'
+            +'<div><label style="font-size:10px;font-weight:700;color:var(--muted);display:block;margin-bottom:4px">'+(isEN?'Time':'Hora')+'</label>'
+            +'<input type="time" id="lmApptTime" value="'+(lead.time||'')+'" style="width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-size:13px;outline:none"/></div>'
+          +'</div>'
+          +((lead.isTrial||lead.trialStartDate||lead.trialStart)
+            ?'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">'
+              +'<div><label style="font-size:10px;font-weight:700;color:#a855f7;display:block;margin-bottom:4px">🔁 '+(isEN?'Trial Start':'Trial Desde')+'</label>'
+              +'<input type="date" id="lmTrialStart2" value="'+(lead.trialStartDate||lead.trialStart||'')+'" style="width:100%;background:var(--surface3);border:1.5px solid rgba(168,85,247,.4);border-radius:8px;padding:7px 10px;color:var(--text);font-size:13px;outline:none"/></div>'
+              +'<div><label style="font-size:10px;font-weight:700;color:#a855f7;display:block;margin-bottom:4px">'+(isEN?'New Trial End':'Nueva Fecha Fin')+'</label>'
+              +'<input type="date" id="lmTrialEnd2" value="'+(lead.trialEndDate||lead.trialEnd||'')+'" style="width:100%;background:var(--surface3);border:1.5px solid rgba(168,85,247,.4);border-radius:8px;padding:7px 10px;color:var(--text);font-size:13px;outline:none"/></div>'
+            +'</div>'
+            :'')
+          +'<div style="display:flex;gap:8px">'
+            +'<button id="lmSaveAppt" style="flex:1;padding:9px;border-radius:9px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent-hover));color:#000;font-size:13px;font-weight:800;cursor:pointer;font-family:Syne,sans-serif">💾 '+(isEN?'Save':'Guardar')+'</button>'
+            +'<button id="lmCancelAppt" style="padding:9px 14px;border-radius:9px;border:1px solid var(--border);background:var(--surface3);color:var(--muted);font-size:13px;cursor:pointer">✕</button>'
+          +'</div>'
         +'</div>'
       +'</div>'
     +'</div>'
@@ -20857,6 +21285,7 @@ function openLead(id){
         +(isEN?'Opens pre-filled — give tablet or scan QR':'Se abre pre-llenado — da la tableta o escanea QR')
       +'</div>'
     +'</div>'
+    + refCreditHtml
     + convertHtml;
 
   // ── Listeners ────────────────────────────────────────────────────────
@@ -20866,6 +21295,69 @@ function openLead(id){
   if(elTrash) elTrash.onclick = function(){ closeLeadModal(); deleteLeadToTrash(lead.id); };
   var elWaiver = document.getElementById('lmBtnWaiver');
   if(elWaiver) elWaiver.onclick = function(){ closeLeadModal(); openWaiverForLead(lead); };
+
+  // ── Botón Asistencia ──────────────────────────────────────────────────
+  var elAttend = document.getElementById('lmBtnAttend');
+  if(elAttend) elAttend.onclick = function(){
+    var l = leads.find(function(x){ return x.id===lead.id; });
+    if(!l) return;
+    l.attended = !l.attended;
+    lead.attended = l.attended;
+    if(!_demoMode && _fbdb) _fbdb.ref('masterMods/leads/'+lead.id+'/attended').set(l.attended);
+    renderLeadsInbox();
+    // Refresca el botón en tiempo real sin cerrar el modal
+    elAttend.style.background = l.attended ? 'rgba(34,197,94,.15)' : 'rgba(100,100,120,.15)';
+    elAttend.style.borderColor = l.attended ? '#22c55e' : 'var(--border-light)';
+    elAttend.style.color = l.attended ? '#22c55e' : 'var(--muted)';
+    elAttend.textContent = l.attended ? ('✅ '+(isEN?'Yes · Undo':'Sí · Deshacer')) : ('⬜ '+(isEN?'Mark Attended':'Marcar Asistencia'));
+    showToast(l.attended ? '✅ '+(isEN?'Attendance confirmed':'Asistencia confirmada') : '↩️ '+(isEN?'Attendance removed':'Asistencia desmarcada'));
+  };
+
+  // ── Botón Editar Cita ──────────────────────────────────────────────────
+  var elEditAppt  = document.getElementById('lmBtnEditAppt');
+  var elApptPanel = document.getElementById('lmApptEditPanel');
+  var elSaveAppt  = document.getElementById('lmSaveAppt');
+  var elCancelAppt= document.getElementById('lmCancelAppt');
+  if(elEditAppt && elApptPanel){
+    elEditAppt.onclick = function(){
+      var visible = elApptPanel.style.display !== 'none';
+      elApptPanel.style.display = visible ? 'none' : 'block';
+      elEditAppt.textContent = visible ? ('✏️ '+(isEN?'Edit':'Editar')) : ('▲ '+(isEN?'Close':'Cerrar'));
+    };
+  }
+  if(elCancelAppt && elApptPanel){
+    elCancelAppt.onclick = function(){
+      elApptPanel.style.display = 'none';
+      if(elEditAppt) elEditAppt.textContent = '✏️ '+(isEN?'Edit':'Editar');
+    };
+  }
+  if(elSaveAppt){
+    elSaveAppt.onclick = function(){
+      var l = leads.find(function(x){ return x.id===lead.id; });
+      if(!l) return;
+      var newDate = (document.getElementById('lmApptDate')||{}).value || '';
+      var newTime = (document.getElementById('lmApptTime')||{}).value || '';
+      l.date = newDate; l.time = newTime;
+      lead.date = newDate; lead.time = newTime;
+      var updates = {date: newDate, time: newTime};
+      // Extender trial si aplica
+      var ts2 = document.getElementById('lmTrialStart2');
+      var te2 = document.getElementById('lmTrialEnd2');
+      if(ts2 && te2){
+        l.trialStartDate = ts2.value; l.trialEndDate = te2.value;
+        l.trialStart     = ts2.value; l.trialEnd     = te2.value;
+        lead.trialStartDate = ts2.value; lead.trialEndDate = te2.value;
+        lead.trialStart     = ts2.value; lead.trialEnd     = te2.value;
+        updates.trialStartDate = ts2.value; updates.trialEndDate = te2.value;
+        updates.trialStart     = ts2.value; updates.trialEnd     = te2.value;
+      }
+      if(!_demoMode && _fbdb) _fbdb.ref('masterMods/leads/'+lead.id).update(updates);
+      renderLeadsInbox();
+      if(elApptPanel) elApptPanel.style.display = 'none';
+      if(elEditAppt)  elEditAppt.textContent = '✏️ '+(isEN?'Edit':'Editar');
+      showToast('✅ '+(isEN?'Appointment updated':'Cita actualizada'));
+    };
+  }
 
   if(!lead.isStudent){
     var bt = document.getElementById('lmBtnTrial');
@@ -23565,18 +24057,17 @@ function _baOpenSendFromClient(recId){
 .cb-act-btn:hover{border-color:#f43f5e;color:#f43f5e;background:rgba(244,63,94,.08);}
 .cb-act-btn.danger{border-color:var(--danger);color:var(--danger);}
 .cb-act-btn.danger:hover{background:rgba(239,68,68,.1);}
-/* ── Chatbot Lead Action Modal ── */
 #cbLeadModal{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:10010;display:none;align-items:center;justify-content:center;padding:20px;}
 #cbLeadModal.open{display:flex;}
 .cblm-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px;max-width:480px;width:100%;}
 .cblm-name{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--text);margin-bottom:6px;}
-.cblm-pill{border-radius:20px;padding:3px 10px;font-size:10px;font-weight:800;font-family:'Syne',sans-serif;}
+.cblm-pill{border-radius:20px;padding:3px 10px;font-size:10px;font-weight:800;font-family:'Syne',sans-serif;display:inline-block;}
 .cblm-info{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:16px 0;background:var(--surface2);border-radius:12px;padding:14px;}
 .cblm-info-item{font-size:12px;color:var(--muted2);}
 .cblm-info-item strong{display:block;color:var(--text);font-size:13px;margin-top:2px;}
-.cblm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.cblm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;}
 .cblm-btn{padding:13px 10px;border-radius:12px;border:1.5px solid var(--border);background:transparent;color:var(--text);font-size:12px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:5px;}
-.cblm-btn .ico{font-size:22px;}
+.cblm-btn .ico{font-size:22px;line-height:1;}
 .cblm-btn:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,.3);}
 .cblm-wa{border-color:#22c55e;color:#22c55e;}.cblm-wa:hover{background:rgba(34,197,94,.1);}
 .cblm-enroll{border-color:#a855f7;color:#a855f7;}.cblm-enroll:hover{background:rgba(168,85,247,.1);}
@@ -23584,7 +24075,6 @@ function _baOpenSendFromClient(recId){
 .cblm-convert{border-color:#22c55e;color:#22c55e;background:rgba(34,197,94,.08);}.cblm-convert:hover{background:rgba(34,197,94,.18);}
 .cblm-contact{border-color:#f59e0b;color:#f59e0b;}.cblm-contact:hover{background:rgba(245,158,11,.1);}
 .cblm-del{border-color:var(--danger);color:var(--danger);}.cblm-del:hover{background:rgba(239,68,68,.1);}
-
 </style>
 
 <!-- CHATBOT PAGE -->
@@ -23625,7 +24115,7 @@ function _baOpenSendFromClient(recId){
       _fbdb.ref('chatbotLeads').orderByChild('createdAt').limitToLast(200).on('value', function(snap){
         _cbLeads=[];
         if(snap.exists()) snap.forEach(function(c){ _cbLeads.unshift(c.val()); });
-        window._cbLeadsGlobal = _cbLeads;
+        window._cbLeadsGlobal=_cbLeads;
         _updateCbBadge();
         _renderCbLeads();
       });
@@ -23672,6 +24162,7 @@ function _baOpenSendFromClient(recId){
         +'<td style="color:var(--muted2);font-size:12px">'+dateStr+'</td>'
         +'<td style="display:flex;gap:6px;align-items:center">'
           +'<button class="cb-act-btn" onclick="cbOpenLeadModal(\''+l.id+'\')" style="border-color:#f43f5e;color:#f43f5e;padding:7px 18px;font-size:12px">&#x26A1; Acciones</button>'
+
           +'<button class="cb-act-btn danger" onclick="cbDeleteLead(\''+l.id+'\')" title="Eliminar">&#x1F5D1;</button>'
         +'</td>'
         +'</tr>';
@@ -23697,62 +24188,77 @@ function _baOpenSendFromClient(recId){
     _updateCbBadge();
   };
 
-  // Expose leads globally for modal
   window._cbLeadsGlobal = _cbLeads;
 
   window.cbOpenEnrollment = function(id){
-    var l = _cbLeads.find(function(x){ return x.id===id; });
-    if(!l) return;
-    window._cbLeadsGlobal = _cbLeads;
+    var l=(_cbLeads.find(function(x){return x.id===id;})) || (window._cbLeadsGlobal||[]).find(function(x){return x.id===id;});
     if(typeof goPage==='function') goPage('waiver');
     setTimeout(function(){
       if(typeof switchWaiverTab==='function') switchWaiverTab('form');
-      setTimeout(function(){
+      if(l) setTimeout(function(){
         if(typeof enrLoadClientsDropdown==='function') enrLoadClientsDropdown();
-        var sel = document.getElementById('enr_clientLink');
-        if(sel){ sel.value='chatbot:'+id; if(typeof enrPrefillFromClient==='function') enrPrefillFromClient(); }
-      }, 300);
-    }, 400);
+        var sel=document.getElementById('enr_clientLink');
+        if(sel){sel.value='chatbot:'+id; if(typeof enrPrefillFromClient==='function') enrPrefillFromClient();}
+      },350);
+    },400);
   };
 
   window.cbOpenBilling = function(id){
-    var l = _cbLeads.find(function(x){ return x.id===id; });
-    if(!l) return;
+    var l=(_cbLeads.find(function(x){return x.id===id;})) || (window._cbLeadsGlobal||[]).find(function(x){return x.id===id;});
     if(typeof goPage==='function') goPage('waiver');
     setTimeout(function(){
       if(typeof switchWaiverTab==='function') switchWaiverTab('billing');
-      setTimeout(function(){
+      if(l) setTimeout(function(){
         var fn=(l.name||'').split(' ')[0]||''; var ln=(l.name||'').split(' ').slice(1).join(' ')||'';
-        var setf=function(eid,v){var el=document.getElementById(eid);if(el&&v)el.value=v;};
-        setf('ba_firstName',fn); setf('ba_lastName',ln); setf('ba_phone',l.phone||''); setf('ba_email',l.email||'');
-        if(typeof showToast==='function') showToast('Datos del lead cargados en Billing Auth');
-      }, 400);
-    }, 400);
+        var s=function(eid,v){var e=document.getElementById(eid);if(e&&v)e.value=v;};
+        s('ba_firstName',fn);s('ba_lastName',ln);s('ba_phone',l.phone||'');s('ba_email',l.email||'');
+        if(typeof showToast==='function') showToast('✅ Datos del lead cargados en Billing Auth');
+      },400);
+    },400);
   };
 
   window.cbConvertToClient = function(id){
-    var l = _cbLeads.find(function(x){ return x.id===id; });
-    if(!l){ if(typeof showToast==='function') showToast('Lead no encontrado'); return; }
-    if(!confirm('Convertir "'+l.name+'" en cliente activo?')) return;
+    var l=(_cbLeads.find(function(x){return x.id===id;})) || (window._cbLeadsGlobal||[]).find(function(x){return x.id===id;});
+    var isEN = (typeof _masterLang!=='undefined' && _masterLang==='en');
+    if(!l){
+      if(typeof showToast==='function') showToast(isEN ? '⚠️ Lead not found. Reload the page.' : '⚠️ Lead no encontrado. Recarga la página.');
+      return;
+    }
+    var msg = isEN
+      ? 'Convert to client: '+l.name+'?\n\nThis will create an active client record.'
+      : '¿Convertir a cliente: '+l.name+'?\n\nEsto creará un registro de cliente activo.';
+    if(!confirm(msg)) return;
     var np=(l.name||'').split(' ');
-    var newReg={id:'reg_cb_'+Date.now(),firstName:np[0]||'',lastName:np.slice(1).join(' ')||'',
+    var r={id:'reg_cb_'+Date.now(),firstName:np[0]||'',lastName:np.slice(1).join(' ')||'',
       phone:l.phone||'',email:l.email||'',status:'active',source:'chatbot-website',
-      createdAt:new Date().toISOString(),plan:'',notes:'Convertido desde Chatbot Lead'};
+      createdAt:new Date().toISOString(),plan:'',notes: isEN ? 'Converted from Chatbot Lead' : 'Convertido desde Chatbot Lead'};
     if(typeof _fbdb!=='undefined'&&_fbdb){
-      _fbdb.ref('registrations/'+newReg.id).set(newReg).then(function(){
+      _fbdb.ref('registrations/'+r.id).set(r).then(function(){
         _fbdb.ref('chatbotLeads/'+id+'/status').set('converted');
-        _fbdb.ref('chatbotLeads/'+id+'/linkedRegId').set(newReg.id);
-        _cbLeads.forEach(function(x){if(x.id===id){x.status='converted';x.linkedRegId=newReg.id;}});
-        window._cbLeadsGlobal=_cbLeads;
+        _fbdb.ref('chatbotLeads/'+id+'/linkedRegId').set(r.id);
+        _cbLeads.forEach(function(x){if(x.id===id){x.status='converted';x.linkedRegId=r.id;}});
+        if(window._cbLeadsGlobal) window._cbLeadsGlobal.forEach(function(x){if(x.id===id){x.status='converted';x.linkedRegId=r.id;}});
         _renderCbLeads(); _updateCbBadge();
-        if(typeof registrations!=='undefined') registrations.unshift(newReg);
-        if(typeof renderClients==='function') renderClients();
+        if(typeof registrations!=='undefined') registrations.unshift(r);
+        if(typeof updateNavBadge==='function') updateNavBadge();
         if(typeof renderDashboard==='function') renderDashboard();
-        if(typeof showToast==='function') showToast(l.name+' convertido a cliente activo');
-      }).catch(function(e){if(typeof showToast==='function') showToast('Error: '+e.message);});
+        if(typeof showToast==='function') showToast(isEN ? '✅ '+l.name+' converted to active client' : '✅ '+l.name+' convertido a cliente activo');
+        setTimeout(function(){
+          if(typeof goPage==='function') goPage('clients');
+          setTimeout(function(){
+            if(typeof renderClients==='function') renderClients();
+            if(typeof updateNavBadge==='function') updateNavBadge();
+          }, 300);
+        }, 600);
+      }).catch(function(e){
+        if(typeof showToast==='function') showToast((isEN ? '❌ Error: ' : '❌ Error: ')+e.message);
+      });
+    } else {
+      if(typeof showToast==='function') showToast(isEN ? '⚠️ Firebase not connected' : '⚠️ Firebase no conectado');
     }
   };
 
+  window.initChatbotBadge = function(){ _loadCbLeads(); };
 
   window.cbSaveConfig = function(){
     var f = ['schoolName','waNumber','greeting','systemPrompt'];
@@ -23808,8 +24314,6 @@ function _baOpenSendFromClient(recId){
   };
 
   /* ── Render page ── */
-  window.initChatbotBadge = function(){ _loadCbLeads(); };
-
   window.renderChatbotPage = function(){
     initChatbot();
     cbSwitchTab(_cbTab);
@@ -23821,6 +24325,7 @@ function _baOpenSendFromClient(recId){
   window.goPage = function(p){
     _origGoPage2(p);
     if(p==='chatbot') window.renderChatbotPage();
+    if(p==='mensajes' && typeof window._initMensajesPage==='function') window._initMensajesPage();
   };
 })();
 </script>
@@ -23926,6 +24431,350 @@ function _baOpenSendFromClient(recId){
     injectChatbotPage();
   }
 })();
+</script>
+
+<!-- CHATBOT LEAD ACTION MODAL -->
+<div id="cbLeadModal">
+  <div class="cblm-box">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+      <div>
+        <div class="cblm-name" id="cblm_name">—</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+          <span class="cblm-pill" style="background:rgba(244,63,94,.12);color:#f43f5e;border:1px solid rgba(244,63,94,.3)">Robot Chatbot Lead</span>
+          <span class="cblm-pill" id="cblm_status_badge" style="background:rgba(244,63,94,.12);color:#f43f5e;border:1px solid rgba(244,63,94,.3)">Nuevo</span>
+        </div>
+      </div>
+      <button onclick="cbCloseLead()" style="background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:0 6px;line-height:1">&#x2715;</button>
+    </div>
+    <div class="cblm-info">
+      <div class="cblm-info-item">Telefono<strong id="cblm_phone">—</strong></div>
+      <div class="cblm-info-item">Email<strong id="cblm_email">—</strong></div>
+      <div class="cblm-info-item">Fecha<strong id="cblm_date">—</strong></div>
+      <div class="cblm-info-item">Fuente<strong id="cblm_source">—</strong></div>
+    </div>
+    <div class="cblm-grid">
+      <button class="cblm-btn cblm-wa"      onclick="cbModalWhatsApp()"><span class="ico">&#x1F4AC;</span>WhatsApp</button>
+      <button class="cblm-btn cblm-contact" onclick="cbModalContacted()"><span class="ico">&#x1F4DE;</span>Marcar Contactado</button>
+      <button class="cblm-btn cblm-enroll"  onclick="cbModalEnrollment()"><span class="ico">&#x1F4CB;</span>Enrollment/Waiver</button>
+      <button class="cblm-btn cblm-billing" onclick="cbModalBilling()"><span class="ico">&#x1F4B3;</span>Billing Auth</button>
+      <button class="cblm-btn cblm-convert" onclick="cbModalConvert()"><span class="ico">&#x1F464;</span>Convertir a Cliente</button>
+      <button class="cblm-btn cblm-del"     onclick="cbModalDelete()"><span class="ico">&#x1F5D1;&#xFE0F;</span>Eliminar Lead</button>
+    </div>
+  </div>
+</div>
+<script>
+var _cblmId=null;
+window.cbOpenLeadModal=function(id){
+  var leads=window._cbLeadsGlobal||[];
+  var l=leads.find(function(x){return x.id===id;});
+  if(!l){alert('Lead no encontrado. Recarga la pagina.');return;}
+  _cblmId=id;
+  document.getElementById('cblm_name').textContent=l.name||'Sin nombre';
+  document.getElementById('cblm_phone').textContent=l.phone||'—';
+  document.getElementById('cblm_email').textContent=l.email||'—';
+  document.getElementById('cblm_source').textContent=l.source||'chatbot-website';
+  document.getElementById('cblm_date').textContent=l.createdAt?new Date(l.createdAt).toLocaleDateString('es',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
+  var sb=document.getElementById('cblm_status_badge');
+  var s=l.status||'new';
+  var sm={new:'Nuevo',contacted:'Contactado',converted:'Convertido'};
+  var bg={new:'rgba(244,63,94,.12)',contacted:'rgba(245,158,11,.12)',converted:'rgba(34,197,94,.12)'};
+  var tc={new:'#f43f5e',contacted:'#f59e0b',converted:'#22c55e'};
+  var bc={new:'rgba(244,63,94,.3)',contacted:'rgba(245,158,11,.3)',converted:'rgba(34,197,94,.3)'};
+  sb.textContent=sm[s]||s;sb.style.background=bg[s];sb.style.color=tc[s];sb.style.borderColor=bc[s];
+  document.getElementById('cbLeadModal').classList.add('open');
+};
+window.cbCloseLead=function(){
+  document.getElementById('cbLeadModal').classList.remove('open');_cblmId=null;
+};
+window.cbModalWhatsApp=function(){
+  var l=(window._cbLeadsGlobal||[]).find(function(x){return x.id===_cblmId;});
+  if(!l||!l.phone)return;
+  var phone='https://wa.me/1'+l.phone.replace(/\D/g,'')+'?text=';
+  var tipo = l.status==='contacted' ? 'seguimiento' : 'bienvenida';
+  _getTpl('whatsapp', tipo, {nombre:l.name||'', negocio:'Master Baez Martial Arts', telefono:l.phone||''}, function(msg){
+    window.open(phone+encodeURIComponent(msg),'_blank');
+  });
+};
+window.cbModalContacted=function(){if(!_cblmId)return;if(typeof cbChangeStatus==='function')cbChangeStatus(_cblmId,'contacted');cbCloseLead();};
+window.cbModalEnrollment=function(){if(!_cblmId)return;var _id=_cblmId;cbCloseLead();setTimeout(function(){if(typeof cbOpenEnrollment==='function')cbOpenEnrollment(_id);},100);};
+window.cbModalBilling=function(){if(!_cblmId)return;var _id=_cblmId;cbCloseLead();setTimeout(function(){if(typeof cbOpenBilling==='function')cbOpenBilling(_id);},100);};
+window.cbModalConvert=function(){if(!_cblmId)return;var _id=_cblmId;cbCloseLead();setTimeout(function(){if(typeof cbConvertToClient==='function')cbConvertToClient(_id);},100);};
+window.cbModalDelete=function(){if(!_cblmId)return;var _id=_cblmId;cbCloseLead();setTimeout(function(){if(typeof cbDeleteLead==='function')cbDeleteLead(_id);},100);};
+document.addEventListener('click',function(e){if(e.target&&e.target.id==='cbLeadModal')window.cbCloseLead();});
+</script>
+
+<!-- ══════════════════════════════════════════════════
+     SECCIÓN: CONFIGURACIÓN DE MENSAJES (WhatsApp / SMS / Email)
+     ══════════════════════════════════════════════════ -->
+<style>
+#page-mensajes .msg-tabs{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap;}
+#page-mensajes .msg-tab{padding:9px 20px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:'Syne',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:var(--transition);}
+#page-mensajes .msg-tab.active-wa{background:linear-gradient(135deg,#25d366,#128c7e);border-color:#25d366;color:#fff;box-shadow:0 4px 12px rgba(37,211,102,.3);}
+#page-mensajes .msg-tab.active-sms{background:linear-gradient(135deg,#3b82f6,#1d4ed8);border-color:#3b82f6;color:#fff;box-shadow:0 4px 12px rgba(59,130,246,.3);}
+#page-mensajes .msg-tab.active-email{background:linear-gradient(135deg,#f59e0b,#d97706);border-color:#f59e0b;color:#fff;box-shadow:0 4px 12px rgba(245,158,11,.3);}
+#page-mensajes .msg-tab:not(.active-wa):not(.active-sms):not(.active-email):hover{border-color:var(--accent);color:var(--accent);}
+#page-mensajes .msg-type-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+#page-mensajes .msg-type-btn{padding:7px 16px;border-radius:8px;border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'Syne',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:var(--transition);}
+#page-mensajes .msg-type-btn.active{background:var(--surface3);border-color:var(--border-light);color:var(--text);}
+#page-mensajes .msg-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:16px;}
+#page-mensajes .msg-card-head{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+#page-mensajes .msg-card-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+#page-mensajes .msg-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px;display:block;}
+#page-mensajes .msg-textarea{width:100%;min-height:120px;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;}
+#page-mensajes .msg-textarea:focus{border-color:var(--accent);}
+#page-mensajes .msg-var-chip{padding:3px 10px;border-radius:20px;background:var(--surface3);border:1px solid var(--border-light);color:var(--text-secondary);font-size:11px;font-weight:600;cursor:pointer;font-family:'Syne',sans-serif;transition:var(--transition);display:inline-block;margin-right:4px;}
+#page-mensajes .msg-var-chip:hover{border-color:var(--accent);color:var(--accent);}
+#page-mensajes .msg-save-btn{padding:11px 28px;border-radius:10px;border:none;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;cursor:pointer;transition:var(--transition);box-shadow:0 4px 12px rgba(34,197,94,.3);}
+#page-mensajes .msg-save-btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(34,197,94,.4);}
+#page-mensajes .msg-preview-box{background:var(--surface2);border:1px dashed var(--border-light);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--muted2);line-height:1.6;margin-top:10px;min-height:60px;white-space:pre-wrap;}
+#page-mensajes .msg-info-bar{background:rgba(234,179,8,.07);border:1px solid rgba(234,179,8,.2);border-radius:12px;padding:14px 18px;font-size:13px;color:var(--muted2);line-height:1.6;margin-bottom:22px;}
+#page-mensajes .msg-channel-panel{display:none;}
+#page-mensajes .msg-channel-panel.visible{display:block;}
+#page-mensajes .msg-type-panel{display:none;}
+#page-mensajes .msg-type-panel.visible{display:block;}
+</style>
+
+<script>
+(function(){
+  /* ── Defaults ── */
+  var DEFAULTS = {
+    whatsapp:{
+      bienvenida: 'Hola {nombre}! 👋 Vi tu interés en Master Baez Martial Arts. ¡Tu primera clase es GRATIS! ¿Cuándo puedes venir a probarla? 🥋',
+      seguimiento: 'Hola {nombre}! 😊 Queríamos saber si tienes alguna pregunta sobre nuestros programas en {negocio}. ¡Estamos aquí para ayudarte! ¿Te gustaría agendar una visita?',
+      cita: 'Hola {nombre}! 🥋 Te recordamos tu cita en {negocio}. ¡Te esperamos! Si necesitas reagendar, escríbenos.'
+    },
+    sms:{
+      bienvenida: 'Hola {nombre}! Gracias por tu interés en {negocio}. Tu 1ra clase es GRATIS. Responde para agendar. 🥋',
+      seguimiento: 'Hola {nombre}! ¿Tienes preguntas sobre {negocio}? Estamos disponibles. Responde este SMS.',
+      cita: 'Recordatorio {nombre}: tienes una cita en {negocio}. ¡Te esperamos! Para cambios llámanos.'
+    },
+    email:{
+      bienvenida: 'Hola {nombre},\n\nGracias por tu interés en {negocio}! Tu primera clase es completamente GRATIS y sin compromiso.\n\nNos encantaría conocerte. ¿Cuándo podrías visitarnos?\n\nSaludos,\nEl Equipo de {negocio}',
+      seguimiento: 'Hola {nombre},\n\nQueríamos hacer seguimiento y saber si tienes alguna pregunta sobre nuestros programas.\n\nEstamos aquí para ayudarte.\n\nSaludos,\nEl Equipo de {negocio}',
+      cita: 'Hola {nombre},\n\nTe confirmamos tu cita en {negocio}. Llega unos minutos antes para el registro.\n\nSi necesitas cambiar la fecha, escríbenos.\n\nHasta pronto,\nEl Equipo de {negocio}'
+    }
+  };
+
+  var LABELS = {
+    bienvenida:{icon:'🎉', title:'Bienvenida / Primer Contacto', desc:'Usado cuando el cliente llega por primera vez a través del chatbot o formulario.'},
+    seguimiento:{icon:'🔄', title:'Seguimiento', desc:'Para leads que aún no han confirmado ni respondido.'},
+    cita:{icon:'📅', title:'Confirmación / Recordatorio de Cita', desc:'Para confirmar o recordar una cita agendada.'}
+  };
+
+  var CH_COLORS = {
+    whatsapp:{bg:'rgba(37,211,102,.12)', accent:'#25d366', icon:'💚', name:'WhatsApp'},
+    sms:{bg:'rgba(59,130,246,.12)', accent:'#3b82f6', icon:'📱', name:'SMS'},
+    email:{bg:'rgba(245,158,11,.12)', accent:'#f59e0b', icon:'📧', name:'Email'}
+  };
+
+  function injectMensajesPage(){
+    var main = document.querySelector('.main');
+    if(!main || document.getElementById('page-mensajes')) return;
+    var pg = document.createElement('div');
+    pg.className = 'page';
+    pg.id = 'page-mensajes';
+    var html = '<div class="topbar"><div class="page-title">💬 Configuración de Mensajes</div></div>';
+    html += '<div class="msg-info-bar">✏️ Edita tus plantillas directamente desde el navegador. Usa <strong style="color:var(--accent)">{nombre}</strong>, <strong style="color:var(--accent)">{negocio}</strong> y <strong style="color:var(--accent)">{telefono}</strong> para personalizar. Los cambios se guardan en Firebase y se usan automáticamente en los botones del CRM.</div>';
+    html += '<div class="msg-tabs">';
+    ['whatsapp','sms','email'].forEach(function(ch){
+      var c=CH_COLORS[ch];
+      html += '<button class="msg-tab" id="msgtab-'+ch+'" onclick="msgSwitchChannel(\''+ch+'\')">'+ c.icon +' '+ c.name +'</button>';
+    });
+    html += '</div>';
+    ['whatsapp','sms','email'].forEach(function(ch){
+      html += '<div class="msg-channel-panel" id="msgpanel-'+ch+'">';
+      html += '<div class="msg-type-tabs">';
+      ['bienvenida','seguimiento','cita'].forEach(function(t){
+        var l=LABELS[t];
+        html += '<button class="msg-type-btn" id="msgtypetab-'+ch+'-'+t+'" onclick="msgSwitchType(\''+ch+'\',\''+t+'\')">'+l.icon+' '+l.title+'</button>';
+      });
+      html += '</div>';
+      ['bienvenida','seguimiento','cita'].forEach(function(t){
+        var l=LABELS[t]; var c=CH_COLORS[ch];
+        html += '<div class="msg-type-panel" id="msgtypepanel-'+ch+'-'+t+'">';
+        html += '<div class="msg-card">';
+        html += '<div class="msg-card-head"><div class="msg-card-icon" style="background:'+c.bg+'">'+l.icon+'</div>';
+        html += '<div><div style="font-family:\'Syne\',sans-serif;font-weight:800;font-size:15px">'+l.title+'</div>';
+        html += '<div style="font-size:12px;color:var(--muted);margin-top:2px">'+l.desc+'</div></div></div>';
+        html += '<span class="msg-label">Plantilla del mensaje</span>';
+        html += '<textarea class="msg-textarea" id="msgtpl-'+ch+'-'+t+'" oninput="msgUpdatePreview(\''+ch+'\',\''+t+'\')"></textarea>';
+        html += '<div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">';
+        html += '<div><span style="font-size:11px;color:var(--muted);margin-right:6px">Variables:</span>';
+        ['{nombre}','{negocio}','{telefono}'].forEach(function(v){
+          html += '<span class="msg-var-chip" onclick="msgInsertVar(\''+ch+'\',\''+t+'\',\''+v+'\')">'+v+'</span>';
+        });
+        html += '</div><button class="msg-save-btn" onclick="msgSave(\''+ch+'\',\''+t+'\')">💾 Guardar</button>';
+        html += '</div>';
+        html += '<div style="margin-top:14px"><span class="msg-label">👁 Vista previa</span>';
+        html += '<div class="msg-preview-box" id="msgpreview-'+ch+'-'+t+'"></div></div>';
+        html += '</div></div>';
+      });
+      html += '</div>';
+    });
+    pg.innerHTML = html;
+    main.appendChild(pg);
+    msgSwitchChannel('whatsapp');
+  }
+
+  var _msgChannel = 'whatsapp';
+  var _msgTypeState = {whatsapp:'bienvenida',sms:'bienvenida',email:'bienvenida'};
+
+  window.msgSwitchChannel = function(ch){
+    _msgChannel = ch;
+    ['whatsapp','sms','email'].forEach(function(c){
+      var t=document.getElementById('msgtab-'+c);
+      if(t) t.className='msg-tab'+(c===ch?' active-'+(c==='whatsapp'?'wa':c==='sms'?'sms':'email'):'');
+      var p=document.getElementById('msgpanel-'+c);
+      if(p) p.classList.toggle('visible',c===ch);
+    });
+    msgSwitchType(ch, _msgTypeState[ch]||'bienvenida');
+  };
+
+  window.msgSwitchType = function(ch, type){
+    _msgTypeState[ch]=type;
+    ['bienvenida','seguimiento','cita'].forEach(function(t){
+      var b=document.getElementById('msgtypetab-'+ch+'-'+t);
+      if(b) b.classList.toggle('active',t===type);
+      var p=document.getElementById('msgtypepanel-'+ch+'-'+t);
+      if(p) p.classList.toggle('visible',t===type);
+    });
+    msgUpdatePreview(ch,type);
+  };
+
+  window.msgUpdatePreview = function(ch, type){
+    var ta=document.getElementById('msgtpl-'+ch+'-'+type);
+    var pv=document.getElementById('msgpreview-'+ch+'-'+type);
+    if(!ta||!pv) return;
+    pv.textContent=(ta.value||'')
+      .replace(/\{nombre\}/gi,'María González')
+      .replace(/\{negocio\}/gi,'Master Baez Martial Arts')
+      .replace(/\{telefono\}/gi,'(954) 123-4567');
+  };
+
+  window.msgInsertVar = function(ch, type, varStr){
+    var ta=document.getElementById('msgtpl-'+ch+'-'+type);
+    if(!ta) return;
+    var s=ta.selectionStart, e=ta.selectionEnd;
+    ta.value=ta.value.substring(0,s)+varStr+ta.value.substring(e);
+    ta.selectionStart=ta.selectionEnd=s+varStr.length;
+    ta.focus();
+    msgUpdatePreview(ch,type);
+  };
+
+  window.msgSave = function(ch, type){
+    var ta=document.getElementById('msgtpl-'+ch+'-'+type);
+    if(!ta) return;
+    var val=ta.value.trim();
+    if(!val){if(typeof showToast==='function')showToast('⚠️ El mensaje no puede estar vacío');return;}
+    if(typeof _fbdb!=='undefined'&&_fbdb){
+      _fbdb.ref('messageTemplates/'+ch+'/'+type).set(val).then(function(){
+        if(typeof showToast==='function') showToast('✅ Mensaje de '+ch+'/'+type+' guardado en Firebase');
+      }).catch(function(e){if(typeof showToast==='function')showToast('❌ Error: '+e.message);});
+    } else {
+      try{localStorage.setItem('msgTpl_'+ch+'_'+type,val);}catch(ex){}
+      if(typeof showToast==='function') showToast('💾 Guardado localmente (Firebase no conectado)');
+    }
+  };
+
+  function _msgLoadAll(){
+    var channels=['whatsapp','sms','email'];
+    var types=['bienvenida','seguimiento','cita'];
+    function _applyDefaults(){
+      channels.forEach(function(ch){ types.forEach(function(t){
+        var ta=document.getElementById('msgtpl-'+ch+'-'+t);
+        if(ta&&!ta.value) ta.value=DEFAULTS[ch][t]||'';
+        msgUpdatePreview(ch,t);
+      });});
+    }
+    if(typeof _fbdb!=='undefined'&&_fbdb){
+      _fbdb.ref('messageTemplates').once('value').then(function(snap){
+        var data=snap.val()||{};
+        channels.forEach(function(ch){ types.forEach(function(t){
+          var ta=document.getElementById('msgtpl-'+ch+'-'+t);
+          if(ta){ ta.value=(data[ch]&&data[ch][t])||DEFAULTS[ch][t]||''; msgUpdatePreview(ch,t); }
+        });});
+      }).catch(function(){ _applyDefaults(); });
+    } else {
+      channels.forEach(function(ch){ types.forEach(function(t){
+        var ta=document.getElementById('msgtpl-'+ch+'-'+t);
+        if(ta){
+          try{var s=localStorage.getItem('msgTpl_'+ch+'_'+t); ta.value=s||DEFAULTS[ch][t]||'';}
+          catch(ex){ta.value=DEFAULTS[ch][t]||'';}
+          msgUpdatePreview(ch,t);
+        }
+      });});
+    }
+  }
+
+  window._initMensajesPage = function(){ _msgLoadAll(); msgSwitchChannel(_msgChannel); };
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',injectMensajesPage);
+  } else {
+    injectMensajesPage();
+  }
+})();
+</script>
+
+<script>
+/* _getLeadById — busca un lead en cualquier store global disponible */
+window._getLeadById = function(id){
+  // 'leads' es el array global del módulo de leads (línea 3922)
+  var sources = [
+    (typeof leads !== 'undefined' ? leads : null),
+    window._leadsGlobal, window._cbLeadsGlobal,
+    window._allLeadsGlobal, window._masterLeads
+  ];
+  for(var i=0;i<sources.length;i++){
+    if(Array.isArray(sources[i])){
+      var found = sources[i].find(function(x){return x.id===id;});
+      if(found) return found;
+    }
+  }
+  return {id:id, firstName:'', phone:'', email:''};
+};
+
+/* ══════════════════════════════════════════════════
+   _getTpl — Obtiene plantilla de Firebase (o localStorage)
+   y reemplaza {nombre}, {negocio}, {telefono}
+   Uso: _getTpl('whatsapp','bienvenida',{nombre,negocio,telefono}, cb)
+   ══════════════════════════════════════════════════ */
+window._getTpl = function(canal, tipo, datos, cb){
+  var def = {
+    whatsapp:{
+      bienvenida:'Hola {nombre}! 👋 Tu primera clase en {negocio} es GRATIS. ¿Cuándo puedes venir? 🥋',
+      seguimiento:'Hola {nombre}! 😊 ¿Tienes preguntas sobre {negocio}? Estamos aquí para ayudarte.',
+      cita:'Hola {nombre}! 🥋 Te recordamos tu cita en {negocio}. ¡Te esperamos!'
+    },
+    sms:{
+      bienvenida:'Hola {nombre}! Tu 1ra clase en {negocio} es GRATIS. Responde para agendar.',
+      seguimiento:'Hola {nombre}! ¿Tienes preguntas sobre {negocio}? Responde este SMS.',
+      cita:'Recordatorio {nombre}: tienes cita en {negocio}. ¡Te esperamos!'
+    },
+    email:{
+      bienvenida:'Hola {nombre},\n\nGracias por tu interés en {negocio}. Tu primera clase es GRATIS.\n\n¿Cuándo puedes visitarnos?\n\nSaludos,\nEl Equipo de {negocio}',
+      seguimiento:'Hola {nombre},\n\nQueríamos saber si tienes preguntas sobre nuestros programas en {negocio}.\n\nEstamos aquí para ayudarte.\n\nSaludos,\nEl Equipo de {negocio}',
+      cita:'Hola {nombre},\n\nTe confirmamos tu cita en {negocio}. Llega unos minutos antes.\n\nSi necesitas cambiar la fecha, escríbenos.\n\nHasta pronto,\nEl Equipo de {negocio}'
+    }
+  };
+  function _apply(tpl){
+    var r = (tpl || (def[canal]&&def[canal][tipo]) || '')
+      .replace(/\{nombre\}/gi,   datos.nombre   || '')
+      .replace(/\{negocio\}/gi,  datos.negocio  || '')
+      .replace(/\{telefono\}/gi, datos.telefono || '');
+    cb(r);
+  }
+  var fbKey = 'messageTemplates/'+canal+'/'+tipo;
+  var lsKey = 'msgTpl_'+canal+'_'+tipo;
+  if(typeof _fbdb !== 'undefined' && _fbdb){
+    _fbdb.ref(fbKey).once('value')
+      .then(function(snap){ _apply(snap.val() || ''); })
+      .catch(function(){ _apply(''); });
+  } else {
+    try { _apply(localStorage.getItem(lsKey) || ''); }
+    catch(ex){ _apply(''); }
+  }
+};
 </script>
 
 </body>
