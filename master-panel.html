@@ -1443,14 +1443,12 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
               <span style="font-size:13px;font-weight:600">💬 WhatsApp</span>
               <input type="checkbox" id="notifWA" onchange="saveNotifConfig()" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer"/>
             </label>
-            <label style="display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer">
-              <span style="font-size:13px;font-weight:600">📱 SMS</span>
-              <input type="checkbox" id="notifSMS" onchange="saveNotifConfig()" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer"/>
+            <label style="display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer;grid-column:span 2">
+              <span style="font-size:13px;font-weight:600">✈️ Telegram Bot</span>
+              <input type="checkbox" id="notifTelegram" onchange="saveNotifConfig()" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer"/>
             </label>
-            <label style="display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer">
-              <span style="font-size:13px;font-weight:600">🔵 Microsoft Teams</span>
-              <input type="checkbox" id="notifMS" onchange="saveNotifConfig()" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer"/>
-            </label>
+            <!-- Hidden inputs to keep compatibility -->
+            <input type="hidden" id="notifSMS"/><input type="hidden" id="notifMS"/>
           </div>
 
           <div id="credencialesSection" style="border-top:1px solid var(--border);padding-top:16px"></div>
@@ -3020,14 +3018,15 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 </div>
 
 <!-- ── REFERIDOR BALANCE MODAL ── -->
+<!-- ── UNIFIED REFERRER PANEL MODAL ── -->
 <div class="modal-overlay" id="refBalanceModal" style="z-index:10050">
-  <div class="pro-modal" style="max-width:720px" onclick="event.stopPropagation()">
+  <div class="pro-modal" style="max-width:680px" onclick="event.stopPropagation()">
     <div class="modal-header">
       <div class="modal-header-title">
-        <div class="mht-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a)">💰</div>
+        <div class="mht-icon" id="refBalIcon" style="background:linear-gradient(135deg,#f97316,#ef4444)">👤</div>
         <div class="mht-text">
-          <h3 id="refBalTitle">Balance del Referidor</h3>
-          <p id="refBalSub">Clientes referidos · Ganancias · Pagos</p>
+          <h3 id="refBalTitle">Referidor</h3>
+          <p id="refBalSub"></p>
         </div>
       </div>
       <div class="modal-header-actions">
@@ -3038,22 +3037,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
   </div>
 </div>
 
-<!-- ── RC CREDIT MODAL (Sistema de Crédito por Referidos) ── -->
-<div class="modal-overlay" id="rcCreditModal" style="z-index:10060">
-  <div class="pro-modal" style="max-width:560px" onclick="event.stopPropagation()">
-    <div class="modal-header">
-      <div class="modal-header-info">
-        <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#a855f7,#7c3aed);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">💳</div>
-        <div>
-          <h3 id="rcCreditTitle" style="font-size:17px;margin:0">Crédito por Referidos</h3>
-          <p id="rcCreditSub" style="font-size:12px;color:var(--muted);margin:0"></p>
-        </div>
-      </div>
-      <button class="modal-close" onclick="closeModal('rcCreditModal')">✕</button>
-    </div>
-    <div class="modal-body" id="rcCreditBody"></div>
-  </div>
-</div>
+<!-- rcCreditModal kept as alias — opens refBalanceModal -->
+<div id="rcCreditModal" style="display:none"></div>
 
 <!-- ── CANJE / CREDIT REDEEM MODAL ── -->
 <div class="modal-overlay" id="canjeModal">
@@ -4132,11 +4117,13 @@ var planTrash = {}; // key → {key, nameES, nameEN, priceES, priceEN, deletedAt
 
 // ── NOTIFICATION CONFIG ─────────────────────────
 var notifConfig = {
-  email: false, whatsapp: false, sms: false, ms: false,
+  email: true, whatsapp: true, sms: false, ms: false, telegram: true,
   brevoAdminEmail: 'dbkoryo@gmail.com',
   emailjs: { serviceId:'', templateId:'', publicKey:'' },
   twilio:  { sid:'', token:'', from:'', waFrom:'', adminPhone:'' },
-  msWebhook: ''
+  msWebhook: '',
+  telegramBotToken: _TELEGRAM_BOT_TOKEN,
+  telegramChatId:   _TELEGRAM_CHAT_ID
 };
 
 // ── CALLMEBOT (WhatsApp gratis) ─────────────────
@@ -4144,19 +4131,48 @@ var callMeBotPhone  = '19543801340';
 var callMeBotApiKey = '1707140';
 var BREVO_WORKER    = 'https://long-breeze-7e8a.dbkoryo.workers.dev/';
 
+// ── TELEGRAM BOT CONFIG ─────────────────────────
+// Bot: @GmDanielBaezBot — t.me/GmDanielBaezBot
+var _TELEGRAM_BOT_TOKEN = '8768730249:AAHvopZzmvcTKDFKXEARzcu0oWoyyZuBDf0';
+var _TELEGRAM_CHAT_ID   = '5680584878';
+
 function sendWhatsAppAdmin(msg){
-  var waImg = new Image();
-  waImg.src = 'https://api.callmebot.com/whatsapp.php?phone=' +
-    encodeURIComponent(callMeBotPhone) +
+  var phone  = callMeBotPhone  || '';
+  var apikey = callMeBotApiKey || '';
+  if(!phone || !apikey) return;
+  var url = 'https://api.callmebot.com/whatsapp.php?phone=' +
+    encodeURIComponent(phone) +
     '&text=' + encodeURIComponent(msg) +
-    '&apikey=' + encodeURIComponent(callMeBotApiKey);
+    '&apikey=' + encodeURIComponent(apikey);
+  // Try fetch first, fallback to Image (CORS workaround)
+  fetch(url, { mode: 'no-cors' })
+    .catch(function(){
+      var img = new Image();
+      img.src = url;
+    });
+  console.log('📱 WhatsApp CallMeBot sent to', phone);
+}
+
+function sendTelegramAdmin(msg){
+  var token  = notifConfig.telegramBotToken || _TELEGRAM_BOT_TOKEN || '';
+  var chatId = notifConfig.telegramChatId   || _TELEGRAM_CHAT_ID   || '';
+  if(!token || !chatId) return;
+  fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'HTML' })
+  }).then(function(){ console.log('✅ Telegram sent'); })
+    .catch(function(e){ console.warn('Telegram failed:', e); });
 }
 
 function saveNotifConfig(){
-  notifConfig.email   = document.getElementById('notifEmail').checked;
-  notifConfig.whatsapp= document.getElementById('notifWA').checked;
-  notifConfig.sms     = document.getElementById('notifSMS').checked;
-  notifConfig.ms      = document.getElementById('notifMS').checked;
+  notifConfig.email    = document.getElementById('notifEmail').checked;
+  notifConfig.whatsapp = document.getElementById('notifWA').checked;
+  notifConfig.sms      = document.getElementById('notifSMS').checked;
+  notifConfig.ms       = document.getElementById('notifMS').checked;
+  notifConfig.telegram = document.getElementById('notifTelegram') ? document.getElementById('notifTelegram').checked : false;
+  notifConfig.telegramBotToken = document.getElementById('telegramBotToken') ? document.getElementById('telegramBotToken').value.trim() : '';
+  notifConfig.telegramChatId   = document.getElementById('telegramChatId')   ? document.getElementById('telegramChatId').value.trim()   : '';
   notifConfig.brevoAdminEmail = document.getElementById('brevoAdminEmail').value.trim();
   notifConfig.emailjs = {
     serviceId:  document.getElementById('ejServiceId').value.trim(),
@@ -4178,6 +4194,9 @@ function loadNotifConfig(){
   document.getElementById('notifWA').checked    = notifConfig.whatsapp;
   document.getElementById('notifSMS').checked   = notifConfig.sms;
   document.getElementById('notifMS').checked    = notifConfig.ms;
+  if(document.getElementById('notifTelegram'))    document.getElementById('notifTelegram').checked   = notifConfig.telegram||false;
+  if(document.getElementById('telegramBotToken')) document.getElementById('telegramBotToken').value  = notifConfig.telegramBotToken||'';
+  if(document.getElementById('telegramChatId'))   document.getElementById('telegramChatId').value    = notifConfig.telegramChatId||'';
   document.getElementById('brevoAdminEmail').value = notifConfig.brevoAdminEmail||'dbkoryo@gmail.com';
   document.getElementById('ejServiceId').value  = notifConfig.emailjs.serviceId||'';
   document.getElementById('ejTemplateId').value = notifConfig.emailjs.templateId||'';
@@ -4194,12 +4213,27 @@ async function testNotifications(){
   saveNotifConfig();
   showToast(_masterLang==='en'?'🧪 Sending test notifications...':'🧪 Enviando notificaciones de prueba...');
   var testRecord = {
-    firstName:'Test', lastName:'User', email: notifConfig.twilio.adminPhone||'tu@email.com',
-    phone: notifConfig.twilio.adminPhone||'+10000000000',
+    firstName:'Test', lastName:'User', email: notifConfig.brevoAdminEmail||'tu@email.com',
+    phone: '+10000000000',
     bizName:'Test Business', plan:'pro', lang:'es', id:'TEST-'+Date.now()
   };
   await sendAdminNotifications(testRecord, plans.pro);
-  showToast(_masterLang==='en'?'✅ Test sent — check your email, WhatsApp and SMS':'✅ Prueba enviada — revisa tu email, WhatsApp y SMS');
+
+  // Test WhatsApp via CallMeBot
+  if(notifConfig.whatsapp){
+    sendWhatsAppAdmin(
+      '🧪 Test Notificación\n' +
+      '✅ WhatsApp CallMeBot conectado al CRM\n' +
+      '👤 Test User\n📧 tu@email.com\n📱 +10000000000'
+    );
+  }
+
+  // Test Telegram
+  if(notifConfig.telegram){
+    sendTelegramAdmin('🧪 <b>Test Notificación</b>\n✅ Telegram conectado correctamente al CRM');
+  }
+
+  showToast(_masterLang==='en'?'✅ Test sent — check WhatsApp and Telegram':'✅ Prueba enviada — revisa WhatsApp y Telegram');
 }
 
 // ── SEND ADMIN NOTIFICATIONS ───────────────────
@@ -4250,7 +4284,20 @@ async function sendAdminNotifications(record, plan){
     console.log('WhatsApp config ready — needs server-side proxy to call Twilio API');
   }
 
-  // 4 — Microsoft Teams via Power Automate webhook
+  // 4 — Telegram Bot
+  if(notifConfig.telegram && notifConfig.telegramBotToken && notifConfig.telegramChatId){
+    sendTelegramAdmin(
+      '🚀 <b>Nuevo Lead — CRM</b>\n' +
+      '👤 ' + fullName + '\n' +
+      '📧 ' + (record.email||'—') + '\n' +
+      '📱 ' + (record.phone||'—') + '\n' +
+      '🏢 ' + (record.bizName||'—') + '\n' +
+      '📦 Plan: ' + planName + '\n' +
+      '🆔 ID: ' + record.id
+    );
+  }
+
+  // 5 — Microsoft Teams via Power Automate webhook
   if(notifConfig.ms && notifConfig.msWebhook){
     try{
       await fetch(notifConfig.msWebhook,{
@@ -4477,6 +4524,76 @@ async function loadData(){
       var partB = partners.find(function(x){ return x.cid===lead.ref_id && x.qrEnabled===false; });
       return !(refB || partB);
     });
+    // ── Detectar leads nuevos y notificar ──
+    var prevIds = (window._knownLeadIds || []);
+    var newOnes = leads.filter(function(l){ return l && l.id && prevIds.indexOf(l.id) === -1; });
+    window._knownLeadIds = leads.filter(Boolean).map(function(l){ return l.id; });
+
+    if(prevIds.length > 0 && newOnes.length > 0){
+      newOnes.forEach(function(lead){
+        var nombre  = (lead.firstName||'') + ' ' + (lead.lastName||lead.name||'');
+        var msg =
+          '🔔 Nuevo Lead — Lead Page\n' +
+          '👤 ' + nombre.trim() + '\n' +
+          '📧 ' + (lead.email||'—') + '\n' +
+          '📱 ' + (lead.phone||'—') + '\n' +
+          '📅 ' + (lead.createdAt ? new Date(lead.createdAt).toLocaleString() : new Date().toLocaleString());
+
+        var msgHtml =
+          '🔔 <b>Nuevo Lead — Lead Page</b>\n' +
+          '👤 ' + nombre.trim() + '\n' +
+          '📧 ' + (lead.email||'—') + '\n' +
+          '📱 ' + (lead.phone||'—') + '\n' +
+          '📅 ' + (lead.createdAt ? new Date(lead.createdAt).toLocaleString() : new Date().toLocaleString());
+
+        // WhatsApp via CallMeBot
+        if(notifConfig.whatsapp) sendWhatsAppAdmin(msg);
+
+        // Telegram
+        if(notifConfig.telegram) sendTelegramAdmin(msgHtml);
+
+        // Email via Brevo
+        if(notifConfig.email && BREVO_WORKER){
+          var adminEmail = notifConfig.brevoAdminEmail || 'dbkoryo@gmail.com';
+          var htmlBody = '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:24px;background:#f9f9f9;border-radius:12px">'
+            + '<h2 style="color:#1a1a2e">🔔 Nuevo Lead — Lead Page</h2>'
+            + '<table style="width:100%;border-collapse:collapse">'
+            + '<tr><td style="padding:8px 0;color:#555;width:120px">👤 Nombre</td><td style="padding:8px 0;font-weight:700">' + nombre.trim() + '</td></tr>'
+            + '<tr><td style="padding:8px 0;color:#555">📧 Email</td><td style="padding:8px 0">' + (lead.email||'—') + '</td></tr>'
+            + '<tr><td style="padding:8px 0;color:#555">📱 Teléfono</td><td style="padding:8px 0">' + (lead.phone||'—') + '</td></tr>'
+            + '<tr><td style="padding:8px 0;color:#555">📅 Fecha</td><td style="padding:8px 0;font-size:12px">' + (lead.createdAt ? new Date(lead.createdAt).toLocaleString() : '—') + '</td></tr>'
+            + '</table></div>';
+          fetch(BREVO_WORKER, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: [{ email: adminEmail, name: 'Admin' }],
+              subject: '🔔 Nuevo Lead — ' + nombre.trim(),
+              htmlContent: htmlBody
+            })
+          }).catch(function(e){ console.warn('Brevo lead email failed:', e); });
+        }
+
+        // MS Teams
+        if(notifConfig.ms && notifConfig.msWebhook){
+          fetch(notifConfig.msWebhook, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              '@type': 'MessageCard', '@context': 'http://schema.org/extensions',
+              summary: 'Nuevo Lead', themeColor: 'e8ff3c',
+              title: '🔔 Nuevo Lead — Lead Page',
+              sections: [{ facts: [
+                { name: 'Nombre',   value: nombre.trim() },
+                { name: 'Email',    value: lead.email||'—' },
+                { name: 'Teléfono',value: lead.phone||'—' }
+              ]}]
+            })
+          }).catch(function(e){ console.warn('Teams lead failed:', e); });
+        }
+
+        showToast('🔔 Nuevo Lead: ' + nombre.trim());
+      });
+    }
+
     leads.sort(function(a,b){ return (b.id||'').localeCompare(a.id||''); });
     updateLeadsBadge();
     if(currentPage === 'leads') renderLeadsInbox();
@@ -6386,952 +6503,497 @@ function escHtml(str){
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// ── RC_CONFIG: configuración global de beneficios para referidores ──
+var RC_CONFIG = {
+  modoCalculo : 'pct',   // 'pct' | 'fijo'
+  creditPct   : 10,      // % del pagoBase cuando modoCalculo === 'pct'
+  montoFijo   : 20,      // $ fijo por referido cuando modoCalculo === 'fijo'
+  maxDescPct  : 100,     // % máximo de descuento sobre pagoBase
+  bonusInicial: 0        // bono de bienvenida al primer referido activo
+};
+
+function loadRCConfig(){
+  try {
+    var saved = localStorage.getItem('rcConfig');
+    if(saved) RC_CONFIG = Object.assign({}, RC_CONFIG, JSON.parse(saved));
+  } catch(e){}
+}
+loadRCConfig();
+
+function saveRCConfig(){
+  try { localStorage.setItem('rcConfig', JSON.stringify(RC_CONFIG)); } catch(e){}
+  if(!_demoMode && _fbdb){
+    try { _fbdb.ref('masterMods/rcConfig').set(RC_CONFIG); } catch(e){}
+  }
+}
+
+// calcRefNetBalance — usado por renderReferidores para mostrar el botón 🎁
+function calcRefNetBalance(ref){
+  var pagoBase = +(ref.pagoBase || ref.nivelAcordado || 0);
+  var activos  = getReferidorLeads(ref.cid).filter(function(c){ return getStatus(c)==='active'; });
+  var descXRef = RC_CONFIG.modoCalculo==='fijo'
+    ? RC_CONFIG.montoFijo
+    : +(pagoBase * (RC_CONFIG.creditPct||10) / 100).toFixed(2);
+  var descReal = +(descXRef * activos.length).toFixed(2);
+  var bal      = _getRefBal(ref.id);
+  var paid     = bal.paid || 0;
+  var pending  = +(descReal - paid).toFixed(2);
+  var nivel    = pagoBase || 0;
+  var creditFavor = (nivel > 0 && pending >= nivel) ? +(pending - nivel).toFixed(2) : 0;
+  return { pending: pending, creditFavor: creditFavor, hasCredit: creditFavor > 0 };
+}
+
+
 function openRefBalance(refId){
   _refBalId = refId;
   renderRefBalance();
   openModal('refBalanceModal');
 }
 
-function renderRefBalance(){
-  var ref = referidores.find(function(x){ return x.id===_refBalId; });
-  if(!ref) return;
-  var body = document.getElementById('refBalBody'); if(!body) return;
-  var isEN = _masterLang === 'en';
-
-  // ── Data ──────────────────────────────────────────────────
-  var allLeads = getReferidorLeads(ref.cid);
-  // Para beneficio: solo clientes reales activos, no referidores/partners
-  var active   = registrations.filter(function(r){
-    return r.ref_id === ref.cid &&
-           getStatus(r) === 'active' &&
-           r.profileType !== 'referido' &&
-           r.profileType !== 'partner';
-  });
-  var trial    = allLeads.filter(function(l){ return getStatus(l)==='trial'; });
-  var inactive = allLeads.filter(function(l){ return getStatus(l)==='inactive'; });
-  var bal      = _getRefBal(ref.id);
-
-  // Beneficio por cliente activo (suma de rewards)
-  var perClient = 0;
-  (ref.rewards||[]).forEach(function(r){
-    var m = (r.value||'').toString().trim().match(/\$?\s*([0-9]+(?:\.[0-9]+)?)/);
-    if(m) perClient += parseFloat(m[1]);
-  });
-
-  var totalEarned = +(perClient * active.length).toFixed(2);
-  var paid        = bal.paid || 0;
-  var pending     = +(totalEarned - paid).toFixed(2);
-  var nivel       = ref.nivelAcordado || 0;
-  var nuevoPago   = nivel > 0 ? Math.max(0, +(nivel - (pending > 0 ? pending : 0)).toFixed(2)) : null;
-  var creditFavor = (nivel > 0 && pending >= nivel) ? +(pending - nivel).toFixed(2) : 0;
-  var hasCredit   = creditFavor > 0;
-
-  // Helper: initials avatar
-  function avatar(name, color){
-    var parts = (name||'').trim().split(' ');
-    var ini = ((parts[0]||'')[0]||'') + ((parts[1]||'')[0]||'');
-    return '<div style="width:32px;height:32px;border-radius:8px;background:'+color+';display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-weight:800;font-size:12px;color:#fff;flex-shrink:0;text-transform:uppercase">'+ini.toUpperCase()+'</div>';
-  }
-
-  // Helper: section label
-  function sectionLabel(icon, text){
-    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
-      '<span style="font-size:13px">'+icon+'</span>'+
-      '<span style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)">'+text+'</span>'+
-      '<div style="flex:1;height:1px;background:var(--border);margin-left:4px"></div>'+
-    '</div>';
-  }
-
-  // ════════════════════════════════════════════════════════════
-  // SECCIÓN 1 — CABECERA: quién es el referidor
-  // ════════════════════════════════════════════════════════════
-  var memberSince = ref.createdAt ? (ref.createdAt+'').split('T')[0] : '—';
-  var incentLabel = {'freemonth':'Mes gratis','discount':'Descuento','cash':'Efectivo','points':'Puntos','custom':'Personalizado'}[ref.incentiveType] || ref.incentiveType || '—';
-
-  var headerHtml =
-    '<div style="display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--surface2);border-radius:14px;margin-bottom:4px">'+
-      '<div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#fb923c,#ef4444);display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-weight:900;font-size:18px;color:#fff;flex-shrink:0">'+
-        ((ref.firstName||'')[0]||'').toUpperCase()+((ref.lastName||'')[0]||'').toUpperCase()+
-      '</div>'+
-      '<div style="flex:1;min-width:0">'+
-        '<div style="font-family:Syne,sans-serif;font-weight:800;font-size:16px;color:var(--text)">'+esc(ref.firstName+' '+ref.lastName)+'</div>'+
-        '<div style="font-size:11px;color:var(--muted);margin-top:2px">'+esc(ref.email||ref.phone||'')+'</div>'+
-      '</div>'+
-      '<div style="text-align:right;flex-shrink:0">'+
-        '<div style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:3px">'+(isEN?'Member since':'Desde')+'</div>'+
-        '<div style="font-size:12px;font-weight:700;color:var(--text)">'+memberSince+'</div>'+
-        '<div style="margin-top:4px"><span style="font-size:9px;background:rgba(251,146,60,.15);color:#f97316;border-radius:6px;padding:2px 8px;font-weight:800">'+esc(incentLabel)+'</span></div>'+
-      '</div>'+
-    '</div>'+
-    // QR ID pill
-    '<div style="display:flex;align-items:center;gap:8px;padding:7px 14px;background:var(--surface2);border-radius:8px;margin-bottom:16px;margin-top:4px">'+
-      '<span style="font-size:10px;color:var(--muted)">QR ID:</span>'+
-      '<code style="font-size:12px;font-weight:700;color:#f97316;letter-spacing:.04em">'+esc(ref.cid)+'</code>'+
-      '<div style="flex:1"></div>'+
-      '<span style="font-size:10px;color:var(--muted)">'+(isEN?'Type:':'Tipo:')+'</span>'+
-      '<span style="font-size:11px;font-weight:700;color:var(--text)">'+esc(ref.type||'referidor')+'</span>'+
-    '</div>';
-
-  // ════════════════════════════════════════════════════════════
-  // SECCIÓN 2 — RESUMEN DE CUENTA (los 4 números clave)
-  // ════════════════════════════════════════════════════════════
-  function kpiBox(value, label, color, sub){
-    return '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 12px;text-align:center">'+
-      '<div style="font-family:Syne,sans-serif;font-weight:900;font-size:22px;color:'+color+';line-height:1">'+value+'</div>'+
-      '<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-top:4px">'+label+'</div>'+
-      (sub?'<div style="font-size:9px;color:var(--muted);margin-top:3px">'+sub+'</div>':'')+
-    '</div>';
-  }
-
-  var summaryHtml =
-    sectionLabel('📊', isEN?'Account summary':'Resumen de cuenta')+
-    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px">'+
-      kpiBox(allLeads.length, isEN?'Total refs':'Total refs', '#f97316', active.length+' activos')+
-      kpiBox('$'+totalEarned.toFixed(2), isEN?'Total earned':'Total ganado', '#22c55e', perClient>0?'$'+perClient.toFixed(2)+'/cliente':'')+
-      kpiBox('$'+paid.toFixed(2), isEN?'Applied':'Aplicado', '#3b82f6', (bal.history||[]).length+' mov.')+
-      (hasCredit
-        ? kpiBox('$'+creditFavor.toFixed(2), isEN?'Credit favor':'Crédito favor', '#a855f7', isEN?'Ready to redeem':'Listo canjear')
-        : kpiBox(nuevoPago!==null?'$'+nuevoPago.toFixed(2):'$'+pending.toFixed(2), isEN?'New payment':'Nuevo pago', pending>0?'#eab308':'#6b7280', nivel>0?isEN?'After discount':'Tras descuento':isEN?'Pending':'Pendiente')
-      )+
-    '</div>';
-
-  // ════════════════════════════════════════════════════════════
-  // SECCIÓN 3 — TABLA DE CLIENTES REFERIDOS (el núcleo)
-  // ════════════════════════════════════════════════════════════
-  var statusColors = {active:'#22c55e', trial:'#eab308', inactive:'#6b7280', expired:'#ef4444'};
-  var statusLabels = {active:isEN?'Active':'Activo', trial:'Trial', inactive:isEN?'Inactive':'Inactivo', expired:isEN?'Expired':'Expirado'};
-
-  var clientRowsHtml = allLeads.length === 0
-    ? '<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-size:13px">'+(isEN?'No referred clients yet':'Sin clientes referidos aún')+'</td></tr>'
-    : allLeads.map(function(l, idx){
-        var st      = getStatus(l);
-        var stColor = statusColors[st] || '#6b7280';
-        var stLbl   = statusLabels[st] || st;
-        var prog    = (typeof customProgs !== 'undefined' ? customProgs : []).find(function(p){ return p.id===(l.program||l.currentProgram||l.plan); });
-        var progName = prog ? (prog.name||prog.label||prog.id||'—') : (l.plan||l.bizType||l.program||'—');
-        var progPrice = prog ? (prog.price||0) : 0;
-        var joinDate = (l.createdAt||l.trialStart||'').split('T')[0] || '—';
-        var earnedRow = (st==='active' && perClient > 0) ? '$'+perClient.toFixed(2) : '—';
-        var earnColor = st==='active' ? '#22c55e' : 'var(--muted)';
-        var rowBg = idx % 2 === 0 ? 'background:var(--surface2)' : 'background:var(--surface)';
-        return '<tr style="'+rowBg+'">'+
-          '<td style="padding:10px 12px;border-bottom:1px solid var(--border)">'+
-            '<div style="display:flex;align-items:center;gap:9px">'+
-              avatar(l.firstName+' '+l.lastName, st==='active'?'#1d4ed8':st==='trial'?'#92400e':'#374151')+
-              '<div>'+
-                '<div style="font-size:12px;font-weight:700;color:var(--text)">'+esc((l.firstName||'')+' '+(l.lastName||''))+'</div>'+
-                '<div style="font-size:10px;color:var(--muted)">'+esc(l.email||l.phone||'')+'</div>'+
-              '</div>'+
-            '</div>'+
-          '</td>'+
-          '<td style="padding:10px 12px;border-bottom:1px solid var(--border);font-size:11px">'+
-            '<div style="font-weight:700;color:var(--text)">'+esc(progName)+'</div>'+
-            (progPrice>0?'<div style="color:var(--muted)">$'+progPrice+'/mo</div>':'')+
-          '</td>'+
-          '<td style="padding:10px 12px;border-bottom:1px solid var(--border);font-size:10px;color:var(--muted)">'+joinDate+'</td>'+
-          '<td style="padding:10px 12px;border-bottom:1px solid var(--border);text-align:center">'+
-            '<span style="font-size:10px;font-weight:800;color:'+stColor+';background:rgba(0,0,0,.06);border-radius:20px;padding:3px 10px;white-space:nowrap">'+stLbl+'</span>'+
-          '</td>'+
-          '<td style="padding:10px 12px;border-bottom:1px solid var(--border);text-align:right;font-family:Syne,sans-serif;font-weight:800;font-size:13px;color:'+earnColor+'">'+earnedRow+'</td>'+
-        '</tr>';
-      }).join('');
-
-  var clientsTableHtml =
-    sectionLabel('👥', isEN?'Referred clients':'Clientes referidos')+
-    '<div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:20px">'+
-      '<table style="width:100%;border-collapse:collapse">'+
-        '<thead><tr style="background:var(--surface3)">'+
-          '<th style="padding:8px 12px;text-align:left;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">'+(isEN?'Client':'Cliente')+'</th>'+
-          '<th style="padding:8px 12px;text-align:left;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">'+(isEN?'Program':'Programa')+'</th>'+
-          '<th style="padding:8px 12px;text-align:left;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">'+(isEN?'Since':'Desde')+'</th>'+
-          '<th style="padding:8px 12px;text-align:center;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">'+(isEN?'Status':'Estado')+'</th>'+
-          '<th style="padding:8px 12px;text-align:right;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">'+(isEN?'Earns':'Genera')+'</th>'+
-        '</tr></thead>'+
-        '<tbody>'+clientRowsHtml+'</tbody>'+
-        (allLeads.length > 0 ?
-          '<tfoot><tr style="background:var(--surface3)">'+
-            '<td colspan="4" style="padding:10px 12px;font-size:11px;font-weight:700;color:var(--text-secondary)">'+
-              active.length+' '+(isEN?'active':'activos')+' · '+trial.length+' trial · '+inactive.length+' '+(isEN?'inactive':'inactivos')+
-            '</td>'+
-            '<td style="padding:10px 12px;text-align:right;font-family:Syne,sans-serif;font-weight:900;font-size:14px;color:#22c55e">'+
-              '$'+totalEarned.toFixed(2)+
-            '</td>'+
-          '</tr></tfoot>'
-        : '')+
-      '</table>'+
-    '</div>';
-
-  // ════════════════════════════════════════════════════════════
-  // SECCIÓN 4 — ESTADO DE CUENTA (cálculo mensualidad)
-  // ════════════════════════════════════════════════════════════
-  var appliedTo = bal.appliedTo || '';
-
-  var accountHtml =
-    sectionLabel('🧾', isEN?'Monthly statement':'Estado de cuenta mensual')+
-    '<div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:20px">'+
-      // Fila: mensualidad original
-      '<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 16px;border-bottom:1px solid var(--border)">'+
-        '<span style="font-size:12px;color:var(--text-secondary)">'+(isEN?'Original monthly fee':'Mensualidad original')+'</span>'+
-        '<span style="font-family:Syne,sans-serif;font-weight:800;font-size:14px;color:var(--text)">'+
-          (nivel>0?'$'+nivel.toFixed(2):'<span style="font-size:11px;color:var(--muted)">'+(isEN?'Not set — enter below':'Sin configurar')+'</span>')+
-        '</span>'+
-      '</div>'+
-      // Fila: crédito por referidos
-      '<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 16px;border-bottom:1px solid var(--border);background:rgba(34,197,94,.04)">'+
-        '<span style="font-size:12px;color:var(--text-secondary)">➖ '+(isEN?'Referral credit earned':'Crédito por referidos')+'</span>'+
-        '<span style="font-family:Syne,sans-serif;font-weight:800;font-size:14px;color:#22c55e">−$'+(pending>0?pending.toFixed(2):'0.00')+'</span>'+
-      '</div>'+
-      // Fila: total a pagar
-      (nivel>0 ?
-        '<div style="display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid var(--border);background:'+
-          (hasCredit?'rgba(168,85,247,.06)':nuevoPago===0?'rgba(34,197,94,.06)':'rgba(234,179,8,.04)')+'">'+
-          '<span style="font-size:13px;font-weight:700;color:var(--text)">'+(isEN?'New payment due':'Nuevo pago a cobrar')+'</span>'+
-          '<span style="font-family:Syne,sans-serif;font-weight:900;font-size:20px;color:'+
-            (hasCredit?'#a855f7':nuevoPago===0?'#22c55e':'#eab308')+
-          '">$'+(hasCredit?'0.00':nuevoPago.toFixed(2))+'</span>'+
-        '</div>'
-      : '')+
-      // Crédito a favor (si aplica)
-      (hasCredit ?
-        '<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 16px;border-bottom:1px solid var(--border);background:rgba(168,85,247,.06)">'+
-          '<span style="font-size:12px;color:#a855f7;font-weight:700">💜 '+(isEN?'Credit in your favor':'Crédito a tu favor')+'</span>'+
-          '<span style="font-family:Syne,sans-serif;font-weight:900;font-size:16px;color:#a855f7">+$'+creditFavor.toFixed(2)+'</span>'+
-        '</div>'
-      : '')+
-      // Nivel acordado input
-      '<div style="padding:12px 16px;background:var(--surface2)">'+
-        '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px">⚙️ '+(isEN?'Set agreed monthly fee':'Configurar mensualidad acordada')+'</div>'+
-        '<div style="display:flex;gap:8px">'+
-          '<input type="number" id="nivelAcordadoInput" step="0.01" min="0" placeholder="$0.00" value="'+(nivel>0?nivel.toFixed(2):'').toString()+'" '+
-            'style="flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;font-weight:700;padding:8px 12px;outline:none;box-sizing:border-box"/>'+
-          '<button onclick="_saveNivelFromInput()" '+
-            'style="padding:8px 16px;border-radius:8px;border:none;background:#3b82f6;color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:Syne,sans-serif;white-space:nowrap">'+
-            '💾 '+(isEN?'Save':'Guardar')+
-          '</button>'+
-        '</div>'+
-      '</div>'+
-    '</div>';
-
-  // ════════════════════════════════════════════════════════════
-  // SECCIÓN 5 — APLICAR PAGO / REGISTRAR MOVIMIENTO
-  // ════════════════════════════════════════════════════════════
-  var applyHtml =
-    sectionLabel('✅', isEN?'Apply payment / movement':'Aplicar pago o movimiento')+
-    '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:20px">'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end">'+
-        '<div>'+
-          '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:5px">'+(isEN?'Amount':'Monto')+'</div>'+
-          '<input type="number" id="refBalAmount" placeholder="$0.00" min="0" step="0.01" value="'+(pending>0?pending.toFixed(2):'')+'" '+
-            'style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:15px;font-weight:800;padding:9px 11px;outline:none;box-sizing:border-box"/>'+
-        '</div>'+
-        '<div>'+
-          '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:5px">'+(isEN?'Applied to':'Aplicar a')+'</div>'+
-          '<input type="text" id="refBalApplyTo" placeholder="'+(isEN?'e.g. June monthly fee':'Ej: Mensualidad de junio')+'" value="'+escHtml(appliedTo)+'" '+
-            'style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:9px 11px;outline:none;box-sizing:border-box"/>'+
-        '</div>'+
-        '<button onclick="refBalApplyPayment()" '+
-          'style="padding:10px 18px;border-radius:8px;border:none;background:#22c55e;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Syne,sans-serif;white-space:nowrap;margin-top:20px">'+
-          '✅ '+(isEN?'Apply':'Aplicar')+
-        '</button>'+
-      '</div>'+
-      '<div style="margin-top:10px;display:flex;align-items:center;justify-content:space-between">'+
-        '<label style="font-size:11px;color:var(--text-secondary);display:flex;align-items:center;gap:6px;cursor:pointer">'+
-          '<input type="checkbox" id="refBalAccumulate" '+(bal.accumulate?'checked':'')+' style="accent-color:#22c55e;width:13px;height:13px"/>'+
-          (isEN?'Accumulate (do not pay yet)':'Acumular saldo (no pagar ahora)')+
-        '</label>'+
-        (hasCredit ?
-          '<button onclick="closeModal(\'refBalanceModal\');openCanjeModal(\''+ref.id+'\')" '+
-            'style="padding:7px 14px;border-radius:8px;border:2px solid #a855f7;background:rgba(168,85,247,.1);color:#a855f7;font-size:12px;font-weight:800;cursor:pointer;font-family:Syne,sans-serif">'+
-            '🎁 '+(isEN?'Redeem $'+creditFavor.toFixed(2):'Canjear $'+creditFavor.toFixed(2))+
-          '</button>'
-        : '')+
-      '</div>'+
-    '</div>';
-
-  // ════════════════════════════════════════════════════════════
-  // SECCIÓN 6 — HISTORIAL DE MOVIMIENTOS
-  // ════════════════════════════════════════════════════════════
-  var hist = bal.history || [];
-  var canjeHist = bal.canjeHistory || [];
-  // Merge and sort by date desc
-  var allMoves = hist.map(function(h){ return Object.assign({},h,{_type:'pago'}); })
-    .concat(canjeHist.map(function(c){ return Object.assign({},c,{_type:'canje'}); }))
-    .sort(function(a,b){ return new Date(b.date||0)-new Date(a.date||0); });
-
-  var histHtml =
-    sectionLabel('📋', isEN?'Movement history':'Historial de movimientos')+
-    '<div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:20px">'+
-      (allMoves.length === 0
-        ? '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">'+(isEN?'No movements recorded yet':'Sin movimientos registrados aún')+'</div>'
-        : '<table style="width:100%;border-collapse:collapse">'+
-            '<thead><tr style="background:var(--surface3)">'+
-              '<th style="padding:7px 12px;text-align:left;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">'+(isEN?'Date':'Fecha')+'</th>'+
-              '<th style="padding:7px 12px;text-align:left;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">'+(isEN?'Description':'Descripción')+'</th>'+
-              '<th style="padding:7px 12px;text-align:center;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">'+(isEN?'Type':'Tipo')+'</th>'+
-              '<th style="padding:7px 12px;text-align:right;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">'+(isEN?'Amount':'Monto')+'</th>'+
-            '</tr></thead>'+
-            '<tbody>'+
-              allMoves.map(function(m, i){
-                var isPago  = m._type === 'pago';
-                var isCanje = m._type === 'canje';
-                var color   = isPago ? '#22c55e' : '#a855f7';
-                var badge   = isPago
-                  ? (m.accumulated
-                      ? '<span style="font-size:9px;background:rgba(234,179,8,.15);color:#eab308;border-radius:5px;padding:2px 7px;font-weight:800">ACUM</span>'
-                      : '<span style="font-size:9px;background:rgba(34,197,94,.12);color:#22c55e;border-radius:5px;padding:2px 7px;font-weight:800">PAGO</span>')
-                  : '<span style="font-size:9px;background:rgba(168,85,247,.12);color:#a855f7;border-radius:5px;padding:2px 7px;font-weight:800">CANJE</span>';
-                var rowBg = i%2===0?'background:var(--surface2)':'background:var(--surface)';
-                return '<tr style="'+rowBg+'">'+
-                  '<td style="padding:9px 12px;border-bottom:1px solid var(--border);font-size:11px;color:var(--muted)">'+(m.date||'').split('T')[0]+'</td>'+
-                  '<td style="padding:9px 12px;border-bottom:1px solid var(--border);font-size:12px;font-weight:600;color:var(--text)">'+escHtml(m.appliedTo||m.desc||m.category||'—')+'</td>'+
-                  '<td style="padding:9px 12px;border-bottom:1px solid var(--border);text-align:center">'+badge+'</td>'+
-                  '<td style="padding:9px 12px;border-bottom:1px solid var(--border);text-align:right;font-family:Syne,sans-serif;font-weight:800;font-size:13px;color:'+color+'">$'+(m.amount||0).toFixed(2)+'</td>'+
-                '</tr>';
-              }).join('')+
-            '</tbody>'+
-          '</table>'
-      )+
-    '</div>';
-
-  // ════════════════════════════════════════════════════════════
-  // FOOTER DE ACCIONES
-  // ════════════════════════════════════════════════════════════
-  var footerHtml =
-    '<div style="display:flex;align-items:center;justify-content:space-between;padding-top:4px">'+
-      '<button onclick="refBalReset()" style="font-size:11px;color:#ef4444;background:none;border:1px solid rgba(239,68,68,.25);border-radius:7px;padding:5px 12px;cursor:pointer">'+
-        '🔄 '+(isEN?'Reset balance':'Reiniciar balance')+
-      '</button>'+
-      '<div style="display:flex;gap:8px">'+
-        '<button onclick="closeModal(\'refBalanceModal\')" style="padding:8px 16px;border-radius:8px;border:1.5px solid var(--border);background:transparent;color:var(--text-secondary);font-size:12px;font-weight:700;cursor:pointer">'+
-          (isEN?'Close':'Cerrar')+
-        '</button>'+
-        (hasCredit ?
-          '<button onclick="closeModal(\'refBalanceModal\');openCanjeModal(\''+ref.id+'\')" '+
-            'style="padding:8px 18px;border-radius:8px;border:none;background:#a855f7;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Syne,sans-serif">'+
-            '🎁 '+(isEN?'Redeem credit':'Canjear crédito')+
-          '</button>'
-        : '')+
-      '</div>'+
-    '</div>';
-
-  // Update modal subtitle
-  document.getElementById('refBalTitle').textContent = ref.firstName + ' ' + ref.lastName;
-  document.getElementById('refBalSub').textContent = active.length + (isEN?' active refs':' refs activos') + ' · $' + totalEarned.toFixed(2) + (isEN?' earned':' ganados');
-
-  body.innerHTML = headerHtml + summaryHtml + clientsTableHtml + accountHtml + applyHtml + histHtml + footerHtml;
-}
-
-// ── Helpers for referidor balance storage ──────────────────
-function _getRefBal(refId){
-  // Lee el balance desde el objeto referidor en memoria (que viene de Firebase)
-  var ref = referidores.find(function(r){ return r.id === refId; });
-  if(ref && ref.balance) return ref.balance;
-  // Compatibilidad: si tiene paid/earned sueltos en el objeto (datos viejos)
-  if(ref && (ref.paid || ref.earned)){
-    return { earned: ref.earned||0, paid: ref.paid||0, accumulate:false, appliedTo:'', history:[], canjeHistory:[] };
-  }
-  return { earned:0, paid:0, accumulate:false, appliedTo:'', history:[], canjeHistory:[] };
-}
-
-function _saveRefBal(refId, bal){
-  // Guarda el balance dentro del objeto referidor en Firebase
-  // /referidores/refId/balance — usa los mismos permisos que el referidor
-  referidores = referidores.map(function(r){
-    return r.id === refId ? Object.assign({}, r, { balance: bal }) : r;
-  });
-  if(!_demoMode && _fbdb){
-    try { _fbdb.ref('referidores/' + refId + '/balance').set(bal); } catch(e){}
-  }
-}
-
-function refBalApplyPayment(){
-  var ref = referidores.find(function(x){ return x.id===_refBalId; }); if(!ref) return;
-  var amount = parseFloat(document.getElementById('refBalAmount').value);
-  if(isNaN(amount) || amount <= 0){ showToast('❌ Ingresa un monto válido','var(--danger)'); return; }
-  var appliedTo   = document.getElementById('refBalApplyTo').value.trim();
-  var accumulate  = document.getElementById('refBalAccumulate').checked;
-
-  var bal = _getRefBal(_refBalId);
-  bal.paid       = +((bal.paid||0) + amount).toFixed(2);
-  bal.appliedTo  = appliedTo;
-  bal.accumulate = accumulate;
-  bal.history    = bal.history || [];
-  bal.history.push({ amount: amount, appliedTo: appliedTo, accumulated: accumulate, date: new Date().toISOString() });
-  _saveRefBal(_refBalId, bal);
-  showToast('✅ Pago de $' + amount.toFixed(2) + ' aplicado');
-  renderRefBalance();
-}
-
-async function refBalReset(){
-  var isEN = _masterLang === 'en';
-  if(!confirm(isEN ? '⚠️ Reset this referrer\'s complete balance history?' : '⚠️ ¿Reiniciar el balance completo de este referidor?')) return;
-
-  var emptyBal = { earned:0, paid:0, accumulate:false, appliedTo:'', history:[], canjeHistory:[] };
-
-  if(!_demoMode && _fbdb){
-    try {
-      // Leer el objeto completo de Firebase
-      var snap = await _fbdb.ref('referidores/' + _refBalId).once('value');
-      var obj = snap.val() || {};
-      // Eliminar TODOS los campos posibles donde puede estar el balance
-      delete obj.balance;
-      delete obj.paid;
-      delete obj.earned;
-      delete obj.canjeHistory;
-      delete obj.refBalance;
-      delete obj.balanceHistory;
-      // Guardar el objeto limpio de vuelta
-      obj.balance = emptyBal;
-      await _fbdb.ref('referidores/' + _refBalId).set(obj);
-      // Actualizar en memoria también
-      referidores = referidores.map(function(r){
-        return r.id === _refBalId ? obj : r;
-      });
-      showToast(isEN ? '🔄 Balance reset successfully' : '🔄 Balance reiniciado correctamente', '#22c55e');
-      renderRefBalance();
-    } catch(e){
-      console.error('Error resetting balance:', e);
-      showToast(isEN ? '❌ Error resetting balance' : '❌ Error al reiniciar balance', 'var(--danger)');
-    }
-  } else {
-    // Demo mode — solo memoria
-    referidores = referidores.map(function(r){
-      if(r.id !== _refBalId) return r;
-      var clean = Object.assign({}, r);
-      delete clean.paid; delete clean.earned; delete clean.canjeHistory;
-      clean.balance = emptyBal;
-      return clean;
-    });
-    showToast(isEN ? '🔄 Balance reset' : '🔄 Balance reiniciado', '#22c55e');
-    renderRefBalance();
-  }
-}
-
-// ══════════════════════════════════════════════════════════════
-// ── NIVEL ACORDADO, CRÉDITO A FAVOR & SISTEMA DE CANJE ────────
-// ══════════════════════════════════════════════════════════════
-
-/* ── Guardar nivel acordado (umbral) en el referidor ── */
-function saveNivelAcordado(refId, nivel){
-  referidores = referidores.map(function(r){
-    return r.id === refId ? Object.assign({}, r, { nivelAcordado: nivel }) : r;
-  });
-  if(!_demoMode && _fbdb){
-    try{ _fbdb.ref('referidores/'+refId+'/nivelAcordado').set(nivel); }catch(e){}
-  }
-  try{
-    var stored = JSON.parse(localStorage.getItem('referidores')||'[]');
-    var si = stored.findIndex(function(r){ return r.id===refId; });
-    if(si>-1){ stored[si].nivelAcordado = nivel; localStorage.setItem('referidores', JSON.stringify(stored)); }
-  }catch(e){}
-}
-
-/* ── Calcular balance neto de un referidor ──
-   Retorna un objeto { earned, paid, pending, creditFavor, nivelAcordado, hasCredit }
-   pending  > 0  → referidor aún acumula descuento en su mensualidad
-   pending  = 0  → mensualidad va a CERO
-   creditFavor > 0 → balance NEGATIVO a favor del referidor (puede canjear)
-*/
-function calcRefNetBalance(ref){
-  var bal = _getRefBal(ref.id);
-  // Solo registrations[] activos y que no sean referidores/partners generan beneficio
-  var active = registrations.filter(function(r){
-    return r.ref_id === ref.cid &&
-           getStatus(r) === 'active' &&
-           r.profileType !== 'referido' &&
-           r.profileType !== 'partner';
-  });
-
-  // Calcular ganancias por cliente activo (igual que renderRefBalance)
-  var perClient = 0;
-  (ref.rewards||[]).forEach(function(r){
-    var v = (r.value||'').toString().trim();
-    var m = v.match(/\$?\s*([0-9]+(?:\.[0-9]+)?)/);
-    if(m) perClient += parseFloat(m[1]);
-  });
-
-  var earned  = +(perClient * active.length).toFixed(2);
-  var paid    = bal.paid || 0;
-  var nivel   = ref.nivelAcordado || 0;      // monto mensual original
-  var pending = +(earned - paid).toFixed(2); // lo que queda por descontar
-  var hasCredit = false;
-  var creditFavor = 0;
-
-  if(nivel > 0){
-    var nuevoPago = +(nivel - pending).toFixed(2);
-    if(nuevoPago < 0){
-      // Ya superó el nivel → crédito a favor
-      hasCredit   = true;
-      creditFavor = +Math.abs(nuevoPago).toFixed(2);
-      nuevoPago   = 0;
-    }
-    return { earned, paid, pending, nivel, nuevoPago, hasCredit, creditFavor };
-  }
-
-  return { earned, paid, pending, nivel, nuevoPago: Math.max(0, nivel - pending), hasCredit, creditFavor };
-}
-
-/* ── Detectar y mostrar alerta de cliente perdido ── */
-function checkLostClientAlert(refId, lostClientName){
-  var ref = referidores.find(function(x){ return x.id===refId; });
-  if(!ref) return;
-  var nb = calcRefNetBalance(ref);
-  openLostClientAlert(ref, lostClientName, nb);
-}
-
-function openLostClientAlert(ref, lostClientName, nb){
-  var isEN = _masterLang === 'en';
-  document.getElementById('lostAlertTitle').textContent = isEN ? '⚠️ Referred Client Lost' : '⚠️ Cliente Referido Perdido';
-  document.getElementById('lostAlertSub').textContent = isEN ? 'The benefit balance has been adjusted' : 'El balance de beneficios ha sido ajustado';
-
-  var body = document.getElementById('lostAlertBody');
-  var nuevoPago = nb.nivel > 0 ? nb.nuevoPago : null;
-
-  body.innerHTML =
-    '<div style="background:rgba(239,68,68,.08);border:1.5px solid rgba(239,68,68,.3);border-radius:14px;padding:18px;margin-bottom:16px;text-align:center">' +
-      '<div style="font-size:32px;margin-bottom:8px">😔</div>' +
-      '<div style="font-family:Syne,sans-serif;font-weight:800;font-size:16px;color:var(--danger);margin-bottom:6px">' +
-        (isEN ? 'You lost a referred client' : '¡Perdiste un cliente referido!') +
-      '</div>' +
-      '<div style="font-size:13px;color:var(--text-secondary)">' +
-        '<strong style="color:var(--text)">' + esc(lostClientName||'Cliente') + '</strong> ' +
-        (isEN ? 'is no longer active.' : 'ya no está activo.') +
-      '</div>' +
-    '</div>' +
-
-    (nb.nivel > 0 ?
-      '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px">' +
-        '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary);margin-bottom:12px">📊 ' + (isEN?'New Monthly Payment':'Nuevo Pago Mensual') + '</div>' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center">' +
-          '<div style="background:var(--surface3);border-radius:10px;padding:12px">' +
-            '<div style="font-size:11px;color:var(--muted);margin-bottom:4px">' + (isEN?'Original':'Original') + '</div>' +
-            '<div style="font-family:Syne,sans-serif;font-weight:800;font-size:18px;color:var(--text)">$' + (nb.nivel||0).toFixed(2) + '</div>' +
-          '</div>' +
-          '<div style="background:var(--surface3);border-radius:10px;padding:12px">' +
-            '<div style="font-size:11px;color:var(--muted);margin-bottom:4px">' + (isEN?'Discount Left':'Descuento Restante') + '</div>' +
-            '<div style="font-family:Syne,sans-serif;font-weight:800;font-size:18px;color:#22c55e">$' + (nb.pending>0?nb.pending:0).toFixed(2) + '</div>' +
-          '</div>' +
-          '<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:10px;padding:12px">' +
-            '<div style="font-size:11px;color:var(--muted);margin-bottom:4px">' + (isEN?'New Payment':'Nuevo Pago') + '</div>' +
-            '<div style="font-family:Syne,sans-serif;font-weight:800;font-size:20px;color:var(--danger)">$' + (nuevoPago||0).toFixed(2) + '</div>' +
-          '</div>' +
-        '</div>' +
-      '</div>'
-    : '') +
-
-    '<div style="display:flex;gap:10px;justify-content:flex-end">' +
-      '<button class="pro-btn pro-btn-ghost" onclick="closeModal(\'lostClientAlertModal\')">' + (isEN?'Dismiss':'Cerrar') + '</button>' +
-      '<button class="pro-btn pro-btn-primary" onclick="closeModal(\'lostClientAlertModal\');openRefBalance(\'' + ref.id + '\')">' +
-        '💰 ' + (isEN?'View Balance':'Ver Balance') +
-      '</button>' +
-    '</div>';
-
-  openModal('lostClientAlertModal');
-}
-
-/* ══════════════════════════════════════════════════════════════════════
-   SISTEMA DE CRÉDITO POR REFERIDOS
-   ─────────────────────────────────────────────────────────────────────
-   Cada referidor tiene un pago base (lo que paga mensual/semanal).
-   Por cada referido ACTIVO gana un % de crédito → su pago baja.
-   Cuando llega a $0 → el exceso se convierte en crédito canjeable.
-   Bono inicial al convertirse + crédito recurrente mensual.
-   ══════════════════════════════════════════════════════════════════════ */
-
-// Configuración global (editable en Ajustes o aquí)
-var RC_CONFIG = {
-  creditPct:      10,    // % del pago base que genera cada referido activo
-  bonusInicial:   15,    // $ de bono único cuando el referido se convierte
-  maxDescPct:     100,   // % máximo de descuento sobre el pago base (100 = puede llegar a $0)
-  modoCalculo:    'pct', // 'pct' | 'fijo' (cantidad fija por referido)
-  montoFijo:      20,    // $ fijo por referido (si modoCalculo === 'fijo')
-};
-
-// Carga/guarda RC_CONFIG desde Firebase o localStorage
-function loadRCConfig(){
-  // Solo localStorage — Firebase se carga después si es necesario
-  try{ var s=localStorage.getItem('rcConfig'); if(s) Object.assign(RC_CONFIG,JSON.parse(s)); }catch(e){}
-}
-function saveRCConfig(){
-  // Guarda en localStorage siempre; Firebase solo si las reglas lo permiten
-  try{ localStorage.setItem('rcConfig',JSON.stringify(RC_CONFIG)); }catch(e){}
-  if(typeof _fbdb!=='undefined'&&_fbdb){
-    try{ _fbdb.ref('masterMods/rcConfig').set(RC_CONFIG); }catch(e){}
-  }
-}
-loadRCConfig();
-
-// ── Obtener balance de crédito de un referidor ────────────────────────
-// Retorna: { pagoBase, referidosActivos, creditoMensual, pagoActual,
-//            bonusAcumulado, creditoDisponible, historial }
-function calcCreditoReferidor(ref){
-  var pagoBase   = +(ref.pagoBase || 0);
-  var activos    = getReferidorLeads(ref.cid).filter(function(l){ return getStatus(l)==='active'; });
-  var nActivos   = activos.length;
-
-  // Crédito mensual por referido activo
-  var creditoXRef = RC_CONFIG.modoCalculo==='fijo'
-    ? RC_CONFIG.montoFijo
-    : +(pagoBase * RC_CONFIG.creditPct / 100).toFixed(2);
-  var descBruto   = +(creditoXRef * nActivos).toFixed(2);
-  var descMax     = +(pagoBase * RC_CONFIG.maxDescPct / 100).toFixed(2);
-  var descReal    = Math.min(descBruto, descMax);
-  var pagoActual  = Math.max(0, +(pagoBase - descReal).toFixed(2));
-  var exceso      = pagoBase > 0 ? Math.max(0, +(descBruto - descMax).toFixed(2)) : 0;
-
-  // Balance guardado: bonos iniciales + canjes usados
-  var bal = _getRefBal(ref.id);
-  var bonusAcum = +(bal.bonusInicial || 0); // bonos iniciales acumulados
-  var excAcum   = +(bal.excesoAcum  || 0); // exceso mensual acumulado manualmente
-  var usado     = +(bal.usado       || 0); // cuánto ya se canjeó del bonus pool
-  var creditoDisponible = Math.max(0, +(bonusAcum + excAcum - usado).toFixed(2));
-
-  return {
-    pagoBase, nActivos, creditoXRef, descBruto, descReal,
-    pagoActual, exceso, bonusAcum, excAcum, usado, creditoDisponible,
-    activos, bal
-  };
-}
-
-// ── Registrar bono inicial cuando un referido se convierte ────────────
-function registrarBonusInicial(refCid, clienteNombre){
-  var ref = referidores.find(function(x){ return x.cid===refCid; });
-  if(!ref) return;
-  var bal = _getRefBal(ref.id);
-  bal.bonusInicial = +((bal.bonusInicial||0) + RC_CONFIG.bonusInicial).toFixed(2);
-  bal.histBonus    = bal.histBonus || [];
-  bal.histBonus.push({ tipo:'inicial', cliente:clienteNombre, monto:RC_CONFIG.bonusInicial, fecha:new Date().toISOString() });
-  _saveRefBal(ref.id, bal);
-  showToast('🎁 Bono inicial $'+RC_CONFIG.bonusInicial+' acreditado a '+(ref.firstName||'Referidor'), '#a855f7');
-}
-
-// ── Registrar exceso mensual acumulado (llamar cada mes) ─────────────
-function registrarExcesoMensual(refId){
-  var ref = referidores.find(function(x){ return x.id===refId; });
-  if(!ref) return;
-  var cr  = calcCreditoReferidor(ref);
-  if(cr.exceso <= 0) return;
-  var bal = cr.bal;
-  bal.excesoAcum = +((bal.excesoAcum||0) + cr.exceso).toFixed(2);
-  bal.histBonus  = bal.histBonus || [];
-  bal.histBonus.push({ tipo:'exceso_mensual', cliente:'', monto:cr.exceso, fecha:new Date().toISOString() });
-  _saveRefBal(refId, bal);
-}
-
-// ── Modal de crédito del referidor (vista completa) ──────────────────
-var _rcModalRefId = null;
+// alias — openRCModal now opens the unified panel
 function openRCModal(refId){
-  _rcModalRefId = refId;
-  renderRCModal();
-  openModal('rcCreditModal');
+  openRefBalance(refId);
 }
-function renderRCModal(){
-  var ref = referidores.find(function(x){ return x.id===_rcModalRefId; });
+
+// ══════════════════════════════════════════════════════════════
+//  UNIFIED REFERRER PANEL
+//  Un solo modal: programa del cliente → beneficio del referidor
+//  Igual de simple para admin, cliente y referidor
+// ══════════════════════════════════════════════════════════════
+var _refBalId = null;
+
+function renderRefBalance(){
+  var ref = referidores.find(function(x){ return x.id === _refBalId; });
   if(!ref) return;
-  var cr  = calcCreditoReferidor(ref);
-  var isEN= _masterLang==='en';
-  var body= document.getElementById('rcCreditBody');
+  var body = document.getElementById('refBalBody');
   if(!body) return;
 
-  document.getElementById('rcCreditTitle').textContent = (ref.firstName||'')+' '+(ref.lastName||'');
-  document.getElementById('rcCreditSub').textContent   =
-    cr.nActivos+' referidos activos · Pago base: $'+cr.pagoBase.toFixed(2);
+  // ── Datos ──────────────────────────────────────────────────
+  var allClients = getReferidorLeads(ref.cid);   // todos con ref_id === cid
+  var activos    = allClients.filter(function(c){ return getStatus(c) === 'active'; });
+  var trials     = allClients.filter(function(c){ return getStatus(c) === 'trial'; });
+  var bal        = _getRefBal(ref.id);
 
-  // ── Color del pago actual ──
-  var pagoColor = cr.pagoActual === 0 ? '#22c55e'
-    : cr.pagoActual < cr.pagoBase * 0.5 ? '#f97316'
-    : '#eab308';
+  // ── Programa del referidor ─────────────────────────────────
+  // pagoBase  = cuánto paga el referidor mensualmente
+  // Si no tiene pagoBase → buscar en nivelAcordado (compatibilidad)
+  var pagoBase = +(ref.pagoBase || ref.nivelAcordado || 0);
 
-  // ── Barra de progreso del descuento ──
-  var pct = cr.pagoBase > 0 ? Math.round((1 - cr.pagoActual/cr.pagoBase)*100) : 0;
+  // ── Tipo de beneficio ──────────────────────────────────────
+  // modoDesc: 'pct' (% del pagoBase) | 'fijo' ($ fijo/referido) | 'legacy' (rewards)
+  var modoDesc   = RC_CONFIG.modoCalculo || 'pct';
+  var pctDesc    = RC_CONFIG.creditPct || 10;
+  var montoFijo  = RC_CONFIG.montoFijo  || 20;
 
-  body.innerHTML =
+  // Calcular descuento por referido activo
+  var descXRef = pagoBase > 0
+    ? (modoDesc === 'fijo' ? montoFijo : +(pagoBase * pctDesc / 100).toFixed(2))
+    : (modoDesc === 'fijo' ? montoFijo : 0);
 
-    // ① Resumen del pago actual
-    '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px">'+
-      '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary);margin-bottom:14px">💳 Pago Mensual Actual</div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">'+
-        _rcKpi('$'+cr.pagoBase.toFixed(2), 'Pago Base', '#6b7280')+
-        _rcKpi('-$'+cr.descReal.toFixed(2), 'Descuento Activo', '#22c55e')+
-        _rcKpi('$'+cr.pagoActual.toFixed(2), 'Pago HOY', pagoColor)+
-      '</div>'+
-      // Barra de progreso
-      '<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Descuento alcanzado: <strong style="color:'+pagoColor+'">'+pct+'%</strong></div>'+
-      '<div style="height:8px;background:var(--surface3);border-radius:4px;overflow:hidden">'+
-        '<div style="height:100%;width:'+Math.min(pct,100)+'%;background:linear-gradient(90deg,#22c55e,#a855f7);border-radius:4px;transition:.3s"></div>'+
-      '</div>'+
-      (cr.pagoActual===0
-        ? '<div style="margin-top:10px;text-align:center;font-size:12px;font-weight:700;color:#22c55e">🎉 ¡Pago cubierto completamente por referidos!</div>'
-        : '<div style="margin-top:8px;font-size:11px;color:var(--muted)">'+
-            'Faltan <strong style="color:var(--text)">'+Math.ceil((cr.pagoBase-cr.descBruto)/cr.creditoXRef)+' referido(s) más</strong> para cubrir el pago completo'+
-          '</div>')+
-    '</div>'+
+  // Total descuento por todos los activos
+  var totalDesc  = +(descXRef * activos.length).toFixed(2);
+  var descMax    = pagoBase > 0 ? +(pagoBase * (RC_CONFIG.maxDescPct||100) / 100).toFixed(2) : 0;
+  var descReal   = pagoBase > 0 ? Math.min(totalDesc, descMax) : totalDesc;
+  var pagoActual = pagoBase > 0 ? Math.max(0, +(pagoBase - descReal).toFixed(2)) : null;
+  var pct        = pagoBase > 0 ? Math.min(100, Math.round(descReal / pagoBase * 100)) : 0;
 
-    // ② Configuración del pago base (inline editable)
-    '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px">'+
-      '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary);margin-bottom:12px">⚙️ Configuración de Este Referidor</div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">'+
-        '<div>'+
-          '<label style="font-size:10px;font-weight:700;color:var(--muted);display:block;margin-bottom:4px">💲 Pago Base (mensual/semanal)</label>'+
-          '<input type="number" id="rcPagoBase" value="'+cr.pagoBase.toFixed(2)+'" step="0.01" min="0" '+
-            'style="width:100%;background:var(--surface3);border:1.5px solid var(--border);border-radius:8px;padding:8px 11px;color:var(--text);font-size:14px;font-weight:800;outline:none"/>'+
+  // Balance aplicado manualmente
+  var paid = bal.paid || 0;
+
+  // ── Helpers visuales ──────────────────────────────────────
+  function ini(name){
+    var p = (name||'').trim().split(' ');
+    return ((p[0]||'')[0]||'').toUpperCase() + ((p[1]||'')[0]||'').toUpperCase();
+  }
+  function chip(label, color, bg){
+    return '<span style="display:inline-flex;align-items:center;font-size:10px;font-weight:800;'+
+      'background:'+bg+';color:'+color+';border-radius:20px;padding:3px 10px;white-space:nowrap">'+label+'</span>';
+  }
+  function kpi(val, lbl, color, sub){
+    return '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:16px 12px;text-align:center;flex:1;min-width:0">'+
+      '<div style="font-family:Syne,sans-serif;font-weight:900;font-size:24px;color:'+color+';line-height:1">'+val+'</div>'+
+      '<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:5px">'+lbl+'</div>'+
+      (sub ? '<div style="font-size:10px;color:var(--muted);margin-top:3px">'+sub+'</div>' : '')+
+    '</div>';
+  }
+  function row(icon, label, value, valueColor, border){
+    return '<div style="display:flex;align-items:center;gap:12px;padding:11px 16px;'+(border?'border-bottom:1px solid var(--border)':'')+'" >'+
+      '<span style="font-size:16px;flex-shrink:0">'+icon+'</span>'+
+      '<span style="flex:1;font-size:13px;color:var(--text-secondary)">'+label+'</span>'+
+      '<span style="font-family:Syne,sans-serif;font-weight:800;font-size:15px;color:'+(valueColor||'var(--text)')+'">'+value+'</span>'+
+    '</div>';
+  }
+
+  // ── Actualizar header del modal ────────────────────────────
+  document.getElementById('refBalTitle').textContent = (ref.firstName||'') + ' ' + (ref.lastName||'');
+  document.getElementById('refBalSub').textContent   =
+    activos.length + ' activos · ' + trials.length + ' trial' +
+    (pagoBase > 0 ? ' · pago base $' + pagoBase.toFixed(2) : ' · sin programa configurado');
+
+  // ══════════════════════════════════════════════════════════
+  //  BLOQUE 1 — Programa del referidor
+  // ══════════════════════════════════════════════════════════
+  var sinPrograma = pagoBase <= 0;
+  var progBlock =
+    '<div style="background:var(--surface2);border:1px solid '+(sinPrograma?'rgba(239,68,68,.4)':'var(--border)')+';border-radius:16px;padding:16px 18px;margin-bottom:12px">'+
+      '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:12px">&#x1F4CB; Programa del Referidor</div>'+
+      // Selección de monto base
+      '<div style="display:flex;gap:10px;align-items:flex-end;margin-bottom:'+(sinPrograma?'0':'12px')+'">'+
+        '<div style="flex:1">'+
+          '<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px">Pago mensual / semanal (base)</div>'+
+          '<div style="display:flex;align-items:center;gap:8px">'+
+            '<span style="font-size:18px;font-weight:900;color:var(--text-secondary)">$</span>'+
+            '<input type="number" id="upPagoBase" value="'+(pagoBase > 0 ? pagoBase.toFixed(2) : '')+'" placeholder="0.00" step="0.01" min="0" '+
+              'style="flex:1;background:var(--surface);border:2px solid '+(sinPrograma?'#ef4444':'var(--border)')+';border-radius:10px;color:var(--text);'+
+              'font-family:Syne,sans-serif;font-weight:800;font-size:22px;padding:10px 14px;outline:none;box-sizing:border-box"/>'+
+            '<select id="upFrecuencia" style="background:var(--surface);border:1.5px solid var(--border);border-radius:10px;padding:10px 11px;color:var(--text);font-size:13px;outline:none">'+
+              '<option value="mensual" '+(ref.pagoFrecuencia==='mensual'||!ref.pagoFrecuencia?'selected':'')+'>Mensual</option>'+
+              '<option value="semanal" '+(ref.pagoFrecuencia==='semanal'?'selected':'')+'>Semanal</option>'+
+              '<option value="otro"    '+(ref.pagoFrecuencia==='otro'?'selected':'')+'>Otro</option>'+
+            '</select>'+
+          '</div>'+
         '</div>'+
-        '<div>'+
-          '<label style="font-size:10px;font-weight:700;color:var(--muted);display:block;margin-bottom:4px">📋 Frecuencia de Pago</label>'+
-          '<select id="rcFrecuencia" style="width:100%;background:var(--surface3);border:1.5px solid var(--border);border-radius:8px;padding:8px 11px;color:var(--text);font-size:13px;outline:none">'+
-            '<option value="mensual" '+(ref.pagoFrecuencia==='mensual'?'selected':'')+'>Mensual</option>'+
-            '<option value="semanal" '+(ref.pagoFrecuencia==='semanal'?'selected':'')+'>Semanal</option>'+
-            '<option value="otro"    '+(ref.pagoFrecuencia==='otro'   ?'selected':'')+'>Otro</option>'+
-          '</select>'+
+        '<button onclick="_upGuardarPrograma()" '+
+          'style="padding:12px 20px;border-radius:10px;border:none;background:'+(sinPrograma?'#ef4444':'#3b82f6')+';color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Syne,sans-serif;white-space:nowrap;flex-shrink:0">'+
+          (sinPrograma ? '&#x26A0;&#xFE0F; Configurar' : '&#x1F4BE; Guardar')+
+        '</button>'+
+      '</div>'+
+      (sinPrograma ?
+        '<div style="font-size:12px;color:#ef4444;margin-top:8px;line-height:1.5">'+
+          'Para calcular el beneficio del referidor necesitas ingresar cu\xe1nto paga mensualmente. '+
+          'Ingresa el monto arriba y presiona <strong>Configurar</strong>.'+
+        '</div>'
+      : '')+
+    '</div>';
+
+  // ══════════════════════════════════════════════════════════
+  //  BLOQUE 2 — Tipo de beneficio
+  // ══════════════════════════════════════════════════════════
+  var benefBlock =
+    '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:12px">'+
+      '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:12px">&#x1F3F7; Tipo de beneficio por referido</div>'+
+      '<div style="display:flex;gap:8px;margin-bottom:12px">'+
+        // opción % del programa
+        '<button id="upBtnPct" onclick="_upSetModo(\'pct\')" '+
+          'style="flex:1;padding:11px 8px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:800;font-family:Syne,sans-serif;border:2px solid '+(modoDesc==='pct'?'#22c55e':'var(--border)')+';background:'+(modoDesc==='pct'?'rgba(34,197,94,.12)':'transparent')+';color:'+(modoDesc==='pct'?'#22c55e':'var(--text-secondary)')+'">'+
+          '% del Programa<br><span style="font-size:10px;font-weight:400">Ej: 10% = $'+(pagoBase>0?(pagoBase*0.1).toFixed(0):'?')+' desc/ref</span>'+
+        '</button>'+
+        // opción $ fijo
+        '<button id="upBtnFijo" onclick="_upSetModo(\'fijo\')" '+
+          'style="flex:1;padding:11px 8px;border-radius:10px;cursor:pointer;font-size:12px;font-weight:800;font-family:Syne,sans-serif;border:2px solid '+(modoDesc==='fijo'?'#a855f7':'var(--border)')+';background:'+(modoDesc==='fijo'?'rgba(168,85,247,.12)':'transparent')+';color:'+(modoDesc==='fijo'?'#a855f7':'var(--text-secondary)')+'">'+
+          '$ Fijo por referido<br><span style="font-size:10px;font-weight:400">Ej: $'+(montoFijo)+' desc/ref</span>'+
+        '</button>'+
+      '</div>'+
+      // Input del valor
+      '<div style="display:flex;gap:10px;align-items:flex-end">'+
+        '<div style="flex:1">'+
+          '<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px">'+
+            (modoDesc==='pct' ? 'Porcentaje de descuento por cada referido activo' : 'Monto fijo de descuento por cada referido activo')+
+          '</div>'+
+          '<div style="display:flex;align-items:center;gap:8px">'+
+            (modoDesc==='pct' ?
+              '<input type="number" id="upValorDesc" value="'+pctDesc+'" min="1" max="100" step="1" placeholder="10" '+
+                'style="flex:1;background:var(--surface);border:2px solid var(--border);border-radius:10px;color:#22c55e;'+
+                'font-family:Syne,sans-serif;font-weight:800;font-size:22px;padding:10px 14px;outline:none;box-sizing:border-box"/>'+
+              '<span style="font-size:22px;font-weight:900;color:#22c55e">%</span>'
+            :
+              '<span style="font-size:22px;font-weight:900;color:#a855f7">$</span>'+
+              '<input type="number" id="upValorDesc" value="'+montoFijo+'" min="1" step="1" placeholder="20" '+
+                'style="flex:1;background:var(--surface);border:2px solid var(--border);border-radius:10px;color:#a855f7;'+
+                'font-family:Syne,sans-serif;font-weight:800;font-size:22px;padding:10px 14px;outline:none;box-sizing:border-box"/>'
+            )+
+          '</div>'+
         '</div>'+
+        '<button onclick="_upGuardarBeneficio()" '+
+          'style="padding:12px 20px;border-radius:10px;border:none;background:var(--surface3);color:var(--text);font-size:12px;font-weight:800;cursor:pointer;font-family:Syne,sans-serif;white-space:nowrap;flex-shrink:0">'+
+          '&#x1F4BE; Guardar'+
+        '</button>'+
       '</div>'+
-      '<button onclick="rcGuardarConfig()" '+
-        'style="width:100%;padding:9px;border-radius:9px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent-hover));color:#000;font-size:13px;font-weight:800;cursor:pointer;font-family:Syne,sans-serif">'+
-        '💾 Guardar</button>'+
-    '</div>'+
+      // Indicación de cálculo
+      (pagoBase > 0 && descXRef > 0 ?
+        '<div style="margin-top:12px;padding:10px 14px;background:rgba(34,197,94,.06);border-radius:10px;font-size:12px;color:var(--text-secondary)">'+
+          '&#x2192; Con <strong style="color:var(--text)">'+activos.length+' referidos activos</strong>: '+
+          '<strong style="color:#22c55e">$'+descReal.toFixed(2)+' de descuento</strong>'+
+          (pagoBase > 0 ? ' sobre el pago base de <strong>$'+pagoBase.toFixed(2)+'</strong>' : '')+
+          (pagoActual !== null ? ' &rarr; paga <strong style="color:'+(pagoActual===0?'#22c55e':'#eab308')+'">$'+pagoActual.toFixed(2)+'</strong>' : '')+
+        '</div>'
+      : '')+
+    '</div>';
 
-    // ③ Referidos activos (quiénes son)
-    '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px">'+
-      '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#22c55e;margin-bottom:12px">👥 Referidos Activos ('+cr.nActivos+')</div>'+
-      (cr.activos.length === 0
-        ? '<div style="text-align:center;padding:20px;color:var(--muted);font-size:13px">Sin referidos activos aún</div>'
-        : '<div style="display:flex;flex-direction:column;gap:6px">'+
-            cr.activos.map(function(l){
-              return '<div style="display:flex;align-items:center;gap:10px;background:var(--surface3);border-radius:10px;padding:10px 12px">'+
-                '<div style="width:32px;height:32px;border-radius:8px;background:rgba(34,197,94,.15);color:#22c55e;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:Syne,sans-serif;font-size:12px;flex-shrink:0">'+
-                  (((l.firstName||'?')[0])+((l.lastName||'?')[0])).toUpperCase()+
-                '</div>'+
-                '<div style="flex:1;min-width:0">'+
-                  '<div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc((l.firstName||'')+' '+(l.lastName||''))+'</div>'+
-                  '<div style="font-size:10px;color:var(--muted)">'+(l.program||l.bizType||'—')+'</div>'+
-                '</div>'+
-                '<div style="font-size:12px;font-weight:800;color:#22c55e;white-space:nowrap">-$'+cr.creditoXRef.toFixed(2)+'</div>'+
-              '</div>';
-            }).join('')+
-          '</div>')+
-    '</div>'+
+  // ══════════════════════════════════════════════════════════
+  //  BLOQUE 3 — Estado de cuenta (los números)
+  // ══════════════════════════════════════════════════════════
+  var cuentaBlock =
+    '<div style="margin-bottom:12px">'+
+      '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px">&#x1F4CA; Balance actual</div>'+
+      '<div style="display:flex;gap:8px;margin-bottom:8px">'+
+        kpi(allClients.length, 'Total referidos', '#f97316', activos.length + ' activos')+
+        kpi(descXRef > 0 ? '-$'+descXRef.toFixed(2) : '—', 'Desc/referido', '#22c55e',
+          modoDesc==='pct' ? pctDesc+'% del programa' : '$'+montoFijo+' fijo')+
+        kpi(pagoBase > 0 ? '-$'+descReal.toFixed(2) : sinPrograma ? '—' : '-$'+descReal.toFixed(2), 'Desc total', '#22c55e',
+          pagoBase > 0 ? pct+'% cubierto' : activos.length+' × $'+descXRef.toFixed(2))+
+        (pagoActual !== null ?
+          kpi('$'+pagoActual.toFixed(2), 'Pago actual', pagoActual===0?'#22c55e':pagoActual<pagoBase*0.5?'#f97316':'#eab308',
+            pagoActual===0 ? '&#x1F389; Cubierto!' : 'de $'+pagoBase.toFixed(2)) :
+          kpi('$'+descReal.toFixed(2), 'Desc ganado', '#22c55e', activos.length+' activos')
+        )+
+      '</div>'+
+      // Barra de progreso (solo si tiene pago base)
+      (pagoBase > 0 ?
+        '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:8px">'+
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">'+
+            '<span style="font-size:11px;color:var(--text-secondary)">Descuento sobre el pago mensual</span>'+
+            '<span style="font-size:13px;font-weight:800;color:'+(pagoActual===0?'#22c55e':pagoActual<pagoBase*0.5?'#f97316':'#eab308')+'">'+pct+'%</span>'+
+          '</div>'+
+          '<div style="height:9px;background:var(--surface3);border-radius:5px;overflow:hidden">'+
+            '<div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,#22c55e,#a855f7);border-radius:5px;transition:.4s"></div>'+
+          '</div>'+
+          (activos.length === 0 ?
+            '<div style="margin-top:8px;font-size:11px;color:var(--muted)">Sin referidos activos a\xfan — cuando traiga clientes, el descuento se refleja aqu\xed autom\xe1ticamente.</div>'
+          : pagoActual === 0 ?
+            '<div style="margin-top:8px;font-size:12px;font-weight:700;color:#22c55e;text-align:center">&#x1F389; &#xA1;El programa est\xe1 completamente cubierto por referidos!</div>'
+          :
+            '<div style="margin-top:8px;font-size:11px;color:var(--muted)">'+
+              'Faltan <strong style="color:var(--text)">'+
+              Math.ceil((pagoBase - descReal) / (descXRef || 1))+
+              ' referido(s) m\xe1s</strong> para cubrir el pago completo.'+
+            '</div>'
+          )+
+        '</div>'
+      : '')+
+    '</div>';
 
-    // ④ Crédito canjeable (bonos)
-    '<div style="background:linear-gradient(135deg,rgba(168,85,247,.08),rgba(124,58,237,.04));border:1.5px solid rgba(168,85,247,.25);border-radius:14px;padding:16px;margin-bottom:16px">'+
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'+
-        '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#a855f7">🎁 Crédito Canjeable</div>'+
-        '<div style="font-family:Syne,sans-serif;font-weight:900;font-size:28px;color:#a855f7">$'+cr.creditoDisponible.toFixed(2)+'</div>'+
+  // ══════════════════════════════════════════════════════════
+  //  BLOQUE 4 — Clientes referidos (tabla simple)
+  // ══════════════════════════════════════════════════════════
+  var stColors = {active:'#22c55e', trial:'#eab308', inactive:'#6b7280', expired:'#ef4444'};
+  var stLabels = {active:'Activo', trial:'Trial', inactive:'Inactivo', expired:'Expirado'};
+
+  var clientRows = allClients.length === 0
+    ? '<div style="text-align:center;padding:28px;color:var(--muted);font-size:13px">Sin clientes referidos a\xfan</div>'
+    : allClients.map(function(c, idx){
+        var st   = getStatus(c);
+        var col  = stColors[st] || '#6b7280';
+        var lbl  = stLabels[st] || st;
+        var prog = (typeof customProgs !== 'undefined' ? customProgs : [])
+          .find(function(p){ return p.id === (c.program||c.currentProgram||c.plan); });
+        var progNm = prog ? (prog.labelES||prog.name||prog.id||'\u2014') : (c.plan||c.bizType||'\u2014');
+        var esActivo = st === 'active';
+        var bg = idx%2===0 ? 'var(--surface2)' : 'var(--surface)';
+        return '<div style="display:flex;align-items:center;gap:12px;padding:11px 14px;background:'+bg+';'+(idx===0?'border-radius:10px 10px 0 0':'')+'">'+
+          // Avatar
+          '<div style="width:36px;height:36px;border-radius:10px;background:'+(esActivo?'rgba(34,197,94,.15)':'rgba(100,100,100,.12)')+
+            ';display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-weight:800;font-size:12px;color:'+(esActivo?'#22c55e':'var(--muted)')+';flex-shrink:0">'+
+            ini((c.firstName||'') + ' ' + (c.lastName||''))+
+          '</div>'+
+          // Nombre + programa
+          '<div style="flex:1;min-width:0">'+
+            '<div style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+
+              esc((c.firstName||'')+' '+(c.lastName||''))+
+            '</div>'+
+            '<div style="font-size:11px;color:var(--muted)">'+esc(progNm)+'</div>'+
+          '</div>'+
+          // Estado
+          chip(lbl, col, 'rgba(0,0,0,.06)')+
+          // Descuento que genera
+          '<div style="font-family:Syne,sans-serif;font-weight:800;font-size:13px;color:'+(esActivo&&descXRef>0?'#22c55e':'var(--muted)')+
+            ';text-align:right;flex-shrink:0;min-width:52px">'+
+            (esActivo && descXRef > 0 ? '-$'+descXRef.toFixed(2) : '\u2014')+
+          '</div>'+
+        '</div>';
+      }).join('');
+
+  var clientsBlock =
+    '<div style="margin-bottom:12px">'+
+      '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px">'+
+        '&#x1F465; Clientes referidos ('+allClients.length+')'+
       '</div>'+
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">'+
-        _rcKpi('$'+cr.bonusAcum.toFixed(2), 'Bonos iniciales', '#a855f7')+
-        _rcKpi('$'+cr.excAcum.toFixed(2),   'Exceso acumulado', '#f97316')+
-        _rcKpi('$'+cr.usado.toFixed(2),     'Ya canjeado', '#6b7280')+
-      '</div>'+
-      // Botón acumular exceso manual
-      (cr.exceso > 0
-        ? '<button onclick="rcAcumularExceso()" '+
-            'style="width:100%;padding:9px;border-radius:9px;border:none;background:rgba(249,115,22,.15);color:#f97316;font-size:12px;font-weight:800;cursor:pointer;margin-bottom:8px">'+
-            '⚡ Acumular exceso de este mes: $'+cr.exceso.toFixed(2)+
-          '</button>'
+      '<div style="border:1px solid var(--border);border-radius:12px;overflow:hidden">'+
+        clientRows+
+        // Footer totalizador
+        (activos.length > 0 && descXRef > 0 ?
+          '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--surface3)">'+
+            '<span style="font-size:11px;color:var(--muted)">'+activos.length+' activos &times; $'+descXRef.toFixed(2)+'</span>'+
+            '<span style="font-family:Syne,sans-serif;font-weight:900;font-size:14px;color:#22c55e">-$'+descReal.toFixed(2)+' descuento total</span>'+
+          '</div>'
         : '')+
-      (cr.creditoDisponible > 0
-        ? '<button onclick="closeModal(\'rcCreditModal\');openCanjeModal(\''+ref.id+'\')" '+
-            'style="width:100%;padding:11px;border-radius:9px;border:none;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Syne,sans-serif">'+
-            '🎁 Canjear Crédito'
-          +'</button>'
-        : '<div style="text-align:center;font-size:12px;color:var(--muted)">Sin crédito disponible para canjear</div>')+
-    '</div>'+
+      '</div>'+
+    '</div>';
 
-    // ⑤ Historial de bonos
-    (cr.bal.histBonus && cr.bal.histBonus.length > 0
-      ? '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px 16px">'+
-          '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary);margin-bottom:10px">📜 Historial de Créditos</div>'+
-          '<div style="display:flex;flex-direction:column;gap:5px;max-height:160px;overflow-y:auto">'+
-            cr.bal.histBonus.slice().reverse().map(function(h){
-              var icon = h.tipo==='inicial'?'🎁':h.tipo==='exceso_mensual'?'⚡':'💳';
-              return '<div style="display:flex;align-items:center;gap:10px;background:var(--surface3);border-radius:8px;padding:8px 12px">'+
-                '<span style="font-size:16px">'+icon+'</span>'+
-                '<div style="flex:1">'+
-                  '<div style="font-size:12px;font-weight:700">'+(h.tipo==='inicial'?'Bono inicial — '+esc(h.cliente||''):'Exceso mensual acumulado')+'</div>'+
-                  '<div style="font-size:10px;color:var(--muted)">'+(h.fecha||'').split('T')[0]+'</div>'+
-                '</div>'+
-                '<div style="font-size:13px;font-weight:800;color:#a855f7">+$'+Number(h.monto).toFixed(2)+'</div>'+
+  // ══════════════════════════════════════════════════════════
+  //  BLOQUE 5 — Aplicar movimiento manual
+  // ══════════════════════════════════════════════════════════
+  var movBlock =
+    '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:14px 18px;margin-bottom:12px">'+
+      '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:12px">&#x2705; Registrar movimiento</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;margin-bottom:10px">'+
+        '<div>'+
+          '<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px">Monto</div>'+
+          '<input type="number" id="refBalAmount" placeholder="$0.00" min="0" step="0.01" '+
+            'value="'+(descReal>0&&paid===0?descReal.toFixed(2):'')+'" '+
+            'style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:9px;color:var(--text);font-size:15px;font-weight:800;padding:9px 12px;outline:none;box-sizing:border-box"/>'+
+        '</div>'+
+        '<div>'+
+          '<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px">Concepto</div>'+
+          '<input type="text" id="refBalApplyTo" placeholder="Ej: Mensualidad junio" value="'+escHtml(bal.appliedTo||'')+'" '+
+            'style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;padding:9px 12px;outline:none;box-sizing:border-box"/>'+
+        '</div>'+
+        '<button onclick="refBalApplyPayment()" '+
+          'style="padding:10px 18px;border-radius:9px;border:none;background:#22c55e;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Syne,sans-serif;white-space:nowrap">'+
+          '&#x2705; Aplicar'+
+        '</button>'+
+      '</div>'+
+      // Historial compacto
+      (((bal.history||[]).length > 0) ?
+        '<div style="border-top:1px solid var(--border);padding-top:10px">'+
+          '<div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:7px;text-transform:uppercase;letter-spacing:.06em">Historial</div>'+
+          '<div style="display:flex;flex-direction:column;gap:4px;max-height:140px;overflow-y:auto">'+
+            (bal.history||[]).slice().reverse().slice(0,8).map(function(h){
+              return '<div style="display:flex;align-items:center;gap:10px;padding:6px 10px;background:var(--surface);border-radius:8px">'+
+                '<span style="font-size:11px;color:var(--muted);flex-shrink:0">'+(h.date||'').split('T')[0]+'</span>'+
+                '<span style="flex:1;font-size:12px;color:var(--text)">'+escHtml(h.appliedTo||'Pago')+'</span>'+
+                '<span style="font-family:Syne,sans-serif;font-weight:800;font-size:12px;color:#22c55e">-$'+Number(h.amount||0).toFixed(2)+'</span>'+
               '</div>';
             }).join('')+
           '</div>'+
         '</div>'
-      : '');
+      : '')+
+    '</div>';
+
+  // ══════════════════════════════════════════════════════════
+  //  FOOTER
+  // ══════════════════════════════════════════════════════════
+  var footerBlock =
+    '<div style="display:flex;align-items:center;justify-content:space-between;padding-top:4px">'+
+      '<button onclick="refBalReset()" style="font-size:11px;color:#ef4444;background:none;border:1px solid rgba(239,68,68,.25);border-radius:7px;padding:5px 12px;cursor:pointer">'+
+        '&#x1F504; Reiniciar balance'+
+      '</button>'+
+      '<button onclick="closeModal(\'refBalanceModal\')" style="padding:8px 20px;border-radius:9px;border:1.5px solid var(--border);background:transparent;color:var(--text-secondary);font-size:13px;font-weight:700;cursor:pointer">'+
+        'Cerrar'+
+      '</button>'+
+    '</div>';
+
+  body.innerHTML = progBlock + benefBlock + cuentaBlock + clientsBlock + movBlock + footerBlock;
 }
 
-function _rcKpi(val, lbl, color){
-  return '<div style="background:var(--surface3);border-radius:10px;padding:10px;text-align:center">'+
-    '<div style="font-family:Syne,sans-serif;font-weight:800;font-size:17px;color:'+color+'">'+val+'</div>'+
-    '<div style="font-size:9px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-top:2px">'+lbl+'</div>'+
-  '</div>';
-}
-
-function rcGuardarConfig(){
-  var ref = referidores.find(function(x){ return x.id===_rcModalRefId; });
-  if(!ref) return;
-  var pb = parseFloat(document.getElementById('rcPagoBase').value);
-  var fr = (document.getElementById('rcFrecuencia')||{}).value||'mensual';
-  if(isNaN(pb)||pb<0){ showToast('❌ Monto inválido','var(--danger)'); return; }
-  ref.pagoBase = pb;
-  ref.pagoFrecuencia = fr;
-  if(!_demoMode&&_fbdb) _fbdb.ref('referidores/'+ref.id).update({pagoBase:pb,pagoFrecuencia:fr});
-  showToast('✅ Configuración guardada');
-  renderRCModal();
-}
-
-function rcAcumularExceso(){
-  registrarExcesoMensual(_rcModalRefId);
-  renderRCModal();
-  showToast('⚡ Exceso del mes acumulado al crédito canjeable');
-}
-
-/* ── Sistema de Canje ── */
-var _canjeRefId = null;
-var CANJE_CATEGORIES = [
-  { id:'servicio',    icon:'🥋', label:'Servicio / Clase',   labelEN:'Service / Class'  },
-  { id:'mercaderia',  icon:'👕', label:'Mercadería',          labelEN:'Merchandise'      },
-  { id:'evento',      icon:'🎉', label:'Evento Especial',     labelEN:'Special Event'    },
-  { id:'efectivo',    icon:'💵', label:'Efectivo',            labelEN:'Cash'             },
-  { id:'mensualidad', icon:'📅', label:'Descuento Mensualidad', labelEN:'Monthly Discount' },
-];
-
-function openCanjeModal(refId){
-  _canjeRefId = refId;
-  renderCanjeModal();
-  openModal('canjeModal');
-}
-
-function renderCanjeModal(){
-  var ref = referidores.find(function(x){ return x.id===_canjeRefId; });
-  if(!ref) return;
-  var isEN = _masterLang === 'en';
-  var nb = calcRefNetBalance(ref);
-  var body = document.getElementById('canjeBody');
-
-  document.getElementById('canjeTitle').textContent = ref.firstName + ' ' + ref.lastName;
-  document.getElementById('canjeSub').textContent = (isEN ? 'Credit in favor: ' : 'Crédito a favor: ') + '$' + nb.creditFavor.toFixed(2);
-
-  var canjeHist = ((_getRefBal(ref.id)).canjeHistory) || [];
-
-  body.innerHTML =
-    // Credit balance display
-    '<div style="background:linear-gradient(135deg,rgba(168,85,247,.1),rgba(124,58,237,.05));border:1.5px solid rgba(168,85,247,.3);border-radius:14px;padding:16px 18px;margin-bottom:20px;text-align:center">' +
-      '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#a855f7;margin-bottom:8px">💜 ' + (isEN?'Available Credit':'Crédito Disponible') + '</div>' +
-      '<div style="font-family:Syne,sans-serif;font-weight:900;font-size:40px;color:#a855f7">$' + nb.creditFavor.toFixed(2) + '</div>' +
-      '<div style="font-size:11px;color:var(--muted);margin-top:4px">' +
-        (isEN ? 'Balance in favor · Ready to redeem' : 'Balance a tu favor · Listo para canjear') +
-      '</div>' +
-    '</div>' +
-
-    // Category picker
-    '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary);margin-bottom:10px">🎁 ' + (isEN?'How would you like to redeem?':'¿Cómo deseas canjear?') + '</div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px" id="canjeCatGrid">' +
-      CANJE_CATEGORIES.map(function(c){
-        return '<button onclick="selectCanjeCat(\'' + c.id + '\')" id="canje_cat_' + c.id + '" ' +
-          'style="background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:14px 10px;cursor:pointer;color:var(--text);font-family:Syne,sans-serif;font-weight:700;font-size:13px;transition:all .2s;text-align:center">' +
-          '<div style="font-size:22px;margin-bottom:6px">' + c.icon + '</div>' +
-          '<div>' + (isEN?c.labelEN:c.label) + '</div>' +
-        '</button>';
-      }).join('') +
-    '</div>' +
-
-    // Amount + description
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">' +
-      '<div>' +
-        '<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">' + (isEN?'Amount to Redeem':'Monto a Canjear') + '</div>' +
-        '<input type="number" id="canjeAmount" step="0.01" min="0.01" max="' + nb.creditFavor.toFixed(2) + '" value="' + nb.creditFavor.toFixed(2) + '" ' +
-          'style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:15px;font-weight:800;padding:9px 11px;outline:none;box-sizing:border-box"/>' +
-      '</div>' +
-      '<div>' +
-        '<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">' + (isEN?'Description / Note':'Descripción / Nota') + '</div>' +
-        '<input type="text" id="canjeDesc" placeholder="' + (isEN?'e.g. July monthly fee':'Ej: Mensualidad de julio') + '" ' +
-          'style="width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:9px 11px;outline:none;box-sizing:border-box"/>' +
-      '</div>' +
-    '</div>' +
-
-    '<div id="canjeCatSelected" style="margin-bottom:14px;min-height:28px"></div>' +
-
-    '<div style="display:flex;gap:8px;justify-content:flex-end;padding-top:14px;border-top:1px solid var(--border);margin-bottom:20px">' +
-      '<button class="pro-btn pro-btn-ghost" onclick="closeModal(\'canjeModal\')">' + (isEN?'Cancel':'Cancelar') + '</button>' +
-      '<button class="pro-btn" onclick="confirmarCanje()" ' +
-        'style="background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;border:none">🎁 ' + (isEN?'Redeem':'Canjear') + '</button>' +
-    '</div>' +
-
-    // Canje history
-    (canjeHist.length > 0 ?
-      '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px 16px">' +
-        '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary);margin-bottom:10px">📜 ' + (isEN?'Redemption History':'Historial de Canjes') + '</div>' +
-        canjeHist.slice().reverse().map(function(h){
-          var cat = CANJE_CATEGORIES.find(function(c){ return c.id===h.category; });
-          return '<div style="display:flex;align-items:center;gap:10px;background:var(--surface3);border-radius:8px;padding:8px 12px;margin-bottom:6px">' +
-            '<div style="font-size:18px">' + (cat?cat.icon:'🎁') + '</div>' +
-            '<div style="flex:1">' +
-              '<div style="font-size:12px;font-weight:700;color:var(--text)">' + esc(h.desc||h.category) + '</div>' +
-              '<div style="font-size:10px;color:var(--muted)">' + (h.date||'').split('T')[0] + '</div>' +
-            '</div>' +
-            '<div style="font-size:14px;font-weight:800;color:#a855f7">-$' + (h.amount||0).toFixed(2) + '</div>' +
-          '</div>';
-        }).join('') +
-      '</div>'
-    : '');
-}
-
-var _canjeCatSelected = null;
-function selectCanjeCat(catId){
-  _canjeCatSelected = catId;
-  document.querySelectorAll('#canjeCatGrid button').forEach(function(btn){
-    btn.style.borderColor = 'var(--border)';
-    btn.style.background  = 'var(--surface2)';
-    btn.style.color       = 'var(--text)';
-  });
-  var btn = document.getElementById('canje_cat_' + catId);
-  if(btn){
-    btn.style.borderColor = '#a855f7';
-    btn.style.background  = 'rgba(168,85,247,.12)';
-    btn.style.color       = '#a855f7';
-  }
-  var cat = CANJE_CATEGORIES.find(function(c){ return c.id===catId; });
-  var isEN = _masterLang === 'en';
-  var el = document.getElementById('canjeCatSelected');
-  if(el && cat){
-    el.innerHTML = '<div style="font-size:11px;color:#a855f7;font-weight:700">✔ ' + (isEN?cat.labelEN:cat.label) + ' seleccionado</div>';
-  }
-}
-
-function confirmarCanje(){
-  var ref = referidores.find(function(x){ return x.id===_canjeRefId; });
-  if(!ref){ showToast('❌ Referidor no encontrado', 'var(--danger)'); return; }
-  var isEN = _masterLang === 'en';
-  if(!_canjeCatSelected){ showToast(isEN?'❌ Select a category':'❌ Elige una categoría','var(--danger)'); return; }
-  var amount = parseFloat(document.getElementById('canjeAmount').value);
-  if(isNaN(amount) || amount <= 0){ showToast('❌ ' + (isEN?'Enter a valid amount':'Ingresa un monto válido'), 'var(--danger)'); return; }
-  var nb = calcRefNetBalance(ref);
-  if(amount > nb.creditFavor){
-    showToast(isEN?'❌ Amount exceeds available credit':'❌ El monto supera el crédito disponible','var(--danger)'); return;
-  }
-  var desc = (document.getElementById('canjeDesc').value||'').trim() || _canjeCatSelected;
-  var cat  = CANJE_CATEGORIES.find(function(c){ return c.id===_canjeCatSelected; });
-
-  var bal = _getRefBal(ref.id);
-  bal.canjeHistory = bal.canjeHistory || [];
-  bal.canjeHistory.push({ amount: amount, category: _canjeCatSelected, desc: desc, date: new Date().toISOString() });
-  // Apply canje as additional "paid" so balance is consumed
-  bal.paid = +((bal.paid||0) + amount).toFixed(2);
-  _saveRefBal(ref.id, bal);
-
-  showToast('✅ ' + (isEN?'Redeemed ':'Canjeado ') + '$' + amount.toFixed(2) + (cat?' → '+(isEN?cat.labelEN:cat.label):''), '#a855f7');
-  closeModal('canjeModal');
-  if(currentPage==='referidores') renderReferidores();
-}
-
-/* ── Render extended balance modal — handled inside renderRefBalance directly ── */
-
-function _saveNivelFromInput(){
-  var val = parseFloat(document.getElementById('nivelAcordadoInput').value);
-  if(isNaN(val) || val < 0){ showToast('❌ Monto inválido', 'var(--danger)'); return; }
-  saveNivelAcordado(_refBalId, val);
-  showToast('✅ Nivel acordado guardado: $' + val.toFixed(2));
+// ── Guardar programa (pago base) ─────────────────────────────
+function _upGuardarPrograma(){
+  var ref = referidores.find(function(x){ return x.id === _refBalId; }); if(!ref) return;
+  var pb = parseFloat((document.getElementById('upPagoBase')||{}).value);
+  var fr = (document.getElementById('upFrecuencia')||{}).value || 'mensual';
+  if(isNaN(pb) || pb <= 0){ showToast('\u274C Ingresa un monto v\xe1lido', 'var(--danger)'); return; }
+  ref.pagoBase = pb; ref.pagoFrecuencia = fr;
+  ref.nivelAcordado = pb; // compatibilidad
+  if(!_demoMode && _fbdb) _fbdb.ref('referidores/'+ref.id).update({pagoBase:pb,pagoFrecuencia:fr,nivelAcordado:pb});
+  showToast('\u2705 Pago base $'+pb.toFixed(2)+' guardado');
   renderRefBalance();
 }
+
+// ── _getRefBal / _saveRefBal: acceso al balance persistido del referidor ──
+function _getRefBal(refId){
+  var ref = referidores.find(function(r){ return r.id === refId; });
+  if(!ref) return { earned:0, paid:0, accumulate:false, appliedTo:'', history:[], canjeHistory:[], bonusInicial:0, histBonus:[] };
+  // El balance puede estar en ref.balance o aplanado en el propio objeto
+  if(ref.balance && typeof ref.balance === 'object') return ref.balance;
+  // Compatibilidad: construir desde campos aplanados
+  return {
+    earned       : +(ref.earned        || 0),
+    paid         : +(ref.paid          || 0),
+    accumulate   : !!(ref.accumulate),
+    appliedTo    : ref.appliedTo       || '',
+    history      : ref.history         || [],
+    canjeHistory : ref.canjeHistory    || [],
+    bonusInicial : +(ref.bonusInicial  || 0),
+    histBonus    : ref.histBonus       || []
+  };
+}
+
+function _saveRefBal(refId, bal){
+  referidores = referidores.map(function(r){
+    if(r.id !== refId) return r;
+    return Object.assign({}, r, { balance: bal });
+  });
+  if(!_demoMode && _fbdb){
+    try{ _fbdb.ref('referidores/' + refId + '/balance').set(bal); }catch(e){}
+  }
+}
+
+// ── Cambiar modo de descuento y guardar ─────────────────────
+function _upSetModo(modo){
+  RC_CONFIG.modoCalculo = modo;
+  saveRCConfig();
+  renderRefBalance();
+}
+function _upGuardarBeneficio(){
+  var val = parseFloat((document.getElementById('upValorDesc')||{}).value);
+  if(isNaN(val) || val <= 0){ showToast('\u274C Valor inv\xe1lido', 'var(--danger)'); return; }
+  if(RC_CONFIG.modoCalculo === 'pct'){
+    RC_CONFIG.creditPct = val;
+  } else {
+    RC_CONFIG.montoFijo = val;
+  }
+  saveRCConfig();
+  showToast('\u2705 Beneficio guardado — ' + (RC_CONFIG.modoCalculo==='pct' ? val+'%' : '$'+val+'/ref'));
+  renderRefBalance();
+}
+
+// ── Guardar nivel acordado (compatibilidad con código viejo) ─
+function saveNivelAcordado(refId, nivel){
+  referidores = referidores.map(function(r){
+    return r.id === refId ? Object.assign({}, r, {nivelAcordado:nivel, pagoBase:nivel}) : r;
+  });
+  if(!_demoMode && _fbdb) try{ _fbdb.ref('referidores/'+refId).update({nivelAcordado:nivel,pagoBase:nivel}); }catch(e){}
+}
+function _saveNivelFromInput(){
+  var val = parseFloat((document.getElementById('nivelAcordadoInput')||{value:'0'}).value);
+  if(isNaN(val)||val<0){ showToast('\u274C Monto inv\xe1lido','var(--danger)'); return; }
+  saveNivelAcordado(_refBalId, val);
+  showToast('\u2705 Guardado: $'+val.toFixed(2));
+  renderRefBalance();
+}
+
+function refBalApplyPayment(){
+  var ref = referidores.find(function(x){ return x.id===_refBalId; }); if(!ref) return;
+  var amount = parseFloat((document.getElementById('refBalAmount')||{}).value);
+  if(isNaN(amount)||amount<=0){ showToast('\u274C Ingresa un monto v\xe1lido','var(--danger)'); return; }
+  var appliedTo = (document.getElementById('refBalApplyTo')||{}).value||'';
+  var bal = _getRefBal(_refBalId);
+  bal.paid      = +((bal.paid||0)+amount).toFixed(2);
+  bal.appliedTo = appliedTo;
+  bal.history   = bal.history||[];
+  bal.history.push({amount:amount, appliedTo:appliedTo, date:new Date().toISOString()});
+  _saveRefBal(_refBalId, bal);
+  showToast('\u2705 $'+amount.toFixed(2)+' aplicado');
+  renderRefBalance();
+}
+
+async function refBalReset(){
+  if(!confirm('\u26A0\uFE0F \xBFReiniciar el balance completo de este referidor?')) return;
+  var emptyBal = {earned:0, paid:0, accumulate:false, appliedTo:'', history:[], canjeHistory:[]};
+  if(!_demoMode && _fbdb){
+    try{
+      var snap = await _fbdb.ref('referidores/'+_refBalId).once('value');
+      var obj  = snap.val()||{};
+      delete obj.balance; delete obj.paid; delete obj.earned;
+      obj.balance = emptyBal;
+      await _fbdb.ref('referidores/'+_refBalId).set(obj);
+      referidores = referidores.map(function(r){ return r.id===_refBalId ? obj : r; });
+    }catch(e){ showToast('\u274C Error al reiniciar','var(--danger)'); return; }
+  } else {
+    referidores = referidores.map(function(r){
+      if(r.id!==_refBalId) return r;
+      var clean = Object.assign({},r); delete clean.paid; delete clean.earned;
+      clean.balance = emptyBal; return clean;
+    });
+  }
+  showToast('\u1F504 Balance reiniciado');
+  renderRefBalance();
+}
+
+// ── stubs de compatibilidad (renderRCModal ya no se usa directamente) ─
+function renderRCModal(){ renderRefBalance(); }
+function rcGuardarConfig(){ _upGuardarPrograma(); }
+function rcAcumularExceso(){ showToast('Usa el panel unificado'); }
 
 /* ── Hook: detectar cuando un cliente referido se desactiva ──
    Llamar notifyReferidorLostClient(leadOrRegistration) cuando un cliente
@@ -13208,19 +12870,17 @@ function renderConfig(){
       '<div class="mfield" style="margin-bottom:12px"><label>'+(isEN2?'Admin notification email':'Email de notificaciones admin')+'</label><input type="email" id="brevoAdminEmail" placeholder="tu@email.com" oninput="saveNotifConfig()"/></div>'+
       '<input type="hidden" id="ejServiceId"/><input type="hidden" id="ejTemplateId"/><input type="hidden" id="ejPublicKey"/>'+
 
-      '<div style="font-size:12px;color:var(--accent2);font-weight:700;margin-bottom:8px;margin-top:4px">'+t.twilioLabel+'</div>'+
-      '<div class="mfield-row" style="margin-bottom:12px">'+
-        '<div class="mfield" style="margin-bottom:0"><label>'+t.twilioSidLabel+'</label><input type="text" id="twilioSid" placeholder="ACxxxxxxxx" oninput="saveNotifConfig()"/></div>'+
-        '<div class="mfield" style="margin-bottom:0"><label>'+t.twilioTokenLabel+'</label><input type="password" id="twilioToken" placeholder="••••••••" oninput="saveNotifConfig()"/></div>'+
-      '</div>'+
-      '<div class="mfield-row" style="margin-bottom:12px">'+
-        '<div class="mfield" style="margin-bottom:0"><label>'+t.twilioFromLabel+'</label><input type="text" id="twilioFrom" placeholder="+13055550001" oninput="saveNotifConfig()"/></div>'+
-        '<div class="mfield" style="margin-bottom:0"><label>'+t.twilioWAFromLabel+'</label><input type="text" id="twilioWAFrom" placeholder="whatsapp:+14155238886" oninput="saveNotifConfig()"/></div>'+
-      '</div>'+
-      '<div class="mfield"><label>'+t.adminPhoneLabel+'</label><input type="text" id="twilioAdminPhone" placeholder="+17865550000" oninput="saveNotifConfig()"/></div>'+
+      <!-- Hidden inputs to keep JS compatibility -->
+      '<input type="hidden" id="twilioSid"/><input type="hidden" id="twilioToken"/>'+
+      '<input type="hidden" id="twilioFrom"/><input type="hidden" id="twilioWAFrom"/>'+
+      '<input type="hidden" id="twilioAdminPhone"/><input type="hidden" id="msWebhookUrl"/>'+
 
-      '<div style="font-size:12px;color:#60a5fa;font-weight:700;margin-bottom:8px;margin-top:4px">'+t.teamsLabel+'</div>'+
-      '<div class="mfield"><label>'+t.teamsWebhookLabel+'</label><input type="text" id="msWebhookUrl" placeholder="https://prod-xx.eastus.logic.azure.com/..." oninput="saveNotifConfig()"/></div>';
+      '<div style="font-size:12px;color:#22d3ee;font-weight:700;margin-bottom:8px;margin-top:16px">✈️ Telegram Bot</div>'+
+      '<div style="font-size:11px;color:#666;margin-bottom:10px;line-height:1.5">1. Abre Telegram → busca <strong>@BotFather</strong> → escribe <code>/newbot</code> → copia el token<br>2. Busca <strong>@userinfobot</strong> → te da tu Chat ID</div>'+
+      '<div class="mfield-row" style="margin-bottom:0">'+
+        '<div class="mfield" style="margin-bottom:0"><label>Bot Token</label><input type="text" id="telegramBotToken" placeholder="123456:ABCdef..." oninput="saveNotifConfig()"/></div>'+
+        '<div class="mfield" style="margin-bottom:0"><label>Chat ID</label><input type="text" id="telegramChatId" placeholder="123456789" oninput="saveNotifConfig()"/></div>'+
+      '</div>';
   }
 
   // Firebase status
@@ -24104,12 +23764,6 @@ function _baOpenSendFromClient(recId){
     }
   }
 
-  function _fillConfigForm(){
-    var f = ['schoolName','waNumber','greeting','systemPrompt'];
-    f.forEach(function(k){ var el=document.getElementById('cb_'+k); if(el) el.value=_cbConfig[k]||''; });
-    _refreshEmbedCode();
-  }
-
   function _loadCbLeads(){
     if(typeof _fbdb!=='undefined'&&_fbdb){
       _fbdb.ref('chatbotLeads').orderByChild('createdAt').limitToLast(200).on('value', function(snap){
@@ -24272,12 +23926,71 @@ function _baOpenSendFromClient(recId){
     if(typeof showToast==='function') showToast('✅ Configuración guardada');
   };
 
+  /* ── Helpers para construir el editor de secciones ── */
+  window.cbToggleSection = function(hdr){
+    hdr.classList.toggle('cb-sec-open');
+    hdr.nextElementSibling.style.display = hdr.classList.contains('cb-sec-open') ? 'block' : 'none';
+  };
+
+  var CB_FULL_FIELDS = [
+    'cb_logo','cb_tag','cb_waNumber','cb_wa_en','cb_wa_es',
+    'cb_welcome_en','cb_welcome_es',
+    'cb_price_en','cb_price_es','cb_sch_en','cb_sch_es',
+    'cb_kids_en','cb_kids_es','cb_adult_en','cb_adult_es',
+    'cb_signup_en','cb_signup_es','cb_free_en','cb_free_es',
+    'cb_classes_en','cb_classes_es','cb_contact_en','cb_contact_es',
+    /* campos legacy para compatibilidad */
+    'cb_schoolName','cb_greeting','cb_systemPrompt'
+  ];
+
+  /* ── Guardar todo ── */
+  window.cbSaveConfigFull = function(){
+    CB_FULL_FIELDS.forEach(function(k){
+      var el = document.getElementById(k);
+      if(el) _cbConfig[k] = el.value;
+    });
+    // Sync campos legacy
+    _cbConfig.schoolName  = _cbConfig.cb_logo      || _cbConfig.schoolName  || '';
+    _cbConfig.greeting    = _cbConfig.cb_welcome_es || _cbConfig.greeting    || '';
+    _cbConfig.waNumber    = _cbConfig.cb_waNumber   || _cbConfig.waNumber    || '';
+
+    if(typeof _fbdb!=='undefined' && _fbdb){
+      _fbdb.ref('chatbotConfig').set(_cbConfig);
+    } else {
+      try{ localStorage.setItem('cbConfig', JSON.stringify(_cbConfig)); }catch(e){}
+    }
+    _refreshEmbedCode();
+    if(typeof showToast==='function') showToast('✅ ¡Configuración guardada!', '#22c55e');
+  };
+
+  /* ── Cargar en formulario (incluye campos nuevos) ── */
+  function _fillConfigForm(){
+    CB_FULL_FIELDS.forEach(function(k){
+      var el = document.getElementById(k);
+      if(el) el.value = _cbConfig[k] || '';
+    });
+    // Retrocompatibilidad: si solo había schoolName/greeting llena los campos nuevos
+    if(!_cbConfig.cb_logo && _cbConfig.schoolName){
+      var el = document.getElementById('cb_logo'); if(el) el.value = _cbConfig.schoolName;
+    }
+    if(!_cbConfig.cb_welcome_es && _cbConfig.greeting){
+      var el2 = document.getElementById('cb_welcome_es'); if(el2) el2.value = _cbConfig.greeting;
+    }
+    _refreshEmbedCode();
+  }
+
+  window.cbLivePreview = function(){ /* no-op — ya no hay preview en vivo, el editor es el real */ };
+
   window.cbSwitchTab = function(t){
     _cbTab = t;
     document.querySelectorAll('.cb-tab').forEach(function(el){ el.classList.toggle('active', el.dataset.tab===t); });
-    document.getElementById('cb-panel-leads').style.display = t==='leads'?'block':'none';
-    document.getElementById('cb-panel-config').style.display = t==='config'?'block':'none';
-    document.getElementById('cb-panel-preview').style.display = t==='preview'?'block':'none';
+    var pl = document.getElementById('cb-panel-leads');
+    var pc = document.getElementById('cb-panel-config');
+    var pp = document.getElementById('cb-panel-preview');
+    if(!pl || !pc || !pp) return; // page not injected yet
+    pl.style.display = t==='leads'  ? 'block' : 'none';
+    pc.style.display = t==='config' ? 'block' : 'none';
+    pp.style.display = t==='preview'? 'block' : 'none';
     if(t==='leads') _renderCbLeads();
     if(t==='config') _refreshEmbedCode();
   };
@@ -24333,6 +24046,39 @@ function _baOpenSendFromClient(recId){
 <!-- CHATBOT PAGE HTML — inserted into .app > .main-wrap > .main -->
 <script>
 (function(){
+
+  /* ── Helpers para construir secciones del editor (scope local a este IIFE) ── */
+  function cbSection(emoji, name, desc, innerHtml){
+    return '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;">'
+      +'<div onclick="cbToggleSection(this)" style="display:flex;align-items:center;gap:12px;padding:16px 20px;cursor:pointer;user-select:none;transition:background .15s;" onmouseover="this.style.background=\'rgba(244,63,94,.06)\'" onmouseout="this.style.background=\'transparent\'">'
+        +'<div style="font-size:22px;width:42px;height:42px;background:rgba(244,63,94,.1);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+emoji+'</div>'
+        +'<div style="flex:1;"><div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px;font-family:Syne,sans-serif;">'+name+'</div><div style="font-size:12px;color:var(--muted2);">'+desc+'</div></div>'
+        +'<span style="font-size:20px;color:#f43f5e;font-weight:700;">›</span>'
+      +'</div>'
+      +'<div style="display:none;padding:20px;border-top:1px solid var(--border);">'+innerHtml+'</div>'
+      +'</div>';
+  }
+
+  function cbField(lbl, id, type, placeholder){
+    var tag = type==='textarea'
+      ? '<textarea id="'+id+'" placeholder="'+placeholder+'" style="width:100%;background:#1a1a1a;border:2px solid #2a2a2a;border-radius:10px;padding:12px 16px;color:#f0f0f0;font-family:\'DM Sans\',sans-serif;font-size:14px;font-weight:500;line-height:1.65;resize:vertical;min-height:90px;outline:none;box-sizing:border-box;transition:border-color .15s;" onfocus="this.style.borderColor=\'#f43f5e\'" onblur="this.style.borderColor=\'#2a2a2a\'"></textarea>'
+      : '<input type="text" id="'+id+'" placeholder="'+placeholder+'" style="width:100%;background:#1a1a1a;border:2px solid #2a2a2a;border-radius:10px;padding:12px 16px;color:#f0f0f0;font-size:14px;font-weight:500;outline:none;box-sizing:border-box;transition:border-color .15s;" onfocus="this.style.borderColor=\'#f43f5e\'" onblur="this.style.borderColor=\'#2a2a2a\'"/>';
+    return '<div style="margin-bottom:16px;"><div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;padding:7px 12px;border-radius:8px;background:var(--surface2);">'+lbl+'</div>'+tag+'</div>';
+  }
+
+  function cbFieldLbl(flag, tag, lbl, id, type, placeholder){
+    var tagStyle = tag==='ES' ? 'background:#c0392b;' : 'background:#222;';
+    var lbl2 = '<span style="font-size:18px;">'+flag+'</span><span style="padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.5px;color:#fff;'+tagStyle+'">'+tag+'</span> '+lbl;
+    var input = type==='textarea'
+      ? '<textarea id="'+id+'" placeholder="'+placeholder+'" style="width:100%;background:#fff;border:2px solid #ddd;border-radius:10px;padding:12px 16px;color:#1a1a1a;font-family:\'DM Sans\',sans-serif;font-size:14px;font-weight:500;line-height:1.65;resize:vertical;min-height:90px;outline:none;box-sizing:border-box;transition:border-color .15s,box-shadow .15s;" onfocus="this.style.borderColor=\'#c0392b\';this.style.boxShadow=\'0 0 0 3px rgba(192,57,43,.12)\'" onblur="this.style.borderColor=\'#ddd\';this.style.boxShadow=\'none\'"></textarea>'
+      : '<input type="text" id="'+id+'" placeholder="'+placeholder+'" style="width:100%;background:#fff;border:2px solid #ddd;border-radius:10px;padding:12px 16px;color:#1a1a1a;font-size:14px;font-weight:500;outline:none;box-sizing:border-box;transition:border-color .15s,box-shadow .15s;" onfocus="this.style.borderColor=\'#c0392b\';this.style.boxShadow=\'0 0 0 3px rgba(192,57,43,.12)\'" onblur="this.style.borderColor=\'#ddd\';this.style.boxShadow=\'none\'"/>';
+    return '<div style="margin-bottom:14px;"><div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#333;margin-bottom:8px;padding:7px 12px;border-radius:8px;background:#f5f5f5;">'+lbl2+'</div>'+input+'</div>';
+  }
+
+  function cbGrid(a, b){
+    return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">'+a+b+'</div>';
+  }
+
   function injectChatbotPage(){
     var mainEl = document.querySelector('.main');
     if(!mainEl){ setTimeout(injectChatbotPage, 300); return; }
@@ -24378,45 +24124,131 @@ function _baOpenSendFromClient(recId){
         '</div>',
       '</div>',
 
-      /* CONFIG PANEL */
+      /* CONFIG PANEL — igual al editor del index.html externo */
       '<div id="cb-panel-config" style="display:none">',
-        '<div class="cb-cfg-grid">',
-          '<div class="cb-cfg-card">',
-            '<h3>⚙️ Datos de la Escuela</h3>',
-            '<div class="cb-field"><label>Nombre de la Escuela</label><input id="cb_schoolName" placeholder="Ej: Dojo Bushido"/></div>',
-            '<div class="cb-field"><label>Número de WhatsApp (con código de país)</label><input id="cb_waNumber" placeholder="Ej: 17865550100"/></div>',
-            '<div class="cb-field"><label>Mensaje de bienvenida</label><input id="cb_greeting" placeholder="¡Hola! ¿En qué puedo ayudarte?"/></div>',
-            '<div class="cb-field"><label>Instrucciones del asistente (System Prompt)</label>',
-              '<textarea id="cb_systemPrompt" placeholder="Eres el asistente de... Responde sobre clases, precios, horarios..."></textarea>',
-            '</div>',
-            '<button onclick="cbSaveConfig()" style="width:100%;padding:11px;border-radius:10px;border:none;background:linear-gradient(135deg,#f43f5e,#e11d48);color:#fff;font-family:Syne,sans-serif;font-weight:700;font-size:13px;cursor:pointer">💾 Guardar Configuración</button>',
+        '<div style="max-width:860px;margin:0 auto;padding:20px;display:flex;flex-direction:column;gap:12px;">',
+
+          /* Intro */
+          '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 24px;border-left:4px solid #f43f5e;">',
+            '<div style="font-family:Syne,sans-serif;font-weight:800;font-size:16px;color:var(--text);margin-bottom:8px;">🥋 Editor del Chatbot</div>',
+            '<ol style="margin:0 0 0 18px;display:flex;flex-direction:column;gap:4px;">',
+              '<li style="font-size:13px;color:var(--muted2);">Haz clic en la sección que quieres editar</li>',
+              '<li style="font-size:13px;color:var(--muted2);">Escribe tu información en los cuadros</li>',
+              '<li style="font-size:13px;color:var(--muted2);">Presiona <strong style="color:var(--text)">💾 GUARDAR TODO</strong> al terminar — se sincroniza con Firebase</li>',
+            '</ol>',
           '</div>',
-          '<div class="cb-cfg-card">',
-            '<h3>ℹ️ Cómo funciona</h3>',
-            '<div style="display:flex;flex-direction:column;gap:14px">',
-              '<div style="display:flex;gap:12px;align-items:flex-start"><div style="width:28px;height:28px;border-radius:50%;background:rgba(244,63,94,.15);color:#f43f5e;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:Syne,sans-serif;flex-shrink:0">1</div><div style="font-size:13px;color:var(--muted2);line-height:1.5">Configura el nombre y WhatsApp de tu escuela arriba.</div></div>',
-              '<div style="display:flex;gap:12px;align-items:flex-start"><div style="width:28px;height:28px;border-radius:50%;background:rgba(244,63,94,.15);color:#f43f5e;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:Syne,sans-serif;flex-shrink:0">2</div><div style="font-size:13px;color:var(--muted2);line-height:1.5">Ve a la pestaña <strong style="color:var(--text)">Código Embed</strong> y copia el snippet.</div></div>',
-              '<div style="display:flex;gap:12px;align-items:flex-start"><div style="width:28px;height:28px;border-radius:50%;background:rgba(244,63,94,.15);color:#f43f5e;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:Syne,sans-serif;flex-shrink:0">3</div><div style="font-size:13px;color:var(--muted2);line-height:1.5">Pega el código en tu sitio web antes del <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:11px">&lt;/body&gt;</code>.</div></div>',
-              '<div style="display:flex;gap:12px;align-items:flex-start"><div style="width:28px;height:28px;border-radius:50%;background:rgba(244,63,94,.15);color:#f43f5e;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:Syne,sans-serif;flex-shrink:0">4</div><div style="font-size:13px;color:var(--muted2);line-height:1.5">Los leads que deje el chatbot aparecen automáticamente en esta tabla, conectados a tu Firebase.</div></div>',
-              '<div style="display:flex;gap:12px;align-items:flex-start"><div style="width:28px;height:28px;border-radius:50%;background:rgba(34,197,94,.15);color:#22c55e;display:flex;align-items:center;justify-content:center;font-weight:800;font-family:Syne,sans-serif;flex-shrink:0">✓</div><div style="font-size:13px;color:var(--muted2);line-height:1.5">Márcalos como <strong style="color:#f59e0b">Contactado</strong> o <strong style="color:#22c55e">Convertido</strong> para llevar el seguimiento.</div></div>',
-            '</div>',
+
+          /* ── SECCIÓN: IDENTIDAD ── */
+          cbSection("🏠","Nombre y Branding","Logo, nombre de la escuela y etiqueta",
+            cbField("📛 Nombre en el logo","cb_logo","text","MASTER BAEZ MARTIAL ARTS") +
+            cbField("⭐ Etiqueta pequeña bajo el logo","cb_tag","text","⭐ South Florida's Premier Martial Arts Academy")
+          ),
+
+          /* ── SECCIÓN: MENSAJE BIENVENIDA ── */
+          cbSection("👋","Mensaje de Bienvenida del Chat","Lo primero que ve el visitante",
+            cbGrid(
+              cbFieldLbl("🇺🇸","EN","Mensaje en inglés","cb_welcome_en","textarea","Hi! 👋 I'm the virtual assistant for Master Baez Martial Arts. How can I help you today?"),
+              cbFieldLbl("🇪🇸","ES","Mensaje en español","cb_welcome_es","textarea","¡Hola! 👋 Soy el asistente de Master Baez Martial Arts. ¿En qué puedo ayudarte?")
+            )
+          ),
+
+          /* ── SECCIÓN: WHATSAPP ── */
+          cbSection("📱","WhatsApp y Teléfono","Número de contacto directo",
+            cbField("📞 Número WhatsApp (solo números con código de país)","cb_waNumber","text","19543801340") +
+            cbGrid(
+              cbFieldLbl("🇺🇸","EN","Texto del botón WhatsApp","cb_wa_en","text","WhatsApp: (954) 380-1340"),
+              cbFieldLbl("🇪🇸","ES","Texto del botón WhatsApp","cb_wa_es","text","WhatsApp: (954) 380-1340")
+            )
+          ),
+
+          /* ── SECCIÓN: PRECIOS ── */
+          cbSection("💰","Precios y Membresías","Respuesta cuando pregunten cuánto cuesta",
+            cbGrid(
+              cbFieldLbl("🇺🇸","EN","Respuesta en inglés","cb_price_en","textarea","Our memberships start at $60/month. First class is FREE!"),
+              cbFieldLbl("🇪🇸","ES","Respuesta en español","cb_price_es","textarea","Nuestras membresías comienzan desde $60 al mes. ¡La primera clase es GRATIS!")
+            )
+          ),
+
+          /* ── SECCIÓN: HORARIOS ── */
+          cbSection("🕐","Horarios","Días y horas de clases",
+            cbGrid(
+              cbFieldLbl("🇺🇸","EN","Respuesta en inglés","cb_sch_en","textarea","Mon-Fri 6am-9am & 5pm-9pm, Saturday 8am-2pm, Sunday closed."),
+              cbFieldLbl("🇪🇸","ES","Respuesta en español","cb_sch_es","textarea","Lun-Vie 6am-9am y 5pm-9pm, Sábado 8am-2pm, Domingo cerrado.")
+            )
+          ),
+
+          /* ── SECCIÓN: NIÑOS ── */
+          cbSection("👶","Clases para Niños","Edades y beneficios para los pequeños",
+            cbGrid(
+              cbFieldLbl("🇺🇸","EN","Respuesta en inglés","cb_kids_en","textarea","Yes! Classes for kids ages 5-12. Fun, safe environment with discipline and self-defense."),
+              cbFieldLbl("🇪🇸","ES","Respuesta en español","cb_kids_es","textarea","¡Sí! Clases para niños de 5 a 12 años. Aprenden disciplina y defensa personal.")
+            )
+          ),
+
+          /* ── SECCIÓN: ADULTOS ── */
+          cbSection("🥋","Adultos y Principiantes","¿Se necesita experiencia previa?",
+            cbGrid(
+              cbFieldLbl("🇺🇸","EN","Respuesta en inglés","cb_adult_en","textarea","No experience needed! We welcome complete beginners of all ages and fitness levels."),
+              cbFieldLbl("🇪🇸","ES","Respuesta en español","cb_adult_es","textarea","¡No necesitas experiencia! Recibimos principiantes de todas las edades y niveles.")
+            )
+          ),
+
+          /* ── SECCIÓN: INSCRIPCIÓN ── */
+          cbSection("📝","Cómo Inscribirse","Pasos para registrarse y empezar",
+            cbGrid(
+              cbFieldLbl("🇺🇸","EN","Respuesta en inglés","cb_signup_en","textarea","Easy! First class is FREE. Call or WhatsApp (954) 380-1340 or come during class hours."),
+              cbFieldLbl("🇪🇸","ES","Respuesta en español","cb_signup_es","textarea","¡Fácil! Primera clase GRATIS. Llámanos al (954) 380-1340 o visítanos en horario de clases.")
+            )
+          ),
+
+          /* ── SECCIÓN: CLASE GRATIS ── */
+          cbSection("🎉","Clase de Prueba Gratis","Información sobre el free trial",
+            cbGrid(
+              cbFieldLbl("🇺🇸","EN","Respuesta en inglés","cb_free_en","textarea","Yes! Your first class is completely FREE — no commitment. Call (954) 380-1340 to schedule!"),
+              cbFieldLbl("🇪🇸","ES","Respuesta en español","cb_free_es","textarea","¡Sí! Tu primera clase es GRATIS — sin compromiso. ¡Llama al (954) 380-1340 para agendarla!")
+            )
+          ),
+
+          /* ── SECCIÓN: TIPOS DE CLASES ── */
+          cbSection("🏆","Tipos de Clases","Qué disciplinas y artes marciales enseñan",
+            cbGrid(
+              cbFieldLbl("🇺🇸","EN","Respuesta en inglés","cb_classes_en","textarea","We offer Karate, Taekwondo, Jiu-Jitsu, Muay Thai and Self-Defense for all ages."),
+              cbFieldLbl("🇪🇸","ES","Respuesta en español","cb_classes_es","textarea","Ofrecemos Karate, Taekwondo, Jiu-Jitsu, Muay Thai y Defensa Personal para todas las edades.")
+            )
+          ),
+
+          /* ── SECCIÓN: CONTACTO ── */
+          cbSection("📍","Ubicación y Contacto","Dirección, teléfono, cómo llegar",
+            cbGrid(
+              cbFieldLbl("🇺🇸","EN","Respuesta en inglés","cb_contact_en","textarea","Located in South Florida. Call/WhatsApp: (954) 380-1340. Mon-Fri 6am-9pm, Sat 8am-2pm."),
+              cbFieldLbl("🇪🇸","ES","Respuesta en español","cb_contact_es","textarea","Ubicados en South Florida. Llámanos al (954) 380-1340. Lun-Vie 6am-9pm, Sáb 8am-2pm.")
+            )
+          ),
+
+          /* Botón guardar */
+          '<div style="padding-bottom:32px;">',
+            '<button onclick="cbSaveConfigFull()" style="width:100%;padding:15px;border-radius:12px;border:none;background:linear-gradient(135deg,#f43f5e,#e11d48);color:#fff;font-family:Syne,sans-serif;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 4px 18px rgba(244,63,94,.4);">💾 GUARDAR TODO Y APLICAR CAMBIOS</button>',
+            '<p style="text-align:center;font-size:12px;color:var(--muted2);margin-top:8px;">Los cambios se sincronizan con Firebase al instante</p>',
           '</div>',
+
         '</div>',
       '</div>',
 
       /* EMBED CODE PANEL */
       '<div id="cb-panel-preview" style="display:none">',
-        '<div class="cb-cfg-card" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px">',
-          '<h3>🔗 Código para tu Sitio Web</h3>',
-          '<p style="font-size:13px;color:var(--muted2);margin-bottom:12px">Copia este código y pégalo en tu sitio web justo antes del <code style="background:var(--surface2);padding:1px 6px;border-radius:4px;font-size:12px">&lt;/body&gt;</code>. El widget aparecerá como un botón flotante en todas las páginas.</p>',
-          '<pre class="cb-code-box" id="cb-embed-code">Guardando configuración...</pre>',
-          '<div style="display:flex;gap:10px;margin-top:14px">',
-            '<button onclick="cbCopyEmbed()" style="padding:10px 22px;border-radius:10px;border:none;background:linear-gradient(135deg,#f43f5e,#e11d48);color:#fff;font-family:Syne,sans-serif;font-weight:700;font-size:13px;cursor:pointer">📋 Copiar Código</button>',
-            '<button onclick="cbSwitchTab(\'config\')" style="padding:10px 22px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--text);font-family:Syne,sans-serif;font-weight:700;font-size:13px;cursor:pointer">⚙️ Cambiar configuración</button>',
-          '</div>',
-          '<div style="margin-top:20px;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:14px">',
-            '<div style="font-size:12px;font-weight:700;color:#22c55e;margin-bottom:6px;font-family:Syne,sans-serif">🔥 Integración con Firebase</div>',
-            '<div style="font-size:12px;color:var(--muted2);line-height:1.6">Los leads capturados por el chatbot se guardan directamente en <code style="background:var(--surface2);padding:1px 4px;border-radius:3px">chatbotLeads/</code> en tu Firebase Realtime Database y aparecen en tiempo real en la tabla de arriba.</div>',
+        '<div style="max-width:700px;margin:0 auto;padding:24px;">',
+          '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;">',
+            '<div style="font-family:Syne,sans-serif;font-weight:800;font-size:15px;color:var(--text);margin-bottom:8px;">🔗 Código para tu Sitio Web</div>',
+            '<p style="font-size:13px;color:var(--muted2);margin:0 0 12px;">Pega este código en tu sitio web antes del <code style="background:var(--surface2);padding:1px 6px;border-radius:4px;">&lt;/body&gt;</code>.</p>',
+            '<pre id="cb-embed-code" style="background:#0a0a0a;border:1px solid #222;border-radius:10px;padding:14px;font-size:10px;color:#a0a0a0;overflow-x:auto;white-space:pre-wrap;word-break:break-all;max-height:200px;overflow-y:auto;">Guarda la configuración primero para generar el código...</pre>',
+            '<div style="display:flex;gap:10px;margin-top:14px;">',
+              '<button onclick="cbCopyEmbed()" style="flex:1;padding:11px;border-radius:10px;border:none;background:linear-gradient(135deg,#f43f5e,#e11d48);color:#fff;font-family:Syne,sans-serif;font-weight:700;font-size:13px;cursor:pointer;">📋 Copiar Código</button>',
+              '<button onclick="cbSwitchTab(\'config\')" style="padding:11px 20px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--text);font-family:Syne,sans-serif;font-weight:700;font-size:13px;cursor:pointer;">⚙️ Editar</button>',
+            '</div>',
+            '<div style="margin-top:16px;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:14px;">',
+              '<div style="font-size:12px;font-weight:700;color:#22c55e;margin-bottom:4px;font-family:Syne,sans-serif;">🔥 Integración con Firebase</div>',
+              '<div style="font-size:12px;color:var(--muted2);line-height:1.6;">Los leads se guardan en <code style="background:var(--surface2);padding:1px 4px;border-radius:3px;">chatbotLeads/</code> en tiempo real.</div>',
+            '</div>',
           '</div>',
         '</div>',
       '</div>',
