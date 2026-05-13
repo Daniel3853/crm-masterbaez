@@ -3899,13 +3899,31 @@ if(!_demoMode){
   }
 })();
 
-// ── STATE ───────────────────────────────────────
-var MASTER_PIN = '0000'; // Default PIN - Change in Config
-var _masterLang = 'es';
+// ── NAVIGATION ──────────────────────────────────
+var MASTER_PIN = '0000';
 var _pin = '';
-var registrations = [];
-var papelera = [];
-var partners = [];
+var _masterLang = 'es'; // default language; toggled via toggleLangMaster()
+var currentPage = 'dashboard';
+function goPage(p){
+  document.querySelectorAll('.page').forEach(function(el){ el.classList.remove('active'); });
+  document.querySelectorAll('.sn-item').forEach(function(el){ el.classList.remove('active'); });
+  var pageEl = document.getElementById('page-'+p);
+  var navEl  = document.getElementById('nav-'+p);
+  if(pageEl) pageEl.classList.add('active');
+  if(navEl)  navEl.classList.add('active');
+  currentPage = p;
+  if(p==='clients')    { renderClients(); }
+  if(p==='config')     { renderConfig(); loadNotifConfig(); }
+  if(p==='papelera')   { renderPapelera(); }
+  if(p==='partners')   { renderPartners(); }
+  if(p==='referidores'){ renderReferidores(); }
+  if(p==='prospectos') { renderProspectos(); }
+  if(p==='leads')      { renderLeadsInbox(); }
+  if(p==='grafica')    { renderLeadsChart(); }
+  if(p==='waiver')     { renderWaiverTab(); }
+}
+
+// ── DATA ────────────────────────────────────────
 var payServerLinks = [];
 var registroConfig = {};
 var _trashTargetId = null;
@@ -4114,6 +4132,7 @@ var plans = {
   business: {nameES:'Empresarial',   nameEN:'Business',     priceES:'$147', priceEN:'$147'}
 };
 var planTrash = {}; // key → {key, nameES, nameEN, priceES, priceEN, deletedAt}
+var papelera  = []; // items moved to trash (clients, partners, referidores, prospectos)
 
 // ── NOTIFICATION CONFIG ─────────────────────────
 var notifConfig = {
@@ -4340,8 +4359,9 @@ function pinKey(k){
   if(_pin.length===4){ setTimeout(checkPin,200); }
   [0,1,2,3].forEach(function(i){
     document.getElementById('d'+i).classList.toggle('filled',i<_pin.length);
-  });
+});
 }
+
 function checkPin(){
   if(_pin===MASTER_PIN){
     document.getElementById('loginWrap').style.display='none';
@@ -4355,52 +4375,18 @@ function checkPin(){
   }
 }
 
-// ── NAVIGATION ──────────────────────────────────
-var currentPage = 'dashboard';
-function goPage(p){
-  document.querySelectorAll('.page').forEach(function(el){ el.classList.remove('active'); });
-  document.querySelectorAll('.sn-item').forEach(function(el){ el.classList.remove('active'); });
-  document.querySelectorAll('.tn-item').forEach(function(el){ el.classList.remove('active'); });
-  var pageEl  = document.getElementById('page-'+p);
-  var navEl   = document.getElementById('nav-'+p);
-  var tnavEl  = document.getElementById('tnav-'+p);
-  if(pageEl)  pageEl.classList.add('active');
-  if(navEl)   navEl.classList.add('active');
-  if(tnavEl)  tnavEl.classList.add('active');
-  currentPage = p;
-  if(p==='clients')    { filterStatus='all'; searchQuery=''; var si=document.getElementById('searchInp'); if(si) si.value=''; renderClients(); switchClientsTab('clientes'); }
-  if(p==='config')     { renderConfig(); loadNotifConfig(); renderVideoSlidesEditor(); }
-  if(p==='papelera')   { renderPapelera(); }
-  if(p==='partners')   { renderPartners(); }
-  if(p==='referidores'){ renderReferidores(); }
-  if(p==='prospectos') { renderProspectos(); }
-  if(p==='logo')       { renderLogoPage(); }
-  if(p==='servicios')  { renderProgsTab(); }
-  if(p==='dias')       { renderAdminCal(); _renderDowGrid(); }
-  if(p==='horarios')   { renderAdminTimes(); _renderTimePresets(); }
-  if(p==='leads')      { renderLeadsInbox(); }
-  if(p==='waiver')     { renderWaiverTab(); }
-  if(p==='anuncios')   { renderAnunciosTab(); switchAnunciosTab('ads'); }
-  if(p==='qrflyer')    { renderQRPageCards(); }
-  if(p==='qrclientes') { goPage('clients'); switchClientsTab('qr'); return; }
-  if(p==='qrflyer') { goPage('anuncios'); switchAnunciosTab('qr'); return; }
-  if(p==='grafica')    { renderLeadsChart(); }
-}
-
-// ── DATA ────────────────────────────────────────
 async function loadData(){
   if(_demoMode){
-    // Demo data
     var now = new Date();
     registrations = [
       {id:'1001',firstName:'Maria',lastName:'García',email:'maria@salon.com',bizName:'Salon Belleza MG',bizType:'Salón de Belleza',plan:'pro',status:'trial',trialDays:14,trialStart:fmtDate(new Date(now-3*864e5)),trialEnd:fmtDate(new Date(now+11*864e5)),payMethod:'paypal',card:{name:'Maria Garcia',last4:'4242',expiry:'12/26',zip:'33024'},createdAt:new Date(now-3*864e5).toISOString(),ref_id:'BARBER01'},
       {id:'1002',firstName:'Carlos',lastName:'Pérez',email:'carlos@gym.com',bizName:'FitZone Gym',bizType:'Artes Marciales / Gym',plan:'starter',status:'trial',trialDays:7,trialStart:fmtDate(new Date(now-5*864e5)),trialEnd:fmtDate(new Date(now+2*864e5)),payMethod:'zelle',card:{name:'Carlos Perez',last4:'1111',expiry:'09/25',zip:'33141'},createdAt:new Date(now-5*864e5).toISOString(),ref_id:'BARBER01'},
-      {id:'1003',firstName:'Ana',lastName:'Rodríguez',email:'ana@spa.com',bizName:'Serenity Spa',bizType:'Clínica / Spa',plan:'business',status:'active',trialDays:14,trialStart:fmtDate(new Date(now-20*864e5)),trialEnd:fmtDate(new Date(now-6*864e5)),payMethod:'intuit',card:{name:'Ana Rodriguez',last4:'5566',expiry:'03/27',zip:'33139'},createdAt:new Date(now-20*864e5).toISOString(),ref_id:'COFFEESHOP02'},
-      {id:'1004',firstName:'Luis',lastName:'Martínez',email:'luis@resto.com',bizName:'El Rincón Latino',bizType:'Restaurante / Café',plan:'starter',status:'expired',trialDays:7,trialStart:fmtDate(new Date(now-10*864e5)),trialEnd:fmtDate(new Date(now-3*864e5)),payMethod:'paypal',card:{name:'Luis Martinez',last4:'9999',expiry:'06/26',zip:'33162'},createdAt:new Date(now-10*864e5).toISOString()},
+      {id:'1003',firstName:'Ana',lastName:'Rodriguez',email:'ana@spa.com',bizName:'Serenity Spa',bizType:'Clínica / Spa',plan:'business',status:'active',trialDays:14,trialStart:fmtDate(new Date(now-20*864e5)),trialEnd:fmtDate(new Date(now-6*864e5)),payMethod:'intuit',card:{name:'Ana Rodriguez',last4:'5566',expiry:'03/27',zip:'33139'},createdAt:new Date(now-20*864e5).toISOString(),ref_id:'COFFEESHOP02'},
+      {id:'1004',firstName:'Luis',lastName:'Martinez',email:'luis@resto.com',bizName:'El Rincon Latino',bizType:'Restaurante / Café',plan:'starter',status:'expired',trialDays:7,trialStart:fmtDate(new Date(now-10*864e5)),trialEnd:fmtDate(new Date(now-3*864e5)),payMethod:'paypal',card:{name:'Luis Martinez',last4:'9999',expiry:'06/26',zip:'33162'},createdAt:new Date(now-10*864e5).toISOString()},
     ];
     prospectos = [
-      {id:'demo-ps1',firstName:'Roberto',lastName:'Sánchez',phone:'+1 (786) 555-4400',email:'roberto@tienda.com',bizName:'Tienda La Esquina',bizType:'Tienda / Retail',fuente:'partner',fuenteId:'BARBER01',etapa:'interesado',plan:'starter',notes:'Le interesa el plan Starter. Llamar el lunes.',createdAt:new Date(now-2*864e5).toISOString(),updatedAt:new Date(now-2*864e5).toISOString()},
-      {id:'demo-ps2',firstName:'Valeria',lastName:'Cruz',phone:'+1 (305) 555-8801',email:'valeria@yoga.com',bizName:'Yoga Flow Studio',bizType:'Clínica / Spa',fuente:'referidor',fuenteId:'REF-MARIA01',etapa:'nuevo',plan:'pro',notes:'Viene referida por Sofía Torres. Enviar info del plan Pro.',createdAt:new Date(now-1*864e5).toISOString(),updatedAt:new Date(now-1*864e5).toISOString()},
+      {id:'demo-ps1',firstName:'Roberto',lastName:'Sanchez',phone:'+1 (786) 555-4400',email:'roberto@tienda.com',bizName:'Tienda La Esquina',bizType:'Tienda / Retail',fuente:'partner',fuenteId:'BARBER01',etapa:'interesado',plan:'starter',notes:'Le interesa el plan Starter. Llamar el lunes.',createdAt:new Date(now-2*864e5).toISOString(),updatedAt:new Date(now-2*864e5).toISOString()},
+      {id:'demo-ps2',firstName:'Valeria',lastName:'Cruz',phone:'+1 (305) 555-8801',email:'valeria@yoga.com',bizName:'Yoga Flow Studio',bizType:'Clínica / Spa',fuente:'referidor',fuenteId:'REF-MARIA01',etapa:'nuevo',plan:'pro',notes:'Viene referida por Sofia Torres. Enviar info del plan Pro.',createdAt:new Date(now-1*864e5).toISOString(),updatedAt:new Date(now-1*864e5).toISOString()},
       {id:'demo-ps3',firstName:'Miguel',lastName:'Reyes',phone:'+1 (954) 555-2233',email:'miguel@academia.com',bizName:'Academia Futbol MR',bizType:'Escuela / Academia',fuente:'directo',fuenteId:'',etapa:'contactado',plan:'business',notes:'Escaneó el QR en el evento. Muy interesado en plan Business.',createdAt:new Date(now-4*864e5).toISOString(),updatedAt:new Date(now-4*864e5).toISOString()},
       {id:'demo-ps4',firstName:'Carmen',lastName:'Flores',phone:'+1 (786) 555-9977',email:'carmen@salon.com',bizName:'Glamour Nails',bizType:'Barbería / Salón',fuente:'partner',fuenteId:'COFFEESHOP02',etapa:'trial',plan:'pro',notes:'Ya en trial. Activar si paga antes del viernes.',createdAt:new Date(now-7*864e5).toISOString(),updatedAt:new Date(now-5*864e5).toISOString()},
     ];
@@ -4410,10 +4396,9 @@ async function loadData(){
     ];
     partners = [
       {id:'demo-p1',cid:'BARBER01',bizName:'La Barbería del Este',bizType:'Barbería / Salón',ownerName:'Roberto Vega',phone:'+1 (786) 555-1234',email:'roberto@barberia.com',address:'2501 NW 7th Ave, Miami FL 33127',status:'active',compType:'commission',compValue:'20% por cliente activo',notes:'QR en el mostrador y espejo. Muy entusiasta, manda clientes cada semana.',createdAt:new Date(now-30*864e5).toISOString()},
-      {id:'demo-p2',cid:'COFFEESHOP02',bizName:'Café Habana Corner',bizType:'Restaurante / Café',ownerName:'Diana López',phone:'+1 (305) 555-9876',email:'diana@cafehabana.com',address:'1900 W Flagler St, Miami FL 33135',status:'active',compType:'free',compValue:'1 mes gratis cada 5 referidos',notes:'Flyer en la caja registradora. Evaluar después del mes.',createdAt:new Date(now-15*864e5).toISOString()},
+      {id:'demo-p2',cid:'COFFEESHOP02',bizName:'Café Habana Corner',bizType:'Restaurante / Café',ownerName:'Diana Lopez',phone:'+1 (305) 555-9876',email:'diana@cafehabana.com',address:'1900 W Flagler St, Miami FL 33135',status:'active',compType:'free',compValue:'1 mes gratis cada 5 referidos',notes:'Flyer en la caja registradora. Evaluar después del mes.',createdAt:new Date(now-15*864e5).toISOString()},
       {id:'demo-p3',cid:'GYM03',bizName:'Iron Body Fitness',bizType:'Gym / Fitness',ownerName:'Jorge Mendes',phone:'+1 (954) 555-4422',email:'jorge@ironbody.com',address:'500 E Broward Blvd, Ft Lauderdale FL 33394',status:'paused',compType:'discount',compValue:'15% descuento en plan Business',notes:'Pausado temporalmente, retomar en enero.',createdAt:new Date(now-45*864e5).toISOString()},
     ];
-    // Restore qrEnabled state from localStorage in demo mode
     try{
       var demoQR = JSON.parse(localStorage.getItem('demoQRState')||'{}');
       referidores = referidores.map(function(r){
@@ -4431,30 +4416,22 @@ async function loadData(){
     try{
       var snap = await _fbdb.ref('registrations').once('value');
       var d = snap.val()||{};
-      registrations = Object.values(d).filter(function(x){ return x && x.id; }).sort(function(a,b){ return new Date(b.createdAt)-new Date(a.createdAt); });
-      // Load papelera
+      registrations = Object.values(d).sort(function(a,b){ return new Date(b.createdAt)-new Date(a.createdAt); });
       var psSnap = await _fbdb.ref('prospectos').once('value');
       var psd = psSnap.val()||{};
       prospectos = Object.values(psd).sort(function(a,b){ return new Date(b.createdAt)-new Date(a.createdAt); });
       updateNavBadgeProspectos();
-
       var refSnap = await _fbdb.ref('referidores').once('value');
-      var rd = refSnap.val()||{};
-      referidores = Object.values(rd).sort(function(a,b){ return new Date(b.createdAt)-new Date(a.createdAt); });
-      updateNavBadgeReferidores();
-
-      var partnSnap = await _fbdb.ref('partners').once('value');
-      var pd2 = partnSnap.val()||{};
-      partners = Object.values(pd2).sort(function(a,b){ return new Date(b.createdAt)-new Date(a.createdAt); });
-      updateNavBadgePartners();
-
-      var psnap = await _fbdb.ref('papelera').once('value');
-      var pd = psnap.val()||{};
-      papelera = Object.values(pd).sort(function(a,b){ return new Date(b.deletedAt)-new Date(a.deletedAt); });
-      updatePapeleraBadge();
-      // Load config
-      var cs = await _fbdb.ref('masterConfig').once('value');
-      var cd = cs.val();
+      var refd = refSnap.val()||{};
+      referidores = Object.values(refd);
+      var partSnap = await _fbdb.ref('partners').once('value');
+      var partd = partSnap.val()||{};
+      partners = Object.values(partd);
+      var papSnap = await _fbdb.ref('papelera').once('value');
+      var papd = papSnap.val()||{};
+      papelera = Object.values(papd);
+      var cfgSnap = await _fbdb.ref('masterConfig').once('value');
+      var cd = cfgSnap.val();
       if(cd){
         if(cd.payMethods) payMethods = cd.payMethods;
         if(cd.masterPin) MASTER_PIN = cd.masterPin;
@@ -4465,29 +4442,26 @@ async function loadData(){
         if(cd.registroConfig) registroConfig = cd.registroConfig;
         if(cd.videoConfig) loadVideoConfig(cd.videoConfig);
       }
-      // ── Real-time listener for new registrations ──
       _fbdb.ref('registrations').orderByChild('createdAt').limitToLast(1).on('child_added', function(snap){
         var r = snap.val();
         if(!r) return;
         var exists = registrations.find(function(x){ return x.id===r.id; });
         if(!exists && registrations.length > 0){
-          // ── QR desactivado: bloquear lead si referidor/partner tiene qrEnabled=false ──
           if(r.ref_id){
             var refBlockado = referidores.find(function(x){ return x.cid===r.ref_id && x.qrEnabled===false; });
             var partnerBlockado = partners.find(function(x){ return x.cid===r.ref_id && x.qrEnabled===false; });
             if(refBlockado || partnerBlockado){
               _fbdb.ref('registrations/'+r.id).remove();
-              showToast('🚫 Lead bloqueado — QR de '+((refBlockado||partnerBlockado).firstName||r.ref_id)+' está desactivado', 'var(--danger)');
+              showToast('🔒 Lead bloqueado — QR de '+((refBlockado||partnerBlockado).firstName||r.ref_id)+' está desactivado', 'var(--danger)');
               return;
             }
           }
           registrations.unshift(r);
           renderDashboard(); renderClients && currentPage==='clients' && renderClients();
           updateNavBadge();
-          showToast('🔔 '+(r.firstName+' '+r.lastName));
+          showToast('✅ '+(r.firstName+' '+r.lastName));
           var pl = plans[r.plan]||{nameES:r.plan};
           sendAdminNotifications(r, pl);
-          // WhatsApp inmediato via CallMeBot
           sendWhatsAppAdmin(
             '🚀 *Nuevo Lead — CRM Platform*\n' +
             '👤 '+r.firstName+' '+r.lastName+'\n' +
@@ -4503,100 +4477,16 @@ async function loadData(){
   }
   await fbLoadMasterMods();
 
-  // ── Listener en tiempo real para leads del Lead Page ──
+  _fbdb.ref('masterMods').on('child_added', function(snap){
+    var key = snap.key;
+    var reserved = ['leads','rcConfig','affiliateConfig','masterConfig','plans','programs','enrollFormUrl','billingFormUrl','clients','registrations','leadsTrash','flyerState','referidores','partners','qrLeads','prospectos'];
+    if(reserved.indexOf(key) >= 0) return;
+    _fbdb.ref('masterMods/'+key+'/leads').on('value', function(snap2){
+      processTenantLeads(snap2, key);
+    });
+  });
   _fbdb.ref('masterMods/leads').on('value', function(snap){
-    if(!snap.exists()) return;
-    var d = snap.val();
-    var allLeads = typeof d === 'object' && !Array.isArray(d) ? Object.values(d) : (d || []);
-    // ── Filtrar leads de QR desactivado ──
-    allLeads.forEach(function(lead){
-      if(lead && lead.ref_id){
-        var refB = referidores.find(function(x){ return x.cid===lead.ref_id && x.qrEnabled===false; });
-        var partB = partners.find(function(x){ return x.cid===lead.ref_id && x.qrEnabled===false; });
-        if(refB || partB){
-          _fbdb.ref('masterMods/leads/'+lead.id).remove();
-        }
-      }
-    });
-    leads = allLeads.filter(function(lead){
-      if(!lead || !lead.ref_id) return true;
-      var refB = referidores.find(function(x){ return x.cid===lead.ref_id && x.qrEnabled===false; });
-      var partB = partners.find(function(x){ return x.cid===lead.ref_id && x.qrEnabled===false; });
-      return !(refB || partB);
-    });
-    // ── Detectar leads nuevos y notificar ──
-    var prevIds = (window._knownLeadIds || []);
-    var newOnes = leads.filter(function(l){ return l && l.id && prevIds.indexOf(l.id) === -1; });
-    window._knownLeadIds = leads.filter(Boolean).map(function(l){ return l.id; });
-
-    if(prevIds.length > 0 && newOnes.length > 0){
-      newOnes.forEach(function(lead){
-        var nombre  = (lead.firstName||'') + ' ' + (lead.lastName||lead.name||'');
-        var msg =
-          '🔔 Nuevo Lead — Lead Page\n' +
-          '👤 ' + nombre.trim() + '\n' +
-          '📧 ' + (lead.email||'—') + '\n' +
-          '📱 ' + (lead.phone||'—') + '\n' +
-          '📅 ' + (lead.createdAt ? new Date(lead.createdAt).toLocaleString() : new Date().toLocaleString());
-
-        var msgHtml =
-          '🔔 <b>Nuevo Lead — Lead Page</b>\n' +
-          '👤 ' + nombre.trim() + '\n' +
-          '📧 ' + (lead.email||'—') + '\n' +
-          '📱 ' + (lead.phone||'—') + '\n' +
-          '📅 ' + (lead.createdAt ? new Date(lead.createdAt).toLocaleString() : new Date().toLocaleString());
-
-        // WhatsApp via CallMeBot
-        if(notifConfig.whatsapp) sendWhatsAppAdmin(msg);
-
-        // Telegram
-        if(notifConfig.telegram) sendTelegramAdmin(msgHtml);
-
-        // Email via Brevo
-        if(notifConfig.email && BREVO_WORKER){
-          var adminEmail = notifConfig.brevoAdminEmail || 'dbkoryo@gmail.com';
-          var htmlBody = '<div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:24px;background:#f9f9f9;border-radius:12px">'
-            + '<h2 style="color:#1a1a2e">🔔 Nuevo Lead — Lead Page</h2>'
-            + '<table style="width:100%;border-collapse:collapse">'
-            + '<tr><td style="padding:8px 0;color:#555;width:120px">👤 Nombre</td><td style="padding:8px 0;font-weight:700">' + nombre.trim() + '</td></tr>'
-            + '<tr><td style="padding:8px 0;color:#555">📧 Email</td><td style="padding:8px 0">' + (lead.email||'—') + '</td></tr>'
-            + '<tr><td style="padding:8px 0;color:#555">📱 Teléfono</td><td style="padding:8px 0">' + (lead.phone||'—') + '</td></tr>'
-            + '<tr><td style="padding:8px 0;color:#555">📅 Fecha</td><td style="padding:8px 0;font-size:12px">' + (lead.createdAt ? new Date(lead.createdAt).toLocaleString() : '—') + '</td></tr>'
-            + '</table></div>';
-          fetch(BREVO_WORKER, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              to: [{ email: adminEmail, name: 'Admin' }],
-              subject: '🔔 Nuevo Lead — ' + nombre.trim(),
-              htmlContent: htmlBody
-            })
-          }).catch(function(e){ console.warn('Brevo lead email failed:', e); });
-        }
-
-        // MS Teams
-        if(notifConfig.ms && notifConfig.msWebhook){
-          fetch(notifConfig.msWebhook, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              '@type': 'MessageCard', '@context': 'http://schema.org/extensions',
-              summary: 'Nuevo Lead', themeColor: 'e8ff3c',
-              title: '🔔 Nuevo Lead — Lead Page',
-              sections: [{ facts: [
-                { name: 'Nombre',   value: nombre.trim() },
-                { name: 'Email',    value: lead.email||'—' },
-                { name: 'Teléfono',value: lead.phone||'—' }
-              ]}]
-            })
-          }).catch(function(e){ console.warn('Teams lead failed:', e); });
-        }
-
-        showToast('🔔 Nuevo Lead: ' + nombre.trim());
-      });
-    }
-
-    leads.sort(function(a,b){ return (b.id||'').localeCompare(a.id||''); });
-    updateLeadsBadge();
-    if(currentPage === 'leads') renderLeadsInbox();
+    processTenantLeads(snap, 'masterbaez');
   });
 
   renderDashboard();
@@ -4609,6 +4499,71 @@ async function loadData(){
   updateLeadsBadge();
   if(currentPage==='referidores') renderReferidores();
   if(currentPage==='prospectos') renderProspectos();
+}
+
+function processTenantLeads(snap, tenantId){
+  if(!snap.exists()) return;
+  var d = snap.val();
+  var newLeads = typeof d === 'object' && !Array.isArray(d) ? Object.values(d) : (d || []);
+  
+  // Filter QR disabled leads
+  newLeads.forEach(function(lead){
+    if(lead && lead.ref_id){
+      var refB = referidores.find(function(x){ return x.cid===lead.ref_id && x.qrEnabled===false; });
+      var partB = partners.find(function(x){ return x.cid===lead.ref_id && x.qrEnabled===false; });
+      if(refB || partB){
+        _fbdb.ref('masterMods/'+tenantId+'/leads/'+lead.id).remove();
+      }
+    }
+  });
+  
+  // Merge leads
+  newLeads.forEach(function(lead){
+    if(!lead) return;
+    lead._tenantId = tenantId;
+    var idx = leads.findIndex(function(l){ return l.id === lead.id; });
+    if(idx >= 0){
+      leads[idx] = lead;
+    } else {
+      leads.push(lead);
+    }
+  });
+  
+  // Detectar leads nuevos y notificar
+  var prevIds = (window._knownLeadIds || []);
+  var newOnes = newLeads.filter(function(l){ return l && l.id && prevIds.indexOf(l.id) === -1; });
+  window._knownLeadIds = leads.filter(Boolean).map(function(l){ return l.id; });
+
+  if(prevIds.length > 0 && newOnes.length > 0){
+    newOnes.forEach(function(lead){
+      var nombre  = (lead.firstName||'') + ' ' + (lead.lastName||lead.name||'');
+      var origen  = lead.source || tenantId;
+      var msg =
+        '🔔 Nuevo Lead — ' + origen + '\n' +
+        '👤 ' + nombre.trim() + '\n' +
+        '📧 ' + (lead.email||'—') + '\n' +
+        '📱 ' + (lead.phone||'—') + '\n' +
+        '📅 ' + (lead.createdAt ? new Date(lead.createdAt).toLocaleString() : new Date().toLocaleString());
+
+      // WhatsApp via CallMeBot
+      if(notifConfig.whatsapp) sendWhatsAppAdmin(msg);
+
+      // Telegram Bot
+      if(notifConfig.telegram) sendTelegramAdmin(
+        '🔔 <b>Nuevo Lead — ' + origen + '</b>\n' +
+        '👤 ' + nombre.trim() + '\n' +
+        '📧 ' + (lead.email||'—') + '\n' +
+        '📱 ' + (lead.phone||'—') + '\n' +
+        '📅 ' + (lead.createdAt ? new Date(lead.createdAt).toLocaleString() : new Date().toLocaleString())
+      );
+
+      showToast('🔔 Nuevo Lead: ' + nombre.trim());
+    });
+  }
+
+  leads.sort(function(a,b){ return (b.id||'').localeCompare(a.id||''); });
+  updateLeadsBadge();
+  if(currentPage === 'leads') renderLeadsInbox();
 }
 
 async function saveReg(reg){
@@ -8083,24 +8038,7 @@ function lsmPrintEnrollmentRecord() {
     enrViewRecord(_lsm.enrollmentId);
   } else {
     lsmStatus('❌ Función enrViewRecord no disponible');
-  }
 }
-
-
-// ── 20. MARCAR FORMULARIO COMO ENVIADO EN FIREBASE ─────────────────────
-function _lsmMarkFormSent(leadId) {
-  if (typeof _fbdb === 'undefined' || !_fbdb || typeof _demoMode === 'undefined' || _demoMode) return;
-  try {
-    _fbdb.ref('masterMods/leads/' + leadId).update({
-      formSent: true,
-      formSentAt: new Date().toISOString()
-    });
-    // Actualizar el objeto local también
-    if (typeof leads !== 'undefined') {
-      var l = leads.find(function(x){ return x.id === leadId; });
-      if (l) { l.formSent = true; l.formSentAt = new Date().toISOString(); }
-    }
-  } catch(e) {}
 }
 
 
@@ -14937,6 +14875,7 @@ function renderLeadsInbox(){
     +'<th>'+(isEN?'Lead':'Lead')+'</th>'
     +'<th>'+(isEN?'Contact':'Contacto')+'</th>'
     +'<th>'+(isEN?'Program':'Programa')+'</th>'
+    +'<th>📱 Origen</th>'
     +'<th>'+(isEN?'Appointment':'Cita')+'</th>'
     +'<th>'+(isEN?'Status':'Estado')+'</th>'
     +'<th>'+(isEN?'Actions':'Acciones')+'</th>'
@@ -14945,6 +14884,7 @@ function renderLeadsInbox(){
       var prog = customProgs.find(function(pr){ return pr.id===lead.program; });
       var progName = prog ? _progLabelMaster(prog) : (lead.program||'—');
       var initials = ((lead.firstName||'?')[0]+(lead.lastName||'?')[0]).toUpperCase();
+      var origen = lead._tenantId || 'masterbaez';
 
       // Status badge
       var badge = lead.isStudent
@@ -14954,6 +14894,9 @@ function renderLeadsInbox(){
           : (!lead._read
             ? '<span class="badge" style="background:rgba(34,197,94,.12);color:#22c55e;">🆕 '+(isEN?'New':'Nuevo')+'</span>'
             : '<span class="badge badge-suspended">👁 '+(isEN?'Read':'Leído')+'</span>'));
+
+      var origenColor = origen === 'masterbaez' ? 'var(--accent)' : 'var(--accent2)';
+      var origenBg = origen === 'masterbaez' ? 'rgba(234,179,8,.12)' : 'rgba(6,182,212,.12)';
 
       return '<tr onclick="openLead(\''+lead.id+'\')" style="cursor:pointer">'
         // Name + avatar
@@ -14971,6 +14914,8 @@ function renderLeadsInbox(){
         // Program
         +'<td><span style="font-weight:600;font-size:13px">'+esc(progName)+'</span>'
           +(lead.notes?'<br/><span style="font-size:11px;color:var(--muted)">📣 '+esc(lead.notes)+'</span>':'')+'</td>'
+        // Origin
+        +'<td><span style="background:'+origenBg+';color:'+origenColor+';padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">'+esc(origen)+'</span></td>'
         // Appointment
         +'<td>'+(lead.date?'<span style="font-weight:500">'+esc(lead.date)+'</span>':'<span style="color:var(--muted)">—</span>')
           +(lead.time?'<br/><span style="font-size:11px;color:var(--muted)">⏰ '+esc(lead.time)+'</span>':'')+'</td>'
@@ -24036,7 +23981,7 @@ function _baOpenSendFromClient(recId){
   /* Hook goPage */
   var _origGoPage2 = window.goPage;
   window.goPage = function(p){
-    _origGoPage2(p);
+    if(typeof _origGoPage2 === 'function') _origGoPage2(p);
     if(p==='chatbot') window.renderChatbotPage();
     if(p==='mensajes' && typeof window._initMensajesPage==='function') window._initMensajesPage();
   };
