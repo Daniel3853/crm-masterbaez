@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Master Baez Martial Arts</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:#0a0a0a;color:#fff;min-height:100vh;}
+
+/* NAV */
+nav{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;background:#111;border-bottom:1px solid #1f1f1f;flex-wrap:wrap;gap:8px;}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;}
+.logo span{color:#c0392b;}
+.nav-right{display:flex;gap:8px;align-items:center;}
+#langBtn{background:#1a1a1a;border:1.5px solid #333;color:#fff;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;transition:all .15s;}
+#langBtn:hover{border-color:#c0392b;color:#e57373;}
+#adminBtn{background:#c0392b;border:none;color:#fff;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;display:none;}
+#adminBtn:hover{background:#a93226;}
+
+/* HERO */
+.hero{background:linear-gradient(150deg,#111 0%,#1c0707 60%,#2d0a0a 100%);padding:52px 28px 48px;border-bottom:1px solid #1f1f1f;}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(192,57,43,.15);border:1px solid rgba(192,57,43,.3);border-radius:20px;padding:5px 14px;font-size:11px;color:#e57373;margin-bottom:18px;letter-spacing:.5px;}
+h1{font-family:'Bebas Neue',sans-serif;font-size:56px;line-height:.92;margin-bottom:16px;}
+h1 span{color:#c0392b;}
+.hero-sub{font-size:15px;color:rgba(255,255,255,.6);line-height:1.65;max-width:440px;margin-bottom:28px;}
+.hero-btns{display:flex;gap:10px;flex-wrap:wrap;}
+.btn-red{background:#c0392b;color:#fff;border:none;border-radius:8px;padding:12px 24px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.btn-red:hover{background:#a93226;}
+.btn-ghost{background:transparent;color:rgba(255,255,255,.65);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:12px 24px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+/* CHAT SECTION */
+.chat-section{padding:32px 28px 52px;}
+.chat-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+.chat-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:#ffffff;font-weight:600;display:flex;align-items:center;gap:8px;}
+.online-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;animation:blink 2s infinite;flex-shrink:0;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
+#chatLangBtn{background:#1a1a1a;border:1.5px solid #333;color:#fff;padding:6px 14px;border-radius:20px;cursor:pointer;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;transition:all .15s;}
+#chatLangBtn:hover{border-color:#c0392b;color:#e57373;}
+
+.chat-widget{background:#141414;border:1px solid #252525;border-radius:18px;overflow:hidden;max-width:560px;}
+.chat-hdr{background:linear-gradient(135deg,#c0392b,#7b241c);padding:15px 18px;display:flex;align-items:center;gap:12px;}
+.ch-av{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.ch-info strong{display:block;font-size:14px;color:#fff;font-weight:500;}
+.ch-info span{font-size:11px;color:rgba(255,255,255,.6);}
+.chat-msgs{padding:16px;display:flex;flex-direction:column;gap:12px;min-height:220px;max-height:320px;overflow-y:auto;}
+.chat-msgs::-webkit-scrollbar{width:3px;}
+.chat-msgs::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:2px;}
+.msg-bot{display:flex;gap:8px;max-width:92%;}
+.msg-user{display:flex;justify-content:flex-end;}
+.msg-av{width:26px;height:26px;border-radius:50%;background:#7b241c;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:2px;}
+.bubble-bot{background:#1e1e1e;border:1px solid #2a2a2a;color:rgba(255,255,255,.9);padding:11px 15px;border-radius:4px 16px 16px 16px;font-size:13.5px;line-height:1.65;}
+.bubble-user{background:#c0392b;color:#fff;padding:11px 15px;border-radius:16px 4px 16px 16px;font-size:13.5px;line-height:1.65;}
+.typing-row{display:flex;gap:8px;}
+.typing-bub{background:#1e1e1e;border:1px solid #2a2a2a;padding:12px 16px;border-radius:4px 16px 16px 16px;display:flex;gap:4px;align-items:center;}
+.td{width:6px;height:6px;border-radius:50%;background:#444;animation:tdB 1.2s infinite;}
+.td:nth-child(2){animation-delay:.2s;}.td:nth-child(3){animation-delay:.4s;}
+@keyframes tdB{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-5px);}}
+.chips{padding:10px 14px;display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid #1f1f1f;}
+.chip{padding:5px 12px;border-radius:20px;border:1px solid #2a2a2a;font-size:12px;cursor:pointer;color:rgba(255,255,255,.5);background:#1a1a1a;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.chip:hover{border-color:#c0392b;color:#e57373;background:rgba(192,57,43,.1);}
+.input-row{display:flex;gap:8px;padding:12px 14px;border-top:1px solid #1f1f1f;}
+#userInput{flex:1;background:#1a1a1a;border:1px solid #252525;border-radius:22px;padding:9px 15px;color:#fff;font-size:13px;outline:none;font-family:'DM Sans',sans-serif;}
+#userInput:focus{border-color:#c0392b;}
+#userInput::placeholder{color:#3a3a3a;}
+#sendBtn{width:36px;height:36px;border-radius:50%;background:#c0392b;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+#sendBtn:hover{background:#a93226;}
+.wa-bar{display:flex;align-items:center;justify-content:center;gap:8px;background:#0d1f12;border-top:1px solid #1a3022;padding:11px;color:#4ade80;font-size:13px;font-weight:500;text-decoration:none;}
+.wa-bar:hover{background:#111f16;}
+
+/* LEAD OVERLAY */
+#leadOverlay{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;}
+#leadBox{background:#fff;border-radius:20px;padding:32px 28px;max-width:400px;width:100%;text-align:center;}
+.lb-icon{font-size:48px;margin-bottom:12px;}
+.lb-title{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:1px;color:#1a1a1a;margin-bottom:8px;}
+.lb-sub{font-size:14px;color:#666;margin-bottom:22px;line-height:1.55;}
+#leadBox input{width:100%;border:2px solid #e0e0e0;border-radius:10px;padding:12px 16px;font-size:15px;font-family:'DM Sans',sans-serif;color:#1a1a1a;outline:none;margin-bottom:12px;transition:border-color .15s;}
+#leadBox input:focus{border-color:#c0392b;}
+#leadBox input::placeholder{color:#bbb;}
+.lb-btn{width:100%;background:#c0392b;color:#fff;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:10px;}
+.lb-btn:hover{background:#a93226;}
+.lb-skip{font-size:12px;color:#bbb;cursor:pointer;text-decoration:underline;}
+.lb-badge{font-size:11px;color:#22c55e;font-weight:600;margin-top:10px;}
+
+/* ADMIN PANEL */
+#adminPanel{display:none;position:fixed;inset:0;z-index:9998;overflow-y:auto;background:#f0f0f0;}
+.ap-nav{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:#c0392b;position:sticky;top:0;z-index:10;flex-wrap:wrap;gap:8px;}
+.ap-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:#fff;}
+.ap-nav-right{display:flex;gap:10px;align-items:center;}
+.ap-close{background:#fff;border:none;color:#c0392b;padding:8px 18px;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;}
+.saved-badge{background:#22c55e;color:#fff;border-radius:8px;padding:7px 14px;font-size:13px;font-weight:700;display:none;}
+.ap-body{padding:22px;max-width:860px;margin:0 auto;}
+.ap-intro{background:#fff;border-radius:14px;padding:20px 24px;margin-bottom:20px;border-left:5px solid #c0392b;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.ap-intro h2{font-size:17px;font-weight:700;margin-bottom:6px;color:#1a1a1a;}
+.ap-intro ol{margin:8px 0 0 18px;}
+.ap-intro ol li{font-size:14px;color:#444;margin-bottom:5px;line-height:1.5;}
+.ap-intro ol li strong{color:#c0392b;}
+.ap-section{background:#fff;border-radius:14px;margin-bottom:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.ap-hdr{display:flex;align-items:center;gap:12px;padding:16px 20px;cursor:pointer;user-select:none;transition:background .15s;}
+.ap-hdr:hover{background:#fdf0ef;}
+.ap-hdr.open{background:#fdf0ef;border-bottom:2px solid #c0392b;}
+.ap-emoji{font-size:22px;width:42px;height:42px;background:#fef2f2;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ap-info{flex:1;}
+.ap-name{font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:2px;}
+.ap-desc{font-size:12px;color:#999;}
+.ap-arrow{font-size:20px;color:#c0392b;font-weight:700;transition:transform .2s;}
+.ap-hdr.open .ap-arrow{transform:rotate(90deg);}
+.ap-body-inner{display:none;padding:20px;}
+.ap-body-inner.open{display:block;}
+.ap-field{margin-bottom:18px;}
+.lbl{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#333;margin-bottom:8px;padding:7px 12px;border-radius:8px;background:#f5f5f5;}
+.lbl .flag{font-size:18px;}
+.lbl .tag{padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.5px;color:#fff;background:#222;}
+.lbl .tag.es{background:#c0392b;}
+.ap-field textarea,.ap-field input[type=text],.ap-field input[type=tel],.ap-field input[type=email]{
+  width:100%;background:#fff;border:2px solid #ddd;border-radius:10px;
+  padding:12px 16px;color:#1a1a1a;font-family:'DM Sans',sans-serif;
+  font-size:15px;font-weight:500;line-height:1.65;resize:vertical;
+  min-height:48px;outline:none;transition:border-color .15s,box-shadow .15s;
+}
+.ap-field textarea{min-height:100px;}
+.ap-field textarea:focus,.ap-field input:focus{border-color:#c0392b;box-shadow:0 0 0 3px rgba(192,57,43,.12);}
+.ap-field textarea::placeholder,.ap-field input::placeholder{color:#bbb;font-weight:400;font-style:italic;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:580px){.grid2{grid-template-columns:1fr;}}
+.ap-save-all{width:100%;padding:15px;border-radius:12px;background:#c0392b;color:#fff;border:none;font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:6px;}
+.ap-save-all:hover{background:#a93226;}
+/* PASSWORD OVERLAY */
+#pwOverlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99998;display:none;align-items:center;justify-content:center;padding:20px;}
+#pwBox{background:#1a1a1a;border:1px solid #333;border-radius:20px;padding:36px 28px;max-width:360px;width:100%;text-align:center;}
+#pwBox .pw-icon{font-size:44px;margin-bottom:12px;}
+#pwBox .pw-title{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;color:#fff;margin-bottom:6px;}
+#pwBox .pw-sub{font-size:13px;color:#666;margin-bottom:20px;}
+#pwBox input{width:100%;background:#111;border:2px solid #333;border-radius:10px;padding:12px 16px;font-size:16px;color:#fff;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:12px;text-align:center;letter-spacing:2px;transition:border-color .15s;}
+#pwBox input:focus{border-color:#c0392b;}
+#pwBox input::placeholder{color:#444;letter-spacing:0;}
+#pwBox .pw-btn{width:100%;background:#c0392b;color:#fff;border:none;border-radius:10px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;}
+#pwBox .pw-btn:hover{background:#a93226;}
+#pwBox .pw-err{color:#e57373;font-size:13px;margin-top:10px;display:none;}
+#pwBox .pw-hint{font-size:11px;color:#444;margin-top:14px;}
+#fbLoadingBar{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99999;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;}
+.fb-spinner{width:44px;height:44px;border:4px solid rgba(255,255,255,.2);border-top-color:#c0392b;border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.fb-load-txt{color:#fff;font-size:14px;font-weight:600;letter-spacing:.5px;}
+</style>
+</head>
+<body>
+
+<!-- PASSWORD OVERLAY -->
+<div id="pwOverlay">
+  <div id="pwBox">
+    <div class="pw-icon">🔐</div>
+    <div class="pw-title">ACCESO RESTRINGIDO</div>
+    <div class="pw-sub">Ingresa la contraseña para editar</div>
+    <input type="password" id="pwInput" placeholder="Contraseña..." onkeydown="if(event.key==='Enter') checkPw()"/>
+    <button class="pw-btn" onclick="checkPw()">🔓 Entrar al Editor</button>
+    <div class="pw-err" id="pwErr">❌ Contraseña incorrecta</div>
+    <div class="pw-hint">Presiona ESC para cancelar</div>
+  </div>
+</div>
+
+<!-- FIREBASE LOADING BAR -->
+<div id="fbLoadingBar">
+  <div class="fb-spinner"></div>
+  <div class="fb-load-txt">Cargando configuración... / Loading settings...</div>
+</div>
+
+<!-- LEAD OVERLAY -->
+<div id="leadOverlay">
+  <div id="leadBox">
+    <div class="lb-icon">🥋</div>
+    <div class="lb-title" id="lb_title">MASTER BAEZ MARTIAL ARTS</div>
+    <div class="lb-sub" id="lb_sub">¡Tu primera clase es <strong style="color:#c0392b">GRATIS</strong>!<br/>Déjanos tu info y te contactamos.<br/><em style="font-size:12px;color:#999">Your first class is FREE — leave your info!</em></div>
+    <input type="text"  id="lb_name"  placeholder="Tu nombre / Your name"/>
+    <input type="tel"   id="lb_phone" placeholder="(954) 380-1340" oninput="fmtPhone(this)"/>
+    <input type="email" id="lb_email" placeholder="Tu email / Your email (opcional)"/>
+    <button class="lb-btn" onclick="submitLead()"><span id="lb_btn_txt">🎉 ¡Quiero mi clase gratis! / Get FREE class!</span></button>
+    <div id="lb_skip_wrap" style="display:none"><span class="lb-skip" onclick="skipLead()" id="lb_skip_txt">Continuar sin registrarme / Skip for now</span></div>
+    <div class="lb-badge">🔒 Tu info es privada · Your info is private</div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="logo" id="navLogo">MASTER <span>BAEZ</span> MARTIAL ARTS</div>
+  <div class="nav-right">
+    <button id="langBtn"  onclick="toggleLang()">🇪🇸 Español</button>
+    <button id="adminBtn" onclick="openAdmin()">⚙️ Editar Todo</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag" id="heroTag">⭐ South Florida's Premier Martial Arts Academy</div>
+  <h1 id="heroH1">TRAIN.<br/>GROW.<br/><span>CONQUER.</span></h1>
+  <p class="hero-sub" id="heroSub">Clases para todas las edades en South Florida. Tu primera clase es completamente gratis — sin compromiso.</p>
+  <div class="hero-btns">
+    <button class="btn-red" id="heroBtn1" onclick="heroBtn1Click()">🥋 Start Free Class →</button>
+    <button class="btn-ghost" id="heroBtn2">Ver Horarios</button>
+  </div>
+</div>
+
+<!-- CHAT -->
+<div class="chat-section">
+  <div class="chat-top">
+    <div class="chat-label"><span class="online-dot"></span><span id="chatOnlineTxt">Asistente virtual en línea · Online now</span></div>
+    <button id="chatLangBtn" onclick="toggleLang()">🇺🇸 Switch to English</button>
+  </div>
+  <div class="chat-widget">
+    <div class="chat-hdr">
+      <div class="ch-av">🥋</div>
+      <div class="ch-info">
+        <strong id="chatName">Master Baez Martial Arts</strong>
+        <span id="chatStatus">● En línea · Online — English &amp; Español</span>
+      </div>
+    </div>
+    <div class="chat-msgs" id="chatMsgs">
+      <div class="msg-bot">
+        <div class="msg-av">🥋</div>
+        <div class="bubble-bot" id="welcomeMsg">Hi! 👋 / ¡Hola! 👋 I'm the virtual assistant for <strong>Master Baez Martial Arts</strong>.<br/><br/>Write to me in <strong>English or Spanish</strong> and I'll respond in your language! / ¿En qué puedo ayudarte hoy?</div>
+      </div>
+    </div>
+    <div class="chips" id="chipsEl"></div>
+    <div class="input-row">
+      <input type="text" id="userInput" placeholder="Write in English or escribe en español..."/>
+      <button id="sendBtn" onclick="sendMessage()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+    <a class="wa-bar" id="waBar" href="https://wa.me/19543801340" target="_blank" onclick="setWaBarMsg(this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="#4ade80"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      <span id="waTxt">WhatsApp: (954) 380-1340</span>
+    </a>
+    <div style="display:flex;justify-content:center;padding:8px 14px;border-top:1px solid #1f1f1f;">
+      <button id="endChatBtn" onclick="endChat()" style="background:transparent;border:1px solid #333;color:rgba(255,255,255,.4);border-radius:20px;padding:5px 16px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;" onmouseover="this.style.borderColor='#c0392b';this.style.color='#e57373';" onmouseout="this.style.borderColor='#333';this.style.color='rgba(255,255,255,.4)';">✖ Terminar chat / End chat</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ ADMIN PANEL ══════════════════ -->
+<div id="adminPanel">
+  <div class="ap-nav">
+    <div class="ap-title">✏️ EDITOR COMPLETO</div>
+    <div class="ap-nav-right">
+      <span class="saved-badge" id="savedBadge">✅ ¡Guardado!</span>
+      <button class="ap-close" onclick="closeAdmin()">← Volver al Chatbot</button>
+    </div>
+  </div>
+  <div class="ap-body">
+
+    <div class="ap-intro">
+      <h2>🥋 Editor — Master Baez Martial Arts</h2>
+      <ol>
+        <li>Haz clic en la sección que quieres editar</li>
+        <li>Escribe tu información en los cuadros <strong>blancos</strong></li>
+        <li>Presiona <strong>💾 GUARDAR TODO</strong> al terminar</li>
+        <li>Sube el archivo actualizado a GitHub</li>
+      </ol>
+    </div>
+
+    <!-- SECCIÓN 1: PÁGINA PRINCIPAL -->
+    <div class="ap-section">
+      <div class="ap-hdr" onclick="tog(this)">
+        <div class="ap-emoji">🏠</div>
+        <div class="ap-info"><div class="ap-name">Página Principal — Hero</div><div class="ap-desc">Logo, etiqueta, título, subtítulo y botones</div></div>
+        <span class="ap-arrow">›</span>
+      </div>
+      <div class="ap-body-inner">
+        <div class="ap-field"><div class="lbl">📛 Nombre en el logo (arriba de la página)</div>
+          <input type="text" id="f_logo" value="MASTER BAEZ MARTIAL ARTS" placeholder="Ej: MASTER BAEZ MARTIAL ARTS"/></div>
+        <div class="ap-field"><div class="lbl">⭐ Etiqueta pequeña debajo del logo</div>
+          <input type="text" id="f_tag" value="⭐ South Florida's Premier Martial Arts Academy" placeholder="Ej: South Florida's Premier Martial Arts Academy"/></div>
+        <div class="grid2">
+          <div class="ap-field"><div class="lbl"><span class="flag">🇺🇸</span><span class="tag">EN</span> Título grande (inglés)</div>
+            <textarea id="f_h1_en" placeholder="TRAIN.&#10;GROW.&#10;CONQUER.">TRAIN.
+GROW.
+CONQUER.</textarea></div>
+          <div class="ap-field"><div class="lbl"><span class="flag">🇪🇸</span><span class="tag es">ES</span> Título grande (español)</div>
+            <textarea id="f_h1_es" placeholder="ENTRENA.&#10;CRECE.&#10;CONQUISTA.">ENTRENA.
+CRECE.
+CONQUISTA.</textarea></div>
+        </div>
+        <div class="grid2">
+          <div class="ap-field"><div class="lbl"><span class="flag">🇺🇸</span><span class="tag">EN</span> Subtítulo (inglés)</div>
+            <textarea id="f_sub_en" placeholder="Classes for all ages in South Florida...">Classes for all ages in South Florida. Your first class is completely free — no commitment.</textarea></div>
+          <div class="ap-field"><div class="lbl"><span class="flag">🇪🇸</span><span class="tag es">ES</span> Subtítulo (español)</div>
+            <textarea id="f_sub_es" placeholder="Clases para todas las edades...">Clases para todas las edades en South Florida. Tu primera clase es completamente gratis — sin compromiso.</textarea></div>
+        </div>
+        <div class="grid2">
+          <div class="ap-field"><div class="lbl"><span class="flag">🇺🇸</span><span class="tag">EN</span> Texto del botón principal</div>
+            <input type="text" id="f_btn1_en" value="🥋 Start Free Class →" placeholder="Start Free Class"/></div>
+          <div class="ap-field"><div class="lbl"><span class="flag">🇪🇸</span><span class="tag es">ES</span> Texto del botón principal</div>
+            <input type="text" id="f_btn1_es" value="🥋 Empieza Gratis →" placeholder="Empieza Gratis"/></div>
+        </div>
+        <div class="ap-field"><div class="lbl">🔗 Link del botón principal — para citas / appointments (opcional)</div>
+          <input type="text" id="f_btn1_link" placeholder="Ej: https://calendly.com/masterbaez — si lo dejas vacío el botón no hace nada"/></div>
+        <div class="grid2">
+          <div class="ap-field"><div class="lbl"><span class="flag">🇺🇸</span><span class="tag">EN</span> Texto del botón secundario</div>
+            <input type="text" id="f_btn2_en" value="View Schedule" placeholder="View Schedule"/></div>
+          <div class="ap-field"><div class="lbl"><span class="flag">🇪🇸</span><span class="tag es">ES</span> Texto del botón secundario</div>
+            <input type="text" id="f_btn2_es" value="Ver Horarios" placeholder="Ver Horarios"/></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 1B: MENSAJE DE BIENVENIDA -->
+    <div class="ap-section">
+      <div class="ap-hdr" onclick="tog(this)">
+        <div class="ap-emoji">👋</div>
+        <div class="ap-info"><div class="ap-name">Mensaje de Bienvenida del Chat</div><div class="ap-desc">Lo primero que ve el visitante en el chat</div></div>
+        <span class="ap-arrow">›</span>
+      </div>
+      <div class="ap-body-inner">
+        <div class="ap-field"><div class="lbl"><span class="flag">🇺🇸</span><span class="tag">EN</span> Mensaje en inglés</div>
+          <textarea id="f_welcome_en" placeholder="Hi! 👋 I'm the virtual assistant for Master Baez Martial Arts. How can I help you today?">Hi! 👋 / ¡Hola! 👋 I'm the virtual assistant for <strong>Master Baez Martial Arts</strong>.<br/><br/>Write to me in <strong>English or Spanish</strong> and I'll respond in your language! / ¿En qué puedo ayudarte hoy?</textarea></div>
+        <div class="ap-field"><div class="lbl"><span class="flag">🇪🇸</span><span class="tag es">ES</span> Mensaje en español</div>
+          <textarea id="f_welcome_es" placeholder="¡Hola! 👋 Soy el asistente virtual de Master Baez Martial Arts. ¿En qué puedo ayudarte?">Hi! 👋 / ¡Hola! 👋 I'm the virtual assistant for <strong>Master Baez Martial Arts</strong>.<br/><br/>Write to me in <strong>English or Spanish</strong> and I'll respond in your language! / ¿En qué puedo ayudarte hoy?</textarea></div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 1C: VENTANA EMERGENTE (LEAD OVERLAY) -->
+    <div class="ap-section">
+      <div class="ap-hdr" onclick="tog(this)">
+        <div class="ap-emoji">🎯</div>
+        <div class="ap-info"><div class="ap-name">Ventana Emergente — Captura de Lead</div><div class="ap-desc">El popup que pide nombre, teléfono y email al entrar</div></div>
+        <span class="ap-arrow">›</span>
+      </div>
+      <div class="ap-body-inner">
+        <div class="ap-field"><div class="lbl">📛 Título del popup</div>
+          <input type="text" id="f_lead_title" value="MASTER BAEZ MARTIAL ARTS" placeholder="Ej: MASTER BAEZ MARTIAL ARTS"/></div>
+        <div class="ap-field"><div class="lbl">📝 Texto descriptivo del popup (HTML permitido)</div>
+          <textarea id="f_lead_sub" placeholder="¡Tu primera clase es GRATIS! Déjanos tu info y te contactamos.">¡Tu primera clase es <strong style="color:#c0392b">GRATIS</strong>!<br/>Déjanos tu info y te contactamos.<br/><em style="font-size:12px;color:#999">Your first class is FREE — leave your info!</em></textarea></div>
+        <div class="ap-field"><div class="lbl">🟥 Texto del botón principal</div>
+          <input type="text" id="f_lead_btn" value="🎉 ¡Quiero mi clase gratis! / Get FREE class!" placeholder="🎉 ¡Quiero mi clase gratis!"/></div>
+        <div class="ap-field"><div class="lbl">🔗 Texto del enlace "Saltar"</div>
+          <input type="text" id="f_lead_skip" value="Continuar sin registrarme / Skip for now" placeholder="Continuar sin registrarme / Skip for now"/></div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 2: WHATSAPP -->
+    <div class="ap-section">
+      <div class="ap-hdr" onclick="tog(this)">
+        <div class="ap-emoji">📱</div>
+        <div class="ap-info"><div class="ap-name">WhatsApp y Teléfono</div><div class="ap-desc">Número de contacto directo</div></div>
+        <span class="ap-arrow">›</span>
+      </div>
+      <div class="ap-body-inner">
+        <div class="ap-field"><div class="lbl">📞 Número de WhatsApp (solo números con código de país)</div>
+          <input type="tel" id="f_wa" value="19543801340" placeholder="Ej: 19543801340"/></div>
+        <div class="grid2">
+          <div class="ap-field"><div class="lbl"><span class="flag">🇺🇸</span><span class="tag">EN</span> Texto del botón</div>
+            <input type="text" id="f_wa_en" value="WhatsApp: (954) 380-1340"/></div>
+          <div class="ap-field"><div class="lbl"><span class="flag">🇪🇸</span><span class="tag es">ES</span> Texto del botón</div>
+            <input type="text" id="f_wa_es" value="WhatsApp: (954) 380-1340"/></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 3: PRECIOS -->
+    <div class="ap-section">
+      <div class="ap-hdr" onclick="tog(this)">
+        <div class="ap-emoji">💰</div>
+        <div class="ap-info"><div class="ap-name">Precios y Membresías</div><div class="ap-desc">Respuesta cuando pregunten cuánto cuesta</div></div>
+        <span class="ap-arrow">›</span>
+      </div>
+      <div class="ap-body-inner">
+        <div class="ap-field"><div class="lbl"><span class="flag">🇺🇸</span><span class="tag">EN</span> Respuesta en inglés</div>
+          <textarea id="f_price_en" placeholder="Our memberships start at $60/month including unlimited group classes. First class is completely FREE!"></textarea></div>
+        <div class="ap-field"><div class="lbl"><span class="flag">🇪🇸</span><span class="tag es">ES</span> Respuesta en español</div>
+          <textarea id="f_price_es" placeholder="Nuestras membresías comienzan desde $60 al mes incluyendo clases grupales ilimitadas. ¡La primera clase es completamente GRATIS!"></textarea></div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 4: HORARIOS -->
+    <div class="ap-section">
+      <div class="ap-hdr" onclick="tog(this)">
+        <div class="ap-emoji">🕐</div>
+        <div class="ap-info"><div class="ap-name">Horarios</div><div class="ap-desc">Días y horas de clases</div></div>
+        <span class="ap-arrow">›</span>
+      </div>
+      <div class="ap-body-inner">
+        <div class="ap-field"><div class="lbl"><span class="flag">🇺🇸</span><span class="tag">EN</span> Respuesta en inglés</div>
+          <textarea id="f_sch_en" placeholder="Monday to Friday 6am-9am and 5pm-9pm, Saturday 8am-2pm, Sunday closed."></textarea></div>
+        <div class="ap-field"><div class="lbl"><span class="flag">🇪🇸</span><span class="tag es">ES</span> Respuesta en español</div>
+          <textarea id="f_sch_es" placeholder="Lunes a Viernes 6am-9am y 5pm-9pm, Sábado 8am-2pm, Domingo cerrado."></textarea></div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 5: NIÑOS -->
+    <div class="ap-section">
+      <div class="ap-hdr" onclick="tog(this)">
+        <div class="ap-emoji">👶</div>
+        <div class="ap-info"><div class="ap-name">Clases para Niños</div><div class="ap-desc">Edades y beneficios para los pequeños</div></div>
+        <span class="ap-arrow">›</span>
+      </div>
+      <div class="ap-body-inner">
+        <div class="ap-field"><div class="lbl"><span class="flag">🇺🇸</span><span class="tag">EN</span> Respuesta en inglés</div>
+          <textarea id="f_kids_en" placeholder="Yes! We have classes for children ages 5 to 12. Kids learn discipline, focus and self-defense in a fun safe environment."></textarea></div>
+        <div class="ap-field"><div class="lbl"><span class="flag">🇪🇸</span><span class="tag es">ES</span> Respuesta en español</div>
+          <textarea id="f_kids_es" placeholder="¡Sí! Tenemos clases para niños de 5 a 12 años. Aprenden disciplina, concentración y defensa personal en un ambiente divertido y seguro."></textarea></div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 6: ADULTOS -->
+    <div class="ap-section">
+      <div class="ap-hdr" onclick="tog(this)">
+        <div class="ap-emoji">🥋</div>
+        <div class="ap-info"><div class="ap-name">Adultos y Principiantes</div><div class="ap-desc">¿Se necesita experiencia previa?</div></div>
+        <span class="ap-arrow">›</span>
+      </div>
+      <div class="ap-body-inner">
+        <div class="ap-field"><div class="lbl"><span class="flag">🇺🇸</span><span class="tag">EN</span> Respuesta en inglés</div>
+          <textarea id="f_adult_en" placeholder="No experience needed at all! We welcome complete beginners of all ages and fitness levels."></textarea></div>
+        <div class="ap-field"><div class="lbl"><span class="flag">🇪🇸</span><span class="tag es">ES</span> Respuesta en español</div>
+          <textarea id="f_adult_es" placeholder="¡No necesitas experiencia previa! Recibimos principiantes de todas las edades y niveles físicos."></textarea></div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 7: INSCRIPCIÓN -->
+    <div class="ap-section">
+      <div class="ap-hdr" onclick="tog(this)">
+        <div class="ap-emoji">📝</div>
+        <div class="ap-info"><div class="ap-name">Cómo Inscribirse</div><div class="ap-desc">Pasos para registrarse y empezar</div></div>
+        <span class="ap-arrow">›</span>
+      </div>
+      <div class="ap-body-inner">
+        <div class="ap-field"><div class="lbl"><span class="flag">🇺🇸</span><span class="tag">EN</span> Respuesta en inglés</div>
+          <textarea id="f_signup_en" placeholder="Getting started is easy! Your first class is FREE. Just call or WhatsApp us at (954) 380-1340 or visit us during class hours."></textarea></div>
+        <div class="ap-field"><div class="lbl"><span class="flag">🇪🇸</span><span class="tag es">ES</span> Respuesta en español</div>
+          <textarea id="f_signup_es" placeholder="¡Es muy fácil comenzar! Tu primera clase es GRATIS. Llámanos o escríbenos por WhatsApp al (954) 380-1340 o visítanos en nuestros horarios."></textarea></div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 8: CLASE GRATIS -->
+    <div class="ap-section">
+      <div class="ap-hdr" onclick="tog(this)">
+        <div class="ap-emoji">🎉</div>
+        <div class="ap-info"><div class="ap-name">Clase de Prueba Gratis</div><div class="ap-desc">Información sobre el free trial</div></div>
+        <span class="ap-arrow">›</span>
+      </div>
+      <div class="ap-body-inner">
+        <div class="ap-field"><div class="lbl"><span class="flag">🇺🇸</span><span class="tag">EN</span> Respuesta en inglés</div>
+          <textarea id="f_free_en" placeholder="Yes! Your first class is completely FREE — no commitment. Come meet our instructors and try it. Call (954) 380-1340 to schedule!"></textarea></div>
+        <div class="ap-field"><div class="lbl"><span class="flag">🇪🇸</span><span class="tag es">ES</span> Respuesta en español</div>
+          <textarea id="f_free_es" placeholder="¡Sí! Tu primera clase es completamente GRATIS — sin compromiso. Ven a conocer a nuestros instructores. ¡Llama al (954) 380-1340 para agendarla!"></textarea></div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 9: TIPOS DE CLASES -->
+    <div class="ap-section">
+      <div class="ap-hdr" onclick="tog(this)">
+        <div class="ap-emoji">🏆</div>
+        <div class="ap-info"><div class="ap-name">Tipos de Clases</div><div class="ap-desc">Qué disciplinas y artes marciales enseñan</div></div>
+        <span class="ap-arrow">›</span>
+      </div>
+      <div class="ap-body-inner">
+        <div class="ap-field"><div class="lbl"><span class="flag">🇺🇸</span><span class="tag">EN</span> Respuesta en inglés</div>
+          <textarea id="f_classes_en" placeholder="We offer Karate, Taekwondo, Jiu-Jitsu, Muay Thai and Self-Defense for all ages and levels. Which one interests you?"></textarea></div>
+        <div class="ap-field"><div class="lbl"><span class="flag">🇪🇸</span><span class="tag es">ES</span> Respuesta en español</div>
+          <textarea id="f_classes_es" placeholder="Ofrecemos Karate, Taekwondo, Jiu-Jitsu, Muay Thai y Defensa Personal para todas las edades y niveles. ¿Cuál te interesa?"></textarea></div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 10: CONTACTO -->
+    <div class="ap-section">
+      <div class="ap-hdr" onclick="tog(this)">
+        <div class="ap-emoji">📍</div>
+        <div class="ap-info"><div class="ap-name">Ubicación y Contacto</div><div class="ap-desc">Dirección, teléfono, cómo llegar</div></div>
+        <span class="ap-arrow">›</span>
+      </div>
+      <div class="ap-body-inner">
+        <div class="ap-field"><div class="lbl"><span class="flag">🇺🇸</span><span class="tag">EN</span> Respuesta en inglés</div>
+          <textarea id="f_contact_en" placeholder="We are located in South Florida. Call or WhatsApp us at (954) 380-1340. Hours: Mon-Fri 6am-9pm, Saturday 8am-2pm."></textarea></div>
+        <div class="ap-field"><div class="lbl"><span class="flag">🇪🇸</span><span class="tag es">ES</span> Respuesta en español</div>
+          <textarea id="f_contact_es" placeholder="Estamos ubicados en South Florida. Llámanos o escríbenos al (954) 380-1340. Horario: Lun-Vie 6am-9pm, Sábado 8am-2pm."></textarea></div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;padding-bottom:48px;">
+      <button class="ap-save-all" onclick="saveAll()">💾 GUARDAR TODO Y APLICAR CAMBIOS</button>
+      <p style="text-align:center;font-size:12px;color:#999;margin-top:8px;">Los cambios se aplican al instante · Luego sube el archivo actualizado a GitHub</p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── LANGUAGE ──────────────────────────────────────────────────────
+var lang = 'es';
+
+function toggleLang(){
+  lang = lang==='es' ? 'en' : 'es';
+  applyLang();
+}
+
+function g(id){ var e=document.getElementById(id); return e?e.value.trim():''; }
+function nl(s){ return s.replace(/\n/g,'<br/>'); }
+
+function applyLang(){
+  var en = lang==='en';
+  document.getElementById('langBtn').textContent      = en ? '🇪🇸 Español'              : '🇺🇸 English';
+  document.getElementById('chatLangBtn').textContent  = en ? '🇪🇸 Cambiar a Español'    : '🇺🇸 Switch to English';
+  document.getElementById('chatOnlineTxt').textContent= en ? 'Virtual assistant online' : 'Asistente virtual en línea · Online now';
+  document.getElementById('userInput').placeholder    = en ? 'Type your question...'    : 'Escribe tu pregunta...';
+  // hero
+  var h1raw = en ? g('f_h1_en') : g('f_h1_es');
+  if(h1raw){
+    var lines = h1raw.split('\n').filter(Boolean);
+    document.getElementById('heroH1').innerHTML = lines.map(function(l,i){ return i===lines.length-1?'<span>'+l+'</span>':l; }).join('<br/>');
+  }
+  var sub = en ? g('f_sub_en') : g('f_sub_es');
+  if(sub) document.getElementById('heroSub').textContent = sub;
+  var btn1 = en ? g('f_btn1_en') : g('f_btn1_es');
+  if(btn1) document.getElementById('heroBtn1').textContent = btn1;
+  var btn2 = en ? g('f_btn2_en') : g('f_btn2_es');
+  if(btn2) document.getElementById('heroBtn2').textContent = btn2;
+  // hero tag
+  var tag = g('f_tag');
+  if(tag) document.getElementById('heroTag').textContent = tag;
+  // welcome message
+  var wMsg = en ? g('f_welcome_en') : g('f_welcome_es');
+  if(wMsg) document.getElementById('welcomeMsg').innerHTML = wMsg.replace(/\n/g,'<br/>');
+  // lead overlay
+  var lTitle = g('f_lead_title');
+  if(lTitle) document.getElementById('lb_title').textContent = lTitle;
+  var lSub = g('f_lead_sub');
+  if(lSub) document.getElementById('lb_sub').innerHTML = lSub;
+  var lBtn = g('f_lead_btn');
+  if(lBtn) document.getElementById('lb_btn_txt').textContent = lBtn;
+  var lSkip = g('f_lead_skip');
+  if(lSkip) document.getElementById('lb_skip_txt').textContent = lSkip;
+  // wa
+  var waT = en ? g('f_wa_en') : g('f_wa_es');
+  if(waT) document.getElementById('waTxt').textContent = waT;
+  // chips
+  renderChips(en);
+}
+
+function renderChips(en){
+  var c = document.getElementById('chipsEl');
+  c.innerHTML = en
+    ? '<span class="chip" onclick="askChip(\'price_en\')">💰 Prices</span>'
+    + '<span class="chip" onclick="askChip(\'sch_en\')">🕐 Schedule</span>'
+    + '<span class="chip" onclick="askChip(\'kids_en\')">👶 Kids classes</span>'
+    + '<span class="chip" onclick="askChip(\'adult_en\')">🥋 Beginners</span>'
+    + '<span class="chip" onclick="askChip(\'free_en\')">🎉 Free trial</span>'
+    + '<span class="chip" onclick="askChip(\'contact_en\')">📍 Location</span>'
+    + '<span class="chip" onclick="askChip(\'classes_en\')">🏆 Classes</span>'
+    : '<span class="chip" onclick="askChip(\'price_es\')">💰 Precios</span>'
+    + '<span class="chip" onclick="askChip(\'sch_es\')">🕐 Horarios</span>'
+    + '<span class="chip" onclick="askChip(\'kids_es\')">👶 Niños</span>'
+    + '<span class="chip" onclick="askChip(\'adult_es\')">🥋 Principiantes</span>'
+    + '<span class="chip" onclick="askChip(\'free_es\')">🎉 Clase gratis</span>'
+    + '<span class="chip" onclick="askChip(\'contact_es\')">📍 Ubicación</span>'
+    + '<span class="chip" onclick="askChip(\'classes_es\')">🏆 Clases</span>';
+}
+
+// ── HERO BUTTON ───────────────────────────────────────────────────
+function heroBtn1Click(){
+  var link = g('f_btn1_link');
+  if(link) window.open(link,'_blank');
+}
+
+// ── KNOWLEDGE BASE ────────────────────────────────────────────────
+var KB = [
+  { keys:['price','prices','cost','how much','membership','fee','cuanto','cuánto','precio','precios','cuesta','membresia','membresía'], en:'f_price_en', es:'f_price_es' },
+  { keys:['schedule','hours','open','time','timetable','horario','horarios','horas','abierto','cuando','cuándo','abren'], en:'f_sch_en', es:'f_sch_es' },
+  { keys:['kid','kids','child','children','niño','niños','nino','ninos','hijo','hijos','edad','pequeño'], en:'f_kids_en', es:'f_kids_es' },
+  { keys:['adult','adults','beginner','beginners','experience','adulto','adultos','principiante','principiantes','empezar','comenzar'], en:'f_adult_en', es:'f_adult_es' },
+  { keys:['sign up','signup','enroll','register','join','inscri','registr','como entro','inscribirse'], en:'f_signup_en', es:'f_signup_es' },
+  { keys:['free','trial','first class','gratis','prueba','clase gratis','primera clase'], en:'f_free_en', es:'f_free_es' },
+  { keys:['contact','phone','call','location','address','where','whatsapp','contacto','teléfono','telefono','llamar','ubicación','ubicacion','donde','dónde'], en:'f_contact_en', es:'f_contact_es' },
+  { keys:['class','classes','karate','taekwondo','jiu','muay','thai','boxing','defense','self defense','clase','clases','defensa','arte','marcial'], en:'f_classes_en', es:'f_classes_es' }
+];
+var ES_WORDS=['qué','que','cómo','como','cuánto','cuanto','cuándo','cuando','dónde','donde','tienen','hay','para','clases','clase','precio','precios','horario','horarios','hola','buenas','necesito','quiero','puedo','cuesta','inscribir','gracias'];
+
+function detectLang(text){
+  var lower=text.toLowerCase(); var score=0;
+  ES_WORDS.forEach(function(w){ if(lower.indexOf(w)!==-1) score++; });
+  return score>=1?'es':'en';
+}
+
+var CHIP_MAP={'price_en':'f_price_en','price_es':'f_price_es','sch_en':'f_sch_en','sch_es':'f_sch_es','kids_en':'f_kids_en','kids_es':'f_kids_es','adult_en':'f_adult_en','adult_es':'f_adult_es','free_en':'f_free_en','free_es':'f_free_es','contact_en':'f_contact_en','contact_es':'f_contact_es','classes_en':'f_classes_en','classes_es':'f_classes_es','signup_en':'f_signup_en','signup_es':'f_signup_es'};
+
+function defaultMsg(l){
+  var wa=g('f_wa')||'19543801340';
+  return l==='es'
+    ? '¡Gracias por tu pregunta! 🥋 Contáctanos directamente:<br/><br/>📞 <strong>WhatsApp:</strong> +'+wa+'<br/><br/>O pregúntame sobre <strong>precios, horarios, clases o la clase gratis</strong>.'
+    : 'Thanks for your question! 🥋 Contact us directly:<br/><br/>📞 <strong>WhatsApp:</strong> +'+wa+'<br/><br/>Or ask me about <strong>prices, schedule, classes or free trial</strong>.';
+}
+
+function getAnswer(text){
+  var lower=text.toLowerCase(); var l=detectLang(text);
+  var best=null,bestScore=0;
+  KB.forEach(function(item){
+    var s=0; item.keys.forEach(function(k){ if(lower.indexOf(k)!==-1) s++; });
+    if(s>bestScore){bestScore=s;best=item;}
+  });
+  if(best&&bestScore>0){ var a=g(best[l]); return a?nl(a):defaultMsg(l); }
+  return defaultMsg(l);
+}
+
+// ── CHAT UI ───────────────────────────────────────────────────────
+var msgsEl=document.getElementById('chatMsgs');
+var inputEl=document.getElementById('userInput');
+inputEl.addEventListener('keydown',function(e){ if(e.key==='Enter') sendMessage(); });
+
+function askChip(key){
+  var field=CHIP_MAP[key]; if(!field) return;
+  var ans=g(field); var l=key.endsWith('_en')?'en':'es';
+  botReply(ans?nl(ans):defaultMsg(l));
+}
+
+function addMsg(role,html){
+  var d=document.createElement('div');
+  if(role==='bot'){
+    d.className='msg-bot';
+    d.innerHTML='<div class="msg-av">🥋</div><div class="bubble-bot">'+html+'</div>';
+  } else {
+    d.className='msg-user';
+    d.innerHTML='<div class="bubble-user">'+html.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>';
+  }
+  msgsEl.appendChild(d); msgsEl.scrollTop=msgsEl.scrollHeight;
+}
+function showTyping(){ var d=document.createElement('div'); d.className='typing-row'; d.id='typ'; d.innerHTML='<div class="msg-av">🥋</div><div class="typing-bub"><div class="td"></div><div class="td"></div><div class="td"></div></div>'; msgsEl.appendChild(d); msgsEl.scrollTop=msgsEl.scrollHeight; }
+function hideTyping(){ var e=document.getElementById('typ'); if(e) e.remove(); }
+
+function botReply(answer){
+  showTyping();
+  setTimeout(function(){ hideTyping(); addMsg('bot',answer); },700+Math.random()*300);
+}
+
+function sendMessage(){
+  var text=inputEl.value.trim(); if(!text) return;
+  inputEl.value=''; addMsg('user',text); botReply(getAnswer(text)); inputEl.focus();
+}
+
+// ── FIREBASE ──────────────────────────────────────────────────────
+var fbDb;
+try{
+  firebase.initializeApp({
+    apiKey:"AIzaSyDpjqJFZxh1ErjbfTJ8nq-uzB3oHXDo-iA",
+    authDomain:"crm-leads-baez.firebaseapp.com",
+    databaseURL:"https://crm-leads-baez-default-rtdb.firebaseio.com",
+    projectId:"crm-leads-baez",
+    storageBucket:"crm-leads-baez.firebasestorage.app",
+    messagingSenderId:"583732725999",
+    appId:"1:583732725999:web:b38aa0a3ffc9e809c3b31a"
+  });
+  fbDb=firebase.database();
+}catch(e){ console.warn('Firebase:',e); }
+
+var WA_NUMBER = '19543801340';
+var TG_BOT_TOKEN = '8768730249:AAHvopZzmvcTKDFKXEARzcu0oWoyyZuBDf0';
+var TG_CHAT_ID   = '5680584878';
+
+function saveLeadToFirebase(name,phone,email){
+  if(!fbDb) return;
+  var id='cbl_'+Date.now();
+  var bizName = (document.getElementById('navLogo') ? document.getElementById('navLogo').textContent.trim() : 'Master Baez Martial Arts').replace(/\s+/g,' ');
+  fbDb.ref('chatbotLeads/'+id).set({id:id,name:name,phone:phone,email:email||'',status:'new',source:'chatbot-website',createdAt:new Date().toISOString()})
+    .then(function(){ console.log('✅ Lead guardado en CRM:',name); })
+    .catch(function(e){ console.warn('Error guardando lead:',e); });
+  // Telegram
+  var tgMsg='🔔 *Nuevo Lead — Chatbot* ('+bizName+')\n👤 '+name+'\n📱 '+phone+(email?'\n📧 '+email:'');
+  fetch('https://api.telegram.org/bot'+TG_BOT_TOKEN+'/sendMessage',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({chat_id:TG_CHAT_ID, text:tgMsg, parse_mode:'Markdown'})
+  }).then(function(r){
+    if(!r.ok) console.error('Telegram error:',r.status);
+  }).catch(function(e){ console.error('Telegram fetch error:',e); });
+}
+
+function endChat(){
+  var confirmed=confirm('¿Deseas terminar el chat? / Do you want to end the chat?');
+  if(!confirmed) return;
+  // Limpiar chat y resetear
+  document.getElementById('chatMsgs').innerHTML='';
+  document.getElementById('userInput').value='';
+  document.getElementById('userInput').disabled=false;
+  document.getElementById('sendBtn').disabled=false;
+  document.getElementById('endChatBtn').disabled=false;
+  document.getElementById('endChatBtn').textContent='✖ Terminar chat / End chat';
+  // Limpiar formulario
+  document.getElementById('lb_name').value='';
+  document.getElementById('lb_phone').value='';
+  document.getElementById('lb_email').value='';
+  document.getElementById('lb_name').style.borderColor='';
+  document.getElementById('lb_phone').style.borderColor='';
+  // Regresar al popup del lead
+  document.getElementById('leadOverlay').style.display='flex';
+  document.body.style.overflow='hidden';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function setWaBarMsg(el){
+  var msg='Hi! I was chatting on your website and I have a question about Master Baez Martial Arts.\n\n¡Hola! Estaba chateando en su sitio web y tengo una pregunta sobre Master Baez Martial Arts.';
+  var num=(WA_NUMBER||'19543801340').replace(/\D/g,'');
+  el.href='https://wa.me/'+num+'?text='+encodeURIComponent(msg);
+}
+
+// ── LEAD OVERLAY ──────────────────────────────────────────────────
+function submitLead(){
+  var name =document.getElementById('lb_name').value.trim();
+  var phone=document.getElementById('lb_phone').value.trim();
+  var email=document.getElementById('lb_email').value.trim();
+  if(!name){ document.getElementById('lb_name').style.borderColor='#e53e3e'; document.getElementById('lb_name').focus(); return; }
+  if(!phone){ document.getElementById('lb_phone').style.borderColor='#e53e3e'; document.getElementById('lb_phone').focus(); return; }
+  saveLeadToFirebase(name,phone,email);
+  closeLead(name);
+}
+function skipLead(){ closeLead(''); }
+function closeLead(name){
+  document.getElementById('leadOverlay').style.display='none';
+  document.body.style.overflow='';
+  window.scrollTo({top:0, behavior:'smooth'});
+  if(name){
+    var en=lang==='en';
+    document.getElementById('welcomeMsg').innerHTML = en
+      ? 'Hi <strong>'+name+'</strong>! 👋 How can I help you today?'
+      : '¡Hola <strong>'+name+'</strong>! 👋 ¿En qué puedo ayudarte hoy?';
+  }
+}
+document.body.style.overflow='hidden';
+
+// ── PHONE FORMAT ──────────────────────────────────────────────────
+function fmtPhone(el){
+  var digits=el.value.replace(/\D/g,'').substring(0,10);
+  var fmt='';
+  if(digits.length===0){ fmt=''; }
+  else if(digits.length<=3){ fmt='('+digits; }
+  else if(digits.length<=6){ fmt='('+digits.substring(0,3)+') '+digits.substring(3); }
+  else { fmt='('+digits.substring(0,3)+') '+digits.substring(3,6)+'-'+digits.substring(6); }
+  el.value=fmt;
+}
+
+// ── ADMIN PANEL ───────────────────────────────────────────────────
+function openAdmin(){
+  var overlay=document.getElementById('pwOverlay');
+  overlay.style.display='flex';
+  setTimeout(function(){ document.getElementById('pwInput').focus(); },100);
+}
+function checkPw(){
+  var val=document.getElementById('pwInput').value;
+  if(val==='Baez1234'){
+    document.getElementById('pwOverlay').style.display='none';
+    document.getElementById('pwInput').value='';
+    document.getElementById('pwErr').style.display='none';
+    document.getElementById('adminPanel').style.display='block';
+    document.body.style.overflow='hidden';
+  } else {
+    document.getElementById('pwErr').style.display='block';
+    document.getElementById('pwInput').value='';
+    document.getElementById('pwInput').focus();
+  }
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    document.getElementById('pwOverlay').style.display='none';
+    document.getElementById('pwInput').value='';
+    document.getElementById('pwErr').style.display='none';
+  }
+});
+function closeAdmin(){ document.getElementById('adminPanel').style.display='none';  document.body.style.overflow=''; }
+
+function tog(hdr){
+  hdr.classList.toggle('open');
+  hdr.nextElementSibling.classList.toggle('open');
+}
+
+// ── ADMIN FIELD IDs ──────────────────────────────────────────────
+var ADMIN_FIELDS=[
+  'f_logo','f_tag','f_wa','f_wa_en','f_wa_es',
+  'f_h1_en','f_h1_es','f_sub_en','f_sub_es',
+  'f_btn1_en','f_btn1_es','f_btn1_link','f_btn2_en','f_btn2_es',
+  'f_welcome_en','f_welcome_es',
+  'f_lead_title','f_lead_sub','f_lead_btn','f_lead_skip',
+  'f_price_en','f_price_es','f_sch_en','f_sch_es',
+  'f_kids_en','f_kids_es','f_adult_en','f_adult_es',
+  'f_signup_en','f_signup_es','f_free_en','f_free_es',
+  'f_contact_en','f_contact_es','f_classes_en','f_classes_es'
+];
+
+function saveAll(){
+  // Logo
+  var logo=(g('f_logo')||'MASTER BAEZ MARTIAL ARTS').toUpperCase();
+  var words=logo.split(' ');
+  var mid=Math.ceil(words.length/2);
+  document.getElementById('navLogo').innerHTML=words.slice(0,mid).join(' ')+' <span>'+words.slice(mid).join(' ')+'</span>';
+  // Tag
+  var tag=g('f_tag'); if(tag) document.getElementById('heroTag').textContent=tag;
+  // WA link
+  var wa=g('f_wa')||'19543801340';
+  WA_NUMBER = wa.replace(/\D/g,'');
+  document.getElementById('waBar').href='https://wa.me/'+WA_NUMBER;
+  // Apply current language to update all text
+  applyLang();
+
+  // ── SAVE TO FIREBASE ────────────────────────────────────────────
+  if(fbDb){
+    var data={};
+    ADMIN_FIELDS.forEach(function(id){
+      var el=document.getElementById(id);
+      if(el) data[id]=el.value;
+    });
+    fbDb.ref('adminSettings').set(data)
+      .then(function(){ console.log('✅ Configuración guardada en Firebase'); })
+      .catch(function(e){ console.warn('Error guardando config:', e); });
+  }
+
+  // Badge
+  var badge=document.getElementById('savedBadge');
+  badge.style.display='inline-flex';
+  setTimeout(function(){ badge.style.display='none'; closeAdmin(); },1200);
+}
+
+// ── LOAD SETTINGS FROM FIREBASE ON PAGE LOAD ─────────────────────
+function loadSettingsFromFirebase(){
+  if(!fbDb){ renderChips(false); return; }
+  var loadingEl=document.getElementById('fbLoadingBar');
+  if(loadingEl) loadingEl.style.display='flex';
+  fbDb.ref('adminSettings').once('value', function(snap){
+    var data=snap.val();
+    if(loadingEl) loadingEl.style.display='none';
+    if(data){
+      ADMIN_FIELDS.forEach(function(id){
+        var el=document.getElementById(id);
+        if(el && data[id]!==undefined) el.value=data[id];
+      });
+      console.log('✅ Configuración cargada desde Firebase');
+      // Apply logo
+      var logo=(data.f_logo||'MASTER BAEZ MARTIAL ARTS').toUpperCase();
+      var words=logo.split(' ');
+      var mid=Math.ceil(words.length/2);
+      document.getElementById('navLogo').innerHTML=words.slice(0,mid).join(' ')+' <span>'+words.slice(mid).join(' ')+'</span>';
+      // Apply tag
+      if(data.f_tag) document.getElementById('heroTag').textContent=data.f_tag;
+      // Apply lead overlay
+      if(data.f_lead_title) document.getElementById('lb_title').textContent=data.f_lead_title;
+      if(data.f_lead_sub)   document.getElementById('lb_sub').innerHTML=data.f_lead_sub;
+      if(data.f_lead_btn)   document.getElementById('lb_btn_txt').textContent=data.f_lead_btn;
+      if(data.f_lead_skip)  document.getElementById('lb_skip_txt').textContent=data.f_lead_skip;
+      // Apply WA link
+      var wa=(data.f_wa||'19543801340').replace(/\D/g,'');
+      WA_NUMBER = wa;
+      document.getElementById('waBar').href='https://wa.me/'+wa;
+      // Apply all text via language
+      applyLang();
+    } else {
+      console.log('ℹ️ No hay configuración guardada aún — usando valores por defecto');
+    }
+    renderChips(lang==='en');
+  }, function(err){
+    console.warn('Error cargando config:', err);
+    if(loadingEl) loadingEl.style.display='none';
+    renderChips(false);
+  });
+}
+
+// ── SECRET SHORTCUT: Ctrl+Shift+E reveals admin button ───────────
+document.addEventListener('keydown',function(e){
+  if(e.ctrlKey && e.shiftKey && (e.key==='E'||e.key==='e')){
+    e.preventDefault();
+    // Toggle admin button
+    var btn=document.getElementById('adminBtn');
+    btn.style.display=(btn.style.display==='none'||btn.style.display==='')?'block':'none';
+    // Also show skip button on lead overlay so admin can bypass
+    var skipWrap=document.getElementById('lb_skip_wrap');
+    if(skipWrap) skipWrap.style.display=(skipWrap.style.display==='none')?'block':'none';
+  }
+});
+
+// Init
+loadSettingsFromFirebase();
+</script>
+</body>
+</html>
