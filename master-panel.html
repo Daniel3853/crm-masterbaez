@@ -1439,10 +1439,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
               <span style="font-size:13px;font-weight:600">📧 Email</span>
               <input type="checkbox" id="notifEmail" onchange="saveNotifConfig()" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer"/>
             </label>
-            <label style="display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer">
-              <span style="font-size:13px;font-weight:600">💬 WhatsApp</span>
-              <input type="checkbox" id="notifWA" onchange="saveNotifConfig()" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer"/>
-            </label>
+
             <label style="display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer;grid-column:span 2">
               <span style="font-size:13px;font-weight:600">✈️ Telegram Bot</span>
               <input type="checkbox" id="notifTelegram" onchange="saveNotifConfig()" style="width:18px;height:18px;accent-color:var(--accent);cursor:pointer"/>
@@ -3943,8 +3940,6 @@ var leads = [];
 var waiverTextES = '';
 var waiverTextEN = '';
 var geminiApiKey = '';
-var callMeBotPhone = '';
-var callMeBotApiKey = '';
 var masterBusinessEmail = '';
 var qrContactInfo = {whatsapp:'', phone:'', flyerUrl:'', qrSize:70, waActive:true, gvActive:true, webActive:true, waMsg:'', smsMsg:''};
 
@@ -4136,7 +4131,7 @@ var papelera  = []; // items moved to trash (clients, partners, referidores, pro
 
 // ── NOTIFICATION CONFIG ─────────────────────────
 var notifConfig = {
-  email: true, whatsapp: true, sms: false, ms: false, telegram: true,
+  email: true, sms: false, ms: false, telegram: true,
   brevoAdminEmail: 'dbkoryo@gmail.com',
   emailjs: { serviceId:'', templateId:'', publicKey:'' },
   twilio:  { sid:'', token:'', from:'', waFrom:'', adminPhone:'' },
@@ -4145,32 +4140,12 @@ var notifConfig = {
   telegramChatId:   _TELEGRAM_CHAT_ID
 };
 
-// ── CALLMEBOT (WhatsApp gratis) ─────────────────
-var callMeBotPhone  = '19543801340';
-var callMeBotApiKey = '1707140';
 var BREVO_WORKER    = 'https://long-breeze-7e8a.dbkoryo.workers.dev/';
 
 // ── TELEGRAM BOT CONFIG ─────────────────────────
 // Bot: @GmDanielBaezBot — t.me/GmDanielBaezBot
 var _TELEGRAM_BOT_TOKEN = '8768730249:AAHvopZzmvcTKDFKXEARzcu0oWoyyZuBDf0';
 var _TELEGRAM_CHAT_ID   = '5680584878';
-
-function sendWhatsAppAdmin(msg){
-  var phone  = callMeBotPhone  || '';
-  var apikey = callMeBotApiKey || '';
-  if(!phone || !apikey) return;
-  var url = 'https://api.callmebot.com/whatsapp.php?phone=' +
-    encodeURIComponent(phone) +
-    '&text=' + encodeURIComponent(msg) +
-    '&apikey=' + encodeURIComponent(apikey);
-  // Try fetch first, fallback to Image (CORS workaround)
-  fetch(url, { mode: 'no-cors' })
-    .catch(function(){
-      var img = new Image();
-      img.src = url;
-    });
-  console.log('📱 WhatsApp CallMeBot sent to', phone);
-}
 
 function sendTelegramAdmin(msg){
   var token  = notifConfig.telegramBotToken || _TELEGRAM_BOT_TOKEN || '';
@@ -4186,7 +4161,7 @@ function sendTelegramAdmin(msg){
 
 function saveNotifConfig(){
   notifConfig.email    = document.getElementById('notifEmail').checked;
-  notifConfig.whatsapp = document.getElementById('notifWA').checked;
+
   notifConfig.sms      = document.getElementById('notifSMS').checked;
   notifConfig.ms       = document.getElementById('notifMS').checked;
   notifConfig.telegram = document.getElementById('notifTelegram') ? document.getElementById('notifTelegram').checked : false;
@@ -4210,7 +4185,7 @@ function saveNotifConfig(){
 
 function loadNotifConfig(){
   document.getElementById('notifEmail').checked = notifConfig.email;
-  document.getElementById('notifWA').checked    = notifConfig.whatsapp;
+
   document.getElementById('notifSMS').checked   = notifConfig.sms;
   document.getElementById('notifMS').checked    = notifConfig.ms;
   if(document.getElementById('notifTelegram'))    document.getElementById('notifTelegram').checked   = notifConfig.telegram||false;
@@ -4238,21 +4213,14 @@ async function testNotifications(){
   };
   await sendAdminNotifications(testRecord, plans.pro);
 
-  // Test WhatsApp via CallMeBot
-  if(notifConfig.whatsapp){
-    sendWhatsAppAdmin(
-      '🧪 Test Notificación\n' +
-      '✅ WhatsApp CallMeBot conectado al CRM\n' +
-      '👤 Test User\n📧 tu@email.com\n📱 +10000000000'
-    );
-  }
+
 
   // Test Telegram
   if(notifConfig.telegram){
     sendTelegramAdmin('🧪 <b>Test Notificación</b>\n✅ Telegram conectado correctamente al CRM');
   }
 
-  showToast(_masterLang==='en'?'✅ Test sent — check WhatsApp and Telegram':'✅ Prueba enviada — revisa WhatsApp y Telegram');
+  showToast(_masterLang==='en'?'✅ Test sent — check Telegram':'✅ Prueba enviada — revisa Telegram');
 }
 
 // ── SEND ADMIN NOTIFICATIONS ───────────────────
@@ -4298,10 +4266,7 @@ async function sendAdminNotifications(record, plan){
     console.log('To:', notifConfig.twilio.adminPhone, 'Msg:', msg);
   }
 
-  // 3 — WhatsApp via Twilio (same note as SMS)
-  if(notifConfig.whatsapp && notifConfig.twilio.sid){
-    console.log('WhatsApp config ready — needs server-side proxy to call Twilio API');
-  }
+
 
   // 4 — Telegram Bot
   if(notifConfig.telegram && notifConfig.telegramBotToken && notifConfig.telegramChatId){
@@ -4430,6 +4395,7 @@ async function loadData(){
       var papSnap = await _fbdb.ref('papelera').once('value');
       var papd = papSnap.val()||{};
       papelera = Object.values(papd);
+      updatePapeleraBadge();
       var cfgSnap = await _fbdb.ref('masterConfig').once('value');
       var cd = cfgSnap.val();
       if(cd){
@@ -4462,15 +4428,7 @@ async function loadData(){
           showToast('✅ '+(r.firstName+' '+r.lastName));
           var pl = plans[r.plan]||{nameES:r.plan};
           sendAdminNotifications(r, pl);
-          sendWhatsAppAdmin(
-            '🚀 *Nuevo Lead — CRM Platform*\n' +
-            '👤 '+r.firstName+' '+r.lastName+'\n' +
-            '📧 '+r.email+'\n' +
-            '📱 '+r.phone+'\n' +
-            '🏢 '+r.bizName+'\n' +
-            '📦 Plan: '+(pl.nameES||r.plan)+'\n' +
-            '🆔 ID: '+r.id
-          );
+
         }
       });
     }catch(e){ console.error(e); }
@@ -4545,8 +4503,7 @@ function processTenantLeads(snap, tenantId){
         '📱 ' + (lead.phone||'—') + '\n' +
         '📅 ' + (lead.createdAt ? new Date(lead.createdAt).toLocaleString() : new Date().toLocaleString());
 
-      // WhatsApp via CallMeBot
-      if(notifConfig.whatsapp) sendWhatsAppAdmin(msg);
+
 
       // Telegram Bot
       if(notifConfig.telegram) sendTelegramAdmin(
@@ -10601,10 +10558,7 @@ function renderDashboard(){
           '<div style="width:7px;height:7px;border-radius:50%;background:'+(firebaseOk?'#22c55e':'#f5a623')+'"></div>'+
           (firebaseOk?'Firebase OK':'Demo mode')+
         '</div>'+
-        '<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted2)">'+
-          '<div style="width:7px;height:7px;border-radius:50%;background:'+(callMeBotPhone&&callMeBotApiKey?'#22c55e':'#333')+'"></div>'+
-          'WhatsApp'+
-        '</div>'+
+
         '<div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted2)">'+
           '<div style="width:7px;height:7px;border-radius:50%;background:'+(leads.length>0?'#22c55e':'#333')+'"></div>'+
           'Leads ('+leads.length+')'+
@@ -11509,6 +11463,17 @@ function restaurarCliente(id){
     if(!_demoMode && _fbdb){ _fbdb.ref('prospectos/'+r.id).set(r); _fbdb.ref('papelera/'+r.id).remove(); }
     renderPapelera(); renderProspectos(); updateNavBadgeProspectos(); updatePapeleraBadge();
     showToast(isEN?'✅ Prospect restored':'✅ Prospecto restaurado');
+  } else if(tipo === 'chatbot'){
+    if(typeof _cbLeads!=='undefined') _cbLeads.unshift(r);
+    if(!_demoMode && _fbdb){ _fbdb.ref('chatbotLeads/'+r.id).set(r); _fbdb.ref('papelera/'+r.id).remove(); }
+    renderPapelera(); if(typeof _renderCbLeads==='function') _renderCbLeads(); if(typeof _updateCbBadge==='function') _updateCbBadge(); updatePapeleraBadge();
+    showToast(isEN?'✅ Chatbot lead restored':'✅ Lead de chatbot restaurado');
+  } else if(tipo === 'lead'){
+    leads.unshift(r);
+    _trashLeads = _trashLeads.filter(function(x){ return x.id!==id; });
+    if(!_demoMode && _fbdb){ _fbdb.ref('masterMods/leads/'+r.id).set(r); _fbdb.ref('masterMods/leadsTrash/'+id).remove(); _fbdb.ref('papelera/'+r.id).remove(); }
+    renderPapelera(); renderLeadsInbox(); updateLeadsBadge(); updatePapeleraBadge();
+    showToast(isEN?'✅ Lead restored':'✅ Lead restaurado');
   }
 }
 
@@ -11524,7 +11489,7 @@ function eliminarPermanente(id){
       ? 'This action CANNOT be undone. The client will be erased forever.'
       : 'Esta acción NO se puede deshacer. El cliente será borrado para siempre.',
     rows: [
-      {key: isEN?'Client':'Cliente',    val: esc(r.firstName+' '+r.lastName), cls:''},
+      {key: isEN?'Client':'Cliente',    val: esc(r.firstName||r.name||'')+(r.lastName?' '+r.lastName:''), cls:''},
       {key: isEN?'Business':'Negocio',  val: esc(r.bizName||'—'),             cls:''},
       {key: 'Plan',                     val: pl?(isEN?pl.nameEN:pl.nameES):(r.plan||'—'), cls:''},
       {key: isEN?'Reason':'Motivo',     val: esc(r.deleteMotivo||'—'),        cls:'danger'}
@@ -11631,11 +11596,11 @@ function renderPapelera(){
     return;
   }
 
-  var typeIcon  = {client:'👤',partner:'🏢',referidor:'👥',prospecto:'🎯'};
+  var typeIcon  = {client:'👤',partner:'🏢',referidor:'👥',prospecto:'🎯',chatbot:'🤖',lead:'📥'};
   var typeLbl   = isEN
-    ? {client:'Client',partner:'Partner',referidor:'Referrer',prospecto:'Prospect'}
-    : {client:'Cliente',partner:'Partner',referidor:'Referidor',prospecto:'Prospecto'};
-  var typeColor = {client:'var(--accent)',partner:'var(--accent2)',referidor:'#f97316',prospecto:'#6366f1'};
+    ? {client:'Client',partner:'Partner',referidor:'Referrer',prospecto:'Prospect',chatbot:'Chatbot Lead',lead:'Lead'}
+    : {client:'Cliente',partner:'Partner',referidor:'Referidor',prospecto:'Prospecto',chatbot:'Lead Chatbot',lead:'Lead'};
+  var typeColor = {client:'var(--accent)',partner:'var(--accent2)',referidor:'#f97316',prospecto:'#6366f1',chatbot:'#f43f5e',lead:'#eab308'};
   var motivoColor = {'No interesado':'var(--muted)','No contestó':'var(--warn)','Precio muy alto':'var(--danger)','Eligió a la competencia':'var(--danger)','Trial expirado sin respuesta':'var(--warn)'};
 
   var rows = papelera.map(function(r){
@@ -11643,7 +11608,7 @@ function renderPapelera(){
     var pl = plans[r.plan];
     var fechaEliminado = r.deletedAt ? r.deletedAt.split('T')[0] : '—';
     var mColor = motivoColor[r.deleteMotivo] || 'var(--muted)';
-    var name = (r.firstName||r.bizName||'') + (r.lastName?' '+r.lastName:'');
+    var name = (r.firstName||r.name||r.bizName||'') + (r.lastName?' '+r.lastName:'');
 
     var tr = document.createElement('tr');
     tr.innerHTML =
@@ -12243,7 +12208,7 @@ function openClient(id, prefillDays, prefillStart, prefillEnd){
   btnSMSgv.style.cssText = 'background:#34A853;color:#fff;border-color:#34A853';
   btnSMSgv.addEventListener('click', function(e){
     e.stopPropagation();
-    var num = (callMeBotPhone || '').replace(/\D/g,'');
+    var num = '';
     _getTpl('sms','seguimiento',{nombre:r.firstName,negocio:r.bizName||'',telefono:r.phone||''},function(msg){
       try{ navigator.clipboard.writeText(msg); }catch(ex){}
       window.open('https://voice.google.com/u/0/messages?itemId=t.%2B'+num, '_blank');
@@ -12272,7 +12237,7 @@ function openClient(id, prefillDays, prefillStart, prefillEnd){
   });
   btnRow.appendChild(btnSMSms);
 
-  // ── WhatsApp via CallMeBot ──
+  // ── WhatsApp ──
   var btnWA = document.createElement('button');
   btnWA.className = 'btn btn-ghost';
   btnWA.textContent = '📲 WhatsApp';
@@ -14045,7 +14010,7 @@ var videoConfig = {
     {type:'segments',  eyebrow:'Mercado Objetivo',        title:'Un sistema para<br/><span class="acc">cualquier negocio local</span>',                     segments:[{icon:'🥋',text:'Artes Marciales'},{icon:'💈',text:'Barbería / Salón'},{icon:'💅',text:'Salón de Belleza'},{icon:'🍕',text:'Restaurante / Café'},{icon:'🏥',text:'Clínica / Spa'},{icon:'🛍️',text:'Tienda / Retail'},{icon:'🎓',text:'Escuela / Academia'},{icon:'🏋️',text:'Gym / Fitness'},{icon:'🎨',text:'Estudio / Arte'},{icon:'🏡',text:'Bienes Raíces'}], duration:6},
     {type:'features',  eyebrow:'Características',         title:'Todo incluido.<br/><span class="acc">Nada de más.</span>',                                 cards:[{icon:'🔗',title:'QR de Referidos',body:'Cada partner tiene su propio QR. Todo lead rastreado automáticamente.'},{icon:'🗑️',title:'Papelera + Restauración',body:'Elimina con razón archivada. Restaura cuando quieras. Control total.'},{icon:'🌐',title:'Bilingüe ES / EN',body:'Un clic cambia todo el sistema de idioma. Perfecto para el mercado hispano en USA.'}], duration:6},
     {type:'plans',     eyebrow:'Planes y Precios',        title:'Empieza gratis.<br/><span class="acc">Escala sin límites.</span>',                         plans:[{name:'Starter',price:'$49',period:'/mes',features:['✓ Dashboard básico','✓ 100 leads/mes','✓ Notif. WhatsApp'],featured:false,popLabel:''},{name:'Profesional',price:'$97',period:'/mes',features:['✓ Leads ilimitados','✓ Sistema QR referidos','✓ Emails automáticos','✓ Partners ilimitados'],featured:true,popLabel:'MÁS POPULAR'},{name:'Empresarial',price:'$147',period:'/mes',features:['✓ White-label','✓ Múltiples negocios','✓ Soporte prioritario'],featured:false,popLabel:''}], duration:7},
-    {type:'tech',      eyebrow:'Tecnología',              title:'Infraestructura <span class="acc2">enterprise</span><br/>a costo mínimo',                  cards:[{icon:'🔥',name:'Firebase Realtime DB',body:'Sincronización en tiempo real. Datos seguros en Google Cloud. Plan gratuito incluido.'},{icon:'🐙',name:'GitHub Pages',body:'Hosting 100% gratis. Deploy en segundos. Sin servidores que mantener.'},{icon:'📧',name:'Brevo',body:'9,000 emails/mes gratis. Plantillas profesionales. Sin configuración SMTP.'},{icon:'📱',name:'CallMeBot',body:'WhatsApp gratis sin Meta Business. Notificaciones instantáneas al admin.'}], duration:6},
+    {type:'tech',      eyebrow:'Tecnología',              title:'Infraestructura <span class="acc2">enterprise</span><br/>a costo mínimo',                  cards:[{icon:'🔥',name:'Firebase Realtime DB',body:'Sincronización en tiempo real. Datos seguros en Google Cloud. Plan gratuito incluido.'},{icon:'🐙',name:'GitHub Pages',body:'Hosting 100% gratis. Deploy en segundos. Sin servidores que mantener.'},{icon:'📧',name:'Brevo',body:'9,000 emails/mes gratis. Plantillas profesionales. Sin configuración SMTP.'}], duration:6},
     {type:'roadmap',   eyebrow:'Roadmap',                 title:'Lo que viene<br/><span class="acc">próximamente</span>',                                  phases:[{label:'FASE 1 — ACTUAL',title:'CRM + Referidos + Panel Master',body:'Registro de leads, QR, WhatsApp/Email automático, papelera, bilingüe.',style:''},{label:'FASE 2 — EN DESARROLLO',title:'WhatsApp Automation + Calendario',body:'Respuestas automáticas via Evolution API. Flujo lead → trial → enrolment.',style:'teal'},{label:'FASE 3 — PRÓXIMO',title:'White-Label & Multi-Cliente',body:'Un repo por cliente. Branding personalizado. Modelo de negocio escalable.',style:'dim'},{label:'FASE 4 — FUTURO',title:'App Móvil + Pagos Integrados',body:'App iOS/Android, Stripe, reportes avanzados e IA para seguimiento automático.',style:'dim'}], duration:7},
     {type:'cta',       eyebrow:'¿Listo para empezar?',   title:'Tu negocio merece un<br/><span class="acc">sistema inteligente</span>',                   subtitle:'Sin contratos. Sin complicaciones. Sin tarjeta de crédito.<br/>Empieza hoy y ve los resultados desde el primer día.', btn1Text:'🚀 Comenzar Trial Gratis', btn1Url:'https://daniel3853.github.io/crm-masterbaez/index.html', btn2Text:'Ver Demo →', btn2Url:'https://daniel3853.github.io/masterlead/', duration:8}
   ]
@@ -16717,24 +16682,29 @@ function deleteLeadToTrash(id){
   var l=leads.find(function(x){return x.id===id;});
   if(!l) return;
   l._deletedAt=new Date().toISOString();
+  l.deleteMotivo='Eliminado de leads';
+  l._trashType='lead';
   _trashLeads.push(l);
+  papelera.unshift(l);
   leads=leads.filter(function(x){return x.id!==id;});
-  if(!_demoMode&&_fbdb){_fbdb.ref('masterMods/leads/'+id).remove();_fbdb.ref('masterMods/leadsTrash/'+id).set(l);}
-  updateLeadsBadge(); renderLeadsInbox(); showToast('🗑','Lead movido a papelera');
+  if(!_demoMode&&_fbdb){_fbdb.ref('masterMods/leads/'+id).remove();_fbdb.ref('masterMods/leadsTrash/'+id).set(l);_fbdb.ref('papelera/'+id).set(l);}
+  updateLeadsBadge(); renderLeadsInbox(); updatePapeleraBadge(); showToast('🗑','Lead movido a papelera');
 }
 function restoreLeadFromTrash(id){
   var l=_trashLeads.find(function(x){return x.id===id;});
   if(!l) return;
-  delete l._deletedAt; leads.push(l);
+  delete l._deletedAt; delete l.deleteMotivo; delete l._trashType; leads.push(l);
   _trashLeads=_trashLeads.filter(function(x){return x.id!==id;});
-  if(!_demoMode&&_fbdb){_fbdb.ref('masterMods/leads/'+id).set(l);_fbdb.ref('masterMods/leadsTrash/'+id).remove();}
-  updateLeadsBadge(); renderLeadsInbox(); showToast('✅','Lead restaurado');
+  papelera=papelera.filter(function(x){return x.id!==id;});
+  if(!_demoMode&&_fbdb){_fbdb.ref('masterMods/leads/'+id).set(l);_fbdb.ref('masterMods/leadsTrash/'+id).remove();_fbdb.ref('papelera/'+id).remove();}
+  updateLeadsBadge(); renderLeadsInbox(); updatePapeleraBadge(); showToast('✅','Lead restaurado');
 }
 function permanentDeleteLead(id){
   if(!confirm('\xbfEliminar permanentemente? No se puede deshacer.')) return;
   _trashLeads=_trashLeads.filter(function(x){return x.id!==id;});
-  if(!_demoMode&&_fbdb) _fbdb.ref('masterMods/leadsTrash/'+id).remove();
-  renderLeadsInbox(); showToast('🗑','Eliminado permanentemente');
+  papelera=papelera.filter(function(x){return x.id!==id;});
+  if(!_demoMode&&_fbdb){_fbdb.ref('masterMods/leadsTrash/'+id).remove();_fbdb.ref('papelera/'+id).remove();}
+  renderLeadsInbox(); updatePapeleraBadge(); showToast('🗑','Eliminado permanentemente');
 }
 function updateLeadsBadge(){
   var total  = leads.length;
@@ -17318,7 +17288,7 @@ async function fbSaveMasterMods(){
       logoDataUrl, customProgs,
       enabledDays: Array.from(enabledDays),
       customTimes, waiverTextES, waiverTextEN,
-      geminiApiKey, callMeBotPhone, callMeBotApiKey,
+      geminiApiKey,
       qrContactInfo, flyerState: _flyerState
     });
   } catch(e){ console.error('fbSaveMasterMods:', e); }
@@ -17343,8 +17313,7 @@ async function fbLoadMasterMods(){
     if(d.waiverTextES) waiverTextES = d.waiverTextES;
     if(d.waiverTextEN) waiverTextEN = d.waiverTextEN;
     if(d.geminiApiKey) geminiApiKey = d.geminiApiKey;
-    if(d.callMeBotPhone)   callMeBotPhone   = d.callMeBotPhone;
-    if(d.callMeBotApiKey)  callMeBotApiKey  = d.callMeBotApiKey;
+
     if(d.qrContactInfo)    qrContactInfo    = d.qrContactInfo;
     if(d.flyerState){ Object.assign(_flyerState, d.flyerState); restoreFlyerForm(); }
   } catch(e){ console.error('fbLoadMasterMods:', e); }
@@ -23780,11 +23749,23 @@ function _baOpenSendFromClient(recId){
   };
 
   window.cbDeleteLead = function(id){
-    if(!confirm('¿Eliminar este lead?')) return;
-    _cbLeads = _cbLeads.filter(function(l){ return l.id!==id; });
-    if(typeof _fbdb!=='undefined'&&_fbdb) _fbdb.ref('chatbotLeads/'+id).remove();
+    var isEN = typeof _masterLang!=='undefined' ? _masterLang==='en' : false;
+    if(!confirm(isEN?'Delete this lead? This moves it to trash.':'¿Eliminar este lead? Se moverá a la papelera.')) return;
+    var l = _cbLeads.find(function(x){ return x.id===id; });
+    if(!l) return;
+    l.deletedAt = new Date().toISOString();
+    l.deleteMotivo = isEN ? 'Deleted from chatbot' : 'Eliminado del chatbot';
+    l._trashType = 'chatbot';
+    papelera.unshift(l);
+    _cbLeads = _cbLeads.filter(function(x){ return x.id!==id; });
+    if(typeof _fbdb!=='undefined'&&_fbdb){
+      _fbdb.ref('chatbotLeads/'+id).remove();
+      _fbdb.ref('papelera/'+id).set(l);
+    }
     _renderCbLeads();
     _updateCbBadge();
+    updatePapeleraBadge();
+    if(typeof showToast==='function') showToast(isEN?'🗑 Lead moved to trash':'🗑 Lead movido a papelera');
   };
 
   window._cbLeadsGlobal = _cbLeads;
