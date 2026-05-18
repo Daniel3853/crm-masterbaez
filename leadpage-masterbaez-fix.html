@@ -262,6 +262,7 @@ select:focus{border-color:var(--red);background:#fff}
 .toggle-slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background:#888;border-radius:50%;transition:.3s}
 .toggle-switch input:checked+.toggle-slider{background:#16a34a}
 .toggle-switch input:checked+.toggle-slider:before{background:#fff;transform:translateX(22px)}
+.float-admin{display:none}
 .disclaimer-box{background:#1a1400;border:1px solid #3a2c00;border-radius:10px;padding:14px;font-size:13px;color:#a89050;line-height:1.6;margin-top:8px}
 #editProgModal{z-index:30000 !important}
 #editProgModal .modal-box{background:#fff !important;border-radius:22px;overflow-y:auto;max-height:90vh}
@@ -318,6 +319,19 @@ function closeChatbot(){
   document.body.style.overflow = '';
   document.getElementById('chatbotFrame').src = 'about:blank';
 }
+// Secret: Ctrl+Shift+A muestra boton admin
+var _lc=0,_lt;
+document.addEventListener('keydown',function(e){
+  if(e.ctrlKey&&e.shiftKey&&(e.key==='A'||e.key==='a')){
+    e.preventDefault(); var b=document.querySelector('.float-admin');
+    if(b) b.style.display=(b.style.display==='none'||b.style.display==='')?'flex':'none';
+  }
+});
+document.querySelector('.float-lang').addEventListener('click',function(){
+  _lc++; clearTimeout(_lt); _lt=setTimeout(function(){_lc=0;},800);
+  if(_lc>=5){ _lc=0; var b=document.querySelector('.float-admin');
+    if(b) b.style.display=(b.style.display==='none'||b.style.display==='')?'flex':'none'; }
+});
 (function(){
   var lang = document.documentElement.lang || 'es';
   document.addEventListener('click', function(e){
@@ -393,7 +407,7 @@ I, the undersigned, understand and agree to the following terms when enrolling i
 </div>
 
 <!-- ── ADMIN PANEL ── -->
-<div class="admin-overlay open" id="adminPanel">
+<div class="admin-overlay" id="adminPanel">
   <div class="admin-wrap">
     <div class="admin-header">
       <div class="admin-title">⚙️ PANEL DE CONFIGURACIÓN <span style="font-size:18px;color:#666" id="adminTenantBadge">[masterbaez]</span></div>
