@@ -862,16 +862,28 @@ function loadSettingsFromFirebase(){
 }
 
 // ── SECRET SHORTCUT: Ctrl+Shift+E reveals admin button ───────────
+function revealAdminBtn(){
+  var btn=document.getElementById('adminBtn');
+  if(!btn) return;
+  btn.style.display=(btn.style.display==='none'||btn.style.display==='')?'block':'none';
+  var skipWrap=document.getElementById('lb_skip_wrap');
+  if(skipWrap) skipWrap.style.display=(skipWrap.style.display==='none')?'block':'none';
+}
+
 document.addEventListener('keydown',function(e){
   if(e.ctrlKey && e.shiftKey && (e.key==='E'||e.key==='e')){
     e.preventDefault();
-    // Toggle admin button
-    var btn=document.getElementById('adminBtn');
-    btn.style.display=(btn.style.display==='none'||btn.style.display==='')?'block':'none';
-    // Also show skip button on lead overlay so admin can bypass
-    var skipWrap=document.getElementById('lb_skip_wrap');
-    if(skipWrap) skipWrap.style.display=(skipWrap.style.display==='none')?'block':'none';
+    revealAdminBtn();
   }
+});
+
+// FALLBACK: click logo 5 veces rapido para mostrar admin
+var _logoClickCount=0, _logoTimer;
+document.getElementById('navLogo').addEventListener('click',function(){
+  _logoClickCount++;
+  clearTimeout(_logoTimer);
+  _logoTimer=setTimeout(function(){ _logoClickCount=0; },800);
+  if(_logoClickCount>=5){ _logoClickCount=0; revealAdminBtn(); }
 });
 
 // Init
