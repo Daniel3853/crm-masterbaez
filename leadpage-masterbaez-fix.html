@@ -26,9 +26,6 @@ var WL = {
   "phone": "(954) 380-1340",
   "whatsapp": "19543801340",
   "email": "info@masterbaez.com",
-  "callMeBotPhone": "19543801340",
-  "callMeBotApiKey": "1707140",
-  "website": "masterbaez.com",
   "brevoWorker": "https://long-breeze-7e8a.dbkoryo.workers.dev/",
   "senderName": "Master Baez Martial Arts",
   "senderEmail": "info@masterbaez.com",
@@ -126,7 +123,7 @@ input,textarea{width:100%;padding:11px 14px;border-radius:10px;border:2px solid 
 input:focus,textarea:focus{border-color:var(--red);background:#fff}
 textarea{min-height:80px;resize:vertical}
 .prog-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:8px}
-.prog-banner{width:100%;border-radius:14px;overflow:hidden;margin-bottom:14px;cursor:pointer;position:relative;display:block}
+.prog-banner{width:100%;border-radius:14px;overflow:hidden;margin-bottom:14px;cursor:pointer;position:relative;display:block;border:2px solid transparent}
 .prog-banner:hover{opacity:.9}
 .prog-banner img{width:100%;max-height:280px;object-fit:cover;display:block}
 .prog-banner-overlay{position:absolute;bottom:0;left:0;right:0;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,.7));display:flex;align-items:center;gap:10px}
@@ -286,36 +283,51 @@ select:focus{border-color:var(--red);background:#fff}
   <button class="float-btn float-admin" onclick="openAdminLogin()">⚙️ Admin</button>
 </div>
 
-<!-- ── WHATSAPP FLOAT (arriba del cluster) ── -->
-<div style="position:fixed;bottom:106px;right:20px;z-index:10000;display:flex;flex-direction:column;align-items:flex-end;gap:10px;font-family:'Nunito',sans-serif;" id="waFloatContainer">
-  <div class="wa-bubble" id="waBubble">
-    <span class="wa-close" onclick="document.getElementById('waBubble').style.display='none'">✕</span>
+<!-- ── CHATBOT FLOAT ── -->
+<div style="position:fixed;bottom:106px;right:20px;z-index:10000;display:flex;flex-direction:column;align-items:flex-end;gap:10px;font-family:'Nunito',sans-serif;" id="chFloatContainer">
+  <div class="ch-bubble" id="chBubble">
+    <span class="ch-close" onclick="document.getElementById('chBubble').style.display='none'">✕</span>
     <span class="lang">EN</span> Questions? Chat with us!
-    <br><span class="lang" style="margin-top:6px">ES</span> ¿Preguntas? ¡Escríbenos!
+    <br><span class="lang" style="margin-top:6px">ES</span> ¿Preguntas? ¡Chatea con nosotros!
   </div>
-  <a class="wa-circle" id="waLink" href="javascript:void(0)" aria-label="WhatsApp">
-    <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-      <path d="M16 0C7.163 0 0 7.163 0 16c0 2.822.736 5.472 2.027 7.774L0 32l8.427-2.01A15.93 15.93 0 0016 32c8.837 0 16-7.163 16-16S24.837 0 16 0zm0 29.333a13.27 13.27 0 01-6.773-1.853l-.485-.288-5.003 1.194 1.215-4.872-.317-.5A13.27 13.27 0 012.667 16C2.667 8.636 8.636 2.667 16 2.667S29.333 8.636 29.333 16 23.364 29.333 16 29.333zm7.27-9.878c-.398-.199-2.355-1.163-2.72-1.295-.365-.133-.631-.199-.897.199-.266.398-1.031 1.295-1.264 1.561-.232.266-.465.299-.863.1-.398-.199-1.681-.62-3.201-1.977-1.183-1.056-1.981-2.361-2.214-2.759-.232-.398-.025-.613.175-.811.179-.178.398-.465.597-.698.199-.232.265-.398.398-.664.133-.266.067-.498-.033-.697-.1-.199-.897-2.162-1.229-2.96-.323-.777-.651-.672-.897-.684l-.764-.013c-.266 0-.697.1-.1063.498-.365.398-1.396 1.362-1.396 3.323s1.43 3.855 1.629 4.121c.2.266 2.814 4.297 6.817 6.025.953.412 1.697.657 2.277.841.957.304 1.828.261 2.517.158.768-.114 2.355-.963 2.687-1.893.332-.93.332-1.727.232-1.893-.1-.166-.365-.265-.764-.464z"/>
+  <a class="ch-circle" id="chLink" href="javascript:void(0)" aria-label="Chat" onclick="openChatbot()">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12zm-3-4H7v-2h10v2zm0-4H7V6h10v2z"/>
     </svg>
   </a>
 </div>
+<div class="modal-overlay" id="chatbotModal" style="z-index:99999" onclick="if(event.target===this)closeChatbot()">
+  <div class="modal-box" style="max-width:420px;height:80vh;padding:0;border-radius:22px;overflow:hidden;display:flex;flex-direction:column;background:#fff">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:var(--red);color:#fff;flex-shrink:0">
+      <span style="font-weight:900;font-size:15px">💬 Chat</span>
+      <button onclick="closeChatbot()" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;padding:4px">✕</button>
+    </div>
+    <iframe id="chatbotFrame" style="flex:1;width:100%;border:none;background:#fff" src="about:blank"></iframe>
+  </div>
+</div>
 
 <script>
+function openChatbot(){
+  var chatbotUrl = document.getElementById('chatbotFrame').getAttribute('data-src') || window.chatbotUrl || 'index.html';
+  document.getElementById('chatbotFrame').src = chatbotUrl;
+  document.getElementById('chatbotModal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function closeChatbot(){
+  document.getElementById('chatbotModal').style.display = 'none';
+  document.body.style.overflow = '';
+  document.getElementById('chatbotFrame').src = 'about:blank';
+}
 (function(){
-  var phone = '19543801340';
-  var msgEN = encodeURIComponent('Hi! I\'d like more information about Master Baez Martial Arts programs.');
-  var msgES = encodeURIComponent('¡Hola! Me gustaría obtener más información sobre los programas de Master Baez Martial Arts.');
   var lang = document.documentElement.lang || 'es';
-  var msg = lang === 'en' ? msgEN : msgES;
   document.addEventListener('click', function(e){
     if(e.target && (e.target.id==='btnLangEN' || (e.target.closest && e.target.closest('#btnLangEN')))){
-      document.getElementById('waLink').href = 'https://wa.me/'+phone+'?text='+msgEN;
+      document.getElementById('chLink').setAttribute('data-lang','en');
     }
     if(e.target && (e.target.id==='btnLangES' || (e.target.closest && e.target.closest('#btnLangES')))){
-      document.getElementById('waLink').href = 'https://wa.me/'+phone+'?text='+msgES;
+      document.getElementById('chLink').setAttribute('data-lang','es');
     }
   });
-  document.getElementById('waLink').href = 'https://wa.me/'+phone+'?text='+msg;
 })();
 </script>
 
@@ -583,23 +595,8 @@ Recomendación"></textarea>
             <input class="admin-input" id="cfg-website" placeholder="academia.com">
           </div>
         </div>
-      </div>
-      <div class="admin-card">
-        <h3>🔔 CallMeBot (WhatsApp Notificaciones)</h3>
-        <div class="admin-row">
-          <div class="admin-field">
-            <label>Teléfono CallMeBot</label>
-            <input class="admin-input" id="cfg-callmebotPhone" placeholder="19543801340">
-          </div>
-          <div class="admin-field">
-            <label>API Key CallMeBot</label>
-            <input class="admin-input" id="cfg-callmebotKey" placeholder="1707140">
-          </div>
-        </div>
-        <div class="disclaimer-box">💡 Para obtener tu API Key de CallMeBot, envía un mensaje a +34 644 59 31 48 en WhatsApp con el texto: <b>I allow callmebot to send me messages</b></div>
-      </div>
     </div>
-
+    </div>
     <!-- TAB: INTEGRACIONES -->
     <div class="admin-section" id="tab-integraciones">
       <div class="admin-card" style="border:2px solid #F5C800">
@@ -607,6 +604,7 @@ Recomendación"></textarea>
         <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
           <div id="fbReadyBadge" style="padding:8px 16px;border-radius:10px;font-weight:800;font-size:14px;background:#2a1a1a;color:#f87171;border:2px solid #4a2a2a">🔴 Firebase Guardado: DESACTIVADO</div>
           <button class="admin-btn primary" onclick="toggleFirebaseReady()">Activar / Desactivar</button>
+          <button class="admin-btn ghost" onclick="location.reload()" style="border-color:#555;color:#aaa">🔄 Recargar desde Firebase</button>
         </div>
         <div class="disclaimer-box" style="margin-top:10px">⚠️ Mientras esté <b>DESACTIVADO</b>, los leads NO se guardarán en Firebase. Actívalo solo cuando hayas verificado que todo el sistema funciona correctamente.</div>
       </div>
@@ -664,6 +662,14 @@ Recomendación"></textarea>
         <div class="admin-field">
           <label>Sender Email (verificado en Brevo)</label>
           <input class="admin-input" id="cfg-senderEmail" type="email" placeholder="info@academia.com">
+        </div>
+      </div>
+      <div class="admin-card">
+        <h3>💬 Chatbot</h3>
+        <div class="admin-field">
+          <label>URL del Chatbot</label>
+          <input class="admin-input" id="cfg-chatbotUrl" placeholder="index.html">
+          <div style="font-size:11px;color:#888;margin-top:4px">Ruta relativa o URL completa. Default: <b>index.html</b></div>
         </div>
       </div>
       <div class="admin-card">
@@ -752,8 +758,6 @@ var heroSubEN     = WL.tagline_en;
 var enabledDays   = new Set();
 var customTimes   = ['9:00 AM','10:00 AM','11:00 AM','1:00 PM','2:00 PM','3:00 PM','4:00 PM'];
 var contactInfo   = {email:WL.email, phone:WL.phone, whatsapp:WL.whatsapp, website:WL.website};
-var callMeBotApiKey  = WL.callMeBotApiKey;
-var callMeBotPhone   = WL.callMeBotPhone;
 var telegramBotToken = WL.telegramBotToken || '8768730249:AAHvopZzmvcTKDFKXEARzcu0oWoyyZuBDf0';
 var telegramChatId   = WL.telegramChatId   || '5680584878';
 var logoDataUrl   = WL_LOGO_BASE64 || WL.logoUrl || '';
@@ -761,6 +765,7 @@ var adminPassword = WL.adminPassword;
 var brevoWorker   = WL.brevoWorker;
 var senderName    = WL.senderName;
 var senderEmail   = WL.senderEmail;
+var chatbotUrl    = WL.chatbotUrl || 'index.html';
 var tenantId      = WL.tenantId;
 var videoFirst    = true;
 var sourceOptions_es = ['Facebook','Instagram','YouTube','TikTok','Google My Business','Búsqueda en Google','Recomendación de amigo/familiar','Otro'];
@@ -1013,38 +1018,17 @@ function renderStep1(tx){
         if(banners.length===0) return '';
         return banners.map(function(p){
           var pl=progLabel(p);
-          return '<div class="prog-banner" onclick="openProgDetail('+customProgs.indexOf(p)+')">'
+          var pi=customProgs.indexOf(p);
+          var sel=state.program===p.id;
+          return '<div class="prog-banner" onclick="openProgDetail('+pi+')">'
             +'<img src="'+esc(p.bannerPhoto)+'" alt="'+esc(pl)+'"/>'
+            +(sel?'<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:60px;height:60px;border-radius:50%;background:'+p.color+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;box-shadow:0 4px 20px rgba(0,0,0,.4);z-index:5">✓</div>':'')
             +'<div class="prog-banner-overlay">'
               +'<span class="prog-banner-icon">'+esc(p.icon)+'</span>'
               +'<span class="prog-banner-label">'+esc(pl)+'</span>'
             +'</div>'
           +'</div>';
         }).join('');
-      })()
-      +(function(){
-        var cards=customProgs.filter(function(p){return !p.hidden && (p.bannerDisplay==='cover'||p.bannerDisplay==='both');});
-        if(cards.length===0) return '';
-        return '<div class="prog-grid">'
-          +customProgs.filter(function(p){return !p.hidden;}).map(function(p){
-            var pi=customProgs.indexOf(p);
-            var sel=state.program===p.id;
-            var forWho=lang==='en'?(p.forWhoEN||p.forWhoES||''):(p.forWhoES||p.forWhoEN||'');
-            var onclick='openProgDetail('+pi+')';
-            var cardPhoto=(p.bannerDisplay==='cover'||p.bannerDisplay==='both')?p.bannerPhoto:'';
-            return '<div style="position:relative">'
-              +'<button class="prog-btn'+(sel?' selected':'')+'" style="border-color:'+(sel?p.color:'var(--border)')+';background:'+(sel?p.light:'#fafafa')+';width:100%" onclick="'+onclick+'">'
-                +(cardPhoto?'<img class="prog-btn-photo" src="'+esc(cardPhoto)+'" alt="'+esc(progLabel(p))+'"/>'
-                  :'<div style="aspect-ratio:2/3;background:'+p.color+'22;display:flex;align-items:center;justify-content:center;font-size:48px">'+p.icon+'</div>')
-                +'<div class="prog-btn-body">'
-                  +'<div class="prog-icon">'+esc(p.icon)+'</div>'
-                  +'<div class="prog-name" style="color:'+(sel?p.color:'var(--text)')+'">'+esc(progLabel(p))+'</div>'
-                  +(p.age?'<div class="prog-age">'+esc(p.age)+'</div>':'')
-                  +(forWho?'<div class="prog-forwho">'+esc(forWho)+'</div>':'')
-                +'</div>'
-              +'</button></div>';
-          }).join('')
-        +'</div>';
       })()
       +'</div>')
     +'<div class="field"><label>'+tx.notes+' *</label>'
@@ -1224,25 +1208,6 @@ function submitForm(){
   }).then(function(r){
     if(!r.ok) console.error('Telegram error:',r.status,r.statusText);
   }).catch(function(e){ console.error('Telegram fetch error:',e); });
-  // WhatsApp al admin (CallMeBot plan gratis)
-  var adminWaMsg='🔔 Nuevo Lead — '+getDisplayName()+'\n'
-    +'👤 '+lead.firstName+' '+lead.lastName+'\n'
-    +'📧 '+lead.email+'\n'
-    +'📱 '+lead.phone+'\n'
-    +'🎓 '+progName+'\n'
-    +'📅 '+lead.date+' — '+lead.time+'\n'
-    +'🏷️ '+tenantId;
-  fetch('https://api.callmebot.com/whatsapp.php?phone=19543801340&text='+encodeURIComponent(adminWaMsg)+'&apikey=1707140',{mode:'no-cors'}).catch(function(){});
-  // WhatsApp al cliente
-  var clientPhone=(lead.phone||'').replace(/\D/g,'');
-  if(clientPhone.length===10) clientPhone='1'+clientPhone;
-  if(clientPhone){
-    var _isEsWa=lead.lang==='es';
-    var waMsgClient=_isEsWa
-      ?'Hola '+lead.firstName+'! 👋\nTu cita en *'+getDisplayName()+'* está confirmada:\n📅 '+lead.date+' — '+lead.time+'\n🎓 '+progName+'\n\n¡Te esperamos!'
-      :'Hello '+lead.firstName+'! 👋\nYour appointment at *'+getDisplayName()+'* is confirmed:\n📅 '+lead.date+' — '+lead.time+'\n🎓 '+progName+'\n\nSee you soon!';
-    fetch('https://api.callmebot.com/whatsapp.php?phone='+encodeURIComponent(clientPhone)+'&text='+encodeURIComponent(waMsgClient)+'&apikey=1707140',{mode:'no-cors'}).catch(function(){});
-  }
   sendBrevoConfirmation(lead, progName);
   // scheduleReminderEmail(lead, progName);   // ⏸ pendiente — activar con Brevo Automations
   // scheduleFollowUpEmail(lead, progName);   // ⏸ pendiente — activar con Brevo Automations
@@ -1314,8 +1279,6 @@ async function fbLoad(){
       if(d.enabledDays!==undefined) enabledDays=new Set(d.enabledDays);
       if(d.customTimes!==undefined) customTimes=d.customTimes;
       if(d.contactInfo!==undefined) contactInfo=d.contactInfo;
-      if(d.callMeBotPhone!==undefined) callMeBotPhone=d.callMeBotPhone;
-      if(d.callMeBotApiKey!==undefined) callMeBotApiKey=d.callMeBotApiKey;
       if(d.telegramBotToken!==undefined) telegramBotToken=d.telegramBotToken;
       if(d.telegramChatId!==undefined) telegramChatId=d.telegramChatId;
       if(d.adminPassword!==undefined){ adminPassword=d.adminPassword; WL.adminPassword=d.adminPassword; }
@@ -1337,6 +1300,7 @@ async function fbLoad(){
       if(d.waiverTextES!==undefined) waiverTextES=d.waiverTextES;
       if(d.waiverTextEN!==undefined) waiverTextEN=d.waiverTextEN;
       if(d.logoDataUrl!==undefined){ logoDataUrl=d.logoDataUrl; applyLogoToHero(); }
+      if(d.chatbotUrl!==undefined) chatbotUrl=d.chatbotUrl;
       if(d.colors){
         applyColors(d.colors.primary,d.colors.secondary,d.colors.accent,d.colors.dark);
       }
@@ -1420,13 +1384,13 @@ function buildVideoEmbed(url,uid,autoplay){
   if(/youtube\.com|youtu\.be/.test(url)){
     var m=url.match(/[?&]v=([^&]+)/)||url.match(/youtu\.be\/([^?]+)/);
     var vid=m?m[1]:''; if(!vid) return '';
-    return '<iframe src="https://www.youtube-nocookie.com/embed/'+vid+'?rel=0&modestbranding=1&playsinline=1'+(autoplay?'&autoplay=1&mute=1':'')+'" allowfullscreen allow="autoplay; encrypted-media" style="width:100%;height:100%;border:none;border-radius:14px"></iframe>';
+    return '<iframe src="https://www.youtube-nocookie.com/embed/'+vid+'?rel=0&modestbranding=1&playsinline=1'+(autoplay?'&autoplay=1':'')+'" allowfullscreen allow="autoplay; encrypted-media" style="width:100%;height:100%;border:none;border-radius:14px"></iframe>';
   }
   if(/vimeo\.com/.test(url)){
     var vm=url.match(/vimeo\.com\/(\d+)/); var vmId=vm?vm[1]:''; if(!vmId) return '';
-    return '<iframe src="https://player.vimeo.com/video/'+vmId+'?'+(autoplay?'autoplay=1&muted=1&':'')+'badge=0&byline=0&portrait=0" allowfullscreen style="width:100%;height:100%;border:none;border-radius:14px"></iframe>';
+    return '<iframe src="https://player.vimeo.com/video/'+vmId+'?'+(autoplay?'autoplay=1&':'')+'badge=0&byline=0&portrait=0" allowfullscreen style="width:100%;height:100%;border:none;border-radius:14px"></iframe>';
   }
-  return '<video src="'+esc(url)+'" controls '+(autoplay?'autoplay muted':'')+' playsinline preload="metadata" style="width:100%;height:100%;border:none;border-radius:14px;object-fit:contain;background:#000"></video>';
+  return '<video src="'+esc(url)+'" controls '+(autoplay?'autoplay':'')+' playsinline preload="metadata" style="width:100%;height:100%;border:none;border-radius:14px;object-fit:contain;background:#000"></video>';
 }
 
 // ── WAIVER ────────────────────────────────────────────────────────────────────
@@ -1732,24 +1696,33 @@ function loadAdminForm(){
   document.getElementById('cfg-whatsapp').value=contactInfo.whatsapp||WL.whatsapp;
   document.getElementById('cfg-email').value=contactInfo.email||WL.email;
   document.getElementById('cfg-website').value=contactInfo.website||WL.website;
-  document.getElementById('cfg-callmebotPhone').value=callMeBotPhone;
-  document.getElementById('cfg-callmebotKey').value=callMeBotApiKey;
-  // Integraciones
-  document.getElementById('cfg-fb-apiKey').value=WL.firebase.apiKey;
-  document.getElementById('cfg-fb-authDomain').value=WL.firebase.authDomain;
-  document.getElementById('cfg-fb-dbUrl').value=WL.firebase.databaseURL;
-  document.getElementById('cfg-fb-projectId').value=WL.firebase.projectId;
-  document.getElementById('cfg-fb-appId').value=WL.firebase.appId;
-  document.getElementById('cfg-tenantId').value=tenantId;
-  var tdEl=document.getElementById('cfg-tenantId-display'); if(tdEl) tdEl.value=tenantId;
-  document.getElementById('cfg-brevoWorker').value=brevoWorker;
-  document.getElementById('cfg-senderName').value=senderName;
-  document.getElementById('cfg-senderEmail').value=senderEmail;
-  // Telegram
   var tgTokenEl=document.getElementById('cfg-telegramToken');
   if(tgTokenEl) tgTokenEl.value=telegramBotToken;
   var tgChatEl=document.getElementById('cfg-telegramChatId');
   if(tgChatEl) tgChatEl.value=telegramChatId;
+  // Brevo
+  var brEl=document.getElementById('cfg-brevoWorker');
+  if(brEl) brEl.value=brevoWorker;
+  var snEl=document.getElementById('cfg-senderName');
+  if(snEl) snEl.value=senderName;
+  var seEl=document.getElementById('cfg-senderEmail');
+  if(seEl) seEl.value=senderEmail;
+  // Firebase config display
+  var fkEl=document.getElementById('cfg-fb-apiKey');
+  if(fkEl) fkEl.value=WL.firebase.apiKey||'';
+  var fdEl=document.getElementById('cfg-fb-authDomain');
+  if(fdEl) fdEl.value=WL.firebase.authDomain||'';
+  var fuEl=document.getElementById('cfg-fb-dbUrl');
+  if(fuEl) fuEl.value=WL.firebase.databaseURL||'';
+  var fpEl=document.getElementById('cfg-fb-projectId');
+  if(fpEl) fpEl.value=WL.firebase.projectId||'';
+  var faEl=document.getElementById('cfg-fb-appId');
+  if(faEl) faEl.value=WL.firebase.appId||'';
+  var ftEl=document.getElementById('cfg-tenantId-display');
+  if(ftEl) ftEl.value=tenantId;
+  // Chatbot
+  var cuEl=document.getElementById('cfg-chatbotUrl');
+  if(cuEl) cuEl.value=chatbotUrl;
   // Waiver
   document.getElementById('cfg-waiverEs').value=waiverTextES;
   document.getElementById('cfg-waiverEn').value=waiverTextEN;
@@ -2125,21 +2098,21 @@ async function saveConfig(){
   contactInfo.whatsapp=document.getElementById('cfg-whatsapp').value;
   contactInfo.email=document.getElementById('cfg-email').value;
   contactInfo.website=document.getElementById('cfg-website').value;
-  callMeBotPhone=document.getElementById('cfg-callmebotPhone').value;
-  callMeBotApiKey=document.getElementById('cfg-callmebotKey').value;
-  brevoWorker=document.getElementById('cfg-brevoWorker').value;
-  senderName=document.getElementById('cfg-senderName').value;
-  senderEmail=document.getElementById('cfg-senderEmail').value;
   var tgToken=document.getElementById('cfg-telegramToken');
   if(tgToken) telegramBotToken=tgToken.value;
   var tgChat=document.getElementById('cfg-telegramChatId');
   if(tgChat) telegramChatId=tgChat.value;
+  var cuEl=document.getElementById('cfg-chatbotUrl');
+  if(cuEl) chatbotUrl=cuEl.value.trim()||'index.html';
   var newTenant=document.getElementById('cfg-tenantId').value.trim();
   if(newTenant) tenantId=newTenant;
   var newPw=document.getElementById('cfg-adminPw').value;
   if(newPw){ adminPassword=newPw; WL.adminPassword=newPw; }
   waiverTextES=document.getElementById('cfg-waiverEs').value;
   waiverTextEN=document.getElementById('cfg-waiverEn').value;
+  brevoWorker=document.getElementById('cfg-brevoWorker').value;
+  senderName=document.getElementById('cfg-senderName').value;
+  senderEmail=document.getElementById('cfg-senderEmail').value;
 
   var colorP=document.getElementById('cfg-colorPrimary').value;
   var colorS=document.getElementById('cfg-colorSecondary').value;
@@ -2152,8 +2125,8 @@ async function saveConfig(){
     heroSubES, heroSubEN,
     enabledDays:Array.from(enabledDays),
     customTimes, contactInfo,
-    callMeBotPhone, callMeBotApiKey,
     telegramBotToken, telegramChatId,
+    chatbotUrl,
     adminPassword, brevoWorker, senderName, senderEmail,
     tenantId, pageName: WL.pageName||'',
     sourceOptions_es, sourceOptions_en,
@@ -2200,8 +2173,6 @@ function exportHTML(){
     phone:          contactInfo.phone    || WL.phone,
     whatsapp:       contactInfo.whatsapp || WL.whatsapp,
     email:          contactInfo.email    || WL.email,
-    callMeBotPhone: callMeBotPhone,
-    callMeBotApiKey:callMeBotApiKey,
     website:        contactInfo.website  || WL.website,
     brevoWorker:    brevoWorker,
     senderName:     senderName,
@@ -2222,6 +2193,7 @@ function exportHTML(){
     pageName:       WL.pageName || '',
     telegramBotToken: telegramBotToken || '',
     telegramChatId:   telegramChatId || '',
+    chatbotUrl:       chatbotUrl || '',
     singleProgram:  WL.singleProgram || ''
   };
 
@@ -2280,8 +2252,6 @@ function exportPublic(){
     phone:          contactInfo.phone    || WL.phone,
     whatsapp:       contactInfo.whatsapp || WL.whatsapp,
     email:          contactInfo.email    || WL.email,
-    callMeBotPhone: callMeBotPhone,
-    callMeBotApiKey:callMeBotApiKey,
     website:        contactInfo.website  || WL.website,
     brevoWorker:    brevoWorker,
     senderName:     senderName,
@@ -2302,6 +2272,7 @@ function exportPublic(){
     pageName:       WL.pageName || '',
     telegramBotToken: telegramBotToken || '',
     telegramChatId:   telegramChatId || '',
+    chatbotUrl:       chatbotUrl || '',
     singleProgram:  WL.singleProgram || ''
   };
 
@@ -2384,7 +2355,7 @@ fbLoad();
     gap: 10px;
     font-family: 'Nunito', sans-serif;
   }
-  .wa-bubble {
+  .ch-bubble {
     background: #fff;
     color: #111;
     border-radius: 16px 16px 4px 16px;
@@ -2394,19 +2365,19 @@ fbLoad();
     box-shadow: 0 4px 18px rgba(0,0,0,0.18);
     max-width: 210px;
     line-height: 1.4;
-    animation: waPop 0.4s cubic-bezier(.34,1.56,.64,1) both;
+    animation: chPop 0.4s cubic-bezier(.34,1.56,.64,1) both;
     position: relative;
   }
-  .wa-bubble span.lang {
+  .ch-bubble span.lang {
     display: block;
-    color: #25D366;
+    color: var(--red);
     font-size: 11px;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 2px;
   }
-  .wa-bubble .wa-close {
+  .ch-bubble .ch-close {
     position: absolute;
     top: 5px;
     right: 8px;
@@ -2415,39 +2386,39 @@ fbLoad();
     color: #aaa;
     line-height: 1;
   }
-  .wa-circle {
+  .ch-circle {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background: #25D366;
+    background: var(--red);
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 20px rgba(37,211,102,0.45);
+    box-shadow: 0 4px 20px rgba(224,32,32,0.45);
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
-    animation: waPulse 2.5s infinite;
+    animation: chPulse 2.5s infinite;
   }
-  .wa-circle:hover {
+  .ch-circle:hover {
     transform: scale(1.1);
-    box-shadow: 0 6px 28px rgba(37,211,102,0.55);
+    box-shadow: 0 6px 28px rgba(224,32,32,0.55);
   }
-  .wa-circle svg {
+  .ch-circle svg {
     width: 34px;
     height: 34px;
     fill: #fff;
   }
-  @keyframes waPulse {
-    0%,100% { box-shadow: 0 4px 20px rgba(37,211,102,0.45); }
-    50%      { box-shadow: 0 4px 28px rgba(37,211,102,0.75), 0 0 0 10px rgba(37,211,102,0.12); }
+  @keyframes chPulse {
+    0%,100% { box-shadow: 0 4px 20px rgba(224,32,32,0.45); }
+    50%      { box-shadow: 0 4px 28px rgba(224,32,32,0.75), 0 0 0 10px rgba(224,32,32,0.12); }
   }
-  @keyframes waPop {
+  @keyframes chPop {
     from { opacity:0; transform: scale(0.7) translateY(10px); }
     to   { opacity:1; transform: scale(1) translateY(0); }
   }
   @media(max-width:480px){
-    .wa-float-btn { bottom:18px; right:16px; }
-    .wa-circle { width:54px; height:54px; }
+    .ch-float-btn { bottom:18px; right:16px; }
+    .ch-circle { width:54px; height:54px; }
   }
 </style>
 
