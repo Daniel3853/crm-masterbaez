@@ -308,7 +308,7 @@ select:focus{border-color:var(--red);background:#fff}
 
 <script>
 function openChatbot(){
-  var chatbotUrl = document.getElementById('chatbotFrame').getAttribute('data-src') || window.chatbotUrl || 'index.html';
+  var chatbotUrl = document.getElementById('chatbotFrame').getAttribute('data-src') || window.chatbotUrl || 'chatbot.html';
   document.getElementById('chatbotFrame').src = chatbotUrl;
   document.getElementById('chatbotModal').style.display = 'flex';
   document.body.style.overflow = 'hidden';
@@ -668,8 +668,8 @@ Recomendación"></textarea>
         <h3>💬 Chatbot</h3>
         <div class="admin-field">
           <label>URL del Chatbot</label>
-          <input class="admin-input" id="cfg-chatbotUrl" placeholder="index.html">
-          <div style="font-size:11px;color:#888;margin-top:4px">Ruta relativa o URL completa. Default: <b>index.html</b></div>
+          <input class="admin-input" id="cfg-chatbotUrl" placeholder="chatbot.html">
+          <div style="font-size:11px;color:#888;margin-top:4px">Ruta relativa o URL completa. Default: <b>chatbot.html</b></div>
         </div>
       </div>
       <div class="admin-card">
@@ -765,7 +765,7 @@ var adminPassword = WL.adminPassword;
 var brevoWorker   = WL.brevoWorker;
 var senderName    = WL.senderName;
 var senderEmail   = WL.senderEmail;
-var chatbotUrl    = WL.chatbotUrl || 'index.html';
+var chatbotUrl    = WL.chatbotUrl || 'chatbot.html';
 var tenantId      = WL.tenantId;
 var videoFirst    = true;
 var sourceOptions_es = ['Facebook','Instagram','YouTube','TikTok','Google My Business','Búsqueda en Google','Recomendación de amigo/familiar','Otro'];
@@ -2103,7 +2103,7 @@ async function saveConfig(){
   var tgChat=document.getElementById('cfg-telegramChatId');
   if(tgChat) telegramChatId=tgChat.value;
   var cuEl=document.getElementById('cfg-chatbotUrl');
-  if(cuEl) chatbotUrl=cuEl.value.trim()||'index.html';
+  if(cuEl) chatbotUrl=cuEl.value.trim()||'chatbot.html';
   var newTenant=document.getElementById('cfg-tenantId').value.trim();
   if(newTenant) tenantId=newTenant;
   var newPw=document.getElementById('cfg-adminPw').value;
