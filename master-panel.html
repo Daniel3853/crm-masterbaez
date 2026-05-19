@@ -18846,8 +18846,7 @@ function toggleInlineNote(id){
 
 function buildQRClientUrl(c, ignoreEnabled){
   if(!ignoreEnabled && c.qrEnabled === false) return '';
-  var base = 'https://daniel3853.github.io/crm-masterbaez/index.html';
-  return base + '?ref=CLI-' + encodeURIComponent(c.id);
+  return buildQRClientDirectUrl(c);
 }
 
 // Returns the real destination URL for display/copy purposes only (not for the QR image)
