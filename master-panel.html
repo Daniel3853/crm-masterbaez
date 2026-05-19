@@ -18800,7 +18800,7 @@ function renderQRClientes(){
       var payActive = c.paymentActive === true;
       var cid = esc(c.id);
       var name = esc(c.name)+(c.bizName?' <span style="color:var(--muted);font-weight:400;font-size:12px">— '+esc(c.bizName)+'</span>':'');
-      return '<tr style="cursor:pointer" onclick="viewQRClient(\''+cid+'\')">'+
+      return '<tr style="cursor:pointer" onclick="handleQRRowClick(event,\''+cid+'\')">'+
         '<td><strong style="font-size:14px;font-family:Syne,sans-serif">'+name+'</strong>'+
           (c.phone?'<br/><span style="font-size:11px;color:var(--muted)">📱 '+esc(c.phone)+'</span>':'')+
         '</td>'+
@@ -18809,7 +18809,7 @@ function renderQRClientes(){
         '<td><span class="badge '+(isOn?'badge-partner-active':'badge-partner-inactive')+'">'+(isOn?'✅ Activo':'🚫 Inactivo')+'</span>'+
           (payActive?'<br/><span style="display:inline-flex;align-items:center;gap:3px;background:rgba(34,197,94,.15);color:#22c55e;padding:2px 7px;border-radius:20px;font-size:9px;font-weight:700;margin-top:4px">💳 Pagos ON</span>':'')+
         '</td>'+
-        '<td onclick="event.stopPropagation()"><div class="actions-cell">'+
+        '<td><div class="actions-cell">'+
           '<button class="act-btn" data-qrcaction="toggle" data-qrcid="'+cid+'" style="'+(isOn?'color:#22c55e;border-color:#22c55e':'color:#f87171;border-color:#f87171')+'" title="'+(isOn?'Desactivar':'Activar')+'">'+(isOn?'✅':'🚫')+'</button>'+
           '<button class="act-btn" data-qrcaction="copy"   data-qrcid="'+cid+'" title="Copiar link">🔗</button>'+
           '<button class="act-btn" data-qrcaction="agree"  data-qrcid="'+cid+'" style="color:#a78bfa;border-color:#a78bfa" title="Acuerdo">📄</button>'+
@@ -18834,6 +18834,11 @@ function renderQRClientes(){
     else if(action==='edit')       openQRClientModal(id);
     else if(action==='delete')     deleteQRClient(id);
   };
+}
+
+function handleQRRowClick(e, id){
+  if(e.target.closest('[data-qrcaction]')) return;
+  viewQRClient(id);
 }
 
 function toggleInlineNote(id){
