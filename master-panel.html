@@ -18945,6 +18945,7 @@ async function saveQRClient(){
   var link = document.getElementById('qrc-link').value.trim();
   if(!name){ showToast('⚠️ Ingresa el nombre del cliente','var(--danger)'); return; }
   if((type==='whatsapp'||type==='sms') && !phone){ showToast('⚠️ Ingresa el número','var(--danger)'); return; }
+  if((type==='link'||type==='teams') && !link){ showToast('⚠️ Ingresa la URL del '+(type==='teams'?'canal Teams':'sitio web'),'var(--danger)'); return; }
   var c = {
     id: _editQRClientId || 'qrc_'+Date.now(),
     name: name, bizName: bizName, email: email,
@@ -19102,7 +19103,18 @@ function viewQRClient(id){
   _qrcViewUrl = url;
   _qrcViewName = c.name;
   document.getElementById('qrcv-title').textContent = '🪪 '+c.name;
+  if(!url){
+    document.getElementById('qrcv-url').textContent = '⚠️ No hay link configurado para este QR. Edítalo e ingresa la URL.';
+    document.getElementById('qrcv-url').style.color = 'var(--danger)';
+    var canvas = document.getElementById('qrcv-canvas');
+    var imgEl = document.getElementById('qrcv-img');
+    if(imgEl){ imgEl.style.display = 'none'; }
+    canvas.style.display = 'none';
+    document.getElementById('qrclienteViewModal').style.display = 'flex';
+    return;
+  }
   document.getElementById('qrcv-url').textContent = url;
+  document.getElementById('qrcv-url').style.color = '';
   // Use qrserver.com (same as QR Flyer section)
   var qrImgUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data='+encodeURIComponent(url);
   var canvas = document.getElementById('qrcv-canvas');
@@ -19115,6 +19127,7 @@ function viewQRClient(id){
     canvas.parentNode.insertBefore(imgEl, canvas);
     canvas.style.display = 'none';
   }
+  imgEl.style.display = 'block';
   imgEl.src = qrImgUrl;
   // Store for download
   imgEl.onload = function(){
