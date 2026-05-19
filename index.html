@@ -1268,18 +1268,29 @@ async function saveLeadToFirebase(lead){
   }catch(e){ console.error('Firebase lead error:',e); }
 }
 
+var _fbLoaded=false;
+
+function showPage(){
+  if(_fbLoaded) return;
+  _fbLoaded=true;
+  updateHeroName(); renderHeroPrograms(); renderForm();
+  var loader=document.getElementById('pageLoader');
+  var content=document.getElementById('mainContent');
+  if(loader){ loader.classList.add('hidden'); setTimeout(function(){loader.style.display='none';},500); }
+  if(content) content.classList.add('visible');
+}
+
 async function fbLoad(){
   var loaderTxt=document.getElementById('loaderTxt');
   if(loaderTxt) loaderTxt.textContent='Conectando...';
+  // Fallback: mostrar pagina con WL defaults si Firebase no responde en 2 seg
+  var fallbackTimer=setTimeout(showPage,2000);
   try{
-    // Load from tenant-specific key only. If it doesn't exist yet, migrate from legacy key
-    // and immediately save to the new key so future loads never fall back to legacy again.
     var snap=await _fbdb.ref(getFbConfigKey()).get();
     if(!snap.exists()){
       var legacySnap=await _fbdb.ref('leadPageConfig').get();
       if(legacySnap.exists()){
         snap=legacySnap;
-        // Migrate: write legacy data into new key so next load uses the correct key
         try{ await _fbdb.ref(getFbConfigKey()).set(legacySnap.val()); }catch(e){ console.warn('Migration write failed:',e); }
       }
     }
@@ -1320,18 +1331,11 @@ async function fbLoad(){
       }
     }
   }catch(e){ console.error('fbLoad error:',e); }
+  clearTimeout(fallbackTimer);
   if(logoDataUrl){
     document.getElementById('loaderIcon').innerHTML='<img src="'+logoDataUrl+'" style="width:80px;height:80px;object-fit:contain;border-radius:16px"/>';
   }
-  updateHeroName(); renderHeroPrograms(); renderForm();
-  setTimeout(skipIntro,600);
-}
-
-function skipIntro(){
-  var loader=document.getElementById('pageLoader');
-  var content=document.getElementById('mainContent');
-  if(loader){ loader.classList.add('hidden'); setTimeout(function(){loader.style.display='none';},500); }
-  if(content) content.classList.add('visible');
+  showPage();
 }
 
 // ── PROGRAM DETAIL MODAL ──────────────────────────────────────────────────────
