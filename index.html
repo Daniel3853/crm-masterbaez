@@ -286,13 +286,7 @@ select:focus{border-color:var(--red);background:#fff}
 
 <!-- ── CHATBOT FLOAT ── -->
 <div style="position:fixed;bottom:106px;right:20px;z-index:10000;display:flex;flex-direction:column;align-items:flex-end;gap:10px;font-family:'Nunito',sans-serif;" id="chFloatContainer">
-  <div class="ch-bubble" id="chBubble">
-    <span class="ch-close" onclick="document.getElementById('chBubble').style.display='none'">✕</span>
-  <script>setTimeout(function(){var b=document.getElementById('chBubble');if(b)b.style.display='none';},15000);</script>
-    <span class="lang">EN</span> Questions? Chat with us!
-    <br><span class="lang" style="margin-top:6px">ES</span> ¿Preguntas? ¡Chatea con nosotros!
-  </div>
-   <a class="ch-btn" id="chLink" href="javascript:void(0)" aria-label="Chat" onclick="openChatbot()">
+  <a class="ch-btn" id="chLink" href="javascript:void(0)" aria-label="Chat" onclick="openChatbot()">
     <span class="ch-btn-en">💬 Chat</span><span class="ch-btn-es">💬 Chatea</span>
   </a>
 </div>
@@ -941,6 +935,7 @@ function updateHeroName(){
 // ── LANG ──────────────────────────────────────────────────────────────────────
 function toggleLang(){
   lang=lang==='es'?'en':'es';
+  document.documentElement.lang = lang;
   document.getElementById('langBtn').textContent=t().langBtn;
   document.getElementById('heroSub').textContent=lang==='es'?heroSubES:heroSubEN;
   document.getElementById('footerRights').textContent=t().footerRights;
@@ -952,6 +947,7 @@ function toggleLang(){
 }
 function toggleLangWaiver(){
   lang=lang==='es'?'en':'es';
+  document.documentElement.lang = lang;
   document.getElementById('langBtn').textContent=t().langBtn;
   document.getElementById('heroSub').textContent=lang==='es'?heroSubES:heroSubEN;
   openWaiverModal();
@@ -2371,37 +2367,6 @@ fbLoad();
     align-items: flex-end;
     gap: 10px;
     font-family: 'Nunito', sans-serif;
-  }
-  .ch-bubble {
-    background: #fff;
-    color: #111;
-    border-radius: 16px 16px 4px 16px;
-    padding: 10px 16px;
-    font-size: 13px;
-    font-weight: 700;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.18);
-    max-width: 210px;
-    line-height: 1.4;
-    animation: chPop 0.4s cubic-bezier(.34,1.56,.64,1) both;
-    position: relative;
-  }
-  .ch-bubble span.lang {
-    display: block;
-    color: var(--red);
-    font-size: 11px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 2px;
-  }
-  .ch-bubble .ch-close {
-    position: absolute;
-    top: 5px;
-    right: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    color: #aaa;
-    line-height: 1;
   }
   .ch-btn {
     display: flex;
