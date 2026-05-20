@@ -288,6 +288,7 @@ select:focus{border-color:var(--red);background:#fff}
 <div style="position:fixed;bottom:106px;right:20px;z-index:10000;display:flex;flex-direction:column;align-items:flex-end;gap:10px;font-family:'Nunito',sans-serif;" id="chFloatContainer">
   <div class="ch-bubble" id="chBubble">
     <span class="ch-close" onclick="document.getElementById('chBubble').style.display='none'">✕</span>
+  <script>setTimeout(function(){var b=document.getElementById('chBubble');if(b)b.style.display='none';},5000);</script>
     <span class="lang">EN</span> Questions? Chat with us!
     <br><span class="lang" style="margin-top:6px">ES</span> ¿Preguntas? ¡Chatea con nosotros!
   </div>
