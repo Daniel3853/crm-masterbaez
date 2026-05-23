@@ -797,7 +797,7 @@ if(_singleProgId){
 
 var state = {
   step:1, firstName:'', lastName:'', email:'', phone:'',
-  program:_singleProgId || '', date:'', time:'', notes:'', _lastLead:null,
+  program:_singleProgId || '', date:'', time:'', notes:'', notesOther:'', _lastLead:null,
   calYear:new Date().getFullYear(), calMonth:new Date().getMonth()
 };
 
@@ -1016,12 +1016,22 @@ function renderStep1(tx){
     +'</div>'
     +'<div class="field"><label>'+tx.email+' *</label><input type="email" value="'+esc(state.email)+'" oninput="state.email=this.value" placeholder="juan@email.com"/></div>'
     +'<div class="field"><label>'+tx.phone+' *</label><input id="phoneInp" type="tel" value="'+esc(state.phone)+'" placeholder="(305) 000-0000" maxlength="18"/></div>'
+    +'<div class="field"><label>'+tx.notes+' *</label>'
+      +'<select id="srcSelect" onchange="state.notes=this.value;toggleNotesOther()">'
+        +'<option value="">'+esc(tx.notesPH)+'</option>'
+        +srcOpts.map(function(o){return '<option value="'+esc(o)+'"'+(state.notes===o?' selected':'')+'>'+esc(o)+'</option>';}).join('')
+      +'</select>'
+      +'<div id="notesOtherBox" style="display:'+((lang==='es'?state.notes==='Otro':state.notes==='Other')?'block':'none')+';margin-top:8px;background:rgba(224,32,32,.06);border:1px solid rgba(224,32,32,.15);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--muted)">'
+        +'<div style="font-weight:700;margin-bottom:4px">'+(lang==='en'?'Please specify:':'Por favor especifica:')+'</div>'
+        +'<input id="notesOtherInp" type="text" value="'+esc(state.notesOther||'')+'" oninput="state.notesOther=this.value" placeholder="'+(lang==='en'?'Describe how you heard about us...':'Describe cómo nos conociste...')+'" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:13px;outline:none"/>'
+      +'</div>'
+    +'</div>'
     +(_singleProgId ? '' : '<div class="field">'
       +'<div style="text-align:center;margin-bottom:14px;padding:14px;background:linear-gradient(135deg,rgba(224,32,32,.07),rgba(26,63,166,.07));border-radius:14px;border:2px dashed rgba(224,32,32,.25)">'
         +'<div style="font-size:26px;margin-bottom:4px">🎯</div>'
         +'<div style="font-weight:900;font-size:16px;color:var(--text);margin-bottom:3px">'+(lang==='en'?'Explore our programs!':'¡Explora nuestros programas!')+'</div>'
         +'<div style="font-size:13px;color:var(--muted)">'+(lang==='en'?'Select the program that interests you the most':'Selecciona el programa que más te interesa')+'</div>'
-+'</div></div>'
+      +'</div>'
       +(function(){
         var banners=customProgs.filter(function(p){return !p.hidden && p.bannerPhoto && (p.bannerDisplay==='banner'||p.bannerDisplay==='both');});
         if(banners.length===0) return '';
@@ -1039,14 +1049,38 @@ function renderStep1(tx){
           +'</div>';
         }).join('');
       })()
+      +'<div class="prog-grid">'
+      +customProgs.filter(function(p){return !p.hidden;}).map(function(p){
+        var pi=customProgs.indexOf(p);
+        var sel=state.program===p.id;
+        var hasDetail=!!(p.photo||p.descES||p.descEN||(p.videos&&p.videos.length)||(p.docs&&p.docs.length));
+        var forWho=lang==='en'?(p.forWhoEN||p.forWhoES||''):(p.forWhoES||p.forWhoEN||'');
+        var onclick=hasDetail?'openProgDetail('+pi+')':'state.program=\''+p.id+'\';renderForm()';
+        return '<div style="position:relative">'
+          +'<button class="prog-btn'+(sel?' selected':'')+'" style="border-color:'+(sel?p.color:'var(--border)')+';background:'+(sel?p.light:'#fafafa')+';width:100%" onclick="'+onclick+'">'
+            +(p.photo?'<img class="prog-btn-photo" src="'+p.photo+'" alt="'+esc(progLabel(p))+'"/>'
+              :'<div style="aspect-ratio:2/3;background:'+p.color+'22;display:flex;align-items:center;justify-content:center;font-size:48px">'+p.icon+'</div>')
+            +'<div class="prog-btn-body">'
+              +'<div class="prog-icon">'+esc(p.icon)+'</div>'
+              +'<div class="prog-name" style="color:'+(sel?p.color:'var(--text)')+'">'+esc(progLabel(p))+'</div>'
+              +(p.age?'<div class="prog-age">'+esc(p.age)+'</div>':'')
+              +(forWho?'<div class="prog-forwho">'+esc(forWho)+'</div>':'')
+            +'</div>'
+          +'</button></div>';
+      }).join('')
+      +'</div>'
       +'</div>')
-    +'<div class="field"><label>'+tx.notes+' *</label>'
-      +'<select oninput="state.notes=this.value" onchange="state.notes=this.value">'
-        +'<option value="">'+esc(tx.notesPH)+'</option>'
-        +srcOpts.map(function(o){return '<option value="'+esc(o)+'"'+(state.notes===o?' selected':'')+'>'+esc(o)+'</option>';}).join('')
-      +'</select>'
-    +'</div>'
     +'<button class="btn-primary" onclick="goStep1to2()" style="background:var(--blue)">'+tx.btnNext1+'</button>';
+}
+
+function toggleNotesOther(){
+  var box = document.getElementById('notesOtherBox');
+  var inp = document.getElementById('notesOtherInp');
+  var sel = document.getElementById('srcSelect');
+  if(!box || !sel) return;
+  var isOther = lang==='es' ? sel.value==='Otro' : sel.value==='Other';
+  box.style.display = isOther ? 'block' : 'none';
+  if(!isOther && inp) inp.value = '';
 }
 
 function goStep1to2(){
@@ -1097,7 +1131,7 @@ function renderStep2(tx){
 function renderStep3(tx){
   var prog=customProgs.find(function(p){return p.id===state.program;});
   var rows=[[tx.lName,state.firstName+' '+state.lastName],[tx.lEmail,state.email],[tx.lPhone,state.phone],[tx.lProg,prog?progLabel(prog):state.program],[tx.lDate,state.date],[tx.lTime,state.time]];
-  if(state.notes) rows.push([tx.lNotes,state.notes]);
+  if(state.notes) rows.push([tx.lNotes,state.notes +(state.notesOther?' — '+state.notesOther:'')]);
   var isEs=lang==='es';
   return '<div class="section-title">'+tx.secTitle3+'</div>'
     +'<p class="section-sub">'+tx.secSub3+'</p>'
@@ -1167,7 +1201,7 @@ function selectTime(ti){
   state.time=ti; renderForm();
 }
 function resetForm(){
-  state={step:1,firstName:'',lastName:'',email:'',phone:'',program:'',date:'',time:'',notes:'',_lastLead:null,calYear:new Date().getFullYear(),calMonth:new Date().getMonth()};
+  state={step:1,firstName:'',lastName:'',email:'',phone:'',program:'',date:'',time:'',notes:'',notesOther:'',_lastLead:null,calYear:new Date().getFullYear(),calMonth:new Date().getMonth()};
   renderForm();
 }
 var cdTimer=null;
@@ -1192,7 +1226,7 @@ function submitForm(){
     id:Date.now(),
     firstName:state.firstName, lastName:state.lastName,
     email:state.email, phone:state.phone,
-    program:state.program, date:state.date, time:state.time, notes:state.notes,
+    program:state.program, date:state.date, time:state.time, notes:state.notes, notesOther:state.notesOther,
     read:false, attended:false, classes:0, currentProgram:state.program, history:[],
     ref_id:(new URLSearchParams(window.location.search)).get('ref')||'',
     source:tenantId,
