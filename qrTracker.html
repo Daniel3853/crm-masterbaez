@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirigiendo...</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0a0a0a;color:#fff;font-family:sans-serif;flex-direction:column;gap:16px}
+    .spinner{width:36px;height:36px;border:3px solid rgba(232,255,60,.15);border-top-color:#e8ff3c;border-radius:50%;animation:spin .7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    p{font-size:13px;color:rgba(255,255,255,.5)}
+  </style>
+</head>
+<body>
+  <div class="spinner"></div>
+  <p>Redirigiendo...</p>
+
+  <script>
+    // ── 1. Leer parámetros de la URL ──
+    var params = new URLSearchParams(location.search);
+    var ref     = params.get('ref') || '';
+    var dest    = params.get('dest') || '';
+    var type    = params.get('type') || 'qr';
+
+    // Si no hay dest, ir al index con el ref (compatibilidad hacia atrás)
+    if(!dest && ref){
+      dest = 'https://daniel3853.github.io/crm-masterbaez/index.html?ref=' + encodeURIComponent(ref);
+    }
+    if(!dest){ dest = 'https://daniel3853.github.io/crm-masterbaez/'; }
+
+    // ── 2. Firebase — guardar el scan ──
+    var FIREBASE_CONFIG = {
+      apiKey:            "AIzaSyDpjqJFZxh1ErjbfTJ8nq-uzB3oHXDo-iA",
+      authDomain:        "crm-leads-baez.firebaseapp.com",
+      databaseURL:       "https://crm-leads-baez-default-rtdb.firebaseio.com",
+      projectId:         "crm-leads-baez",
+      storageBucket:     "crm-leads-baez.firebasestorage.app",
+      messagingSenderId: "583732725999",
+      appId:             "1:583732725999:web:b38aa0a3ffc9e809c3b31a"
+    };
+
+    try{
+      if(typeof firebase !== 'undefined' && !firebase.apps.length){
+        firebase.initializeApp(FIREBASE_CONFIG);
+      }
+      if(typeof firebase !== 'undefined' && firebase.apps.length){
+        var db = firebase.database();
+        var scanData = {
+          ref:       ref,
+          type:      type,
+          dest:      dest,
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent,
+          language:  navigator.language || '',
+          scanned:   true
+        };
+        if(ref){
+          db.ref('qrScans/' + ref).push(scanData);
+        } else {
+          db.ref('qrScans/anonymous').push(scanData);
+        }
+      }
+    } catch(e){
+      console.warn('Firebase tracking error:', e);
+    }
+
+    // ── 3. Redirigir ──
+    setTimeout(function(){
+      window.location.href = dest;
+    }, 400);
+  </script>
+</body>
+</html>
