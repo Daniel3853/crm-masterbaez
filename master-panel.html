@@ -4887,7 +4887,8 @@ function logQrScan(ref, type, dest){
 // ── QR Scans tracking ───────────────────────────
 var _scanCache = {};   // { ref: [scans...] }
 var _scanCount24h = 0;
-var _scanListener = null;
+var _scanListenerRef = null;
+var _scanListenerFn = null;
 
 function updateNavBadgeScans(){
   var badge = document.getElementById('navBadgeQrScans');
@@ -4901,10 +4902,11 @@ function updateNavBadgeScans(){
 }
 
 function initQrScanListener(){
-  if(_demoMode || !_fbdb || _scanListener) return;
+  if(_demoMode || !_fbdb || _scanListenerRef) return;
   var isEN = _masterLang === 'en';
   var since = new Date(Date.now() - 24*60*60*1000).toISOString();
-  _scanListener = _fbdb.ref('qrScans').orderByChild('timestamp').startAt(since).on('value', function(snap){
+  _scanListenerRef = _fbdb.ref('qrScans').orderByChild('timestamp').startAt(since);
+  _scanListenerFn = function(snap){
     _scanCache = {};
     _scanCount24h = 0;
     snap.forEach(function(refSnap){
@@ -4918,7 +4920,8 @@ function initQrScanListener(){
       });
     });
     updateNavBadgeScans();
-  });
+  };
+  _scanListenerRef.on('value', _scanListenerFn);
 }
 
 function renderQrScans(){
@@ -4987,9 +4990,10 @@ function renderQrScans(){
 
 function refreshQrScans(){
   var isEN = _masterLang === 'en';
-  if(_scanListener && _fbdb){
-    _scanListener.off();
-    _scanListener = null;
+  if(_scanListenerRef && _scanListenerFn){
+    _scanListenerRef.off('value', _scanListenerFn);
+    _scanListenerRef = null;
+    _scanListenerFn = null;
   }
   _scanCache = {};
   _scanCount24h = 0;
