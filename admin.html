@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Admin - QR Tracker CRM</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f5f5;color:#222;padding:20px;max-width:1200px;margin:0 auto}
+h1{font-size:24px;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+h1 small{font-size:13px;font-weight:400;color:#888}
+.card{background:#fff;border-radius:14px;padding:20px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.card h2{font-size:16px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #eee}
+input,select,textarea{width:100%;padding:10px 12px;border:2px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:10px;outline:none;font-family:inherit;transition:border .2s}
+input:focus,select:focus,textarea:focus{border-color:#2563eb}
+textarea{min-height:60px;resize:vertical;font-family:inherit}
+.form-group label{display:block;font-size:12px;font-weight:700;color:#555;margin-bottom:3px;margin-top:12px}
+.form-group label small{font-weight:400;color:#999;font-size:11px}
+.form-group input,.form-group textarea{margin-bottom:0}
+.btn{padding:10px 20px;border:none;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .2s;font-family:inherit}
+.btn-primary{background:#2563eb;color:#fff}
+.btn-primary:hover{background:#1d4ed8}
+.btn-success{background:#16a34a;color:#fff}
+.btn-success:hover{background:#15803d}
+.btn-danger{background:#e74c3c;color:#fff}
+.btn-danger:hover{background:#c0392b}
+.btn-warning{background:#f59e0b;color:#fff}
+.btn-warning:hover{background:#d97706}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-outline{background:transparent;border:2px solid #ddd;color:#555}
+.btn-outline:hover{border-color:#2563eb;color:#2563eb}
+.client-list{display:grid;gap:12px}
+.client-card{border:2px solid #eee;border-radius:12px;padding:16px;transition:border .2s;cursor:pointer}
+.client-card:hover{border-color:#2563eb}
+.client-card h3{font-size:15px;margin-bottom:4px}
+.client-card .meta{font-size:12px;color:#888;margin-bottom:10px}
+.qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.qr-item{text-align:center;padding:16px;background:#fafafa;border-radius:10px;border:1px solid #eee;position:relative}
+.qr-item img{width:100%;max-width:200px;border-radius:8px;display:block;margin:0 auto 8px}
+.qr-item .label{font-size:12px;color:#888;margin-bottom:4px}
+.qr-item .id{font-size:10px;color:#aaa;word-break:break-all}
+.tabs{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap}
+.tab{padding:8px 16px;border-radius:8px 8px 0 0;border:none;font-weight:700;font-size:13px;cursor:pointer;background:#eee;color:#666;font-family:inherit;transition:all .2s}
+.tab.active{background:#2563eb;color:#fff}
+.tab-content{display:none}
+.tab-content.active{display:block}
+#loginBox{max-width:360px;margin:80px auto;text-align:center}
+#loginBox h1{margin-bottom:24px;justify-content:center}
+#loginBox input{margin-bottom:12px}
+#loginBox .btn{width:100%}
+.scan-table{width:100%;border-collapse:collapse;font-size:13px}
+.scan-table th,.scan-table td{padding:8px 10px;text-align:left;border-bottom:1px solid #eee}
+.scan-table th{font-weight:700;color:#888;font-size:11px;text-transform:uppercase}
+.scan-table tr:hover td{background:#f8faff}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
+.badge-mobile{background:#dbeafe;color:#1d4ed8}
+.badge-desktop{background:#f3e8ff;color:#7c3aed}
+.badge-active{background:#dcfce7;color:#16a34a}
+.badge-inactive{background:#fce7e7;color:#e74c3c}
+.badge-type-whatsapp{background:#dcfce7;color:#16a34a}
+.badge-type-telegram{background:#dbeafe;color:#1d4ed8}
+.badge-type-sms{background:#fef3c7;color:#b45309}
+.badge-type-teams{background:#f3e8ff;color:#7c3aed}
+.qr-type-select{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.qr-type-select label{display:flex;align-items:center;gap:4px;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;border:2px solid #ddd;transition:all .2s;background:#fff;font-family:inherit}
+.qr-type-select label:hover{border-color:#2563eb}
+.qr-type-select label.active{border-color:#2563eb;background:#eff6ff;color:#2563eb}
+.qr-type-select input[type=radio]{display:none}
+.toast{position:fixed;bottom:20px;right:20px;background:#222;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;z-index:999;opacity:0;transform:translateY(20px);transition:all .3s}
+.toast.show{opacity:1;transform:translateY(0)}
+/* Flyer Pro */
+.flyer-wrap{max-width:900px;margin:0 auto}
+.flyer-controls{background:#fff;border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.flyer-controls h3{font-size:15px;margin-bottom:12px}
+.flyer-clients{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.flyer-clients label{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:8px;font-size:13px;background:#f0f0f0;cursor:pointer;transition:all .2s;border:2px solid transparent}
+.flyer-clients label:hover{border-color:#2563eb}
+.flyer-clients label.checked{background:#2563eb;color:#fff}
+.flyer-clients input[type=checkbox]{display:none}
+.flyer-theme{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.flyer-theme button{padding:6px 14px;border-radius:8px;border:2px solid transparent;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s}
+.flyer-theme button.active{border-color:#222;box-shadow:0 0 0 2px #fff,0 0 0 4px currentColor}
+.flyer-card-editors{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:14px}
+.flyer-card-editor{background:#fafafa;border-radius:10px;padding:14px;border:1px solid #eee}
+.flyer-card-editor .fce-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.flyer-card-editor .fce-color{width:24px;height:24px;border-radius:6px;flex-shrink:0}
+.flyer-card-editor input,.flyer-card-editor textarea{font-size:12px;margin-bottom:4px;padding:6px 10px}
+.flyer-card-editor textarea{min-height:40px}
+.flyer-card-editor .fce-qr-pos{display:flex;gap:4px;margin-top:4px}
+.flyer-card-editor .fce-qr-pos button{padding:3px 8px;border-radius:4px;border:1px solid #ddd;font-size:11px;cursor:pointer;background:#fff;font-family:inherit}
+.flyer-card-editor .fce-qr-pos button.active{background:#2563eb;color:#fff;border-color:#2563eb}
+.flyer-actions{display:flex;gap:8px;margin-bottom:16px}
+/* Professional Sheet */
+.flyer-sheet{width:8.5in;min-height:11in;margin:0 auto;background:#fff;padding:0;box-shadow:0 4px 40px rgba(0,0,0,.15);position:relative;overflow:hidden;font-family:'Segoe UI',Arial,sans-serif}
+.flyer-card-pro{width:50%;min-height:5.5in;float:left;display:flex;flex-direction:column;position:relative;overflow:hidden;page-break-inside:avoid}
+.flyer-card-pro .fc-bg{position:absolute;inset:0;z-index:0}
+.flyer-card-pro .fc-content{position:relative;z-index:1;padding:26px 22px;flex:1;display:flex;flex-direction:column}
+.flyer-card-pro .fc-badge{font-size:9px;text-transform:uppercase;letter-spacing:2px;opacity:.6;margin-bottom:6px}
+.flyer-card-pro .fc-title{font-size:22px;font-weight:900;line-height:1.2;margin-bottom:6px}
+.flyer-card-pro .fc-text{font-size:11px;line-height:1.6;opacity:.8;margin-bottom:12px;flex:1}
+.flyer-card-pro .fc-qr{text-align:center;margin:6px 0}
+.flyer-card-pro .fc-qr img{max-width:110px;border-radius:4px;display:inline-block}
+.flyer-card-pro .fc-qr-left{text-align:left}
+.flyer-card-pro .fc-qr-right{text-align:right}
+.flyer-card-pro .fc-phone{font-size:16px;font-weight:800;text-align:center;margin-top:6px;letter-spacing:.5px}
+.flyer-card-pro.fc-dark .fc-content{color:#fff}
+.flyer-card-pro.fc-dark .fc-badge{color:rgba(255,255,255,.5)}
+.flyer-card-pro.fc-dark .fc-text{color:rgba(255,255,255,.8)}
+.flyer-card-pro.fc-light .fc-content{color:#222}
+.flyer-card-pro.fc-light .fc-badge{color:rgba(0,0,0,.4)}
+.flyer-card-pro.fc-light .fc-text{color:rgba(0,0,0,.7)}
+@media print{body{background:#fff;padding:0;margin:0;max-width:100%}.no-print{display:none!important}.flyer-controls{display:none!important}.flyer-sheet{box-shadow:none;margin:0;width:100%}.flyer-card-pro{min-height:0;height:auto;float:none;width:50%;display:inline-block;vertical-align:top}}
+</style>
+</head>
+<body>
+
+<div id="loginBox">
+  <h1>🔐 QR Tracker Admin</h1>
+  <input id="loginEmail" type="email" placeholder="Email" />
+  <input id="loginPass" type="password" placeholder="Contraseña" />
+  <button class="btn btn-primary" onclick="login()"><span data-lang="loginBtn">Ingresar</span></button>
+  <p style="margin-top:12px;font-size:12px;color:#888">o <a href="#" onclick="showRegister()" style="color:#2563eb" data-lang="createAccount">crear cuenta nueva</a></p>
+  <div id="loginError" style="color:#e74c3c;font-size:13px;margin-top:8px;display:none"></div>
+</div>
+
+<div id="app" style="display:none">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+    <h1>📊 QR Tracker <small id="adminEmail"></small></h1>
+    <div style="display:flex;gap:6px;align-items:center">
+      <button class="btn btn-sm btn-outline no-print" onclick="toggleLang()" id="langBtn">🇺🇸 EN</button>
+      <button class="btn btn-sm btn-outline no-print" onclick="logout()"><span data-lang="logout">Cerrar sesión</span></button>
+    </div>
+  </div>
+
+  <div class="tabs no-print">
+    <button class="tab active" onclick="switchTab('clients',this)"><span data-lang="clientsTitle">Clientes</span></button>
+    <button class="tab" onclick="switchTab('newClient',this)"><span data-lang="newClient">+ Nuevo Cliente</span></button>
+    <button class="tab" onclick="switchTab('flyer',this)"><span data-lang="flyerTitle">Flyer</span></button>
+    <button class="tab" onclick="switchTab('leads',this)"><span data-lang="leadsTitle">📩 Leads</span></button>
+    <button class="tab" onclick="switchTab('settings',this)"><span data-lang="configTitle">Config</span></button>
+    <button class="tab" onclick="switchTab('trash',this)"><span data-lang="trashTitle">🗑 Papelera</span></button>
+  </div>
+
+  <div id="tab-clients" class="tab-content active">
+    <div class="client-list" id="clientList"></div>
+  </div>
+
+  <div id="tab-leads" class="tab-content">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h2 style="font-size:18px" data-lang="leadNew">📩 Leads nuevos</h2>
+      <button class="btn btn-sm btn-success" onclick="exportLeads()" data-lang="exportLeadsBtn">📊 Exportar Excel</button>
+    </div>
+    <p style="font-size:13px;color:#888;margin-bottom:16px" data-lang="leadDesc">Todos los scans sin contactar de todos los clientes.</p>
+    <div id="leadsList"><p style="color:#888;text-align:center;padding:40px">Cargando...</p></div>
+  </div>
+
+  <div id="tab-trash" class="tab-content">
+    <h2 style="font-size:18px;margin-bottom:16px" data-lang="trashTitle">🗑 Papelera</h2>
+    <p style="font-size:13px;color:#888;margin-bottom:16px" data-lang="trashDesc">Clientes, QR y scans eliminados. Podés restaurarlos o eliminarlos permanentemente.</p>
+    <div id="trashList"></div>
+  </div>
+
+  <div id="tab-newClient" class="tab-content">
+    <div class="card">
+      <h2 data-lang="newClientTitle">Crear nuevo cliente</h2>
+      <div class="form-group"><label data-lang="businessName">Nombre del negocio</label><input id="ncName" placeholder="Ej: Mi Empresa" /></div>
+      <div class="form-group"><label>WhatsApp <small data-lang="qrRedirect">(a donde redirige el QR)</small></label><input id="ncWhatsapp" placeholder="Código país + número, sin + ni espacios. Ej: 573001234567" /></div>
+      <div class="form-group"><label>Token del bot de Telegram <small>(de @BotFather)</small></label><input id="ncTelegramToken" placeholder="123456789:ABCdefGHIjklMNO..." /></div>
+      <div class="form-group"><label>Chat ID de Telegram <small>(de @userinfobot)</small></label><input id="ncTelegramChat" placeholder="-1001234567890" /></div>
+      <div class="form-group"><label>Usuario de Telegram <small>(@usuario, para QR de Telegram)</small></label><input id="ncTelegramUser" placeholder="usuario_sin_@" /></div>
+      <div class="form-group"><label data-lang="clientEmail">Email del cliente <small data-lang="forDashboard">(para su dashboard)</small></label><input id="ncEmail" placeholder="cliente@email.com" /></div>
+      <div class="form-group"><label data-lang="dashboardPass">Contraseña del dashboard</label><input id="ncPass" type="password" placeholder="••••••••" /></div>
+      <div class="form-group"><label data-lang="waMessageLabel">Mensaje de WhatsApp <small data-lang="waMessageDesc">(texto que aparece precargado en el formulario)</small></label><textarea id="ncWaMsg" placeholder="Hola, quiero info sobre tus servicios"></textarea></div>
+      <hr style="margin:16px 0;border:none;border-top:1px solid #eee">
+      <h3 style="font-size:14px;margin-bottom:10px" data-lang="emailAutoReply">📧 Auto-respuesta por Email</h3>
+      <div class="form-group"><label>EmailJS Public Key</label><input id="ncEmailjsKey" placeholder="abc123def456" /></div>
+      <div class="form-group"><label>EmailJS Service ID</label><input id="ncEmailjsService" placeholder="service_abc123" /></div>
+      <div class="form-group"><label>EmailJS Template ID</label><input id="ncEmailjsTemplate" placeholder="template_abc123" /></div>
+      <div class="form-group"><label data-lang="autoReplyPhoneLabel">Teléfono de contacto</small></label><input id="ncAutoReplyPhone" placeholder="953801340" /></div>
+      <button class="btn btn-primary" onclick="createClient()" data-lang="createClient">Crear Cliente</button>
+      <div id="ncResult" style="margin-top:10px;font-size:13px"></div>
+    </div>
+  </div>
+
+  <div id="tab-flyer" class="tab-content">
+    <div class="flyer-wrap">
+      <div class="flyer-controls no-print">
+        <h3>🎨 Creador Profesional de Flyer</h3>
+        <p style="font-size:13px;color:#888;margin-bottom:12px">Flyer tamaño carta (8.5×11) en 4 tarjetas. Selecciona clientes, personaliza y descarga o imprime.</p>
+        <div class="flyer-clients" id="flyerClientList"></div>
+        <div style="font-size:12px;color:#888;margin-bottom:10px">Tema de color:</div>
+        <div class="flyer-theme" id="flyerTheme">
+          <button style="background:#1a1a2e;color:#fff" data-theme="dark" onclick="setFlyerTheme('dark')">🌙 Oscuro</button>
+          <button style="background:#2563eb;color:#fff" data-theme="blue" onclick="setFlyerTheme('blue')" class="active">💙 Azul</button>
+          <button style="background:#e74c3c;color:#fff" data-theme="red" onclick="setFlyerTheme('red')">❤️ Rojo</button>
+          <button style="background:#16a34a;color:#fff" data-theme="green" onclick="setFlyerTheme('green')">💚 Verde</button>
+          <button style="background:#222;color:#fff" data-theme="black" onclick="setFlyerTheme('black')">🖤 Negro</button>
+          <button style="background:#fff;color:#222;border-color:#ddd" data-theme="light" onclick="setFlyerTheme('light')">⬜ Claro</button>
+        </div>
+        <div class="flyer-card-editors" id="flyerEditor"></div>
+        <div class="flyer-actions">
+          <button class="btn btn-primary" onclick="generateFlyer()">🔄 Generar Flyer</button>
+          <button class="btn btn-success" onclick="downloadFlyerImg()">⬇ Descargar Imagen</button>
+          <button class="btn btn-outline" onclick="printFlyer()">🖨 Imprimir</button>
+          <a href="designer.html" target="_blank" class="btn btn-sm btn-outline" style="text-decoration:none;margin-left:8px">🎨 Diseñador Pro</a>
+        </div>
+      </div>
+      <div id="flyerResult"></div>
+    </div>
+  </div>
+
+  <div id="tab-settings" class="tab-content">
+    <div class="card">
+      <h2>Generar QR manualmente</h2>
+      <p style="font-size:13px;color:#888;margin-bottom:12px">Útil si ya tienes clientes registrados y quieres generar códigos QR adicionales.</p>
+      <select id="manualClient"></select>
+      <input id="manualQrId" placeholder="ID opcional (se genera solo si lo dejas vacío)" />
+      <button class="btn btn-primary" onclick="generateManualQr()">Generar QR</button>
+      <div id="manualQrResult" style="margin-top:10px"></div>
+    </div>
+  </div>
+</div>
+
+<div id="clientModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;overflow-y:auto;padding:20px" onclick="if(event.target===this)closeClientModal()">
+  <div style="max-width:900px;margin:20px auto;background:#fff;border-radius:16px;padding:24px;position:relative">
+    <button style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:#888" onclick="closeClientModal()">✕</button>
+    <h2 id="modalClientName" style="margin-bottom:16px"></h2>
+    <div class="tabs">
+      <button class="tab active" onclick="switchModalTab('scans',this)"><span data-lang="scansReceived">Scans recibidos</span></button>
+      <button class="tab" onclick="switchModalTab('qrCodes',this)"><span data-lang="qrCodes">Códigos QR</span></button>
+      <button class="tab" onclick="switchModalTab('edit',this)"><span data-lang="editClient">Editar</span></button>
+    </div>
+    <div id="mtab-scans" class="tab-content active">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:14px;font-weight:600" data-lang="scansReceived">Escaneos recibidos</span>
+        <button class="btn btn-sm btn-success" onclick="exportClientScans()"><span data-lang="exportBtn">📊 Exportar</span></button>
+      </div>
+      <div id="modalScanList"><p style="color:#888">Cargando...</p></div>
+    </div>
+    <div id="mtab-qrCodes" class="tab-content">
+      <p style="font-size:12px;color:#888;margin-bottom:8px" data-lang="selectQrType">Selecciona el tipo de QR y genera:</p>
+      <div class="qr-type-select">
+        <label class="active"><input type="radio" name="qrType" value="whatsapp" checked onchange="setQrType('whatsapp')" /> 💬 WhatsApp</label>
+        <label><input type="radio" name="qrType" value="telegram" onchange="setQrType('telegram')" /> ✈️ Telegram</label>
+        <label><input type="radio" name="qrType" value="sms" onchange="setQrType('sms')" /> 📱 SMS</label>
+        <label><input type="radio" name="qrType" value="teams" onchange="setQrType('teams')" /> 💼 Teams</label>
+      </div>
+      <div style="margin-bottom:12px;display:flex;gap:8px">
+        <input id="newQrId" placeholder="ID opcional (se genera solo si lo dejas vacío)" style="flex:1;margin:0" />
+        <button class="btn btn-primary btn-sm" onclick="addQrCode()" data-lang="generateQr">Generar QR</button>
+      </div>
+      <div id="modalQrList"></div>
+    </div>
+    <div id="mtab-edit" class="tab-content">
+      <div class="form-group"><label data-lang="businessName">Nombre del negocio</label><input id="editName" placeholder="Ej: Mi Empresa" /></div>
+      <div class="form-group"><label data-lang="whatsappRedirect">WhatsApp <small data-lang="qrRedirect">(a donde redirige el QR)</small></label><input id="editWhatsapp" placeholder="573001234567" /></div>
+      <div class="form-group"><label>Token del bot de Telegram <small>(de @BotFather)</small></label><input id="editTelegramToken" placeholder="123456789:ABC..." /></div>
+      <div class="form-group"><label>Chat ID de Telegram <small>(de @userinfobot)</small></label><input id="editTelegramChat" placeholder="-1001234567890" /></div>
+      <div class="form-group"><label>Usuario de Telegram <small>(@usuario, para QR de Telegram)</small></label><input id="editTelegramUser" placeholder="usuario_sin_@" /></div>
+      <div class="form-group"><label data-lang="waMessageLabel">Mensaje de WhatsApp <small data-lang="waMessageDesc">(texto precargado en formulario)</small></label><textarea id="editWaMsg" placeholder="Hola, quiero info sobre tus servicios"></textarea></div>
+      <hr style="margin:16px 0;border:none;border-top:1px solid #eee">
+      <h3 style="font-size:14px;margin-bottom:10px" data-lang="emailAutoReply">📧 Auto-respuesta por Email</h3>
+      <p style="font-size:12px;color:#888;margin-bottom:10px" data-lang="emailAutoReplyDesc">Configura EmailJS (gratis: emailjs.com) para enviar auto-respuesta al lead cuando escanea el QR.</p>
+      <div class="form-group"><label>EmailJS Public Key</label><input id="editEmailjsKey" placeholder="ej: abc123def456" /></div>
+      <div class="form-group"><label>EmailJS Service ID</label><input id="editEmailjsService" placeholder="ej: service_abc123" /></div>
+      <div class="form-group"><label>EmailJS Template ID</label><input id="editEmailjsTemplate" placeholder="ej: template_abc123" /></div>
+      <div class="form-group"><label data-lang="autoReplyPhoneLabel">Teléfono de contacto <small data-lang="autoReplyPhoneDesc">(aparece en el email auto-respuesta)</small></label><input id="editAutoReplyPhone" placeholder="953801340" /></div>
+      <button class="btn btn-primary" onclick="saveClient()" data-lang="saveChanges">Guardar cambios</button>
+      <button class="btn btn-danger" onclick="deleteClient()" style="margin-top:10px;margin-left:8px" data-lang="trash">🗑 Papelera</button>
+      <div id="editResult" style="margin-top:10px;font-size:13px"></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script>
+var QR_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyA6Mj4OyCzqAsk8iiT3JCcgOt3Gu1imOiE",
+  authDomain: "qr-tracker-crm.firebaseapp.com",
+  projectId: "qr-tracker-crm",
+  storageBucket: "qr-tracker-crm.firebasestorage.app",
+  messagingSenderId: "1085744853871",
+  appId: "1:1085744853871:web:9a9f8413ee352ca55cae9a"
+};
+firebase.initializeApp(QR_FIREBASE_CONFIG, "qrTracker");
+var QR_DB = firebase.firestore(firebase.app("qrTracker"));
+var QR_AUTH = firebase.auth(firebase.app("qrTracker"));
+</script>
+<script>
+var _currentClientId=null,_clients=[],_flyerData={},_flyerTheme='blue',_qrType='whatsapp',_LANG='es';
+var _TRANS={
+  es:{
+    code:'es',label:'🇪🇸 Español',lang:'es',other:'en',
+    noClients:'No hay clientes.',emptyTrash:'No hay nada en la papelera.',
+    restore:'Restaurar',deletePerm:'Eliminar permanentemente',deleted:'✅ Eliminado',restored:'✅ Restaurado',deletedPerm:'✅ Eliminado permanentemente',
+    clientsTitle:'Clientes',newClient:'+ Nuevo Cliente',flyerTitle:'Flyer',leadsTitle:'📩 Leads',configTitle:'Config',trashTitle:'🗑 Papelera',
+    loginMsg:'Ingresa email y contraseña',createAccount:'Crear cuenta',loginBtn:'Ingresar',
+    scansReceived:'Escaneos recibidos',exportBtn:'📊 Exportar',exportLeadsBtn:'📊 Exportar Excel',
+    fecha:'Fecha',nombre:'Nombre',emailTel:'Email / Tel',mensaje:'Mensaje',estado:'Estado',nota:'Nota',accion:'Acción',
+    statusNew:'🆕 Nuevo',statusContacted:'📞 Contactado',statusClosed:'✅ Cerrado',
+    leadNew:'Leads nuevos',leadDesc:'Todos los scans sin contactar de todos los clientes.',
+    whatsapp:'WhatsApp',email:'Email',sms:'SMS',
+    search:'Buscar cliente...',noResults:'Sin resultados',
+    editClient:'Editar cliente',save:'Guardar',cancel:'Cancelar',
+    trashDesc:'Clientes, QR y scans eliminados. Podés restaurarlos o eliminarlos permanentemente.',
+    client:'Cliente',date:'Fecha',action:'Acción',passwordPlaceholder:'Contraseña (mín 6 caracteres)',
+    noScans:'Aún no hay scans.',clickEdit:'Click para editar',delete:'Eliminar',
+    noNewLeads:'No hay leads nuevos.',markContacted:'Marcar contactado',
+    qrCodes:'Códigos QR',logout:'Cerrar sesión',errorLoginRequired:'Ingresa email y contraseña',
+    deletedScans:'Scans eliminados',noDeletedScans:'No hay scans eliminados.',
+    businessName:'Nombre del negocio',whatsappRedirect:'WhatsApp',qrRedirect:'a donde redirige el QR',
+    waMessageLabel:'Mensaje de WhatsApp',waMessageDesc:'texto precargado en formulario',
+    saveChanges:'Guardar cambios',trash:'🗑 Papelera',
+    selectQrType:'Selecciona el tipo de QR y genera:',generateQr:'Generar QR',
+    newClientTitle:'Crear nuevo cliente',clientEmail:'Email del cliente',
+    forDashboard:'para su dashboard',dashboardPass:'Contraseña del dashboard',createClient:'Crear Cliente',
+    emailAutoReply:'📧 Auto-respuesta por Email',emailAutoReplyDesc:'Configura EmailJS (gratis: emailjs.com) para enviar auto-respuesta al lead cuando escanea el QR.',
+    autoReplyPhoneLabel:'Teléfono de contacto',autoReplyPhoneDesc:'(aparece en el email auto-respuesta)'
+  },
+  en:{
+    code:'en',label:'🇺🇸 English',lang:'en',other:'es',
+    noClients:'No clients found.',emptyTrash:'Trash is empty.',
+    restore:'Restore',deletePerm:'Delete permanently',deleted:'✅ Deleted',restored:'✅ Restored',deletedPerm:'✅ Permanently deleted',
+    clientsTitle:'Clients',newClient:'+ New Client',flyerTitle:'Flyer',leadsTitle:'📩 Leads',configTitle:'Settings',trashTitle:'🗑 Trash',
+    loginMsg:'Enter email and password',createAccount:'Create account',loginBtn:'Sign in',
+    scansReceived:'Scans received',exportBtn:'📊 Export',exportLeadsBtn:'📊 Export Excel',
+    fecha:'Date',nombre:'Name',emailTel:'Email / Phone',mensaje:'Message',estado:'Status',nota:'Note',accion:'Action',
+    statusNew:'🆕 New',statusContacted:'📞 Contacted',statusClosed:'✅ Closed',
+    leadNew:'New leads',leadDesc:'All uncontacted scans across all clients.',
+    whatsapp:'WhatsApp',email:'Email',sms:'SMS',
+    search:'Search client...',noResults:'No results',
+    editClient:'Edit client',save:'Save',cancel:'Cancel',
+    trashDesc:'Deleted clients, QR codes and scans. You can restore or permanently delete them.',
+    client:'Client',date:'Date',action:'Action',passwordPlaceholder:'Password (min 6 characters)',
+    noScans:'No scans yet.',clickEdit:'Click to edit',delete:'Delete',
+    noNewLeads:'No new leads.',markContacted:'Mark contacted',
+    qrCodes:'QR Codes',logout:'Sign out',errorLoginRequired:'Enter email and password',
+    deletedScans:'Deleted scans',noDeletedScans:'No deleted scans.',
+    businessName:'Business name',whatsappRedirect:'WhatsApp',qrRedirect:'QR redirect target',
+    waMessageLabel:'WhatsApp message',waMessageDesc:'preloaded message text',
+    saveChanges:'Save changes',trash:'🗑 Trash',
+    selectQrType:'Select QR type and generate:',generateQr:'Generate QR',
+    newClientTitle:'Create new client',clientEmail:'Client email',
+    forDashboard:'for dashboard',dashboardPass:'Dashboard password',createClient:'Create Client',
+    emailAutoReply:'📧 Email auto-reply',emailAutoReplyDesc:'Configure EmailJS (free: emailjs.com) to send auto-reply to lead when they scan the QR.',
+    autoReplyPhoneLabel:'Contact phone',autoReplyPhoneDesc:'(appears in the auto-reply email)'
+  }
+};
+function __(k){var t=_TRANS[_LANG];return t[k]||_TRANS.es[k]||k}
+function toggleLang(){_LANG=_LANG==='es'?'en':'es';applyLang()}
+function applyLang(){
+  document.querySelectorAll('[data-lang]').forEach(function(e){e.textContent=__(e.dataset.lang)});
+  document.documentElement.lang=_LANG;
+  document.getElementById('langBtn').textContent=_LANG==='es'?'🇺🇸 EN':'🇪🇸 ES';
+}
+function setQrType(t){_qrType=t;document.querySelectorAll('.qr-type-select label').forEach(function(e){e.classList.toggle('active',e.querySelector('input').value===t)})}
+
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},3000)}
+
+function showRegister(){document.getElementById('loginBox').innerHTML='<h1>📝 <span data-lang="createAccount">Crear cuenta</span></h1><input id="loginEmail" type="email" placeholder="Email" /><input id="loginPass" type="password" placeholder="'+__('passwordPlaceholder')+'" /><button class="btn btn-primary" onclick="register()"><span data-lang="createAccount">Crear cuenta</span></button>'}
+
+function register(){var e=document.getElementById('loginEmail').value,p=document.getElementById('loginPass').value;if(!e||!p){document.getElementById('loginError').textContent='Completa todos los campos';document.getElementById('loginError').style.display='block';return}
+QR_AUTH.createUserWithEmailAndPassword(e,p).then(function(){document.getElementById('loginBox').innerHTML='<h1>✅ Cuenta creada</h1><p style="margin-bottom:16px;color:#888">Ahora inicia sesión.</p><button class="btn btn-primary" onclick="location.reload()">Ingresar</button>'}).catch(function(err){document.getElementById('loginError').textContent=err.message;document.getElementById('loginError').style.display='block'})}
+
+function login(){var e=document.getElementById('loginEmail').value,p=document.getElementById('loginPass').value;if(!e||!p){document.getElementById('loginError').textContent=__('errorLoginRequired');document.getElementById('loginError').style.display='block';return}
+QR_AUTH.signInWithEmailAndPassword(e,p).then(function(){document.getElementById('loginBox').style.display='none';document.getElementById('app').style.display='block';document.getElementById('adminEmail').textContent=e;loadClients();applyLang()}).catch(function(err){document.getElementById('loginError').textContent=err.message;document.getElementById('loginError').style.display='block'})}
+
+function logout(){QR_AUTH.signOut();location.reload()}
+QR_AUTH.onAuthStateChanged(function(u){if(u){document.getElementById('loginBox').style.display='none';document.getElementById('app').style.display='block';document.getElementById('adminEmail').textContent=u.email;loadClients();applyLang()}})
+
+function switchTab(t,btn){
+  document.querySelectorAll('.tab').forEach(function(e){e.classList.remove('active')});
+  document.querySelectorAll('.tab-content').forEach(function(e){e.classList.remove('active')});
+  btn.classList.add('active');document.getElementById('tab-'+t).classList.add('active');
+  if(t==='trash') loadDeletedClients();
+  if(t==='leads') loadLeads()
+}
+function switchModalTab(t,btn){
+  document.querySelectorAll('#clientModal .tab').forEach(function(e){e.classList.remove('active')});
+  document.querySelectorAll('#clientModal .tab-content').forEach(function(e){e.classList.remove('active')});
+  btn.classList.add('active');document.getElementById('mtab-'+t).classList.add('active')
+}
+
+function loadClients(){
+  QR_DB.collection('clients').orderBy('createdAt','desc').onSnapshot(function(snap){
+    _clients=[];var html='';
+    snap.forEach(function(doc){var d=doc.data();if(d.deleted)return;d._id=doc.id;_clients.push(d);
+      html+='<div class="client-card"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1;cursor:pointer" onclick="openClient(\''+doc.id+'\')"><h3>'+esc(d.name||'Sin nombre')+'</h3><div class="meta">📱 '+esc(d.whatsapp||'—')+' | 🔔 '+(d.telegramToken?'✅ Telegram':'❌ Sin notif')+'</div><div style="font-size:12px;color:#888">🆔 '+doc.id+'</div></div><button onclick="event.stopPropagation();deleteClient(\''+doc.id+'\')" class="btn btn-sm btn-danger" style="flex-shrink:0" title="Enviar a papelera">🗑</button></div></div>'});
+    if(!html) html='<p style="color:#888;text-align:center;padding:40px" data-lang="noClients">No hay clientes aún.</p>';
+    document.getElementById('clientList').innerHTML=html;populateManualSelect();populateFlyerSelect()
+  });
+}
+
+function clientTrashItem(id,d){
+  return '<div class="client-card" style="opacity:.7"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1"><h3>'+esc(d.name||'—')+'</h3><div class="meta">📱 '+esc(d.whatsapp||'—')+' | 🗑 '+(d.deletedAt?new Date(d.deletedAt.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'')+'</div></div><div style="display:flex;gap:4px;flex-shrink:0"><button onclick="restoreClient(\''+id+'\')" class="btn btn-sm btn-success">↩ '+__('restore')+'</button><button onclick="permanentDeleteClient(\''+id+'\')" class="btn btn-sm btn-danger">🗑 '+__('deletePerm')+'</button></div></div></div>';
+}
+function qrTrashItem(cid,cname,qid,qd){
+  var baseUrl=getBaseUrl();var qrTypeLabels={whatsapp:'💬 WhatsApp',telegram:'✈️ Telegram',sms:'📱 SMS',teams:'💼 Teams'};
+  var qrData=baseUrl+'?c='+cid+'&q='+qid+'&s='+(qd.type||'whatsapp');
+  return '<div class="client-card" style="opacity:.7"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1"><h3>📱 <small>'+esc(qd.label||qid)+'</small> - '+(qrTypeLabels[qd.type]||'💬 WhatsApp')+'</h3><div class="meta">👤 '+esc(cname)+' | 🗑 '+(qd.deletedAt?new Date(qd.deletedAt.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'')+'</div></div><div><button onclick="restoreQrCode(\''+cid+'\',\''+qid+'\')" class="btn btn-sm btn-success">↩ '+__('restore')+'</button></div></div></div>';
+}
+function loadDeletedClients(){
+  QR_DB.collectionGroup('qrCodes').where('deleted','==',true).get().then(function(qrSnap){
+    var deletedQrs={};
+    qrSnap.forEach(function(doc){var p=doc.ref.path;var cid=p.split('/')[1];if(!deletedQrs[cid])deletedQrs[cid]=[];deletedQrs[cid].push({id:doc.id,data:doc.data()})});
+    QR_DB.collection('clients').where('deleted','==',true).get().then(function(clientSnap){
+      var html='';
+      var deletedClients={};
+      clientSnap.forEach(function(doc){deletedClients[doc.id]=doc.data().name||'—';html+=clientTrashItem(doc.id,doc.data())});
+      // also show qr codes from non-deleted clients
+      QR_DB.collection('clients').where('deleted','!=',true).get().then(function(activeSnap){
+        activeSnap.forEach(function(doc){
+          var cid=doc.id;var qrs=deletedQrs[cid]||[];
+          qrs.forEach(function(q){html+=qrTrashItem(cid,doc.data().name||'—',q.id,q.data)});
+        });
+        // also show qr codes from deleted clients
+        clientSnap.forEach(function(doc){
+          var cid=doc.id;var qrs=deletedQrs[cid]||[];
+          qrs.forEach(function(q){html+=qrTrashItem(cid,doc.data().name||'—',q.id,q.data)});
+        });
+        // deleted scans
+        html+='<h3 style="font-size:16px;margin:20px 0 12px">📩 <span data-lang="deletedScans">Scans eliminados</span></h3>';
+        var scanPromises=[];
+        QR_DB.collection('clients').get().then(function(allClients){
+          var sc=0;
+          allClients.forEach(function(cdoc){
+            scanPromises.push(QR_DB.collection('clients').doc(cdoc.id).collection('scans').where('deleted','==',true).limit(30).get().then(function(ssnap){
+              ssnap.forEach(function(sdoc){
+                var d=sdoc.data();sc++;
+                html+='<div class="client-card" style="opacity:.6"><div style="display:flex;justify-content:space-between;align-items:start"><div style="flex:1"><h3>'+esc(d.leadName||'—')+'</h3>'
+                  +'<div class="meta">📧 '+esc(d.leadEmail||'—')+' | 📱 '+esc(d.leadPhone||'—')+' | Cliente: '+esc(cdoc.data().name||'—')+' | '+(d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'—')+'</div></div>'
+                  +'<div><button onclick="restoreScan(\''+cdoc.id+'\',\''+sdoc.id+'\')" class="btn btn-sm btn-success">↩ '+__('restore')+'</button>'
+                  +'<button onclick="permDeleteScan(\''+cdoc.id+'\',\''+sdoc.id+'\')" class="btn btn-sm btn-danger" style="margin-left:4px">🗑 '+__('deletePerm')+'</button></div></div></div>';
+              });
+            }));
+          });
+          Promise.all(scanPromises).then(function(){
+            if(!sc) html+= '<p style="color:#888;padding:10px" data-lang="noDeletedScans">No hay scans eliminados.</p>';
+            document.getElementById('trashList').innerHTML=html||'<p style="color:#888;text-align:center;padding:40px">🗑 '+__('emptyTrash')+'</p>';
+          });
+        });
+      });
+    });
+  });
+}
+function populateManualSelect(){document.getElementById('manualClient').innerHTML=_clients.map(function(c){return '<option value="'+c._id+'">'+esc(c.name||c._id)+'</option>'}).join('')}
+
+function populateFlyerSelect(){
+  var html='';
+  _clients.forEach(function(c){
+    QR_DB.collection('clients').doc(c._id).collection('qrCodes').get().then(function(snap){
+      var hasQr=snap.size>0;
+      var cb=document.getElementById('fcb_'+c._id);
+      if(cb) cb.disabled=!hasQr;
+    });
+    html+='<label style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:12px;background:#eee;cursor:pointer"><input type="checkbox" id="fcb_'+c._id+'" value="'+c._id+'" onchange="checkFlyerCount()"/> '+esc(c.name||c._id)+'</label>';
+  });
+  document.getElementById('flyerClientList').innerHTML=html;
+}
+
+function checkFlyerCount(){
+  var checked=document.querySelectorAll('#flyerClientList input:checked').length;
+  if(checked>4) toast('Máximo 4 clientes por flyer');
+}
+function getBaseUrl(){return 'https://marketingusadb-create.github.io/qr-tracker/index.html'}
+
+function openClient(id){
+  _currentClientId=id;
+  QR_DB.collection('clients').doc(id).get().then(function(doc){
+    if(!doc.exists) return;var d=doc.data();
+    document.getElementById('modalClientName').textContent='📋 '+esc(d.name||'Cliente');
+    document.getElementById('editName').value=d.name||'';document.getElementById('editWhatsapp').value=d.whatsapp||'';
+    document.getElementById('editTelegramToken').value=d.telegramToken||'';document.getElementById('editTelegramChat').value=d.telegramChatId||'';
+    document.getElementById('editTelegramUser').value=d.telegramUser||'';
+    document.getElementById('editWaMsg').value=d.waMessage||'';
+    document.getElementById('editEmailjsKey').value=d.emailjsKey||'';
+    document.getElementById('editEmailjsService').value=d.emailjsService||'';
+    document.getElementById('editEmailjsTemplate').value=d.emailjsTemplate||'';
+    document.getElementById('editAutoReplyPhone').value=d.autoReplyPhone||'';
+    document.getElementById('clientModal').style.display='block';loadScans(id);loadQrCodes(id);
+    document.querySelectorAll('#clientModal .tab')[0].click();
+  });
+}
+function closeClientModal(){document.getElementById('clientModal').style.display='none';_currentClientId=null}
+
+function statusTxt(s){return s==='contacted'?__('statusContacted'):s==='closed'?__('statusClosed'):__('statusNew')}
+function statusCls(s){return s==='contacted'?'badge-active':s==='closed'?'badge-inactive':'badge-mobile'}
+
+function loadScans(clientId){
+  QR_DB.collection('clients').doc(clientId).collection('scans').orderBy('timestamp','desc').limit(100).onSnapshot(function(snap){
+    var html='<table class="scan-table"><thead><tr><th>'+__('fecha')+'</th><th>'+__('nombre')+'</th><th>'+__('emailTel')+'</th><th>'+__('mensaje')+'</th><th>'+__('estado')+'</th><th>'+__('nota')+'</th><th>'+__('accion')+'</th></tr></thead><tbody>';var c=0;
+    snap.forEach(function(doc){c++;var d=doc.data();if(d.deleted)return;
+      var st=d.status||'new';var ph=d.leadPhone||'';var em=d.leadEmail||'';
+      var msg=encodeURIComponent(d.leadMessage||'Hola, gracias por contactarnos');
+      html+='<tr'+(st==='closed'?' style="opacity:.5"':'')+'><td style="white-space:nowrap;font-size:11px">'+(d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'—')+'</td>'
+        +'<td><b>'+esc(d.leadName||'—')+'</b></td>'
+        +'<td style="font-size:11px">'+(em?'📧 '+esc(em):'')+(ph?(em?'<br>':'')+'📱 '+esc(ph):'')+'</td>'
+        +'<td style="font-size:11px;color:#555;max-width:200px;word-break:break-word">'+esc(d.leadMessage||'—')+'</td>'
+        +'<td><span class="badge '+statusCls(st)+'" onclick="updateScanStatus(\''+clientId+'\',\''+doc.id+'\',\''+st+'\')" style="cursor:pointer">'+statusTxt(st)+'</span></td>'
+        +'<td contenteditable="true" onblur="updateScanNote(\''+clientId+'\',\''+doc.id+'\',this.textContent)" style="font-size:11px;color:#888;min-width:80px;cursor:text" title="'+__('clickEdit')+'">'+esc(d.note||'')+'</td>'
+        +'<td style="white-space:nowrap">'
+        +(ph?'<a href="https://wa.me/'+ph.replace(/\D/g,'')+'?text='+msg+'" target="_blank" class="btn btn-sm btn-success" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('whatsapp')+'">📲</a>':'')
+        +(ph?'<a href="sms:'+ph+'?body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('sms')+'">💬</a>':'')
+        +(ph?'<a href="sms:'+ph+'?body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="Google Voice">📞</a>':'')
+        +(ph?'<a href="sms:'+ph+'?body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="Microsoft SMS">💻</a>':'')
+        +(em?'<a href="mailto:'+em+'?subject='+encodeURIComponent('Contacto')+'&body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('email')+'">📧</a>':'')
+        +'<button onclick="deleteScan(\''+clientId+'\',\''+doc.id+'\')" class="btn btn-sm btn-danger" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('delete')+'">🗑</button>'
+        +'</td></tr>'});
+    html+='</tbody></table>';if(!c) html='<p style="color:#888;text-align:center;padding:20px">'+__('noScans')+'</p>';
+    document.getElementById('modalScanList').innerHTML=html;
+  });
+}
+
+function loadLeads(){
+  QR_DB.collection('clients').orderBy('createdAt','desc').get().then(function(snap){
+    var all=[];var pending=snap.size;if(!pending){document.getElementById('leadsList').innerHTML='<p style="color:#888;text-align:center;padding:40px">'+__('noClients')+'</p>';return}
+    snap.forEach(function(cdoc){
+      var cname=cdoc.data().name||'—';
+      QR_DB.collection('clients').doc(cdoc.id).collection('scans').limit(50).get().then(function(ssnap){
+        ssnap.forEach(function(sdoc){
+          var d=sdoc.data();if(d.deleted)return;
+          var st=d.status||'new';if(st==='closed')return;
+          d._clientName=cname;d._clientId=cdoc.id;d._scanId=sdoc.id;d._ts=d.timestamp?d.timestamp.seconds*1000:0;all.push(d)
+        });
+        pending--;
+        if(pending===0){all.sort(function(a,b){return b._ts-a._ts});renderLeads(all)}
+      }).catch(function(e){console.warn('Leads query error:',e);pending--;if(pending===0)renderLeads(all)});
+    });
+  });
+}
+function renderLeads(all){
+  if(!all.length){document.getElementById('leadsList').innerHTML='<p style="color:#888;text-align:center;padding:40px">🎉 '+__('noNewLeads')+'</p>';return}
+  var html='<table class="scan-table"><thead><tr><th>'+__('client')+'</th><th>'+__('date')+'</th><th>'+__('nombre')+'</th><th>'+__('emailTel')+'</th><th>'+__('mensaje')+'</th><th>'+__('action')+'</th></tr></thead><tbody>';
+  all.forEach(function(d){
+    var ph=d.leadPhone||'';var em=d.leadEmail||'';var msg=encodeURIComponent(d.leadMessage||'Hola');
+    html+='<tr><td style="font-size:11px;color:#2563eb"><b>'+esc(d._clientName)+'</b></td>'
+      +'<td style="white-space:nowrap;font-size:11px">'+(d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString(_LANG==='es'?'es-CO':'en-US'):'—')+'</td>'
+      +'<td><b>'+esc(d.leadName||'—')+'</b></td>'
+      +'<td style="font-size:11px">'+(em?'📧 '+esc(em):'')+(ph?(em?'<br>':'')+'📱 '+esc(ph):'')+'</td>'
+      +'<td style="font-size:11px;color:#555">'+esc((d.leadMessage||'—').slice(0,80))+'</td>'
+      +'<td style="white-space:nowrap">'
+      +(ph?'<a href="https://wa.me/'+ph.replace(/\D/g,'')+'?text='+msg+'" target="_blank" class="btn btn-sm btn-success" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('whatsapp')+'">📲</a>':'')
+      +(em?'<a href="mailto:'+em+'?subject='+encodeURIComponent('Contacto')+'&body='+msg+'" class="btn btn-sm btn-outline" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('email')+'">📧</a>':'')
+      +'<button onclick="quickContact(\''+d._clientId+'\',\''+d._scanId+'\')" class="btn btn-sm btn-active" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('markContacted')+'">📞</button>'
+      +'<button onclick="deleteLead(\''+d._clientId+'\',\''+d._scanId+'\')" class="btn btn-sm btn-danger" style="padding:3px 6px;font-size:10px;margin:1px" title="'+__('delete')+'">🗑</button>'
+      +'</td></tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById('leadsList').innerHTML=html;
+}
+function exportLeads(){
+  QR_DB.collection('clients').get().then(function(snap){
+    var csv='\uFEFFCliente,Fecha,Nombre,Email,Teléfono,Mensaje,IP,Ubicación,Dispositivo,Estado\n';var p=[];var done=0;var total=snap.size;
+    if(!total){toast('No hay datos para exportar');return}
+    snap.forEach(function(cdoc){
+      var cname=cdoc.data().name||'—';
+      p.push(QR_DB.collection('clients').doc(cdoc.id).collection('scans').orderBy('timestamp','desc').get().then(function(ssnap){
+        ssnap.forEach(function(sdoc){
+          var d=sdoc.data();if(d.deleted)return;
+          var line=[cname,d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString('es-CO'):'',d.leadName||'',d.leadEmail||'',d.leadPhone||'',(d.leadMessage||'').replace(/"/g,'""'),d.ip||'',[d.city,d.country].filter(Boolean).join(', '),d.os||'',d.status||'new'];
+          csv+=line.map(function(v){return'"'+String(v).replace(/"/g,'""')+'"'}).join(',')+'\n';
+        });
+      }));
+    });
+    Promise.all(p).then(function(){
+      var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});var a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);a.download='leads_export_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+      URL.revokeObjectURL(a.href);toast('✅ Exportado');
+    });
+  });
+}
+
+function exportClientScans(){
+  if(!_currentClientId){toast('Selecciona un cliente primero');return}
+  QR_DB.collection('clients').doc(_currentClientId).collection('scans').orderBy('timestamp','desc').get().then(function(ssnap){
+    var csv='\uFEFFFecha,Nombre,Email,Teléfono,Mensaje,IP,Ubicación,Dispositivo,Estado,Nota\n';
+    ssnap.forEach(function(sdoc){
+      var d=sdoc.data();if(d.deleted)return;
+      var line=[d.timestamp?new Date(d.timestamp.seconds*1000).toLocaleString('es-CO'):'',d.leadName||'',d.leadEmail||'',d.leadPhone||'',(d.leadMessage||'').replace(/"/g,'""'),d.ip||'',[d.city,d.country].filter(Boolean).join(', '),d.os||'',d.status||'new',d.note||''];
+      csv+=line.map(function(v){return'"'+String(v).replace(/"/g,'""')+'"'}).join(',')+'\n';
+    });
+    var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);a.download='scans_'+_currentClientId.slice(0,8)+'.csv';a.click();
+    URL.revokeObjectURL(a.href);toast('✅ Exportado');
+  });
+}
+
+function quickContact(clientId,scanId){
+  QR_DB.collection('clients').doc(clientId).collection('scans').doc(scanId).update({status:'contacted'}).then(function(){toast('✅ Marcado como contactado');loadLeads()}).catch(function(err){toast('Error: '+err.message)});
+}
+
+function updateScanStatus(clientId,scanId,current){
+  var next=current==='new'?'contacted':current==='contacted'?'closed':'new';
+  QR_DB.collection('clients').doc(clientId).collection('scans').doc(scanId).update({status:next}).catch(function(err){toast('Error: '+err.message)});
+}
+function updateScanNote(clientId,scanId,note){
+  QR_DB.collection('clients').doc(clientId).collection('scans').doc(scanId).update({note:note}).catch(function(err){toast('Error: '+err.message)});
+}
+function deleteScan(clientId,scanId){
+  QR_DB.collection('clients').doc(clientId).collection('scans').doc(scanId).update({deleted:true,deletedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){toast(__('deleted'))}).catch(function(err){toast('Error: '+err.message)});
+}
+function deleteLead(clientId,scanId){
+  QR_DB.collection('clients').doc(clientId).collection('scans').doc(scanId).update({deleted:true,deletedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){toast(__('deleted'));loadLeads()}).catch(function(err){toast('Error: '+err.message)});
+}
+function restoreScan(clientId,scanId){
+  QR_DB.collection('clients').doc(clientId).collection('scans').doc(scanId).update({deleted:false,deletedAt:firebase.firestore.FieldValue.delete()}).then(function(){toast(__('restored'));loadDeletedClients()}).catch(function(err){toast('Error: '+err.message)});
+}
+function permDeleteScan(clientId,scanId){
+  QR_DB.collection('clients').doc(clientId).collection('scans').doc(scanId).delete().then(function(){toast(__('deletedPerm'));loadDeletedClients()}).catch(function(err){toast('Error: '+err.message)});
+}
+
+function loadQrCodes(clientId){
+  QR_DB.collection('clients').doc(clientId).collection('qrCodes').get().then(function(snap){
+    var baseUrl=getBaseUrl();var html='<div class="qr-grid">';
+    var typeLabels={whatsapp:'💬 WhatsApp',telegram:'✈️ Telegram',sms:'📱 SMS',teams:'💼 Teams'};
+    snap.forEach(function(doc){var d=doc.data();
+      var active=d.active!==false;var statusCls=active?'badge-active':'badge-inactive';var statusTxt=active?'✅ Activo':'❌ Inactivo';
+      var type=d.type||'whatsapp';var typeBadge='<span class="badge badge-type-'+type+'">'+(typeLabels[type]||typeLabels.whatsapp)+'</span>';
+      var qrData=baseUrl+'?c='+clientId+'&q='+doc.id+'&s='+type;
+      var qrImg='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(qrData);
+      var subj=encodeURIComponent('Mi código QR - '+esc(d.label||doc.id));
+      var body=encodeURIComponent('Escanea este código QR para contactarme:\n'+qrData);
+      var deleted=d.deleted?' style="opacity:.4"':'';
+      html+='<div class="qr-item"'+deleted+'>'
+        +(d.deleted?'<div style="position:absolute;top:8px;left:8px;background:#e74c3c;color:#fff;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700">🗑 Eliminado</div>':'')
+        +'<img src="'+qrImg+'" alt="QR" loading="lazy"/>'
+        +'<div class="label">'+typeBadge+' '+esc(d.label||doc.id)+' <span class="badge '+statusCls+'">'+statusTxt+'</span></div>'
+        +'<div class="id">'+qrData+'</div>'
+        +'<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;justify-content:center">'
+        +'<button onclick="toggleQrStatus(\''+clientId+'\',\''+doc.id+'\','+(!active)+')" class="btn btn-sm '+(active?'btn-warning':'btn-success')+'">'+(active?'🔴 Desactivar':'🟢 Activar')+'</button>'
+        +'<button onclick="downloadQr(\''+qrImg+'\',\'qr-'+doc.id+'.png\')" class="btn btn-sm btn-outline">⬇</button>'
+        +(d.deleted
+          ?'<button onclick="restoreQrCode(\''+clientId+'\',\''+doc.id+'\')" class="btn btn-sm btn-success">↩ Restaurar</button>'
+          :'<button onclick="deleteQrCode(\''+clientId+'\',\''+doc.id+'\')" class="btn btn-sm btn-danger">🗑</button>')
+        +'<a href="mailto:?subject='+subj+'&body='+body+'" class="btn btn-sm btn-outline">📧</a>'
+        +'<a href="https://wa.me/?text='+encodeURIComponent(qrData)+'" target="_blank" class="btn btn-sm btn-outline">💬</a>'
+        +'<a href="https://t.me/share/url?url='+encodeURIComponent(qrData)+'&text='+subj+'" target="_blank" class="btn btn-sm btn-outline">✈️</a>'
+        +'<a href="sms:?body='+encodeURIComponent(qrData)+'" class="btn btn-sm btn-outline">📱</a>'
+        +'</div></div>'});
+    if(!snap.size) html='<p style="color:#888;text-align:center;padding:20px">Sin códigos QR aún. Genera uno.</p>';
+    document.getElementById('modalQrList').innerHTML=html;
+  });
+}
+
+function toggleQrStatus(clientId,qrId,newStatus){
+  QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).update({active:newStatus}).then(function(){
+    toast(newStatus?'✅ QR activado':'🔴 QR desactivado');
+    loadQrCodes(clientId);
+  }).catch(function(err){toast('Error: '+err.message)});
+}
+function deleteQrCode(clientId,qrId){
+  QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).update({deleted:true,deletedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+    toast('QR enviado a la papelera');loadQrCodes(clientId);
+  }).catch(function(err){toast('Error: '+err.message)});
+}
+function restoreQrCode(clientId,qrId){
+  QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).update({deleted:false,deletedAt:firebase.firestore.FieldValue.delete()}).then(function(){
+    toast('QR restaurado');loadQrCodes(clientId);
+  }).catch(function(err){toast('Error: '+err.message)});
+}
+
+
+function addQrCode(){
+  var qrId=document.getElementById('newQrId').value.trim()||'qr_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+  QR_DB.collection('clients').doc(_currentClientId).collection('qrCodes').doc(qrId).set({label:qrId,active:true,type:_qrType,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+    document.getElementById('newQrId').value='';toast('✅ QR '+_qrType+' generado: '+qrId);loadQrCodes(_currentClientId)
+  }).catch(function(err){toast('Error: '+err.message)});
+}
+
+function generateManualQr(){
+  var clientId=document.getElementById('manualClient').value;
+  var qrId=document.getElementById('manualQrId').value.trim()||genId();
+  QR_DB.collection('clients').doc(clientId).collection('qrCodes').doc(qrId).set({label:qrId,active:true,type:'whatsapp',createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+    var baseUrl=getBaseUrl();var qrData=baseUrl+'?c='+clientId+'&q='+qrId+'&s=whatsapp';
+    var qrImg='https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(qrData);
+    var subj=encodeURIComponent('Mi código QR');
+    document.getElementById('manualQrResult').innerHTML='<p style="margin-bottom:8px">✅ QR generado: <strong>'+qrId+'</strong></p>'
+      +'<img src="'+qrImg+'" style="max-width:200px;border-radius:8px;display:block;margin-bottom:8px"/>'
+      +'<div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;margin-bottom:6px">'
+      +'<button onclick="downloadQr(\''+qrImg+'\',\'qr-'+qrId+'.png\')" class="btn btn-sm btn-primary">⬇ Descargar</button>'
+      +'<a href="mailto:?subject='+subj+'&body='+encodeURIComponent(qrData)+'" class="btn btn-sm btn-outline">📧 Email</a>'
+      +'<a href="https://wa.me/?text='+encodeURIComponent(qrData)+'" target="_blank" class="btn btn-sm btn-outline">💬 WhatsApp</a>'
+      +'<a href="https://t.me/share/url?url='+encodeURIComponent(qrData)+'&text='+subj+'" target="_blank" class="btn btn-sm btn-outline">✈️ Telegram</a>'
+      +'<a href="sms:?body='+encodeURIComponent(qrData)+'" class="btn btn-sm btn-outline">📱 SMS</a>'
+      +'</div><p style="font-size:11px;color:#888;margin-top:6px;word-break:break-all">'+qrData+'</p>';
+    document.getElementById('manualQrId').value='';
+  }).catch(function(err){toast('Error: '+err.message)});
+}
+
+function createClient(){
+  var name=document.getElementById('ncName').value.trim(),wa=document.getElementById('ncWhatsapp').value.trim().replace(/\D/g,'');
+  var tgToken=document.getElementById('ncTelegramToken').value.trim(),tgChat=document.getElementById('ncTelegramChat').value.trim();
+  var tgUser=document.getElementById('ncTelegramUser').value.trim().replace(/^@/,'');
+  var email=document.getElementById('ncEmail').value.trim(),pass=document.getElementById('ncPass').value,waMsg=document.getElementById('ncWaMsg').value.trim();
+  var ejKey=document.getElementById('ncEmailjsKey').value.trim(),ejSvc=document.getElementById('ncEmailjsService').value.trim();
+  var ejTpl=document.getElementById('ncEmailjsTemplate').value.trim(),arPhone=document.getElementById('ncAutoReplyPhone').value.trim();
+  if(!name||!wa){document.getElementById('ncResult').innerHTML='<span style="color:#e74c3c">Nombre y WhatsApp son obligatorios</span>';return}
+  var newId='c_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+  QR_DB.collection('clients').doc(newId).set({name:name,whatsapp:wa,telegramToken:tgToken,telegramChatId:tgChat,telegramUser:tgUser,email:email,dashboardPass:pass,waMessage:waMsg,emailjsKey:ejKey,emailjsService:ejSvc,emailjsTemplate:ejTpl,autoReplyPhone:arPhone,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+    document.getElementById('ncResult').innerHTML='<span style="color:#16a34a">✅ Cliente creado. ID: '+newId+'</span>';
+    ['ncName','ncWhatsapp','ncTelegramToken','ncTelegramChat','ncEmail','ncPass','ncWaMsg','ncEmailjsKey','ncEmailjsService','ncEmailjsTemplate','ncAutoReplyPhone'].forEach(function(id){document.getElementById(id).value=''});
+    toast('Cliente creado exitosamente');
+  }).catch(function(err){document.getElementById('ncResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>'});
+}
+
+function saveClient(){
+  if(!_currentClientId) return;
+  QR_DB.collection('clients').doc(_currentClientId).update({
+    name:document.getElementById('editName').value.trim(),whatsapp:document.getElementById('editWhatsapp').value.trim().replace(/\D/g,''),
+    telegramToken:document.getElementById('editTelegramToken').value.trim(),telegramChatId:document.getElementById('editTelegramChat').value.trim(),
+    telegramUser:document.getElementById('editTelegramUser').value.trim().replace(/^@/,''),
+    waMessage:document.getElementById('editWaMsg').value.trim(),
+    emailjsKey:document.getElementById('editEmailjsKey').value.trim(),
+    emailjsService:document.getElementById('editEmailjsService').value.trim(),
+    emailjsTemplate:document.getElementById('editEmailjsTemplate').value.trim(),
+    autoReplyPhone:document.getElementById('editAutoReplyPhone').value.trim()
+  }).then(function(){document.getElementById('editResult').innerHTML='<span style="color:#16a34a">✅ Guardado</span>';toast('Cambios guardados')})
+  .catch(function(err){document.getElementById('editResult').innerHTML='<span style="color:#e74c3c">Error: '+err.message+'</span>'});
+}
+
+function deleteClient(id){
+  if(!id) id=_currentClientId;
+  if(!id) return;
+  QR_DB.collection('clients').doc(id).update({deleted:true,deletedAt:firebase.firestore.FieldValue.serverTimestamp()}).then(function(){
+    toast('Cliente enviado a la papelera');
+    if(_currentClientId===id) closeClientModal();
+  }).catch(function(err){toast('Error: '+err.message)});
+}
+
+function restoreClient(id){
+  QR_DB.collection('clients').doc(id).update({deleted:false,deletedAt:firebase.firestore.FieldValue.delete()}).then(function(){toast('Cliente restaurado');loadDeletedClients()}).catch(function(err){toast('Error: '+err.message)});
+}
+
+function permanentDeleteClient(id){
+  if(!confirm('¿Eliminar PERMANENTEMENTE este cliente? No se puede deshacer.')) return;
+  QR_DB.collection('clients').doc(id).delete().then(function(){toast('Cliente eliminado permanentemente');loadDeletedClients()}).catch(function(err){toast('Error: '+err.message)});
+}
+
+/* Flyer Pro */
+var _flyerTheme='blue';
+var _flyerThemes={
+  dark:{bg1:'#1a1a2e',bg2:'#16213e',text:'#fff',accent:'#e94560',badge:'#e94560',dark:true},
+  blue:{bg1:'#1e3a5f',bg2:'#2563eb',text:'#fff',accent:'#fbbf24',badge:'#93c5fd',dark:true},
+  red:{bg1:'#7f1d1d',bg2:'#dc2626',text:'#fff',accent:'#fca5a5',badge:'#fca5a5',dark:true},
+  green:{bg1:'#14532d',bg2:'#16a34a',text:'#fff',accent:'#86efac',badge:'#86efac',dark:true},
+  black:{bg1:'#0a0a0a',bg2:'#27272a',text:'#fff',accent:'#f59e0b',badge:'#a1a1aa',dark:true},
+  light:{bg1:'#f8fafc',bg2:'#e2e8f0',text:'#222',accent:'#2563eb',badge:'#64748b',dark:false}
+};
+var _flyerData={};
+
+function setFlyerTheme(t){
+  _flyerTheme=t;
+  document.querySelectorAll('#flyerTheme button').forEach(function(b){b.classList.remove('active')});
+  document.querySelector('#flyerTheme button[data-theme="'+t+'"]').classList.add('active');
+  renderFlyer();
+}
+
+function populateFlyerSelect(){
+  var html='';
+  _clients.forEach(function(c){
+    QR_DB.collection('clients').doc(c._id).collection('qrCodes').get().then(function(snap){
+      var cb=document.getElementById('fcb_'+c._id);
+      if(cb) cb.parentElement.style.opacity=snap.size>0?'1':'.4';
+    });
+    html+='<label id="fcl_'+c._id+'" onclick="toggleFlyerClient(\''+c._id+'\')">'
+      +'<input type="checkbox" id="fcb_'+c._id+'" value="'+c._id+'" onchange="checkFlyerCount()"/> '
+      +esc(c.name||c._id)+'</label>';
+  });
+  document.getElementById('flyerClientList').innerHTML=html;
+}
+
+function toggleFlyerClient(id){
+  var cb=document.getElementById('fcb_'+id);
+  cb.checked=!cb.checked;cb.onchange();
+  cb.parentElement.classList.toggle('checked',cb.checked);
+}
+
+function checkFlyerCount(){
+  var c=document.querySelectorAll('#flyerClientList input:checked').length;
+  if(c>4){toast('Máximo 4 clientes por flyer');return}
+  document.querySelectorAll('#flyerClientList input:checked').forEach(function(cb){cb.parentElement.classList.add('checked')});
+  document.querySelectorAll('#flyerClientList input:not(:checked)').forEach(function(cb){cb.parentElement.classList.remove('checked')});
+}
+
+function generateFlyer(){
+  var checked=document.querySelectorAll('#flyerClientList input:checked');
+  if(!checked.length||checked.length>4){toast('Selecciona entre 1 y 4 clientes');return}
+  var baseUrl=getBaseUrl();var ed=document.getElementById('flyerEditor');ed.innerHTML='';
+  var promises=[];
+  checked.forEach(function(cb){var id=cb.value;
+    var c=_clients.find(function(x){return x._id===id});
+    promises.push(QR_DB.collection('clients').doc(id).collection('qrCodes').get().then(function(snap){
+      var qrDoc=snap.docs[0];if(!qrDoc) return;
+      var qrData=baseUrl+'?c='+id+'&q='+qrDoc.id;
+      var qrImg='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='+encodeURIComponent(qrData);
+      _flyerData[id]={name:c.name||'Negocio',qrData:qrData,qrImg:qrImg,phone:c.whatsapp||'',title:c.name||'Negocio',text:'¡Escanea el código QR y contáctanos! Estamos listos para atenderte.',qrPos:'center'};
+      ed.innerHTML+='<div class="flyer-card-editor" id="fce_'+id+'">'
+        +'<div class="fce-header"><div class="fce-color" style="background:'+_flyerThemes[_flyerTheme].bg1+'"></div><strong>'+esc(c.name||'')+'</strong></div>'
+        +'<input id="ft_'+id+'" placeholder="Título" value="'+esc(c.name||'')+'" oninput="renderFlyer()" />'
+        +'<textarea id="fd_'+id+'" placeholder="Texto descriptivo" rows="2" oninput="renderFlyer()">¡Escanea el código QR y contáctanos! Estamos listos para atenderte.</textarea>'
+        +'<input id="fp_'+id+'" placeholder="Teléfono" value="'+esc(c.whatsapp||'')+'" oninput="renderFlyer()" />'
+        +'<div class="fce-qr-pos"><span style="font-size:11px;color:#888">QR:</span>'
+        +'<button onclick="setQrPos(\''+id+'\',\'left\')" class="active">Izq</button>'
+        +'<button onclick="setQrPos(\''+id+'\',\'center\')">Centro</button>'
+        +'<button onclick="setQrPos(\''+id+'\',\'right\')">Der</button></div>'
+        +'</div>';
+    }));
+  });
+  Promise.all(promises).then(function(){renderFlyer()});
+}
+
+function setQrPos(id,pos){
+  _flyerData[id].qrPos=pos;
+  document.querySelectorAll('#fce_'+id+' .fce-qr-pos button').forEach(function(b){b.classList.remove('active')});
+  var btns=document.querySelectorAll('#fce_'+id+' .fce-qr-pos button');
+  var idx={left:0,center:1,right:2}[pos]||1;
+  if(btns[idx]) btns[idx].classList.add('active');
+  renderFlyer();
+}
+
+function renderFlyer(){
+  var checked=document.querySelectorAll('#flyerClientList input:checked');
+  var theme=_flyerThemes[_flyerTheme]||_flyerThemes.blue;
+  var html='<div class="flyer-sheet" id="flyerSheet">';
+  checked.forEach(function(cb){var id=cb.value;var d=_flyerData[id]||{};
+    var title=document.getElementById('ft_'+id);var t=title?title.value:d.title;
+    var desc=document.getElementById('fd_'+id);var ds=desc?desc.value:d.text;
+    var phone=document.getElementById('fp_'+id);var p=phone?phone.value:d.phone;
+    var qrClass=d.qrPos==='left'?'fc-qr-left':d.qrPos==='right'?'fc-qr-right':'';
+    html+='<div class="flyer-card-pro '+(theme.dark?'fc-dark':'fc-light')+'">'
+      +'<div class="fc-bg" style="background:linear-gradient(135deg,'+theme.bg1+','+theme.bg2+')"></div>'
+      +'<div class="fc-content">'
+      +'<div class="fc-badge" style="color:'+theme.badge+'">✦ Escanea y contáctanos</div>'
+      +'<div class="fc-title" style="color:'+theme.text+'">'+esc(t||'')+'</div>'
+      +'<div class="fc-text" style="color:'+theme.text+'">'+esc(ds||'')+'</div>'
+      +'<div class="fc-qr '+qrClass+'"><img src="'+d.qrImg+'" alt="QR"/></div>'
+      +'<div class="fc-phone" style="color:'+theme.accent+'">'+(p?'📱 '+esc(p):'')+'</div>'
+      +'</div></div>';
+  });
+  html+='</div><div style="clear:both"></div>';
+  document.getElementById('flyerResult').innerHTML=html;
+}
+
+function printFlyer(){window.print()}
+
+function downloadFlyerImg(){
+  var sheet=document.getElementById('flyerSheet');
+  if(!sheet){toast('Genera el flyer primero');return}
+  var s=document.createElement('script');
+  s.src='https://html2canvas.hertzen.com/dist/html2canvas.min.js';
+  s.onload=function(){
+    html2canvas(sheet,{scale:2,useCORS:true,backgroundColor:'#fff',width:sheet.scrollWidth,height:sheet.scrollHeight}).then(function(canvas){
+      var a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='flyer-qr-tracker.png';
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      toast('✅ Imagen descargada');
+    }).catch(function(){toast('Error al generar imagen')});
+  };
+  s.onerror=function(){toast('Error al cargar librería de imagen')};
+  document.head.appendChild(s);
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+</script>
+</body>
+</html>
