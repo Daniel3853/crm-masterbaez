@@ -10,8 +10,6 @@
 <link rel="dns-prefetch" href="https://fonts.googleapis.com">
 <link rel="dns-prefetch" href="https://www.gstatic.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Nunito:wght@400;600;700;800;900&amp;display=swap" rel="stylesheet">
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script>
 // ════════════════════════════════════════════════════════════════
 //  ⚙️  WHITE-LABEL CONFIG — EDIT EVERYTHING HERE
@@ -69,6 +67,16 @@ var WL = {
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Nunito',sans-serif;background:var(--black);min-height:100vh;overflow-x:hidden}
 
+
+/* ── PAGE LOADER (cubre pantalla hasta que Firebase carga datos reales) ── */
+#pageLoader{position:fixed;inset:0;background:var(--black);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .4s}
+#pageLoader.hidden{opacity:0;pointer-events:none}
+.loader-logo{width:100px;height:100px;border-radius:20px;overflow:hidden;background:var(--red);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 4px var(--yellow)}
+.loader-logo img{width:100%;height:100%;object-fit:contain}
+.loader-text{color:#aaa;font-size:16px;font-weight:700;letter-spacing:2px}
+.loader-bar{width:200px;max-width:80%;height:4px;background:#222;border-radius:4px;overflow:hidden;margin-top:8px}
+.loader-bar-inner{width:40%;height:100%;background:linear-gradient(90deg,var(--red),var(--yellow),var(--blue));border-radius:4px;animation:loaderSlide 1.2s ease-in-out infinite}
+@keyframes loaderSlide{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
 
 /* ── FLOAT CLUSTER ── */
 .float-cluster{position:fixed;bottom:24px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;align-items:flex-end}
@@ -187,12 +195,6 @@ select:focus{border-color:var(--red);background:#fff}
 .prog-detail-desc{background:#f5f5f5;border-radius:10px;padding:14px;font-size:14px;color:#333;line-height:1.7;white-space:pre-wrap;margin-bottom:14px}
 .prog-detail-select-btn{width:100%;padding:14px;border-radius:12px;border:none;font-weight:900;font-size:16px;cursor:pointer;font-family:'Nunito',sans-serif;color:#fff;transition:all .2s;margin-top:12px;background:var(--red)}
 .sfile-doc-link{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;background:#e8edfb;color:var(--blue);font-size:12px;font-weight:800;text-decoration:none;margin-right:6px;margin-bottom:6px}
-#pageLoader{position:fixed;inset:0;background:var(--black);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .4s}
-#pageLoader.hidden{opacity:0;pointer-events:none}
-.loader-logo{font-size:72px;animation:pulse 1s ease-in-out infinite}
-@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.12);opacity:.75}}
-#mainContent{opacity:0;transition:opacity .35s}
-#mainContent.visible{opacity:1}
 .waiver-modal-box{background:#fff;border-radius:22px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.6);display:flex;flex-direction:column}
 .waiver-header{padding:24px 28px 0;flex-shrink:0}
 .waiver-body{padding:0 28px 28px;overflow-y:auto}
@@ -280,6 +282,14 @@ select:focus{border-color:var(--red);background:#fff}
 </style>
 </head>
 <body>
+
+<!-- ── PAGE LOADER (visible hasta que Firebase cargue datos reales) ── -->
+<div id="pageLoader">
+  <div class="loader-logo" id="loaderIcon"><div style="font-size:40px;color:#fff;font-weight:900">MB</div></div>
+  <div class="loader-bar"><div class="loader-bar-inner"></div></div>
+  <div class="loader-text" id="loaderText">Preparando tu experiencia... · Preparing your experience...</div>
+</div>
+<script>document.getElementById('loaderIcon').innerHTML='<img src="'+WL_LOGO_BASE64+'" style="width:100%;height:100%;object-fit:contain" onerror="this.parentNode.innerHTML=\'<div style=font-size:40px;color:#fff;font-weight:900>MB</div>\'" />';</script>
 
 <!-- ── FLOAT CLUSTER ── -->
 <div class="float-cluster">
@@ -729,13 +739,8 @@ Recomendación"></textarea>
   </div>
 </div><!-- /admin-overlay -->
 
-<!-- ── PAGE LOADER ── -->
-<div id="pageLoader" style="display:flex;">
-  <div class="loader-logo" id="loaderIcon"></div>
-</div>
-
 <!-- ── MAIN CONTENT ── -->
-<div id="mainContent" class="">
+<div id="mainContent">
 <div class="stripe"></div>
 <div class="hero">
   <div class="logo-wrap" id="logoWrap" style="display: flex;"></div>
@@ -760,8 +765,13 @@ Recomendación"></textarea>
 var FIREBASE_READY = true;  // ✅ Sistema verificado — leads se guardan en Firebase
 
 // ── INIT FIREBASE ─────────────────────────────────────────────────────────────
-var _fbApp  = firebase.initializeApp(WL.firebase);
-var _fbdb   = firebase.database();
+var _fbApp=null, _fbdb=null;
+function initFirebase(){
+  if(typeof firebase==='undefined') return;
+  _fbApp=firebase.initializeApp(WL.firebase);
+  _fbdb=firebase.database();
+  fbLoad();
+}
 
 // ── RUNTIME STATE ─────────────────────────────────────────────────────────────
 var lang          = 'es';
@@ -774,8 +784,6 @@ var contactInfo   = {email:WL.email, phone:WL.phone, whatsapp:WL.whatsapp, websi
 var telegramBotToken = WL.telegramBotToken || '8768730249:AAHvopZzmvcTKDFKXEARzcu0oWoyyZuBDf0';
 var telegramChatId   = WL.telegramChatId   || '5680584878';
 var logoDataUrl   = WL_LOGO_BASE64 || WL.logoUrl || '';
-var loaderIcon    = document.getElementById('loaderIcon');
-if(loaderIcon && logoDataUrl) loaderIcon.innerHTML = '<img src="'+logoDataUrl+'" style="width:80px;height:80px;object-fit:contain;border-radius:16px"/>';
 var adminPassword = WL.adminPassword;
 var brevoWorker   = WL.brevoWorker;
 var senderName    = WL.senderName;
@@ -1310,16 +1318,11 @@ function showPage(){
   if(_fbLoaded) return;
   _fbLoaded=true;
   updateHeroName(); renderHeroPrograms(); renderForm();
-  var loader=document.getElementById('pageLoader');
-  var content=document.getElementById('mainContent');
-  if(loader){ loader.classList.add('hidden'); setTimeout(function(){loader.style.display='none';},500); }
-  if(content) content.classList.add('visible');
+  var pl=document.getElementById('pageLoader');
+  if(pl) pl.classList.add('hidden');
 }
 
 async function fbLoad(){
-  // Mostrar página inmediatamente con defaults — sin esperar Firebase
-  showPage();
-  // Luego cargar Firebase en el fondo y actualizar silenciosamente
   try{
     var snap=await _fbdb.ref(getFbConfigKey()).get();
     if(!snap.exists()){
@@ -1367,6 +1370,8 @@ async function fbLoad(){
       updateHeroName(); renderHeroPrograms(); renderForm();
     }
   }catch(e){ console.error('fbLoad error:',e); }
+  // Renderizar página (con datos de Firebase si se cargaron, o defaults si falló)
+  showPage();
 }
 
 // ── PROGRAM DETAIL MODAL ──────────────────────────────────────────────────────
@@ -2251,7 +2256,6 @@ function exportHTML(){
   // Also export current customProgs (with photos) into the HTML
   var progString = 'var customProgs = ' + JSON.stringify(customProgs, null, 2) + ';';
 
-  // Get current HTML source and replace the WL block AND customProgs
   var html = document.documentElement.outerHTML;
 
   // Replace everything between "var WL = {" and the closing "};" of the WL block
@@ -2386,7 +2390,21 @@ function exportPublic(){
 })();
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
-fbLoad();
+// Cargar Firebase sin bloquear — el loader se muestra mientras tanto
+// fbLoad() se encarga de renderizar la página y ocultar el loader cuando tenga datos
+(function(){
+  var s1=document.createElement('script');
+  s1.src='https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js';
+  s1.onload=function(){
+    var s2=document.createElement('script');
+    s2.src='https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js';
+    s2.onload=function(){ initFirebase(); };
+    s2.onerror=function(){ showPage(); };
+    document.head.appendChild(s2);
+  };
+  s1.onerror=function(){ showPage(); };
+  document.head.appendChild(s1);
+})();
 </script>
 
 <!-- ══════════════════════════════════════════════════════════
