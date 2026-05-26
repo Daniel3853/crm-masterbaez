@@ -111,7 +111,7 @@ body{font-family:'Nunito',sans-serif;background:var(--black);min-height:100vh;ov
 .prog-tag.yellow{border-color:var(--yellow);background:rgba(245,200,0,.10)}
 
 /* ── FORM CARD ── */
-.form-wrap{max-width:660px;margin:0 auto;padding:0 16px 100px}
+.form-wrap{max-width:760px;margin:0 auto;padding:0 16px 100px}
 .form-card{background:var(--white);border-radius:24px;padding:36px 32px;box-shadow:0 24px 80px rgba(0,0,0,.5);border-top:6px solid var(--red);animation:slideUp .5s ease both}
 @keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
 .progress{display:flex;gap:8px;margin-bottom:30px}
@@ -131,7 +131,7 @@ textarea{min-height:80px;resize:vertical}
 .prog-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:8px}
 .prog-banner{width:100%;border-radius:14px;overflow:hidden;margin-bottom:14px;cursor:pointer;position:relative;display:block;border:2px solid transparent}
 .prog-banner:hover{opacity:.9}
-.prog-banner img{width:100%;max-height:420px;object-fit:cover;display:block;aspect-ratio:20/7}
+.prog-banner img{width:100%;max-height:500px;object-fit:cover;display:block;aspect-ratio:16/9}
 .prog-banner-overlay{position:absolute;bottom:0;left:0;right:0;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,.7));display:flex;align-items:center;gap:10px}
 .prog-banner-label{color:#fff;font-weight:900;font-size:15px;text-shadow:0 1px 4px rgba(0,0,0,.5)}
 .prog-banner-icon{font-size:26px;text-shadow:0 1px 4px rgba(0,0,0,.5)}
@@ -181,7 +181,7 @@ select:focus{border-color:var(--red);background:#fff}
 .countdown-ring{width:64px;height:64px;border-radius:50%;border:4px solid var(--yellow);font-size:22px;font-weight:900;color:var(--yellow);margin:0 auto 12px;display:flex;align-items:center;justify-content:center}
 .footer{background:var(--black);text-align:center;padding:20px;color:#444;font-size:12px}
 .footer span{color:var(--yellow);font-weight:700}
-.prog-detail-photo{width:100%;max-height:400px;object-fit:cover;border-radius:14px;margin-bottom:14px;display:block;aspect-ratio:16/9}
+.prog-detail-photo{width:100%;object-fit:contain;border-radius:14px;margin-bottom:14px;display:block}
 .prog-detail-video-wrap{position:relative;width:100%;padding-bottom:56.25%;border-radius:14px;overflow:hidden;background:#000;margin-bottom:14px}
 .prog-detail-video-wrap iframe,.prog-detail-video-wrap video{position:absolute;inset:0;width:100%;height:100%;border:none;border-radius:14px}
 .prog-detail-desc{background:#f5f5f5;border-radius:10px;padding:14px;font-size:14px;color:#333;line-height:1.7;white-space:pre-wrap;margin-bottom:14px}
@@ -189,12 +189,8 @@ select:focus{border-color:var(--red);background:#fff}
 .sfile-doc-link{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;background:#e8edfb;color:var(--blue);font-size:12px;font-weight:800;text-decoration:none;margin-right:6px;margin-bottom:6px}
 #pageLoader{position:fixed;inset:0;background:var(--black);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .4s}
 #pageLoader.hidden{opacity:0;pointer-events:none}
-.loader-logo{font-size:56px;animation:pulse 1s ease-in-out infinite}
-@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.1);opacity:.7}}
-.loader-bar-wrap{width:180px;height:4px;background:#222;border-radius:4px;overflow:hidden}
-.loader-bar{height:100%;background:linear-gradient(90deg,var(--red),var(--yellow));border-radius:4px;animation:loadbar 1.2s ease-in-out infinite}
-@keyframes loadbar{0%{width:0;margin-left:0}60%{width:100%;margin-left:0}100%{width:0;margin-left:100%}}
-.loader-txt{color:#555;font-size:13px;font-weight:700}
+.loader-logo{font-size:72px;animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.12);opacity:.75}}
 #mainContent{opacity:0;transition:opacity .35s}
 #mainContent.visible{opacity:1}
 .waiver-modal-box{background:#fff;border-radius:22px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.6);display:flex;flex-direction:column}
@@ -279,6 +275,7 @@ select:focus{border-color:var(--red);background:#fff}
   .form-card{padding:24px 18px}
   .prog-grid{grid-template-columns:repeat(2,1fr)}
   .admin-row{grid-template-columns:1fr}
+  .prog-banner img{aspect-ratio:4/3;object-fit:contain;background:#000}
 }
 </style>
 </head>
@@ -735,8 +732,6 @@ Recomendación"></textarea>
 <!-- ── PAGE LOADER ── -->
 <div id="pageLoader" style="display:flex;">
   <div class="loader-logo" id="loaderIcon"></div>
-  <div class="loader-bar-wrap"><div class="loader-bar"></div></div>
-  <div class="loader-txt" id="loaderTxt">Conectando...</div>
 </div>
 
 <!-- ── MAIN CONTENT ── -->
@@ -1322,10 +1317,9 @@ function showPage(){
 }
 
 async function fbLoad(){
-  var loaderTxt=document.getElementById('loaderTxt');
-  if(loaderTxt) loaderTxt.textContent='Conectando...';
-  // Fallback: mostrar pagina con WL defaults si Firebase no responde en 2 seg
-  var fallbackTimer=setTimeout(showPage,2000);
+  // Mostrar página inmediatamente con defaults — sin esperar Firebase
+  showPage();
+  // Luego cargar Firebase en el fondo y actualizar silenciosamente
   try{
     var snap=await _fbdb.ref(getFbConfigKey()).get();
     if(!snap.exists()){
@@ -1370,14 +1364,9 @@ async function fbLoad(){
       if(d.colors){
         applyColors(d.colors.primary,d.colors.secondary,d.colors.accent,d.colors.dark);
       }
+      updateHeroName(); renderHeroPrograms(); renderForm();
     }
   }catch(e){ console.error('fbLoad error:',e); }
-  clearTimeout(fallbackTimer);
-  if(logoDataUrl){
-    document.getElementById('loaderIcon').innerHTML='<img src="'+logoDataUrl+'" style="width:80px;height:80px;object-fit:contain;border-radius:16px"/>';
-  }
-  showPage();
-  renderForm(); // re-render con datos recién cargados de Firebase
 }
 
 // ── PROGRAM DETAIL MODAL ──────────────────────────────────────────────────────
