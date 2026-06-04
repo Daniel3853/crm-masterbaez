@@ -20326,8 +20326,6 @@ function mpLoadProfile(){
 }
 
 function mpSaveProfile(){
-  var el = document.getElementById('mpProfileMsg');
-  if(!el) { alert('Error: no se encontró mpProfileMsg'); return; }
   var data = {
     bizName: document.getElementById('mpBizName').value.trim(),
     whatsapp: document.getElementById('mpWhatsapp').value.trim().replace(/\D/g,''),
@@ -20346,20 +20344,16 @@ function mpSaveProfile(){
     logoUrl: document.getElementById('mpLogoUrl').value.trim(),
     updatedAt: new Date().toISOString()
   };
-  el.style.background = 'rgba(232,255,60,.1)';
-  el.style.color = 'var(--accent)';
-  el.textContent = '⏳ Guardando...';
   if(typeof _fbdb !== 'undefined' && _fbdb && _fbdb.ref){
     _fbdb.ref('adminProfile').set(data).then(function(){
       _mpProfile = data;
-      el.textContent = '✅ Perfil guardado en Firebase';
-      setTimeout(function(){ el.textContent = ''; el.style.background = 'transparent'; }, 3000);
+      toast('✅ Perfil guardado en Firebase');
     }).catch(function(e){
-      el.textContent = '⚠️ Error Firebase: '+e.message+' — guardado local';
+      toast('⚠️ Error Firebase: '+e.message);
       try{ localStorage.setItem('mpProfile_backup', JSON.stringify(data)); }catch(ex){}
     });
   } else {
-    el.textContent = '⚠️ Firebase no disponible — guardado local';
+    toast('⚠️ Firebase no disponible, guardado local');
     try{ localStorage.setItem('mpProfile_backup', JSON.stringify(data)); }catch(ex){}
   }
 }
