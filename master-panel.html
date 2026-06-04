@@ -2578,7 +2578,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
             <div class="mp-field"><label>Teams Webhook URL</label><input id="mpTeamsWebhook" placeholder="https://...webhook..." /></div>
             <div class="mp-field"><label>🌐 Lead Capture URL <small>(URL pública donde subas lead-capture.html)</small></label><input id="mpLeadCaptureUrl" placeholder="https://tudominio.com/lead-capture.html" /></div>
             <div class="mp-field"><label>Logo URL</label><input id="mpLogoUrl" placeholder="https://..." /></div>
-            <div id="mpProfileMsg" style="margin-top:10px;font-size:13px;color:var(--accent)"></div>
+            <div id="mpProfileMsg" style="margin-top:10px;font-size:13px;font-weight:700;padding:8px 12px;border-radius:6px"></div>
           </div>
         </div>
 
@@ -20326,7 +20326,8 @@ function mpLoadProfile(){
 }
 
 function mpSaveProfile(){
-  if(_demoMode || !_fbdb){ document.getElementById('mpProfileMsg').textContent='⚠️ Modo demo — no se guarda'; return; }
+  var el = document.getElementById('mpProfileMsg');
+  if(!el) { alert('Error: no se encontró mpProfileMsg'); return; }
   var data = {
     bizName: document.getElementById('mpBizName').value.trim(),
     whatsapp: document.getElementById('mpWhatsapp').value.trim().replace(/\D/g,''),
@@ -20345,16 +20346,22 @@ function mpSaveProfile(){
     logoUrl: document.getElementById('mpLogoUrl').value.trim(),
     updatedAt: new Date().toISOString()
   };
-  _fbdb.ref('adminProfile').set(data).then(function(){
-    _mpProfile = data;
-    var el = document.getElementById('mpProfileMsg');
-    el.textContent = '✅ Perfil guardado en Firebase';
-    el.style.color = 'var(--accent)';
-    setTimeout(function(){ el.textContent = ''; }, 3000);
-  }).catch(function(e){
+  el.style.background = 'rgba(232,255,60,.1)';
+  el.style.color = 'var(--accent)';
+  el.textContent = '⏳ Guardando...';
+  if(typeof _fbdb !== 'undefined' && _fbdb && _fbdb.ref){
+    _fbdb.ref('adminProfile').set(data).then(function(){
+      _mpProfile = data;
+      el.textContent = '✅ Perfil guardado en Firebase';
+      setTimeout(function(){ el.textContent = ''; el.style.background = 'transparent'; }, 3000);
+    }).catch(function(e){
+      el.textContent = '⚠️ Error Firebase: '+e.message+' — guardado local';
+      try{ localStorage.setItem('mpProfile_backup', JSON.stringify(data)); }catch(ex){}
+    });
+  } else {
+    el.textContent = '⚠️ Firebase no disponible — guardado local';
     try{ localStorage.setItem('mpProfile_backup', JSON.stringify(data)); }catch(ex){}
-    document.getElementById('mpProfileMsg').textContent = '⚠️ Error: '+e.message;
-  });
+  }
 }
 
 function mpAddQrCode(){
