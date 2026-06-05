@@ -20510,13 +20510,25 @@ function mpLoadLeads(){
 function mpDeleteLead(key){
   if(_demoMode||!_fbdb) return;
   _fbdb.ref('qrScans/admin/'+key).once('value').then(function(snap){
-    var data = snap.val();
-    if(!data) return;
-    // Save to papelera
-    _fbdb.ref('papelera/lead_'+key).set({type:'lead',data:data,deletedAt:new Date().toISOString()}).then(function(){
-      // Mark as deleted in original
+    var d = snap.val();
+    if(!d) return;
+    var entry = {
+      _trashType: 'lead',
+      id: 'lead_'+key,
+      name: d.leadName || d.leadEmail || 'Lead',
+      firstName: d.leadName || '',
+      bizName: d.leadName || '',
+      email: d.leadEmail || '',
+      phone: d.leadPhone || '',
+      plan: '',
+      deleteMotivo: d.type ? 'QR: '+d.type : 'Lead',
+      deletedAt: new Date().toISOString(),
+      _leadKey: key,
+      _leadData: d
+    };
+    _fbdb.ref('papelera/lead_'+key).set(entry).then(function(){
       _fbdb.ref('qrScans/admin/'+key+'/deleted').set(true).then(function(){
-        toast(tx().mpEliminarLead.replace('🗑 ','').replace('?',''));
+        toast('🗑 Lead enviado a Papelera');
         mpLoadLeads();
       });
     });
