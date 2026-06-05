@@ -20442,18 +20442,32 @@ function mpLoadLeads(){
       +'<thead><tr style="border-bottom:1px solid var(--border);color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.5px">'
       +'<th style="padding:6px 8px;text-align:left">Fecha</th><th style="padding:6px 8px;text-align:left">Nombre</th>'
       +'<th style="padding:6px 8px;text-align:left">Email/Tel</th><th style="padding:6px 8px;text-align:left">Mensaje</th>'
-      +'<th style="padding:6px 8px;text-align:left">Ubicación</th></tr></thead><tbody>';
+      +'<th style="padding:6px 8px;text-align:left">IP</th><th style="padding:6px 8px;text-align:left">Ubicación</th>'
+      +'<th style="padding:6px 8px;text-align:left">Dispositivo</th><th style="padding:6px 8px;text-align:left">Acción</th>'
+      +'</tr></thead><tbody>';
     var count = 0;
     if(snap.exists()){
       snap.forEach(function(child){
         var d = child.val();
         if(d.deleted) return; count++;
+        var phone = d.leadPhone || '';
+        var phoneDigits = phone.replace(/\D/g,'');
+        var email = d.leadEmail || '';
         html += '<tr style="border-bottom:1px solid var(--border)">'
           +'<td style="padding:6px 8px;white-space:nowrap;font-size:11px">'+(d.timestamp?new Date(d.timestamp).toLocaleString():'—')+'</td>'
           +'<td style="padding:6px 8px"><b>'+_esc(d.leadName||'—')+'</b></td>'
-          +'<td style="padding:6px 8px;font-size:11px">'+(d.leadEmail?'📧 '+_esc(d.leadEmail):'')+(d.leadPhone?(d.leadEmail?'<br>':'')+'📱 '+_esc(d.leadPhone):'')+'</td>'
+          +'<td style="padding:6px 8px;font-size:11px">'+(email?'📧 '+_esc(email):'')+(phone?(email?'<br>':'')+'📱 '+_esc(phone):'')+'</td>'
           +'<td style="padding:6px 8px;font-size:11px;max-width:150px;word-break:break-word">'+_esc(d.leadMessage||'—')+'</td>'
-          +'<td style="padding:6px 8px;font-size:11px">'+_esc([d.city,d.country].filter(Boolean).join(', ')||'—')+'</td></tr>';
+          +'<td style="padding:6px 8px;font-size:11px;color:#64748b">'+_esc(d.ip||'—')+'</td>'
+          +'<td style="padding:6px 8px;font-size:11px">'+([d.city,d.country].filter(Boolean).join(', ')||'—')+' '+(d.lat&&d.lng?'<a href="https://www.google.com/maps?q='+d.lat+','+d.lng+'" target="_blank" style="text-decoration:none;font-size:14px" title="Ver en mapa">🗺</a>':'')+'</td>'
+          +'<td style="padding:6px 8px;font-size:11px;color:#64748b">'+_esc(d.os||d.userAgent||'—')+'</td>'
+          +'<td style="padding:6px 8px;white-space:nowrap">'
+          +(phoneDigits?'<a href="sms:'+phoneDigits+'" style="text-decoration:none;cursor:pointer" title="SMS">📲</a> ':'')
+          +(phoneDigits?'<a href="https://wa.me/'+phoneDigits+'?text='+encodeURIComponent('Hola '+_esc(d.leadName||'')+', vi tu mensaje')+'" target="_blank" style="text-decoration:none;cursor:pointer" title="WhatsApp">💬</a> ':'')
+          +(phoneDigits?'<a href="tel:'+phoneDigits+'" style="text-decoration:none;cursor:pointer" title="Llamar">📞</a> ':'')
+          +(email?'<a href="mailto:'+email+'" style="text-decoration:none;cursor:pointer" title="Email">📧</a> ':'')
+          +'<span onclick="if(confirm(\'🗑 Eliminar este lead?\')){_fbdb.ref(\'qrScans/admin/'+child.key+'/deleted\').set(true).then(function(){mpLoadLeads()})}" style="cursor:pointer" title="Eliminar">🗑</span>'
+          +'</td></tr>';
       });
     }
     html += '</tbody></table></div>';
