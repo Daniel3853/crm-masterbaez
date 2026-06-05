@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Contact</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#0f172a,#1e293b);color:#e2e8f0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+.lc-card{background:linear-gradient(145deg,#1e293b,#334155);border-radius:20px;padding:28px 24px;max-width:440px;width:100%;box-shadow:0 24px 80px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.06);position:relative}
+.lc-card h1{font-size:20px;margin-bottom:4px;background:linear-gradient(135deg,#f59e0b,#ef4444,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.lc-card .sub{font-size:13px;color:#94a3b8;margin-bottom:20px}
+.lc-field{margin-bottom:12px}
+.lc-field label{display:block;font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px}
+.lc-field input,.lc-field textarea{width:100%;padding:10px 12px;border:2px solid #475569;border-radius:10px;font-size:14px;outline:none;transition:all .3s;background:#1e293b;color:#e2e8f0;font-family:inherit}
+.lc-field input:focus,.lc-field textarea:focus{border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(139,92,246,.2)}
+.lc-field textarea{min-height:60px;resize:vertical}
+.lc-btn{width:100%;padding:12px;border:none;border-radius:10px;font-weight:800;font-size:15px;cursor:pointer;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-family:inherit;transition:all .25s;box-shadow:0 4px 16px rgba(99,102,241,.3)}
+.lc-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(99,102,241,.4)}
+.lc-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.lc-status{margin-top:12px;font-size:13px;text-align:center;min-height:20px}
+.lc-powered{text-align:center;margin-top:16px;font-size:10px;color:#475569}
+.lc-powered a{color:#64748b;text-decoration:none}
+.lc-gps{font-size:10px;color:#64748b;text-align:center;margin-bottom:12px}
+.lc-logo{text-align:center;margin-bottom:16px}
+.lc-logo img{max-width:80px;max-height:80px;border-radius:12px}
+.lc-lang-btn{position:absolute;top:12px;right:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#94a3b8;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:700;transition:all .2s}
+.lc-lang-btn:hover{background:rgba(139,92,246,.15);border-color:#8b5cf6;color:#a78bfa}
+.lc-en-part,.lc-es-part{display:none!important}
+.lc-lang-en .lc-en-part{display:block!important}
+.lc-lang-en .lc-es-part{display:none!important}
+.lc-lang-es .lc-es-part{display:block!important}
+.lc-lang-es .lc-en-part{display:none!important}
+</style>
+</head>
+<body>
+<div class="lc-card lc-lang-en" id="lcCard">
+  <button class="lc-lang-btn" id="lcLangBtn" onclick="lcToggleLang()">🌐 Español</button>
+  <div id="lcLogo" class="lc-logo"></div>
+  <h1 id="lcTitle" class="lc-en-part">Get in Touch</h1>
+  <h1 id="lcTitleEs" class="lc-es-part">Conéctate</h1>
+  <div class="sub lc-en-part" id="lcSub">Leave your info and we'll get back to you</div>
+  <div class="sub lc-es-part" id="lcSubEs">Déjanos tus datos para comunicarnos contigo</div>
+
+  <div class="lc-field">
+    <label class="lc-en-part">Full Name *</label>
+    <label class="lc-es-part">Nombre *</label>
+    <input id="lcName" placeholder="Your name" autocomplete="name" />
+  </div>
+  <div class="lc-field">
+    <label>Email</label>
+    <input id="lcEmail" type="email" placeholder="you@email.com" autocomplete="email" />
+  </div>
+  <div class="lc-field">
+    <label class="lc-en-part">Phone *</label>
+    <label class="lc-es-part">Teléfono *</label>
+    <input id="lcPhone" type="tel" placeholder="+1 234 567 8900" autocomplete="tel" />
+  </div>
+  <div class="lc-field">
+    <label class="lc-en-part">Message</label>
+    <label class="lc-es-part">Mensaje</label>
+    <textarea id="lcMessage" class="lc-en-part" placeholder="Write your message here..."></textarea>
+    <textarea id="lcMessageEs" class="lc-es-part" placeholder="Escribe tu mensaje aquí..."></textarea>
+  </div>
+
+  <div class="lc-gps" id="lcGps">📍 Getting location...</div>
+
+  <button class="lc-btn" id="lcBtn" onclick="lcSubmit()"><span class="lc-en-part">Send &amp; Continue</span><span class="lc-es-part">Enviar y continuar</span></button>
+  <div class="lc-status" id="lcStatus"></div>
+  <div class="lc-powered">Powered by <a href="#">Master Panel CRM</a></div>
+</div>
+
+<script>
+var LC_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDpjqJFZxh1ErjbfTJ8nq-uzB3oHXDo-iA",
+  authDomain: "crm-leads-baez.firebaseapp.com",
+  databaseURL: "https://crm-leads-baez-default-rtdb.firebaseio.com",
+  projectId: "crm-leads-baez",
+  storageBucket: "crm-leads-baez.firebasestorage.app",
+  messagingSenderId: "583732725999",
+  appId: "1:583732725999:web:b38aa0a3ffc9e809c3b31a"
+};
+var _lcdb = null;
+try{ firebase.initializeApp(LC_FIREBASE_CONFIG, 'lcApp'); _lcdb = firebase.database(firebase.app('lcApp')); }catch(e){}
+
+var _lcProfile = null;
+var _lcParams = {};
+var _lcLat = null;
+var _lcLng = null;
+var _lcGeo = null;
+var _lcLang = 'en';
+
+function _esc(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// Parse URL params
+(function(){
+  var q = location.search.replace('?','').split('&');
+  q.forEach(function(p){ var kv=p.split('='); if(kv[0]) _lcParams[kv[0]]=decodeURIComponent(kv[1]||''); });
+  if(!_lcParams.c) _lcParams.c = 'admin';
+  if(!_lcParams.s) _lcParams.s = 'whatsapp';
+})();
+
+function lcToggleLang(){
+  _lcLang = _lcLang === 'en' ? 'es' : 'en';
+  var card = document.getElementById('lcCard');
+  card.classList.remove('lc-lang-en','lc-lang-es');
+  card.classList.add('lc-lang-'+_lcLang);
+  document.getElementById('lcLangBtn').textContent = _lcLang === 'en' ? '🌐 Español' : '🌐 English';
+  document.getElementById('lcGps').textContent = _lcLang === 'en' ? '📍 Getting location...' : '📍 Obteniendo ubicación...';
+}
+
+function lcLoadProfile(){
+  if(!_lcdb) return;
+  _lcdb.ref('adminProfile').once('value').then(function(snap){
+    _lcProfile = snap.val() || {};
+    if(_lcProfile.logoUrl){
+      document.getElementById('lcLogo').innerHTML = '<img src="'+_lcProfile.logoUrl+'" alt="Logo"/>';
+    }
+    if(_lcProfile.waMessage){
+      document.getElementById('lcMessage').value = _lcProfile.waMessage;
+      document.getElementById('lcMessageEs').value = _lcProfile.waMessage;
+    }
+    if(_lcProfile.bizName){
+      document.getElementById('lcTitle').textContent = _lcProfile.bizName;
+      document.getElementById('lcTitleEs').textContent = _lcProfile.bizName;
+    }
+  }).catch(function(e){ console.warn('lcLoadProfile:', e); });
+}
+
+function lcGetGps(){
+  if(!navigator.geolocation){
+    document.getElementById('lcGps').textContent = _lcLang === 'en' ? '📍 Location unavailable' : '📍 Ubicación no disponible';
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(function(pos){
+    _lcLat = pos.coords.latitude;
+    _lcLng = pos.coords.longitude;
+    document.getElementById('lcGps').textContent = '📍 '+(_lcLang === 'en' ? 'Location obtained' : 'Ubicación obtenida');
+    fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+_lcLat+'&lon='+_lcLng+'&accept-language='+_lcLang)
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        _lcGeo = d;
+        var loc = d.address ? [d.address.city||d.address.town||d.address.village,d.address.country].filter(Boolean).join(', ') : '';
+        document.getElementById('lcGps').textContent = '📍 '+(loc||(_lcLang==='en'?'Location obtained':'Ubicación obtenida'));
+      }).catch(function(){});
+  }, function(){
+    document.getElementById('lcGps').textContent = _lcLang === 'en' ? '📍 Location unavailable' : '📍 Ubicación no disponible';
+  }, {timeout:10000, enableHighAccuracy:true});
+}
+
+function lcSubmit(){
+  var name = document.getElementById('lcName').value.trim();
+  var phone = document.getElementById('lcPhone').value.trim();
+  if(!name || !phone){
+    document.getElementById('lcStatus').textContent = _lcLang === 'en' ? '⚠️ Name and phone are required' : '⚠️ Nombre y teléfono son obligatorios';
+    document.getElementById('lcStatus').style.color = '#ef4444';
+    return;
+  }
+
+  var btn = document.getElementById('lcBtn');
+  btn.disabled = true;
+  btn.innerHTML = (_lcLang === 'en' ? '⏳ Sending...' : '⏳ Enviando...');
+  document.getElementById('lcStatus').textContent = '';
+
+  var email = document.getElementById('lcEmail').value.trim();
+  var msgEl = document.getElementById(_lcLang==='es'?'lcMessageEs':'lcMessage');
+  var message = msgEl.value.trim();
+  var ts = new Date().toISOString();
+  var ua = navigator.userAgent;
+  var os = 'Unknown';
+  if(/Windows/.test(ua)) os = 'Windows';
+  else if(/Mac/.test(ua)) os = 'macOS';
+  else if(/Linux/.test(ua)) os = 'Linux';
+  else if(/Android/.test(ua)) os = 'Android';
+  else if(/iPhone|iPad|iPod/.test(ua)) os = 'iOS';
+
+  var scanData = {
+    qrId: _lcParams.q || 'unknown',
+    type: _lcParams.s || 'whatsapp',
+    leadName: name,
+    leadEmail: email,
+    leadPhone: phone,
+    leadMessage: message,
+    timestamp: ts,
+    city: _lcGeo && _lcGeo.address ? (_lcGeo.address.city||_lcGeo.address.town||_lcGeo.address.village||'') : '',
+    country: _lcGeo && _lcGeo.address ? (_lcGeo.address.country||'') : '',
+    lat: _lcLat || null,
+    lng: _lcLng || null,
+    ip: '',
+    os: os,
+    userAgent: ua,
+    ref: 'admin',
+    scanned: true,
+    lang: _lcLang
+  };
+
+  try{
+    fetch('https://api.ipify.org?format=json').then(function(r){ return r.json(); }).then(function(d){
+      scanData.ip = d.ip || '';
+      _lcSaveScan(scanData);
+    }).catch(function(){ _lcSaveScan(scanData); });
+  }catch(e){ _lcSaveScan(scanData); }
+}
+
+function _lcSaveScan(data){
+  if(!_lcdb){ _lcDone(data); return; }
+  _lcdb.ref('qrScans/admin').push(data).then(function(){ _lcDone(data); }).catch(function(){ _lcDone(data); });
+}
+
+function _lcDone(data){
+  if(_lcProfile && _lcdb) _lcSendNotifs(data);
+  _lcRedirect(data);
+}
+
+function _lcRedirect(data){
+  var type = data.type || 'whatsapp';
+  var url = '#';
+  switch(type){
+    case 'whatsapp':
+      var wa = _lcProfile ? _lcProfile.whatsapp : '';
+      if(wa) url = 'https://wa.me/'+wa.replace(/\D/g,'')+'?text='+encodeURIComponent('Hola, soy '+data.leadName+'. '+(data.leadMessage||''));
+      else url = 'https://wa.me/';
+      break;
+    case 'telegram':
+      var tu = _lcProfile ? _lcProfile.telegramUser : '';
+      if(tu) url = 'https://t.me/'+tu.replace('@','');
+      else url = 'https://t.me/';
+      break;
+    case 'sms':
+      var ph = _lcProfile ? _lcProfile.whatsapp : '';
+      if(ph) url = 'sms:'+ph.replace(/\D/g,'');
+      else url = 'sms:';
+      break;
+    case 'teams':
+      url = _lcProfile && _lcProfile.teamsWebhook ? _lcProfile.teamsWebhook : '#';
+      break;
+  }
+  var btn2 = document.getElementById('lcBtn');
+  if(btn2) btn2.innerHTML = _lcLang === 'en' ? '✅ Sent — Redirecting...' : '✅ Enviado — Redirigiendo...';
+  setTimeout(function(){ window.location.href = url; }, 500);
+}
+
+function _lcSendNotifs(data){
+  var p = _lcProfile;
+  var msg = '📩 *Nuevo Lead QR*\n👤 '+data.leadName+'\n📧 '+(data.leadEmail||'—')+'\n📱 '+(data.leadPhone||'—')+'\n💬 '+(data.leadMessage||'—')+'\n📍 '+[data.city,data.country].filter(Boolean).join(', ')+'\n🆔 QR: '+(data.qrId||'—');
+  if(p.telegramToken && p.telegramChatId){
+    try{ fetch('https://api.telegram.org/bot'+p.telegramToken+'/sendMessage?chat_id='+p.telegramChatId+'&text='+encodeURIComponent(msg)+'&parse_mode=Markdown').catch(function(e){ console.warn('Telegram notif failed:',e); }); }catch(e){ console.warn('Telegram error:',e); }
+  }
+  if(p.whatsappToken && p.whatsappPhoneId && p.whatsapp){
+    try{
+      fetch('https://graph.facebook.com/v18.0/'+p.whatsappPhoneId+'/messages',{method:'POST',headers:{'Authorization':'Bearer '+p.whatsappToken,'Content-Type':'application/json'},body:JSON.stringify({messaging_product:'whatsapp',to:p.whatsapp.replace(/\D/g,''),type:'text',text:{body:msg}})}).catch(function(e){ console.warn('WA notif failed:',e); });
+    }catch(e){ console.warn('WA error:',e); }
+  }
+  if(p.teamsWebhook){
+    try{ fetch(p.teamsWebhook,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:msg})}).catch(function(e){ console.warn('Teams notif failed:',e); }); }catch(e){ console.warn('Teams error:',e); }
+  }
+  if(p.brevoApiKey && p.brevoSenderEmail){
+    try{
+      var isEn = data.lang!=='es';
+      fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',headers:{'api-key':p.brevoApiKey,'Content-Type':'application/json'},body:JSON.stringify({sender:{email:p.brevoSenderEmail},to:[{email:p.brevoSenderEmail}],subject:(isEn?'📩 New QR Lead - ':'📩 Nuevo Lead QR - ')+data.leadName,htmlContent:'<h2>'+(isEn?'New QR Lead':'Nuevo Lead QR')+'</h2><ul><li><b>'+(isEn?'Name:':'Nombre:')+'</b> '+data.leadName+'</li><li><b>'+(isEn?'Email:':'Email:')+'</b> '+(data.leadEmail||'—')+'</li><li><b>'+(isEn?'Phone:':'Teléfono:')+'</b> '+(data.leadPhone||'—')+'</li><li><b>'+(isEn?'Message:':'Mensaje:')+'</b> '+(data.leadMessage||'—')+'</li><li><b>'+(isEn?'Location:':'Ubicación:')+'</b> '+[data.city,data.country].filter(Boolean).join(', ')+'</li><li><b>'+(isEn?'QR ID:':'QR ID:')+'</b> '+(data.qrId||'—')+'</li></ul>'}}).then(function(r){ if(!r.ok) console.warn('Brevo admin email status:',r.status); }).catch(function(e){ console.warn('Brevo admin email failed:',e); });
+    }catch(e){ console.warn('Brevo admin error:',e); }
+    if(data.leadEmail){
+      try{
+        fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',headers:{'api-key':p.brevoApiKey,'Content-Type':'application/json'},body:JSON.stringify({sender:{email:p.brevoSenderEmail},to:[{email:data.leadEmail}],subject:(isEn?'Thanks for contacting us - ':'Gracias por contactarnos - ')+(p.bizName||''),htmlContent:'<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#f9f9f9;border-radius:12px"><h2 style="color:#1e293b">'+(isEn?'Thank you!':'¡Gracias!')+'</h2><p style="color:#475569">'+(isEn?'We received your information and will contact you shortly.':'Recibimos tu información y te contactaremos pronto.')+'</p><p style="color:#475569">'+(isEn?'Your message:':'Tu mensaje:')+'<br/><i>'+_esc(data.leadMessage||'—')+'</i></p><hr style="border:none;border-top:1px solid #e2e8f0;margin:16px 0"/><p style="font-size:12px;color:#94a3b8">'+(p.bizName||'')+'</p></div>'}})).then(function(r){ if(!r.ok) console.warn('Brevo auto-reply status:',r.status); }).catch(function(e){ console.warn('Brevo auto-reply failed:',e); });
+      }catch(e){ console.warn('Brevo auto-reply error:',e); }
+    }
+  }
+}
+
+lcLoadProfile();
+lcGetGps();
+</script>
+</body>
+</html>
