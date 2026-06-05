@@ -29,9 +29,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .lc-lang-btn{position:absolute;top:12px;right:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#94a3b8;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:700;transition:all .2s}
 .lc-lang-btn:hover{background:rgba(139,92,246,.15);border-color:#8b5cf6;color:#a78bfa}
 .lc-en-part,.lc-es-part{display:none!important}
-.lc-lang-en .lc-en-part{display:revert!important}
+.lc-lang-en .lc-en-part{display:block!important}
 .lc-lang-en .lc-es-part{display:none!important}
-.lc-lang-es .lc-es-part{display:revert!important}
+.lc-lang-es .lc-es-part{display:block!important}
 .lc-lang-es .lc-en-part{display:none!important}
 </style>
 </head>
@@ -91,6 +91,8 @@ var _lcLat = null;
 var _lcLng = null;
 var _lcGeo = null;
 var _lcLang = 'en';
+
+function _esc(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 // Parse URL params
 (function(){
@@ -244,20 +246,26 @@ function _lcSendNotifs(data){
   var p = _lcProfile;
   var msg = '📩 *Nuevo Lead QR*\n👤 '+data.leadName+'\n📧 '+(data.leadEmail||'—')+'\n📱 '+(data.leadPhone||'—')+'\n💬 '+(data.leadMessage||'—')+'\n📍 '+[data.city,data.country].filter(Boolean).join(', ')+'\n🆔 QR: '+(data.qrId||'—');
   if(p.telegramToken && p.telegramChatId){
-    try{ fetch('https://api.telegram.org/bot'+p.telegramToken+'/sendMessage?chat_id='+p.telegramChatId+'&text='+encodeURIComponent(msg)+'&parse_mode=Markdown').catch(function(){}); }catch(e){}
+    try{ fetch('https://api.telegram.org/bot'+p.telegramToken+'/sendMessage?chat_id='+p.telegramChatId+'&text='+encodeURIComponent(msg)+'&parse_mode=Markdown').catch(function(e){ console.warn('Telegram notif failed:',e); }); }catch(e){ console.warn('Telegram error:',e); }
   }
   if(p.whatsappToken && p.whatsappPhoneId && p.whatsapp){
     try{
-      fetch('https://graph.facebook.com/v18.0/'+p.whatsappPhoneId+'/messages',{method:'POST',headers:{'Authorization':'Bearer '+p.whatsappToken,'Content-Type':'application/json'},body:JSON.stringify({messaging_product:'whatsapp',to:p.whatsapp.replace(/\D/g,''),type:'text',text:{body:msg}})}).catch(function(){});
-    }catch(e){}
+      fetch('https://graph.facebook.com/v18.0/'+p.whatsappPhoneId+'/messages',{method:'POST',headers:{'Authorization':'Bearer '+p.whatsappToken,'Content-Type':'application/json'},body:JSON.stringify({messaging_product:'whatsapp',to:p.whatsapp.replace(/\D/g,''),type:'text',text:{body:msg}})}).catch(function(e){ console.warn('WA notif failed:',e); });
+    }catch(e){ console.warn('WA error:',e); }
   }
   if(p.teamsWebhook){
-    try{ fetch(p.teamsWebhook,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:msg})}).catch(function(){}); }catch(e){}
+    try{ fetch(p.teamsWebhook,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:msg})}).catch(function(e){ console.warn('Teams notif failed:',e); }); }catch(e){ console.warn('Teams error:',e); }
   }
   if(p.brevoApiKey && p.brevoSenderEmail){
     try{
-      fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',headers:{'api-key':p.brevoApiKey,'Content-Type':'application/json'},body:JSON.stringify({sender:{email:p.brevoSenderEmail},to:[{email:p.brevoSenderEmail}],subject:'📩 Nuevo Lead QR - '+data.leadName,htmlContent:'<h2>Nuevo Lead QR</h2><ul><li><b>Nombre:</b> '+data.leadName+'</li><li><b>Email:</b> '+(data.leadEmail||'—')+'</li><li><b>Teléfono:</b> '+(data.leadPhone||'—')+'</li><li><b>Mensaje:</b> '+(data.leadMessage||'—')+'</li><li><b>Ubicación:</b> '+[data.city,data.country].filter(Boolean).join(', ')+'</li><li><b>QR ID:</b> '+(data.qrId||'—')+'</li></ul>'}}).catch(function(){});
-    }catch(e){}
+      var isEn = data.lang!=='es';
+      fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',headers:{'api-key':p.brevoApiKey,'Content-Type':'application/json'},body:JSON.stringify({sender:{email:p.brevoSenderEmail},to:[{email:p.brevoSenderEmail}],subject:(isEn?'📩 New QR Lead - ':'📩 Nuevo Lead QR - ')+data.leadName,htmlContent:'<h2>'+(isEn?'New QR Lead':'Nuevo Lead QR')+'</h2><ul><li><b>'+(isEn?'Name:':'Nombre:')+'</b> '+data.leadName+'</li><li><b>'+(isEn?'Email:':'Email:')+'</b> '+(data.leadEmail||'—')+'</li><li><b>'+(isEn?'Phone:':'Teléfono:')+'</b> '+(data.leadPhone||'—')+'</li><li><b>'+(isEn?'Message:':'Mensaje:')+'</b> '+(data.leadMessage||'—')+'</li><li><b>'+(isEn?'Location:':'Ubicación:')+'</b> '+[data.city,data.country].filter(Boolean).join(', ')+'</li><li><b>'+(isEn?'QR ID:':'QR ID:')+'</b> '+(data.qrId||'—')+'</li></ul>'}}).then(function(r){ if(!r.ok) console.warn('Brevo admin email status:',r.status); }).catch(function(e){ console.warn('Brevo admin email failed:',e); });
+    }catch(e){ console.warn('Brevo admin error:',e); }
+    if(data.leadEmail){
+      try{
+        fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',headers:{'api-key':p.brevoApiKey,'Content-Type':'application/json'},body:JSON.stringify({sender:{email:p.brevoSenderEmail},to:[{email:data.leadEmail}],subject:(isEn?'Thanks for contacting us - ':'Gracias por contactarnos - ')+(p.bizName||''),htmlContent:'<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#f9f9f9;border-radius:12px"><h2 style="color:#1e293b">'+(isEn?'Thank you!':'¡Gracias!')+'</h2><p style="color:#475569">'+(isEn?'We received your information and will contact you shortly.':'Recibimos tu información y te contactaremos pronto.')+'</p><p style="color:#475569">'+(isEn?'Your message:':'Tu mensaje:')+'<br/><i>'+_esc(data.leadMessage||'—')+'</i></p><hr style="border:none;border-top:1px solid #e2e8f0;margin:16px 0"/><p style="font-size:12px;color:#94a3b8">'+(p.bizName||'')+'</p></div>'}})).then(function(r){ if(!r.ok) console.warn('Brevo auto-reply status:',r.status); }).catch(function(e){ console.warn('Brevo auto-reply failed:',e); });
+      }catch(e){ console.warn('Brevo auto-reply error:',e); }
+    }
   }
 }
 
