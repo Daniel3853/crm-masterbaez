@@ -2549,9 +2549,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     <!-- ── MI PERFIL QR ── -->
     <div class="page mod-page" id="page-miPerfilQr">
       <div class="topbar">
-        <div class="page-title">📱 Mi Perfil QR</div>
+        <div class="page-title" data-i18n="mpPerfilQrTitle">📱 Mi Perfil QR</div>
         <div class="topbar-actions">
-          <button class="btn-ghost" onclick="mpSaveProfile()" style="padding:8px 16px;border-radius:8px;border:1.5px solid var(--accent);color:var(--accent);background:rgba(232,255,60,.07);font-weight:700">💾 Guardar Perfil</button>
+          <button class="btn-ghost" onclick="mpSaveProfile()" style="padding:8px 16px;border-radius:8px;border:1.5px solid var(--accent);color:var(--accent);background:rgba(232,255,60,.07);font-weight:700" data-i18n="mpGuardar">💾 Guardar Perfil</button>
         </div>
       </div>
 
@@ -2559,7 +2559,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
         <!-- ── LEFT: MI PERFIL ── -->
         <div class="mp-card" id="mpPerfilCard">
-          <div class="mp-card-head">👤 Mi Perfil</div>
+          <div class="mp-card-head" data-i18n="mpPerfil">👤 Mi Perfil</div>
           <div class="mp-card-body">
             <div class="mp-field"><label>Nombre del Negocio</label><input id="mpBizName" placeholder="Ej: Mi Empresa" /></div>
             <div class="mp-field"><label>WhatsApp <small>(número, ej: 573001234567)</small></label><input id="mpWhatsapp" placeholder="573001234567" /></div>
@@ -2587,7 +2587,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
           <!-- ── MY QR CODES ── -->
           <div class="mp-card">
-            <div class="mp-card-head">📱 My QR Codes</div>
+            <div class="mp-card-head" data-i18n="mpQrCodes">📱 My QR Codes</div>
             <div class="mp-card-body">
               <div class="mp-qr-type-select">
                 <label class="active"><input type="radio" name="mpQrType" value="whatsapp" checked onchange="mpSetQrType('whatsapp')" /> 💬 WhatsApp</label>
@@ -2596,8 +2596,8 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
                 <label><input type="radio" name="mpQrType" value="teams" onchange="mpSetQrType('teams')" /> 💼 Teams</label>
               </div>
               <div style="display:flex;gap:8px;margin-bottom:14px">
-                <input id="mpQrIdInput" placeholder="ID opcional" style="flex:1;margin:0" />
-                <button class="act-btn primary" onclick="mpAddQrCode()">✨ Generar QR</button>
+                <input id="mpQrIdInput" data-i18n-ph="mpIdOpcional" placeholder="ID opcional" style="flex:1;margin:0" />
+                <button class="act-btn primary" onclick="mpAddQrCode()" data-i18n="mpQrGenerar">✨ Generar QR</button>
               </div>
               <div id="mpQrCodesGrid"></div>
             </div>
@@ -2605,9 +2605,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
           <!-- ── MIS LEADS ── -->
           <div class="mp-card">
-            <div class="mp-card-head">📩 Mis Leads Recibidos</div>
+            <div class="mp-card-head" data-i18n="mpLeads">📩 Mis Leads Recibidos</div>
             <div class="mp-card-body">
-              <div id="mpLeadsList"><p style="color:var(--muted);text-align:center;padding:20px">Cargando...</p></div>
+              <div id="mpLeadsList"><p style="color:var(--muted);text-align:center;padding:20px" data-i18n="mpCargando">Cargando...</p></div>
             </div>
           </div>
 
@@ -14501,7 +14501,16 @@ var LANG = {
     qrContactLabel:'⚙️ Configuración de contacto',
     qrDownloadFlyerBtn:'📥 Descargar Flyer con los 3 QR',
     iatoolsDesc:'Herramientas de inteligencia artificial para hacer crecer tu negocio.',
-    graficaDesc:'Leads recibidos por mes y fuente.'
+    graficaDesc:'Leads recibidos por mes y fuente.',
+    mpPerfil:'👤 Mi Perfil', mpQrCodes:'📱 My QR Codes', mpLeads:'📩 Mis Leads Recibidos',
+    mpFecha:'Fecha', mpNombre:'Nombre', mpEmailTel:'Email/Tel', mpMensaje:'Mensaje',
+    mpIP:'IP', mpUbicacion:'Ubicación', mpDispositivo:'Dispositivo', mpAccion:'Acción',
+    mpNoLeads:'Aún no hay leads recibidos.', mpCargando:'Cargando...',
+    mpGuardar:'💾 Guardar Perfil', mpQrGenerar:'✨ Generar QR',
+    mpIdOpcional:'ID opcional', mpNoQr:'Aún no has generado QR codes.',
+    mpActivo:'Activo', mpInactivo:'Inactivo', mpActivar:'🟢 Activar', mpDesactivar:'🔴 Desactivar',
+    mpEliminarLead:'🗑 Eliminar este lead?', mpMapa:'Ver en mapa',
+    mpLlamar:'Llamar', mpWhatsApp:'WhatsApp', mpSMS:'SMS', mpEmail:'Email'
   },
   en:{
     dashboard:'📊 Dashboard', clients:'👥 Clients', config:'⚙️ Settings',
@@ -14639,7 +14648,16 @@ var LANG = {
     qrContactLabel:'⚙️ Contact settings',
     qrDownloadFlyerBtn:'📥 Download Flyer with 3 QRs',
     iatoolsDesc:'Artificial intelligence tools to grow your business.',
-    graficaDesc:'Leads received per month and source.'
+    graficaDesc:'Leads received per month and source.',
+    mpPerfil:'👤 My Profile', mpQrCodes:'📱 My QR Codes', mpLeads:'📩 My Received Leads',
+    mpFecha:'Date', mpNombre:'Name', mpEmailTel:'Email/Phone', mpMensaje:'Message',
+    mpIP:'IP', mpUbicacion:'Location', mpDispositivo:'Device', mpAccion:'Action',
+    mpNoLeads:'No leads received yet.', mpCargando:'Loading...',
+    mpGuardar:'💾 Save Profile', mpQrGenerar:'✨ Generate QR',
+    mpIdOpcional:'Optional ID', mpNoQr:'No QR codes generated yet.',
+    mpActivo:'Active', mpInactivo:'Inactive', mpActivar:'🟢 Activate', mpDesactivar:'🔴 Deactivate',
+    mpEliminarLead:'🗑 Delete this lead?', mpMapa:'View on map',
+    mpLlamar:'Call', mpWhatsApp:'WhatsApp', mpSMS:'SMS', mpEmail:'Email'
   }
 };
 function tx(){ return LANG[_masterLang]; }
@@ -20437,13 +20455,23 @@ function _dlQr(url,name){
 
 function mpLoadLeads(){
   if(_demoMode||!_fbdb) return;
+  var t = tx();
+  var tf = function(ts){
+    if(!ts) return '—';
+    try{ return new Date(ts).toLocaleString(_masterLang==='es'?'es-CO':'en-US',{year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true}); }
+    catch(e){ return ts; }
+  };
   _fbdb.ref('qrScans/admin').orderByChild('timestamp').limitToLast(50).once('value').then(function(snap){
     var html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'
       +'<thead><tr style="border-bottom:1px solid var(--border);color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.5px">'
-      +'<th style="padding:6px 8px;text-align:left">Fecha</th><th style="padding:6px 8px;text-align:left">Nombre</th>'
-      +'<th style="padding:6px 8px;text-align:left">Email/Tel</th><th style="padding:6px 8px;text-align:left">Mensaje</th>'
-      +'<th style="padding:6px 8px;text-align:left">IP</th><th style="padding:6px 8px;text-align:left">Ubicación</th>'
-      +'<th style="padding:6px 8px;text-align:left">Dispositivo</th><th style="padding:6px 8px;text-align:left">Acción</th>'
+      +'<th style="padding:6px 8px;text-align:left" data-i18n="mpFecha">'+t.mpFecha+'</th>'
+      +'<th style="padding:6px 8px;text-align:left" data-i18n="mpNombre">'+t.mpNombre+'</th>'
+      +'<th style="padding:6px 8px;text-align:left" data-i18n="mpEmailTel">'+t.mpEmailTel+'</th>'
+      +'<th style="padding:6px 8px;text-align:left" data-i18n="mpMensaje">'+t.mpMensaje+'</th>'
+      +'<th style="padding:6px 8px;text-align:left" data-i18n="mpIP">'+t.mpIP+'</th>'
+      +'<th style="padding:6px 8px;text-align:left" data-i18n="mpUbicacion">'+t.mpUbicacion+'</th>'
+      +'<th style="padding:6px 8px;text-align:left" data-i18n="mpDispositivo">'+t.mpDispositivo+'</th>'
+      +'<th style="padding:6px 8px;text-align:left" data-i18n="mpAccion">'+t.mpAccion+'</th>'
       +'</tr></thead><tbody>';
     var count = 0;
     if(snap.exists()){
@@ -20454,29 +20482,45 @@ function mpLoadLeads(){
         var phoneDigits = phone.replace(/\D/g,'');
         var email = d.leadEmail || '';
         html += '<tr style="border-bottom:1px solid var(--border)">'
-          +'<td style="padding:6px 8px;white-space:nowrap;font-size:11px">'+(d.timestamp?new Date(d.timestamp).toLocaleString():'—')+'</td>'
+          +'<td style="padding:6px 8px;white-space:nowrap;font-size:11px">'+tf(d.timestamp)+'</td>'
           +'<td style="padding:6px 8px"><b>'+_esc(d.leadName||'—')+'</b></td>'
           +'<td style="padding:6px 8px;font-size:11px">'+(email?'📧 '+_esc(email):'')+(phone?(email?'<br>':'')+'📱 '+_esc(phone):'')+'</td>'
           +'<td style="padding:6px 8px;font-size:11px;max-width:150px;word-break:break-word">'+_esc(d.leadMessage||'—')+'</td>'
           +'<td style="padding:6px 8px;font-size:11px;color:#64748b">'+_esc(d.ip||'—')+'</td>'
-          +'<td style="padding:6px 8px;font-size:11px">'+([d.city,d.country].filter(Boolean).join(', ')||'—')+' '+(d.lat&&d.lng?'<a href="https://www.google.com/maps?q='+d.lat+','+d.lng+'" target="_blank" style="text-decoration:none;font-size:14px" title="Ver en mapa">🗺</a>':'')+'</td>'
-          +'<td style="padding:6px 8px;font-size:11px;color:#64748b">'+_esc(d.os||d.userAgent||'—')+'</td>'
+          +'<td style="padding:6px 8px;font-size:11px">'+([d.city,d.country].filter(Boolean).join(', ')||'—')+' '+(d.lat&&d.lng?'<a href="https://www.google.com/maps?q='+d.lat+','+d.lng+'" target="_blank" style="text-decoration:none;font-size:14px" title="'+_esc(t.mpMapa)+'">🗺</a>':'')+'</td>'
+          +'<td style="padding:6px 8px;font-size:11px;color:#64748b">'+_esc(d.os||'—')+'</td>'
           +'<td style="padding:6px 8px;white-space:nowrap">'
-          +(phoneDigits?'<a href="sms:'+phoneDigits+'" style="text-decoration:none;cursor:pointer" title="SMS">📲</a> ':'')
-          +(phoneDigits?'<a href="https://wa.me/'+phoneDigits+'?text='+encodeURIComponent('Hola '+_esc(d.leadName||'')+', vi tu mensaje')+'" target="_blank" style="text-decoration:none;cursor:pointer" title="WhatsApp">💬</a> ':'')
-          +(phoneDigits?'<a href="tel:'+phoneDigits+'" style="text-decoration:none;cursor:pointer" title="Llamar">📞</a> ':'')
-          +(email?'<a href="mailto:'+email+'" style="text-decoration:none;cursor:pointer" title="Email">📧</a> ':'')
-          +'<span onclick="if(confirm(\'🗑 Eliminar este lead?\')){_fbdb.ref(\'qrScans/admin/'+child.key+'/deleted\').set(true).then(function(){mpLoadLeads()})}" style="cursor:pointer" title="Eliminar">🗑</span>'
+          +(phoneDigits?'<a href="sms:'+phoneDigits+'" style="text-decoration:none;cursor:pointer" title="'+_esc(t.mpSMS)+'">📲</a> ':'')
+          +(phoneDigits?'<a href="https://wa.me/'+phoneDigits+'?text='+encodeURIComponent('Hola '+_esc(d.leadName||''))+'" target="_blank" style="text-decoration:none;cursor:pointer" title="'+_esc(t.mpWhatsApp)+'">💬</a> ':'')
+          +(phoneDigits?'<a href="tel:'+phoneDigits+'" style="text-decoration:none;cursor:pointer" title="'+_esc(t.mpLlamar)+'">📞</a> ':'')
+          +(email?'<a href="mailto:'+email+'" style="text-decoration:none;cursor:pointer" title="'+_esc(t.mpEmail)+'">📧</a> ':'')
+          +'<span onclick="if(confirm(\''+_esc(t.mpEliminarLead)+'\')){mpDeleteLead(\''+child.key+'\')}" style="cursor:pointer" title="🗑">🗑</span>'
           +'</td></tr>';
       });
     }
     html += '</tbody></table></div>';
-    if(!count) html = '<p style="color:var(--muted);text-align:center;padding:20px">Aún no hay leads recibidos.</p>';
+    if(!count) html = '<p style="color:var(--muted);text-align:center;padding:20px">'+_esc(t.mpNoLeads)+'</p>';
     document.getElementById('mpLeadsList').innerHTML = html;
   }).catch(function(e){
-    document.getElementById('mpLeadsList').innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px">Error cargando leads.</p>';
+    document.getElementById('mpLeadsList').innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px">'+_esc(tx().mpNoLeads)+'</p>';
     console.warn('mpLoadLeads:', e);
   });
+}
+
+function mpDeleteLead(key){
+  if(_demoMode||!_fbdb) return;
+  _fbdb.ref('qrScans/admin/'+key).once('value').then(function(snap){
+    var data = snap.val();
+    if(!data) return;
+    // Save to papelera
+    _fbdb.ref('papelera/lead_'+key).set({type:'lead',data:data,deletedAt:new Date().toISOString()}).then(function(){
+      // Mark as deleted in original
+      _fbdb.ref('qrScans/admin/'+key+'/deleted').set(true).then(function(){
+        toast(tx().mpEliminarLead.replace('🗑 ','').replace('?',''));
+        mpLoadLeads();
+      });
+    });
+  }).catch(function(e){ toast('Error: '+e.message); });
 }
 
 // ── QR AGREEMENT DOCUMENT ────────────────────────────────────
