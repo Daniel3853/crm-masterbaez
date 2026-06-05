@@ -14510,7 +14510,9 @@ var LANG = {
     mpIdOpcional:'ID opcional', mpNoQr:'Aún no has generado QR codes.',
     mpActivo:'Activo', mpInactivo:'Inactivo', mpActivar:'🟢 Activar', mpDesactivar:'🔴 Desactivar',
     mpEliminarLead:'🗑 Eliminar este lead?', mpMapa:'Ver en mapa',
-    mpLlamar:'Llamar', mpWhatsApp:'WhatsApp', mpSMS:'SMS', mpEmail:'Email'
+    mpLlamar:'Llamar', mpWhatsApp:'WhatsApp', mpSMS:'SMS', mpEmail:'Email',
+    mpQrActivado:'QR activado', mpQrDesactivado:'QR desactivado', mpQrEliminado:'QR eliminado',
+    mpError:'Error'
   },
   en:{
     dashboard:'📊 Dashboard', clients:'👥 Clients', config:'⚙️ Settings',
@@ -14657,7 +14659,9 @@ var LANG = {
     mpIdOpcional:'Optional ID', mpNoQr:'No QR codes generated yet.',
     mpActivo:'Active', mpInactivo:'Inactive', mpActivar:'🟢 Activate', mpDesactivar:'🔴 Deactivate',
     mpEliminarLead:'🗑 Delete this lead?', mpMapa:'View on map',
-    mpLlamar:'Call', mpWhatsApp:'WhatsApp', mpSMS:'SMS', mpEmail:'Email'
+    mpLlamar:'Call', mpWhatsApp:'WhatsApp', mpSMS:'SMS', mpEmail:'Email',
+    mpQrActivado:'QR activated', mpQrDesactivado:'QR deactivated', mpQrEliminado:'QR deleted',
+    mpError:'Error'
   }
 };
 function tx(){ return LANG[_masterLang]; }
@@ -14746,6 +14750,7 @@ function toggleLangMaster(){
   if(currentPage==='partners') renderPartners();
   if(currentPage==='referidores') renderReferidores();
   if(currentPage==='config'){ renderConfig(); loadNotifConfig(); }
+  if(currentPage==='miPerfilQr'){ mpLoadQrCodes(); mpLoadLeads(); }
 
   // ── 15. Prospectos filter selects ──
   var fuenteSel = document.getElementById('prospectoFiltroFuente');
@@ -20405,26 +20410,27 @@ function mpLoadQrCodes(){
 function _renderQrCodes(codes){
   var c = document.getElementById('mpQrCodesGrid');
   if(!c) return;
+  var t = tx();
   if(!codes||!codes.length){
-    c.innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px;font-size:13px">Aún no has generado QR codes.</p>';
+    c.innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px;font-size:13px">'+_esc(t.mpNoQr)+'</p>';
     return;
   }
   var baseUrl = (_mpProfile&&_mpProfile.leadCaptureUrl)||window.location.origin+'/lead-capture.html';
   var labels = {whatsapp:'💬 WhatsApp',telegram:'✈️ Telegram',sms:'📱 SMS',teams:'💼 Teams'};
   var html = '<div class="mp-qr-grid">';
   codes.forEach(function(d){
-    var t = d.type||'whatsapp';
+    var tp = d.type||'whatsapp';
     var a = d.active!==false;
-    var u = baseUrl+'?c=admin&q='+encodeURIComponent(d._key)+'&s='+t;
+    var u = baseUrl+'?c=admin&q='+encodeURIComponent(d._key)+'&s='+tp;
     var img = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='+encodeURIComponent(u);
     html += '<div class="mp-qr-item">'
       +'<img src="'+img+'" alt="QR" loading="lazy"/>'
-      +'<div class="mp-qr-label">'+_esc(labels[t]||t)+' — '+(a?'<span style="color:#22c55e">● Activo</span>':'<span style="color:#ef4444">● Inactivo</span>')+'</div>'
+      +'<div class="mp-qr-label">'+_esc(labels[tp]||tp)+' — '+(a?'<span style="color:#22c55e">● '+_esc(t.mpActivo)+'</span>':'<span style="color:#ef4444">● '+_esc(t.mpInactivo)+'</span>')+'</div>'
       +'<div class="mp-qr-id">'+_esc(d._key)+'</div>'
       +'<div class="mp-qr-actions">'
       +(a
-        ?'<button onclick="mpToggleQr(\''+_esc(d._key)+'\',false)">🔴 Desactivar</button>'
-        :'<button onclick="mpToggleQr(\''+_esc(d._key)+'\',true)">🟢 Activar</button>')
+        ?'<button onclick="mpToggleQr(\''+_esc(d._key)+'\',false)">🔴 '+_esc(t.mpDesactivar)+'</button>'
+        :'<button onclick="mpToggleQr(\''+_esc(d._key)+'\',true)">🟢 '+_esc(t.mpActivar)+'</button>')
       +'<button onclick="_dlQr(\''+img+'\',\'qr-'+_esc(d._key)+'.png\')">⬇</button>'
       +'<button onclick="mpDelQr(\''+_esc(d._key)+'\')">🗑</button>'
       +'</div></div>';
@@ -20435,16 +20441,18 @@ function _renderQrCodes(codes){
 
 function mpToggleQr(id,st){
   if(_demoMode||!_fbdb) return;
+  var t = tx();
   _fbdb.ref('adminQrCodes/'+id+'/active').set(st).then(function(){
-    toast(st?'✅ QR activado':'⛔ QR desactivado'); mpLoadQrCodes();
-  }).catch(function(e){ toast('Error: '+e.message); });
+    toast(st?'✅ '+t.mpQrActivado:'⛔ '+t.mpQrDesactivado); mpLoadQrCodes();
+  }).catch(function(e){ toast(t.mpError+': '+e.message); });
 }
 
 function mpDelQr(id){
   if(_demoMode||!_fbdb) return;
+  var t = tx();
   _fbdb.ref('adminQrCodes/'+id).update({deleted:true,deletedAt:new Date().toISOString()}).then(function(){
-    toast('🗑 QR eliminado'); mpLoadQrCodes();
-  }).catch(function(e){ toast('Error: '+e.message); });
+    toast('🗑 '+t.mpQrEliminado); mpLoadQrCodes();
+  }).catch(function(e){ toast(t.mpError+': '+e.message); });
 }
 
 function _dlQr(url,name){
