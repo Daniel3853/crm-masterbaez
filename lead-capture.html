@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>Contacto</title>
+<title>Contact</title>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,#0f172a,#1e293b);color:#e2e8f0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
-.lc-card{background:linear-gradient(145deg,#1e293b,#334155);border-radius:20px;padding:28px 24px;max-width:440px;width:100%;box-shadow:0 24px 80px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.06)}
+.lc-card{background:linear-gradient(145deg,#1e293b,#334155);border-radius:20px;padding:28px 24px;max-width:440px;width:100%;box-shadow:0 24px 80px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.06);position:relative}
 .lc-card h1{font-size:20px;margin-bottom:4px;background:linear-gradient(135deg,#f59e0b,#ef4444,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .lc-card .sub{font-size:13px;color:#94a3b8;margin-bottom:20px}
 .lc-field{margin-bottom:12px}
@@ -26,34 +26,48 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .lc-gps{font-size:10px;color:#64748b;text-align:center;margin-bottom:12px}
 .lc-logo{text-align:center;margin-bottom:16px}
 .lc-logo img{max-width:80px;max-height:80px;border-radius:12px}
+.lc-lang-btn{position:absolute;top:12px;right:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#94a3b8;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:700;transition:all .2s}
+.lc-lang-btn:hover{background:rgba(139,92,246,.15);border-color:#8b5cf6;color:#a78bfa}
+.lc-en-part,.lc-es-part{display:none}
+.lc-lang-en .lc-en-part{display:inline}
+.lc-lang-en .lc-es-part{display:none}
+.lc-lang-es .lc-es-part{display:inline}
+.lc-lang-es .lc-en-part{display:none}
 </style>
 </head>
 <body>
-<div class="lc-card" id="lcCard">
+<div class="lc-card lc-lang-en" id="lcCard">
+  <button class="lc-lang-btn" id="lcLangBtn" onclick="lcToggleLang()">🌐 Español</button>
   <div id="lcLogo" class="lc-logo"></div>
-  <h1 id="lcTitle">Conéctate</h1>
-  <div class="sub" id="lcSub">Déjanos tus datos para comunicarnos contigo</div>
+  <h1 id="lcTitle" class="lc-en-part">Get in Touch</h1>
+  <h1 id="lcTitleEs" class="lc-es-part">Conéctate</h1>
+  <div class="sub lc-en-part" id="lcSub">Leave your info and we'll get back to you</div>
+  <div class="sub lc-es-part" id="lcSubEs">Déjanos tus datos para comunicarnos contigo</div>
 
   <div class="lc-field">
-    <label>Nombre *</label>
-    <input id="lcName" placeholder="Tu nombre" autocomplete="name" />
+    <label class="lc-en-part">Full Name *</label>
+    <label class="lc-es-part">Nombre *</label>
+    <input id="lcName" placeholder="Your name" autocomplete="name" />
   </div>
   <div class="lc-field">
     <label>Email</label>
-    <input id="lcEmail" type="email" placeholder="tu@email.com" autocomplete="email" />
+    <input id="lcEmail" type="email" placeholder="you@email.com" autocomplete="email" />
   </div>
   <div class="lc-field">
-    <label>Teléfono *</label>
-    <input id="lcPhone" type="tel" placeholder="+52 123 456 7890" autocomplete="tel" />
+    <label class="lc-en-part">Phone *</label>
+    <label class="lc-es-part">Teléfono *</label>
+    <input id="lcPhone" type="tel" placeholder="+1 234 567 8900" autocomplete="tel" />
   </div>
   <div class="lc-field">
-    <label>Mensaje</label>
-    <textarea id="lcMessage" placeholder="Escribe tu mensaje aquí..."></textarea>
+    <label class="lc-en-part">Message</label>
+    <label class="lc-es-part">Mensaje</label>
+    <textarea id="lcMessage" class="lc-en-part" placeholder="Write your message here..."></textarea>
+    <textarea id="lcMessageEs" class="lc-es-part" placeholder="Escribe tu mensaje aquí..."></textarea>
   </div>
 
-  <div class="lc-gps" id="lcGps">📍 Obteniendo ubicación...</div>
+  <div class="lc-gps" id="lcGps">📍 Getting location...</div>
 
-  <button class="lc-btn" id="lcBtn" onclick="lcSubmit()">Enviar y continuar</button>
+  <button class="lc-btn" id="lcBtn" onclick="lcSubmit()"><span class="lc-en-part">Send &amp; Continue</span><span class="lc-es-part">Enviar y continuar</span></button>
   <div class="lc-status" id="lcStatus"></div>
   <div class="lc-powered">Powered by <a href="#">Master Panel CRM</a></div>
 </div>
@@ -76,6 +90,7 @@ var _lcParams = {};
 var _lcLat = null;
 var _lcLng = null;
 var _lcGeo = null;
+var _lcLang = 'en';
 
 // Parse URL params
 (function(){
@@ -85,70 +100,73 @@ var _lcGeo = null;
   if(!_lcParams.s) _lcParams.s = 'whatsapp';
 })();
 
-// Load profile
+function lcToggleLang(){
+  _lcLang = _lcLang === 'en' ? 'es' : 'en';
+  var card = document.getElementById('lcCard');
+  card.classList.remove('lc-lang-en','lc-lang-es');
+  card.classList.add('lc-lang-'+_lcLang);
+  document.getElementById('lcLangBtn').textContent = _lcLang === 'en' ? '🌐 Español' : '🌐 English';
+  document.getElementById('lcGps').textContent = _lcLang === 'en' ? '📍 Getting location...' : '📍 Obteniendo ubicación...';
+}
+
 function lcLoadProfile(){
   if(!_lcdb) return;
   _lcdb.ref('adminProfile').once('value').then(function(snap){
     _lcProfile = snap.val() || {};
-    // Show logo if set
     if(_lcProfile.logoUrl){
       document.getElementById('lcLogo').innerHTML = '<img src="'+_lcProfile.logoUrl+'" alt="Logo"/>';
     }
-    // Pre-fill message if set
     if(_lcProfile.waMessage){
       document.getElementById('lcMessage').value = _lcProfile.waMessage;
+      document.getElementById('lcMessageEs').value = _lcProfile.waMessage;
     }
-    // Show biz name
     if(_lcProfile.bizName){
       document.getElementById('lcTitle').textContent = _lcProfile.bizName;
-      document.getElementById('lcSub').textContent = 'Déjanos tus datos para comunicarnos contigo';
+      document.getElementById('lcTitleEs').textContent = _lcProfile.bizName;
     }
   }).catch(function(e){ console.warn('lcLoadProfile:', e); });
 }
 
-// GPS
 function lcGetGps(){
   if(!navigator.geolocation){
-    document.getElementById('lcGps').textContent = '📍 Ubicación no disponible';
+    document.getElementById('lcGps').textContent = _lcLang === 'en' ? '📍 Location unavailable' : '📍 Ubicación no disponible';
     return;
   }
   navigator.geolocation.getCurrentPosition(function(pos){
     _lcLat = pos.coords.latitude;
     _lcLng = pos.coords.longitude;
-    document.getElementById('lcGps').textContent = '📍 Ubicación obtenida';
-    // Reverse geocode
-    fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+_lcLat+'&lon='+_lcLng+'&accept-language=es')
+    document.getElementById('lcGps').textContent = '📍 '+(_lcLang === 'en' ? 'Location obtained' : 'Ubicación obtenida');
+    fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+_lcLat+'&lon='+_lcLng+'&accept-language='+_lcLang)
       .then(function(r){ return r.json(); })
       .then(function(d){
         _lcGeo = d;
-        document.getElementById('lcGps').textContent = '📍 '+(d.address?[d.address.city||d.address.town||d.address.village,d.address.country].filter(Boolean).join(', '):'Ubicación obtenida');
+        var loc = d.address ? [d.address.city||d.address.town||d.address.village,d.address.country].filter(Boolean).join(', ') : '';
+        document.getElementById('lcGps').textContent = '📍 '+(loc||(_lcLang==='en'?'Location obtained':'Ubicación obtenida'));
       }).catch(function(){});
   }, function(){
-    document.getElementById('lcGps').textContent = '📍 Ubicación no disponible';
+    document.getElementById('lcGps').textContent = _lcLang === 'en' ? '📍 Location unavailable' : '📍 Ubicación no disponible';
   }, {timeout:10000, enableHighAccuracy:true});
 }
 
-// Submit
 function lcSubmit(){
   var name = document.getElementById('lcName').value.trim();
   var phone = document.getElementById('lcPhone').value.trim();
   if(!name || !phone){
-    document.getElementById('lcStatus').textContent = '⚠️ Nombre y teléfono son obligatorios';
+    document.getElementById('lcStatus').textContent = _lcLang === 'en' ? '⚠️ Name and phone are required' : '⚠️ Nombre y teléfono son obligatorios';
     document.getElementById('lcStatus').style.color = '#ef4444';
     return;
   }
 
   var btn = document.getElementById('lcBtn');
   btn.disabled = true;
-  btn.textContent = '⏳ Enviando...';
+  btn.innerHTML = (_lcLang === 'en' ? '⏳ Sending...' : '⏳ Enviando...');
   document.getElementById('lcStatus').textContent = '';
 
   var email = document.getElementById('lcEmail').value.trim();
-  var message = document.getElementById('lcMessage').value.trim();
+  var msgEl = document.getElementById('lcMessage');
+  var message = msgEl.value.trim();
   var ts = new Date().toISOString();
   var ua = navigator.userAgent;
-
-  // Detect OS
   var os = 'Unknown';
   if(/Windows/.test(ua)) os = 'Windows';
   else if(/Mac/.test(ua)) os = 'macOS';
@@ -172,10 +190,10 @@ function lcSubmit(){
     os: os,
     userAgent: ua,
     ref: 'admin',
-    scanned: true
+    scanned: true,
+    lang: _lcLang
   };
 
-  // Get IP
   try{
     fetch('https://api.ipify.org?format=json').then(function(r){ return r.json(); }).then(function(d){
       scanData.ip = d.ip || '';
@@ -185,23 +203,12 @@ function lcSubmit(){
 }
 
 function _lcSaveScan(data){
-  if(!_lcdb){
-    _lcDone(data);
-    return;
-  }
-  _lcdb.ref('qrScans/admin').push(data).then(function(){
-    _lcDone(data);
-  }).catch(function(){
-    _lcDone(data);
-  });
+  if(!_lcdb){ _lcDone(data); return; }
+  _lcdb.ref('qrScans/admin').push(data).then(function(){ _lcDone(data); }).catch(function(){ _lcDone(data); });
 }
 
 function _lcDone(data){
-  // Send notifications
-  if(_lcProfile && _lcdb){
-    _lcSendNotifs(data);
-  }
-  // Redirect based on type
+  if(_lcProfile && _lcdb) _lcSendNotifs(data);
   _lcRedirect(data);
 }
 
@@ -211,11 +218,8 @@ function _lcRedirect(data){
   switch(type){
     case 'whatsapp':
       var wa = _lcProfile ? _lcProfile.whatsapp : '';
-      if(wa){
-        url = 'https://wa.me/'+wa.replace(/\D/g,'')+'?text='+encodeURIComponent('Hola, soy '+data.leadName+'. '+(data.leadMessage||''));
-      } else {
-        url = 'https://wa.me/?text='+encodeURIComponent('Hola');
-      }
+      if(wa) url = 'https://wa.me/'+wa.replace(/\D/g,'')+'?text='+encodeURIComponent('Hola, soy '+data.leadName+'. '+(data.leadMessage||''));
+      else url = 'https://wa.me/';
       break;
     case 'telegram':
       var tu = _lcProfile ? _lcProfile.telegramUser : '';
@@ -232,48 +236,31 @@ function _lcRedirect(data){
       break;
   }
   var btn2 = document.getElementById('lcBtn');
-  if(btn2) btn2.textContent = '✅ Enviado — Redirigiendo...';
+  if(btn2) btn2.innerHTML = _lcLang === 'en' ? '✅ Sent — Redirecting...' : '✅ Enviado — Redirigiendo...';
   setTimeout(function(){ window.location.href = url; }, 500);
 }
 
 function _lcSendNotifs(data){
   var p = _lcProfile;
   var msg = '📩 *Nuevo Lead QR*\n👤 '+data.leadName+'\n📧 '+(data.leadEmail||'—')+'\n📱 '+(data.leadPhone||'—')+'\n💬 '+(data.leadMessage||'—')+'\n📍 '+[data.city,data.country].filter(Boolean).join(', ')+'\n🆔 QR: '+(data.qrId||'—');
-
-  // Telegram
   if(p.telegramToken && p.telegramChatId){
-    try{
-      var tgUrl = 'https://api.telegram.org/bot'+p.telegramToken+'/sendMessage?chat_id='+p.telegramChatId+'&text='+encodeURIComponent(msg)+'&parse_mode=Markdown';
-      fetch(tgUrl).catch(function(){});
-    }catch(e){}
+    try{ fetch('https://api.telegram.org/bot'+p.telegramToken+'/sendMessage?chat_id='+p.telegramChatId+'&text='+encodeURIComponent(msg)+'&parse_mode=Markdown').catch(function(){}); }catch(e){}
   }
-
-  // WhatsApp Cloud
   if(p.whatsappToken && p.whatsappPhoneId && p.whatsapp){
     try{
-      var waUrl = 'https://graph.facebook.com/v18.0/'+p.whatsappPhoneId+'/messages';
-      var waBody = {messaging_product:'whatsapp',to:p.whatsapp.replace(/\D/g,''),type:'text',text:{body:msg}};
-      fetch(waUrl,{method:'POST',headers:{'Authorization':'Bearer '+p.whatsappToken,'Content-Type':'application/json'},body:JSON.stringify(waBody)}).catch(function(){});
+      fetch('https://graph.facebook.com/v18.0/'+p.whatsappPhoneId+'/messages',{method:'POST',headers:{'Authorization':'Bearer '+p.whatsappToken,'Content-Type':'application/json'},body:JSON.stringify({messaging_product:'whatsapp',to:p.whatsapp.replace(/\D/g,''),type:'text',text:{body:msg}})}).catch(function(){});
     }catch(e){}
   }
-
-  // Teams
   if(p.teamsWebhook){
-    try{
-      fetch(p.teamsWebhook,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:msg})}).catch(function(){});
-    }catch(e){}
+    try{ fetch(p.teamsWebhook,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:msg})}).catch(function(){}); }catch(e){}
   }
-
-  // Brevo email
   if(p.brevoApiKey && p.brevoSenderEmail){
     try{
-      var brevoBody = {sender:{email:p.brevoSenderEmail},to:[{email:p.brevoSenderEmail}],subject:'📩 Nuevo Lead QR - '+data.leadName,htmlContent:'<h2>Nuevo Lead QR</h2><ul><li><b>Nombre:</b> '+data.leadName+'</li><li><b>Email:</b> '+(data.leadEmail||'—')+'</li><li><b>Teléfono:</b> '+(data.leadPhone||'—')+'</li><li><b>Mensaje:</b> '+(data.leadMessage||'—')+'</li><li><b>Ubicación:</b> '+[data.city,data.country].filter(Boolean).join(', ')+'</li><li><b>QR ID:</b> '+(data.qrId||'—')+'</li></ul>'};
-      fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',headers:{'api-key':p.brevoApiKey,'Content-Type':'application/json'},body:JSON.stringify(brevoBody)}).catch(function(){});
+      fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',headers:{'api-key':p.brevoApiKey,'Content-Type':'application/json'},body:JSON.stringify({sender:{email:p.brevoSenderEmail},to:[{email:p.brevoSenderEmail}],subject:'📩 Nuevo Lead QR - '+data.leadName,htmlContent:'<h2>Nuevo Lead QR</h2><ul><li><b>Nombre:</b> '+data.leadName+'</li><li><b>Email:</b> '+(data.leadEmail||'—')+'</li><li><b>Teléfono:</b> '+(data.leadPhone||'—')+'</li><li><b>Mensaje:</b> '+(data.leadMessage||'—')+'</li><li><b>Ubicación:</b> '+[data.city,data.country].filter(Boolean).join(', ')+'</li><li><b>QR ID:</b> '+(data.qrId||'—')+'</li></ul>'}}).catch(function(){});
     }catch(e){}
   }
 }
 
-// Init
 lcLoadProfile();
 lcGetGps();
 </script>
