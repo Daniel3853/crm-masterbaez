@@ -19808,8 +19808,10 @@ if(_origToggleLang){
   toggleLangMaster = function(){
     _origToggleLang();
     wiUpdateLang();
-    if(document.getElementById('page-clients').style.display !== 'none' && document.getElementById('clientsSubTab-qr').style.display !== 'none') renderQRClientes();
-    if(document.getElementById('page-anuncios').style.display !== 'none' && document.getElementById('anunciosSubTab-qr').style.display !== 'none') renderQRClientes();
+    var pc = document.getElementById('page-clients'), cq = document.getElementById('clientsSubTab-qr');
+    if(pc && cq && pc.style.display !== 'none' && cq.style.display !== 'none') renderQRClientes();
+    var pa = document.getElementById('page-anuncios'), aq = document.getElementById('anunciosSubTab-qr');
+    if(pa && aq && pa.style.display !== 'none' && aq.style.display !== 'none') renderQRClientes();
   };
 }
 function wiUpdateLang(){
