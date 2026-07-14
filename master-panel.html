@@ -1183,6 +1183,52 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 /* ── CW enrollment modal language toggle ── */
 #clientWelcomeModal.cw-lang-es .cw-en-part { display: none; }
 #clientWelcomeModal.cw-lang-en .cw-es-part { display: none; }
+/* ── Mi Perfil QR page ── */
+.mp-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08)}
+.mp-card-head{padding:14px 18px;font-weight:800;font-size:14px;border-bottom:1px solid var(--border);color:var(--fg);font-family:'Syne',sans-serif;letter-spacing:.3px}
+.mp-card-body{padding:16px 18px}
+.mp-field{margin-bottom:10px}
+.mp-field label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.4px}
+.mp-field label small{font-weight:400;color:var(--muted);text-transform:none;font-size:10px}
+.mp-field input,.mp-field textarea{width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg);color:var(--fg);font-family:inherit;outline:none;transition:border-color .2s}
+.mp-field input:focus,.mp-field textarea:focus{border-color:var(--accent)}
+.mp-field textarea{min-height:50px;resize:vertical}
+.mp-qr-type-select{display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap}
+.mp-qr-type-select label{display:flex;align-items:center;gap:3px;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);transition:all .2s;background:var(--bg);color:var(--muted);font-family:inherit}
+.mp-qr-type-select label:hover{border-color:var(--accent);color:var(--accent)}
+.mp-qr-type-select label.active{border-color:var(--accent);background:rgba(232,255,60,.1);color:var(--accent)}
+.mp-qr-type-select input[type=radio]{display:none}
+.mp-qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.mp-qr-item{text-align:center;padding:12px;background:var(--bg);border-radius:10px;border:1px solid var(--border);position:relative}
+.mp-qr-item img,.mp-qr-item canvas{width:100%;max-width:160px;border-radius:6px;display:block;margin:0 auto 6px}
+.mp-qr-item .mp-qr-label{font-size:11px;color:var(--fg);margin-bottom:2px;word-break:break-word}
+.mp-qr-item .mp-qr-id{font-size:9px;color:var(--muted);word-break:break-all}
+.mp-qr-item .mp-qr-actions{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;margin-top:6px}
+.mp-qr-item .mp-qr-actions button,.mp-qr-item .mp-qr-actions a{padding:3px 7px;font-size:10px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:var(--fg);cursor:pointer;text-decoration:none;transition:all .15s;font-family:inherit;font-weight:700;display:inline-flex;align-items:center;gap:3px}
+.mp-qr-item .mp-qr-actions button:hover,.mp-qr-item .mp-qr-actions a:hover{border-color:var(--accent);color:var(--accent);background:rgba(232,255,60,.05)}
+
+/* ── QR Custom URL styles ── */
+.mp-custom-url{display:none;margin-bottom:12px}
+.mp-custom-url.visible{display:block}
+.mp-custom-url input{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg);color:var(--fg);font-family:inherit;outline:none;transition:border-color .2s}
+.mp-custom-url input:focus{border-color:var(--accent)}
+.mp-custom-panel{display:none;margin-bottom:12px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px}
+.mp-custom-panel.visible{display:block}
+.mp-custom-panel h4{font-size:12px;font-weight:800;color:var(--fg);margin:0 0 10px 0;font-family:'Syne',sans-serif}
+.mp-custom-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.mp-custom-field{display:flex;flex-direction:column;gap:3px;flex:1;min-width:100px}
+.mp-custom-field label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.mp-custom-field input[type=color]{width:100%;height:36px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;background:var(--bg);padding:2px}
+.mp-custom-field select,.mp-custom-field input[type=text]{width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;background:var(--bg);color:var(--fg);font-family:inherit;outline:none}
+.mp-custom-field select:focus,.mp-custom-field input[type=text]:focus{border-color:var(--accent)}
+.mp-qr-custom-wrap{position:relative;display:inline-block}
+.mp-qr-custom-wrap canvas{display:block;width:220px;height:220px}
+.mp-qr-custom-wrap .mp-qr-text{font-size:11px;color:var(--fg);margin-top:4px;text-align:center;font-weight:600;word-break:break-word}
+.mp-qr-custom-wrap.border-box{border:2px solid var(--accent);border-radius:8px;padding:10px;background:#fff}
+.mp-qr-custom-wrap.border-shadow{border-radius:12px;padding:10px;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,.15)}
+.mp-qr-custom-wrap.border-gradient{border-radius:12px;padding:10px;background:linear-gradient(135deg,#667eea,#764ba2)}
+.mp-qr-custom-wrap.shape-rounded img,.mp-qr-custom-wrap.shape-rounded canvas{border-radius:12px}
+.mp-qr-custom-wrap.shape-circular img,.mp-qr-custom-wrap.shape-circular canvas{border-radius:50%}
 </style>
 </head>
 <body>
@@ -1307,6 +1353,11 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
     </button>
     <button class="sn-item" data-p="mensajes" id="nav-mensajes" onclick="goPage('mensajes')">
       <span class="sn-icon">💬</span><span class="sn-lbl">Mensajes</span>
+    </button>
+    <div class="sn-divider"></div>
+    <button class="sn-item" data-p="miPerfilQr" id="nav-miPerfilQr" onclick="goPage('miPerfilQr')">
+      <span class="sn-icon">📱</span><span class="sn-lbl">Mi Perfil QR</span>
+      <span class="sn-badge" id="navBadgeMiPerfilQr" style="display:none;background:#8b5cf6">0</span>
     </button>
   </nav>
 
@@ -2514,6 +2565,93 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;color:var(--muted);gap:10px">
           <span style="font-size:32px">📡</span>
           <p style="font-size:14px">Cargando scans recientes...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MI PERFIL QR ── -->
+    <div class="page mod-page" id="page-miPerfilQr">
+      <div class="topbar">
+        <div class="page-title" data-i18n="mpPerfilQrTitle">📱 Mi Perfil QR</div>
+        <div class="topbar-actions">
+          <button class="btn-ghost" onclick="mpSaveProfile()" style="padding:8px 16px;border-radius:8px;border:1.5px solid var(--accent);color:var(--accent);background:rgba(232,255,60,.07);font-weight:700" data-i18n="mpGuardar">💾 Guardar Perfil</button>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+
+        <!-- ── LEFT: MI PERFIL ── -->
+        <div class="mp-card" id="mpPerfilCard">
+          <div class="mp-card-head" data-i18n="mpPerfil">👤 Mi Perfil</div>
+          <div class="mp-card-body">
+            <div class="mp-field"><label>Nombre del Negocio</label><input id="mpBizName" placeholder="Ej: Mi Empresa" /></div>
+            <div class="mp-field"><label>WhatsApp <small>(número, ej: 573001234567)</small></label><input id="mpWhatsapp" placeholder="573001234567" /></div>
+            <div class="mp-field"><label>Mensaje precargado en formulario</label><textarea id="mpWaMsg" placeholder="Hola, quiero info sobre tus servicios"></textarea></div>
+            <div class="mp-field"><label>Token del bot de Telegram</label><input id="mpTelegramToken" placeholder="123456789:ABC..." /></div>
+            <div class="mp-field"><label>Chat ID de Telegram</label><input id="mpTelegramChat" placeholder="-1001234567890" /></div>
+            <div class="mp-field"><label>Usuario de Telegram <small>(@usuario)</small></label><input id="mpTelegramUser" placeholder="usuario_sin_@" /></div>
+            <hr style="margin:12px 0;border:none;border-top:1px solid var(--border)" />
+            <div class="mp-field"><label>Brevo API Key v3</label><input id="mpBrevoKey" placeholder="xsksm...abc123" /></div>
+            <div class="mp-field"><label>Email del remitente</label><input id="mpBrevoSender" placeholder="tucorreo@gmail.com" /></div>
+            <div class="mp-field"><label>Teléfono de contacto</label><input id="mpAutoReplyPhone" placeholder="953801340" /></div>
+            <div class="mp-field"><label>Google Voice</label><input id="mpGoogleVoice" placeholder="17866811651" /></div>
+            <hr style="margin:12px 0;border:none;border-top:1px solid var(--border)" />
+            <div class="mp-field"><label>WhatsApp Cloud Phone ID</label><input id="mpWacPhoneId" placeholder="123456789012345" /></div>
+            <div class="mp-field"><label>WhatsApp Cloud Token</label><input id="mpWacToken" placeholder="EAAx..." /></div>
+            <div class="mp-field"><label>Teams Webhook URL</label><input id="mpTeamsWebhook" placeholder="https://...webhook..." /></div>
+            <div class="mp-field"><label>🌐 Lead Capture URL <small>(URL pública donde subas lead-capture.html)</small></label><input id="mpLeadCaptureUrl" placeholder="https://tudominio.com/lead-capture.html" /></div>
+            <div class="mp-field"><label>Logo URL</label><input id="mpLogoUrl" placeholder="https://..." /></div>
+            <div id="mpProfileMsg" style="margin-top:10px;font-size:13px;font-weight:700;padding:8px 12px;border-radius:6px"></div>
+          </div>
+        </div>
+
+        <!-- ── RIGHT: MY QR CODES + MIS LEADS ── -->
+        <div style="display:flex;flex-direction:column;gap:20px">
+
+          <!-- ── MY QR CODES ── -->
+          <div class="mp-card">
+            <div class="mp-card-head" data-i18n="mpQrCodes">📱 My QR Codes</div>
+            <div class="mp-card-body">
+              <div class="mp-qr-type-select">
+                <label class="active"><input type="radio" name="mpQrType" value="whatsapp" checked onchange="mpSetQrType('whatsapp')" /> 💬 WhatsApp</label>
+                <label><input type="radio" name="mpQrType" value="telegram" onchange="mpSetQrType('telegram')" /> ✈️ Telegram</label>
+                <label><input type="radio" name="mpQrType" value="sms" onchange="mpSetQrType('sms')" /> 📱 SMS</label>
+                <label><input type="radio" name="mpQrType" value="teams" onchange="mpSetQrType('teams')" /> 💼 Teams</label>
+                <label><input type="radio" name="mpQrType" value="custom" onchange="mpSetQrType('custom')" /> 🔗 URL Custom</label>
+              </div>
+              <div class="mp-custom-url" id="mpCustomUrlWrap">
+                <input id="mpQrCustomUrl" type="url" placeholder="https://tusitio.com/pagina" style="margin-bottom:10px" />
+              </div>
+              <div class="mp-custom-panel" id="mpCustomPanel">
+                <h4>🎨 Personalizar QR</h4>
+                <div class="mp-custom-row">
+                  <div class="mp-custom-field"><label>Color QR</label><input type="color" id="mpQrColor" value="#000000" /></div>
+                  <div class="mp-custom-field"><label>Color Fondo</label><input type="color" id="mpQrBgColor" value="#ffffff" /></div>
+                  <div class="mp-custom-field"><label>Forma</label>
+                    <select id="mpQrShape"><option value="square">Cuadrado</option><option value="rounded">Redondeado</option><option value="circular">Circular</option></select>
+                  </div>
+                  <div class="mp-custom-field"><label>Borde</label>
+                    <select id="mpQrBorder"><option value="none">Ninguno</option><option value="box">Cuadro</option><option value="shadow">Sombra</option><option value="gradient">Gradiente</option></select>
+                  </div>
+                </div>
+                <div class="mp-custom-field" style="margin-bottom:0"><label>Texto debajo del QR</label><input type="text" id="mpQrText" placeholder="Ej: Escaneame!" maxlength="60" /></div>
+              </div>
+              <div style="display:flex;gap:8px;margin-bottom:14px">
+                <input id="mpQrIdInput" data-i18n-ph="mpIdOpcional" placeholder="ID opcional" style="flex:1;margin:0" />
+                <button class="act-btn primary" onclick="mpAddQrCode()" data-i18n="mpQrGenerar">✨ Generar QR</button>
+              </div>
+              <div id="mpQrCodesGrid"></div>
+            </div>
+          </div>
+
+          <!-- ── MIS LEADS ── -->
+          <div class="mp-card">
+            <div class="mp-card-head" data-i18n="mpLeads">📩 Mis Leads Recibidos</div>
+            <div class="mp-card-body">
+              <div id="mpLeadsList"><p style="color:var(--muted);text-align:center;padding:20px" data-i18n="mpCargando">Cargando...</p></div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -4206,6 +4344,7 @@ function goPage(p){
   if(p==='grafica')    { renderLeadsChart(); }
   if(p==='waiver')     { renderWaiverTab(); }
   if(p==='qrscans')    { renderQrScans(); }
+  if(p==='miPerfilQr') { mpLoadProfile(); mpLoadQrCodes(); mpLoadLeads(); }
 }
 
 // ── ENTER KEY: avanza al siguiente campo ─────────
@@ -14403,7 +14542,18 @@ var LANG = {
     qrContactLabel:'⚙️ Configuración de contacto',
     qrDownloadFlyerBtn:'📥 Descargar Flyer con los 3 QR',
     iatoolsDesc:'Herramientas de inteligencia artificial para hacer crecer tu negocio.',
-    graficaDesc:'Leads recibidos por mes y fuente.'
+    graficaDesc:'Leads recibidos por mes y fuente.',
+    mpPerfil:'👤 Mi Perfil', mpQrCodes:'📱 My QR Codes', mpLeads:'📩 Mis Leads Recibidos',
+    mpFecha:'Fecha', mpNombre:'Nombre', mpEmailTel:'Email/Tel', mpMensaje:'Mensaje',
+    mpIP:'IP', mpUbicacion:'Ubicación', mpDispositivo:'Dispositivo', mpAccion:'Acción',
+    mpNoLeads:'Aún no hay leads recibidos.', mpCargando:'Cargando...',
+    mpGuardar:'💾 Guardar Perfil', mpQrGenerar:'✨ Generar QR',
+    mpIdOpcional:'ID opcional', mpNoQr:'Aún no has generado QR codes.',
+    mpActivo:'Activo', mpInactivo:'Inactivo', mpActivar:'🟢 Activar', mpDesactivar:'🔴 Desactivar',
+    mpEliminarLead:'🗑 Eliminar este lead?', mpMapa:'Ver en mapa',
+    mpLlamar:'Llamar', mpWhatsApp:'WhatsApp', mpSMS:'SMS', mpEmail:'Email',
+    mpQrActivado:'QR activado', mpQrDesactivado:'QR desactivado', mpQrEliminado:'QR eliminado',
+    mpError:'Error'
   },
   en:{
     dashboard:'📊 Dashboard', clients:'👥 Clients', config:'⚙️ Settings',
@@ -14541,7 +14691,18 @@ var LANG = {
     qrContactLabel:'⚙️ Contact settings',
     qrDownloadFlyerBtn:'📥 Download Flyer with 3 QRs',
     iatoolsDesc:'Artificial intelligence tools to grow your business.',
-    graficaDesc:'Leads received per month and source.'
+    graficaDesc:'Leads received per month and source.',
+    mpPerfil:'👤 My Profile', mpQrCodes:'📱 My QR Codes', mpLeads:'📩 My Received Leads',
+    mpFecha:'Date', mpNombre:'Name', mpEmailTel:'Email/Phone', mpMensaje:'Message',
+    mpIP:'IP', mpUbicacion:'Location', mpDispositivo:'Device', mpAccion:'Action',
+    mpNoLeads:'No leads received yet.', mpCargando:'Loading...',
+    mpGuardar:'💾 Save Profile', mpQrGenerar:'✨ Generate QR',
+    mpIdOpcional:'Optional ID', mpNoQr:'No QR codes generated yet.',
+    mpActivo:'Active', mpInactivo:'Inactive', mpActivar:'🟢 Activate', mpDesactivar:'🔴 Deactivate',
+    mpEliminarLead:'🗑 Delete this lead?', mpMapa:'View on map',
+    mpLlamar:'Call', mpWhatsApp:'WhatsApp', mpSMS:'SMS', mpEmail:'Email',
+    mpQrActivado:'QR activated', mpQrDesactivado:'QR deactivated', mpQrEliminado:'QR deleted',
+    mpError:'Error'
   }
 };
 function tx(){ return LANG[_masterLang]; }
@@ -14630,6 +14791,7 @@ function toggleLangMaster(){
   if(currentPage==='partners') renderPartners();
   if(currentPage==='referidores') renderReferidores();
   if(currentPage==='config'){ renderConfig(); loadNotifConfig(); }
+  if(currentPage==='miPerfilQr'){ mpLoadQrCodes(); mpLoadLeads(); }
 
   // ── 15. Prospectos filter selects ──
   var fuenteSel = document.getElementById('prospectoFiltroFuente');
@@ -19687,8 +19849,10 @@ if(_origToggleLang){
   toggleLangMaster = function(){
     _origToggleLang();
     wiUpdateLang();
-    if(document.getElementById('page-clients').style.display !== 'none' && document.getElementById('clientsSubTab-qr').style.display !== 'none') renderQRClientes();
-    if(document.getElementById('page-anuncios').style.display !== 'none' && document.getElementById('anunciosSubTab-qr').style.display !== 'none') renderQRClientes();
+    var pc = document.getElementById('page-clients'), cq = document.getElementById('clientsSubTab-qr');
+    if(pc && cq && pc.style.display !== 'none' && cq.style.display !== 'none') renderQRClientes();
+    var pa = document.getElementById('page-anuncios'), aq = document.getElementById('anunciosSubTab-qr');
+    if(pa && aq && pa.style.display !== 'none' && aq.style.display !== 'none') renderQRClientes();
   };
 }
 function wiUpdateLang(){
@@ -20199,6 +20363,389 @@ function openNotesPopup(id){
 }
 function closeNotesPopup(){
   document.getElementById('notesPopupModal').style.display = 'none';
+}
+
+// ── MI PERFIL QR ────────────────────────────────────────────
+var _mpProfile = null;
+var _mpQrType = 'whatsapp';
+
+function _esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+// Genera un ID de QR seguro: solo letras, numeros, guion y guion bajo.
+// Esto evita que un ID con espacios, comillas o simbolos raros rompa
+// los botones (activar/desactivar/descargar/eliminar) o la ruta en Firebase.
+function _mpSafeQrId(raw){
+  var s = (raw||'').trim();
+  if(!s) return 'qr_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+  s = s.normalize('NFD').replace(/[\u0300-\u036f]/g,''); // quita acentos
+  s = s.replace(/\s+/g,'-').replace(/[^a-zA-Z0-9_-]/g,'');
+  s = s.replace(/^-+|-+$/g,'').slice(0,60);
+  return s || ('qr_'+Date.now()+'_'+Math.random().toString(36).slice(2,6));
+}
+
+function toast(msg){ showToast(msg); }
+
+function mpSetQrType(t){
+  _mpQrType = t;
+  document.querySelectorAll('#page-miPerfilQr .mp-qr-type-select label').forEach(function(e){
+    e.classList.toggle('active', e.querySelector('input').value === t);
+  });
+  var urlWrap = document.getElementById('mpCustomUrlWrap');
+  var panel = document.getElementById('mpCustomPanel');
+  if(urlWrap) urlWrap.classList.toggle('visible', t === 'custom');
+  if(panel) panel.classList.toggle('visible', t === 'custom');
+}
+
+function mpLoadProfile(){
+  if(_demoMode || !_fbdb) return;
+  _fbdb.ref('adminProfile').once('value').then(function(snap){
+    var d = snap.val() || {};
+    _mpProfile = d;
+    var ids = ['mpBizName','mpWhatsapp','mpWaMsg','mpTelegramToken','mpTelegramChat','mpTelegramUser',
+      'mpBrevoKey','mpBrevoSender','mpAutoReplyPhone','mpGoogleVoice','mpWacPhoneId','mpWacToken','mpTeamsWebhook','mpLeadCaptureUrl','mpLogoUrl'];
+    var keys = ['bizName','whatsapp','waMessage','telegramToken','telegramChatId','telegramUser',
+      'brevoApiKey','brevoSenderEmail','autoReplyPhone','googleVoice','whatsappPhoneId','whatsappToken','teamsWebhook','leadCaptureUrl','logoUrl'];
+    ids.forEach(function(id,i){ var el=document.getElementById(id); if(el) el.value = d[keys[i]]||''; });
+    // mpLoadQrCodes() se disparaba en paralelo con esta carga del perfil, y
+    // casi siempre terminaba primero -> los QR se pintaban ANTES de que
+    // _mpProfile.logoUrl existiera, entonces salian sin logo. Repintamos
+    // aqui, ya con el perfil (y el logo) listo, para que siempre aparezca.
+    mpLoadQrCodes();
+  }).catch(function(e){ console.warn('mpLoadProfile:', e); });
+}
+
+function mpSaveProfile(){
+  var data = {
+    bizName: document.getElementById('mpBizName').value.trim(),
+    whatsapp: document.getElementById('mpWhatsapp').value.trim().replace(/\D/g,''),
+    waMessage: document.getElementById('mpWaMsg').value.trim(),
+    telegramToken: document.getElementById('mpTelegramToken').value.trim(),
+    telegramChatId: document.getElementById('mpTelegramChat').value.trim(),
+    telegramUser: document.getElementById('mpTelegramUser').value.trim().replace(/^@/,''),
+    brevoApiKey: document.getElementById('mpBrevoKey').value.trim(),
+    brevoSenderEmail: document.getElementById('mpBrevoSender').value.trim(),
+    autoReplyPhone: document.getElementById('mpAutoReplyPhone').value.trim(),
+    googleVoice: document.getElementById('mpGoogleVoice').value.trim().replace(/\D/g,''),
+    whatsappPhoneId: document.getElementById('mpWacPhoneId').value.trim(),
+    whatsappToken: document.getElementById('mpWacToken').value.trim(),
+    teamsWebhook: document.getElementById('mpTeamsWebhook').value.trim(),
+    leadCaptureUrl: document.getElementById('mpLeadCaptureUrl').value.trim(),
+    logoUrl: document.getElementById('mpLogoUrl').value.trim(),
+    updatedAt: new Date().toISOString()
+  };
+  if(typeof _fbdb !== 'undefined' && _fbdb && _fbdb.ref){
+    _fbdb.ref('adminProfile').set(data).then(function(){
+      _mpProfile = data;
+      toast('✅ Perfil guardado en Firebase');
+    }).catch(function(e){
+      toast('⚠️ Error Firebase: '+e.message);
+      try{ localStorage.setItem('mpProfile_backup', JSON.stringify(data)); }catch(ex){}
+    });
+  } else {
+    toast('⚠️ Firebase no disponible, guardado local');
+    try{ localStorage.setItem('mpProfile_backup', JSON.stringify(data)); }catch(ex){}
+  }
+}
+
+function mpAddQrCode(){
+  if(_demoMode || !_fbdb){ alert('Modo demo'); return; }
+  var qrId = _mpSafeQrId(document.getElementById('mpQrIdInput').value);
+  var data = { label: qrId, type: _mpQrType, active: true, createdAt: new Date().toISOString() };
+  if(_mpQrType === 'custom'){
+    var url = document.getElementById('mpQrCustomUrl').value.trim();
+    if(!url){ toast('⚠️ Escribe una URL'); return; }
+    if(!url.match(/^https?:\/\//i)) url = 'https://' + url;
+    data.customUrl = url;
+    data.qrColor = document.getElementById('mpQrColor').value;
+    data.qrBgColor = document.getElementById('mpQrBgColor').value;
+    data.qrShape = document.getElementById('mpQrShape').value;
+    data.qrBorder = document.getElementById('mpQrBorder').value;
+    data.qrText = document.getElementById('mpQrText').value.trim();
+  }
+  _fbdb.ref('adminQrCodes/'+qrId).set(data).then(function(){
+    document.getElementById('mpQrIdInput').value = '';
+    if(_mpQrType === 'custom') document.getElementById('mpQrCustomUrl').value = '';
+    mpLoadQrCodes();
+    toast('✅ QR '+_mpQrType+' generado: '+qrId);
+  }).catch(function(e){ toast('Error: '+e.message); });
+}
+
+function mpLoadQrCodes(){
+  if(_demoMode || !_fbdb) return;
+  _fbdb.ref('adminQrCodes').once('value').then(function(snap){
+    var codes = [];
+    snap.forEach(function(child){
+      var d = child.val();
+      if(d.deleted) return;
+      d._key = child.key;
+      codes.push(d);
+    });
+    _renderQrCodes(codes);
+  }).catch(function(e){ console.warn('mpLoadQrCodes:', e); });
+}
+
+function _renderQrCodes(codes){
+  var c = document.getElementById('mpQrCodesGrid');
+  if(!c) return;
+  var t = tx();
+  if(!codes||!codes.length){
+    c.innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px;font-size:13px">'+_esc(t.mpNoQr)+'</p>';
+    return;
+  }
+  // OJO: window.location.origin NO incluye la carpeta (ej. /crm-masterbaez/),
+  // asi que si el panel vive en una subcarpeta de GitHub Pages, el QR apuntaba
+  // a una URL 404 (ej. daniel3853.github.io/lead-capture.html en vez de
+  // daniel3853.github.io/crm-masterbaez/lead-capture.html). Se arma con el
+  // mismo directorio de la pagina actual para que siempre apunte al archivo correcto.
+  var _mpDir = window.location.pathname.replace(/[^\/]*$/, '');
+  var baseUrl = (_mpProfile&&_mpProfile.leadCaptureUrl)||(window.location.origin+_mpDir+'lead-capture.html');
+  var logoUrl = (_mpProfile&&_mpProfile.logoUrl) ? _mpProfile.logoUrl.trim() : '';
+  var labels = {whatsapp:'💬 WhatsApp',telegram:'✈️ Telegram',sms:'📱 SMS',teams:'💼 Teams',custom:'🔗 URL Custom'};
+  var html = '<div class="mp-qr-grid">';
+  var _logoJobs = []; // {canvasId, qrSrc, dlBtnSelector}
+  codes.forEach(function(d){
+    var tp = d.type||'whatsapp';
+    var a = d.active!==false;
+    var canvasId = 'qrCv_'+d._key;
+    var img, destUrl, qrText='', wrapCls='';
+    if(tp === 'custom'){
+      // ANTES el QR llevaba adentro la URL de destino completa y codificada
+      // (…&dest=https%3A%2F%2Fejemplo.com%2Fpagina-larga…), lo que producia
+      // un QR "version" muy alta = puntitos chiquisimos = dificil de escanear,
+      // sobretodo impreso chico. Este tipo es "URL Custom": el QR debe llevar
+      // DIRECTO a la URL que pusiste, sin pasar por lead-capture.html (esa
+      // pagina es para los otros tipos: whatsapp/telegram/sms/teams).
+      destUrl = d.customUrl || 'https://example.com';
+      var qrColor = (d.qrColor||'#000000').replace('#','');
+      var qrBg = (d.qrBgColor||'#ffffff').replace('#','');
+      qrText = d.qrText||'';
+      var shape = d.qrShape||'square';
+      var border = d.qrBorder||'none';
+      wrapCls = 'mp-qr-custom-wrap';
+      if(shape==='rounded') wrapCls+=' shape-rounded';
+      if(shape==='circular') wrapCls+=' shape-circular';
+      if(border!=='none') wrapCls+=' border-'+border;
+      // ecc=H (mas alta) cuando va a llevar logo encima, porque el logo tapa
+      // parte del patron; ecc=M cuando no hay logo, para mantenerlo liviano.
+      var ecc = logoUrl ? 'H' : 'M';
+      img = 'https://api.qrserver.com/v1/create-qr-code/?size=320x320&ecc='+ecc+'&margin=10&color='+qrColor+'&bgcolor='+qrBg+'&data='+encodeURIComponent(destUrl);
+    } else {
+      destUrl = baseUrl+'?c=admin&q='+encodeURIComponent(d._key)+'&s='+tp;
+      var ecc2 = logoUrl ? 'H' : 'M';
+      img = 'https://api.qrserver.com/v1/create-qr-code/?size=320x320&ecc='+ecc2+'&margin=10&data='+encodeURIComponent(destUrl);
+    }
+    var inner = '<canvas id="'+canvasId+'" width="320" height="320"></canvas>';
+    html += '<div class="mp-qr-item">'
+      +(wrapCls?'<div class="'+wrapCls+'">'+inner+(qrText?'<div class="mp-qr-text">'+_esc(qrText)+'</div>':'')+'</div>':inner)
+      +'<div class="mp-qr-label">'+_esc(labels[tp]||tp)+' — '+(a?'<span style="color:#22c55e">● '+_esc(t.mpActivo)+'</span>':'<span style="color:#ef4444">● '+_esc(t.mpInactivo)+'</span>')+'</div>'
+      +'<div class="mp-qr-id" title="'+_esc(destUrl)+'">'+_esc(d._key)+'</div>'
+      +'<div class="mp-qr-actions">'
+      +(a
+        ?'<button class="mpQrToggleBtn" data-key="'+_esc(d._key)+'" data-act="off">🔴 '+_esc(t.mpDesactivar)+'</button>'
+        :'<button class="mpQrToggleBtn" data-key="'+_esc(d._key)+'" data-act="on">🟢 '+_esc(t.mpActivar)+'</button>')
+      +'<button class="mpQrDlBtn" data-key="'+_esc(d._key)+'" data-qrsrc="'+_esc(img)+'" data-name="qr-'+_esc(d._key)+'.png">⬇</button>'
+      +'<button class="mpQrDelBtn" data-key="'+_esc(d._key)+'">🗑</button>'
+      +'</div></div>';
+    _logoJobs.push({canvasId:canvasId, qrSrc:img, logoUrl:logoUrl});
+  });
+  html += '</div>';
+  c.innerHTML = html;
+  _mpBindQrGridEvents();
+  _logoJobs.forEach(function(job){
+    var el = document.getElementById(job.canvasId);
+    if(el) _mpDrawQrWithLogo(el, job.qrSrc, job.logoUrl);
+  });
+}
+
+// Dibuja el QR en un <canvas> y, si hay logo de la academia guardado en el
+// perfil, lo pega encima de un circulo blanco en el centro (asi se lee bien
+// aunque el fondo del logo sea transparente). Se usa ecc=H arriba para que
+// el QR tolere esa parte tapada y siga escaneando bien.
+function _mpDrawQrWithLogo(canvasEl, qrSrc, logoUrl){
+  var ctx = canvasEl.getContext('2d');
+  var size = canvasEl.width;
+  var qrImg = new Image();
+  qrImg.crossOrigin = 'anonymous';
+  qrImg.onload = function(){
+    ctx.drawImage(qrImg, 0, 0, size, size);
+    if(!logoUrl) return;
+    var logoImg = new Image();
+    logoImg.crossOrigin = 'anonymous';
+    logoImg.onload = function(){
+      try{
+        var logoSize = Math.round(size*0.22);
+        var cx = size/2, cy = size/2;
+        var plateR = Math.round(logoSize/2 + logoSize*0.16);
+        ctx.beginPath();
+        ctx.arc(cx, cy, plateR, 0, Math.PI*2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.drawImage(logoImg, cx-logoSize/2, cy-logoSize/2, logoSize, logoSize);
+      }catch(ex){ console.warn('logo overlay:', ex); }
+    };
+    logoImg.onerror = function(){ console.warn('No se pudo cargar el logo (revisa que Logo URL sea publica/CORS).'); };
+    logoImg.src = logoUrl;
+  };
+  qrImg.onerror = function(){
+    ctx.fillStyle = '#f5f5f5'; ctx.fillRect(0,0,size,size);
+    ctx.fillStyle = '#888'; ctx.font = '12px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('QR Error', size/2, size/2);
+  };
+  qrImg.src = qrSrc;
+}
+
+// Delegacion de eventos: un solo listener maneja activar/desactivar,
+// descargar y eliminar de TODAS las tarjetas QR, tomando el ID desde
+// data-key en vez de meterlo dentro de un onclick="" como texto.
+// Asi un ID con comillas, acentos o simbolos ya no puede romper el boton.
+var _mpQrGridDelegated = false;
+function _mpBindQrGridEvents(){
+  if(_mpQrGridDelegated) return;
+  var grid = document.getElementById('mpQrCodesGrid');
+  if(!grid) return;
+  _mpQrGridDelegated = true;
+  grid.addEventListener('click', function(ev){
+    var btn = ev.target.closest('button');
+    if(!btn || !grid.contains(btn)) return;
+    if(btn.classList.contains('mpQrToggleBtn')){
+      mpToggleQr(btn.dataset.key, btn.dataset.act === 'on');
+    } else if(btn.classList.contains('mpQrDelBtn')){
+      mpDelQr(btn.dataset.key);
+    } else if(btn.classList.contains('mpQrDlBtn')){
+      _mpDlQrCanvas(btn.dataset.key, btn.dataset.qrsrc, btn.dataset.name);
+    }
+  });
+}
+
+// Descarga el PNG final tal como quedo en el canvas (con el logo pegado si
+// aplica). Si el canvas quedo "manchado" por un problema de CORS con la URL
+// del logo, cae de nuevo a la imagen plana del QR (sin logo) para que la
+// descarga nunca falle del todo.
+function _mpDlQrCanvas(key, qrSrcFallback, name){
+  var canvasEl = document.getElementById('qrCv_'+key);
+  var dataUrl = null;
+  if(canvasEl){
+    try{ dataUrl = canvasEl.toDataURL('image/png'); }
+    catch(ex){ console.warn('Descarga con logo bloqueada por CORS, se descarga el QR plano:', ex); }
+  }
+  if(dataUrl){ _dlQr(dataUrl, name); return; }
+  toast('⚠️ No se pudo incluir el logo en la descarga (CORS). Descargando QR sin logo…');
+  _dlQr(qrSrcFallback, name);
+}
+
+function mpToggleQr(id,st){
+  if(_demoMode||!_fbdb) return;
+  var t = tx();
+  _fbdb.ref('adminQrCodes/'+id+'/active').set(st).then(function(){
+    toast(st?'✅ '+t.mpQrActivado:'⛔ '+t.mpQrDesactivado); mpLoadQrCodes();
+  }).catch(function(e){ toast(t.mpError+': '+e.message); });
+}
+
+function mpDelQr(id){
+  if(_demoMode||!_fbdb) return;
+  var t = tx();
+  _fbdb.ref('adminQrCodes/'+id).update({deleted:true,deletedAt:new Date().toISOString()}).then(function(){
+    toast('🗑 '+t.mpQrEliminado); mpLoadQrCodes();
+  }).catch(function(e){ toast(t.mpError+': '+e.message); });
+}
+
+function _dlQr(url,name){
+  var a = document.createElement('a');
+  a.href = url; a.download = name||'qr.png';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+function mpDlCustomQr(elId, fileName){
+  var el = document.getElementById(elId);
+  if(!el) return;
+  var canvas = el.querySelector('canvas');
+  if(!canvas){ toast('⚠️ QR no generado aún'); return; }
+  var a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = fileName || 'qr-custom.png';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+function mpLoadLeads(){
+  if(_demoMode||!_fbdb) return;
+  var t = tx();
+  var tf = function(ts){
+    if(!ts) return '—';
+    try{ return new Date(ts).toLocaleString(_masterLang==='es'?'es-CO':'en-US',{year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true}); }
+    catch(e){ return ts; }
+  };
+  _fbdb.ref('qrScans/admin').orderByChild('timestamp').limitToLast(50).once('value').then(function(snap){
+    var html = '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'
+      +'<thead><tr style="border-bottom:1px solid var(--border);color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.5px">'
+      +'<th style="padding:6px 8px;text-align:left" data-i18n="mpFecha">'+t.mpFecha+'</th>'
+      +'<th style="padding:6px 8px;text-align:left" data-i18n="mpNombre">'+t.mpNombre+'</th>'
+      +'<th style="padding:6px 8px;text-align:left" data-i18n="mpEmailTel">'+t.mpEmailTel+'</th>'
+      +'<th style="padding:6px 8px;text-align:left" data-i18n="mpMensaje">'+t.mpMensaje+'</th>'
+      +'<th style="padding:6px 8px;text-align:left" data-i18n="mpIP">'+t.mpIP+'</th>'
+      +'<th style="padding:6px 8px;text-align:left" data-i18n="mpUbicacion">'+t.mpUbicacion+'</th>'
+      +'<th style="padding:6px 8px;text-align:left" data-i18n="mpDispositivo">'+t.mpDispositivo+'</th>'
+      +'<th style="padding:6px 8px;text-align:left" data-i18n="mpAccion">'+t.mpAccion+'</th>'
+      +'</tr></thead><tbody>';
+    var count = 0;
+    if(snap.exists()){
+      snap.forEach(function(child){
+        var d = child.val();
+        if(d.deleted) return; count++;
+        var phone = d.leadPhone || '';
+        var phoneDigits = phone.replace(/\D/g,'');
+        var email = d.leadEmail || '';
+        html += '<tr style="border-bottom:1px solid var(--border)">'
+          +'<td style="padding:6px 8px;white-space:nowrap;font-size:11px">'+tf(d.timestamp)+'</td>'
+          +'<td style="padding:6px 8px"><b>'+_esc(d.leadName||'—')+'</b></td>'
+          +'<td style="padding:6px 8px;font-size:11px">'+(email?'📧 '+_esc(email):'')+(phone?(email?'<br>':'')+'📱 '+_esc(phone):'')+'</td>'
+          +'<td style="padding:6px 8px;font-size:11px;max-width:150px;word-break:break-word">'+_esc(d.leadMessage||'—')+'</td>'
+          +'<td style="padding:6px 8px;font-size:11px;color:#64748b">'+_esc(d.ip||'—')+'</td>'
+          +'<td style="padding:6px 8px;font-size:11px">'+([d.city,d.country].filter(Boolean).join(', ')||'—')+' '+(d.lat&&d.lng?'<a href="https://www.google.com/maps?q='+d.lat+','+d.lng+'" target="_blank" style="text-decoration:none;font-size:14px" title="'+_esc(t.mpMapa)+'">🗺</a>':'')+'</td>'
+          +'<td style="padding:6px 8px;font-size:11px;color:#64748b">'+_esc(d.os||'—')+'</td>'
+          +'<td style="padding:6px 8px;white-space:nowrap">'
+          +(phoneDigits?'<a href="sms:'+phoneDigits+'" style="text-decoration:none;cursor:pointer" title="'+_esc(t.mpSMS)+'">📲</a> ':'')
+          +(phoneDigits?'<a href="https://wa.me/'+phoneDigits+'?text='+encodeURIComponent('Hola '+_esc(d.leadName||''))+'" target="_blank" style="text-decoration:none;cursor:pointer" title="'+_esc(t.mpWhatsApp)+'">💬</a> ':'')
+          +(phoneDigits?'<a href="tel:'+phoneDigits+'" style="text-decoration:none;cursor:pointer" title="'+_esc(t.mpLlamar)+'">📞</a> ':'')
+          +(email?'<a href="mailto:'+email+'" style="text-decoration:none;cursor:pointer" title="'+_esc(t.mpEmail)+'">📧</a> ':'')
+          +'<span onclick="if(confirm(\''+_esc(t.mpEliminarLead)+'\')){mpDeleteLead(\''+child.key+'\')}" style="cursor:pointer" title="🗑">🗑</span>'
+          +'</td></tr>';
+      });
+    }
+    html += '</tbody></table></div>';
+    if(!count) html = '<p style="color:var(--muted);text-align:center;padding:20px">'+_esc(t.mpNoLeads)+'</p>';
+    document.getElementById('mpLeadsList').innerHTML = html;
+  }).catch(function(e){
+    document.getElementById('mpLeadsList').innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px">'+_esc(tx().mpNoLeads)+'</p>';
+    console.warn('mpLoadLeads:', e);
+  });
+}
+
+function mpDeleteLead(key){
+  if(_demoMode||!_fbdb) return;
+  _fbdb.ref('qrScans/admin/'+key).once('value').then(function(snap){
+    var d = snap.val();
+    if(!d) return;
+    var entry = {
+      _trashType: 'lead',
+      id: 'lead_'+key,
+      name: d.leadName || d.leadEmail || 'Lead',
+      firstName: d.leadName || '',
+      bizName: d.leadName || '',
+      email: d.leadEmail || '',
+      phone: d.leadPhone || '',
+      plan: '',
+      deleteMotivo: d.type ? 'QR: '+d.type : 'Lead',
+      deletedAt: new Date().toISOString(),
+      _leadKey: key,
+      _leadData: d
+    };
+    _fbdb.ref('papelera/lead_'+key).set(entry).then(function(){
+      _fbdb.ref('qrScans/admin/'+key+'/deleted').set(true).then(function(){
+        toast('🗑 Lead enviado a Papelera');
+        mpLoadLeads();
+      });
+    });
+  }).catch(function(e){ toast('Error: '+e.message); });
 }
 
 // ── QR AGREEMENT DOCUMENT ────────────────────────────────────
