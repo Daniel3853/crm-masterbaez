@@ -45,7 +45,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </style>
 </head>
 <body>
-<div class="lc-card lc-lang-en" id="lcCard" style="visibility:hidden">
+<div class="lc-card lc-lang-en" id="lcCard">
   <button class="lc-lang-btn" id="lcLangBtn" onclick="lcToggleLang()">🌐 Español</button>
   <div id="lcLogo" class="lc-logo"></div>
   <h1 id="lcTitle" class="lc-en-part">Get in Touch</h1>
@@ -187,26 +187,37 @@ function lcRevealCard(){
   if(card) card.style.visibility = 'visible';
 }
 
+// Marca si la persona ya empezó a escribir su propio mensaje, para que
+// cuando llegue el mensaje por defecto (waMessage) desde Firebase NUNCA
+// se le borre lo que ya escribió -- antes esto pasaba si Firebase tardaba
+// y la persona alcanzaba a escribir antes de que la respuesta llegara.
+var _lcMsgTouched = false;
+['lcMessage','lcMessageEs'].forEach(function(id){
+  var el = document.getElementById(id);
+  if(el) el.addEventListener('input', function(){ _lcMsgTouched = true; });
+});
+
 function lcLoadProfile(){
-  if(!_lcdb){ lcRevealCard(); return; }
-  var revealed = false;
-  var safety = setTimeout(function(){ revealed = true; lcRevealCard(); }, 1200);
+  if(!_lcdb) return;
   _lcdb.ref('adminProfile').once('value').then(function(snap){
     _lcProfile = snap.val() || {};
     if(_lcProfile.logoUrl){
       document.getElementById('lcLogo').innerHTML = '<img src="'+_lcProfile.logoUrl+'" alt="Logo"/>';
     }
-    if(_lcProfile.waMessage){
-      document.getElementById('lcMessage').value = _lcProfile.waMessage;
-      document.getElementById('lcMessageEs').value = _lcProfile.waMessage;
+    if(_lcProfile.waMessage && !_lcMsgTouched){
+      var mEl = document.getElementById('lcMessage');
+      var mElEs = document.getElementById('lcMessageEs');
+      // Doble chequeo: solo rellenamos si el campo sigue vacío. Si por
+      // cualquier motivo ya tiene texto (autocompletado del navegador,
+      // etc.) tampoco lo pisamos.
+      if(mEl && !mEl.value.trim()) mEl.value = _lcProfile.waMessage;
+      if(mElEs && !mElEs.value.trim()) mElEs.value = _lcProfile.waMessage;
     }
     if(_lcProfile.bizName){
       document.getElementById('lcTitle').textContent = _lcProfile.bizName;
       document.getElementById('lcTitleEs').textContent = _lcProfile.bizName;
     }
-  }).catch(function(e){ console.warn('lcLoadProfile:', e); }).finally(function(){
-    if(!revealed){ clearTimeout(safety); lcRevealCard(); }
-  });
+  }).catch(function(e){ console.warn('lcLoadProfile:', e); });
 }
 
 function lcGetGps(){
