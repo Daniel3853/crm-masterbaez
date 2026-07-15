@@ -2621,6 +2621,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
               </div>
               <div class="mp-custom-url" id="mpCustomUrlWrap">
                 <input id="mpQrCustomUrl" type="url" placeholder="https://tusitio.com/pagina" style="margin-bottom:10px" />
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:10px;font-weight:600">
+                  <input type="checkbox" id="mpQrSilent" style="width:auto;margin:0" />
+                  La página ya tiene su propio formulario (ir directo, sin pedir nombre/teléfono — solo registrar el escaneo)
+                </label>
               </div>
               <div class="mp-custom-panel" id="mpCustomPanel">
                 <h4>🎨 Personalizar QR</h4>
@@ -20456,6 +20460,7 @@ function mpAddQrCode(){
     if(!url){ toast('⚠️ Escribe una URL'); return; }
     if(!url.match(/^https?:\/\//i)) url = 'https://' + url;
     data.customUrl = url;
+    data.silent = document.getElementById('mpQrSilent').checked;
     data.qrColor = document.getElementById('mpQrColor').value;
     data.qrBgColor = document.getElementById('mpQrBgColor').value;
     data.qrShape = document.getElementById('mpQrShape').value;
@@ -20464,7 +20469,7 @@ function mpAddQrCode(){
   }
   _fbdb.ref('adminQrCodes/'+qrId).set(data).then(function(){
     document.getElementById('mpQrIdInput').value = '';
-    if(_mpQrType === 'custom') document.getElementById('mpQrCustomUrl').value = '';
+    if(_mpQrType === 'custom'){ document.getElementById('mpQrCustomUrl').value = ''; document.getElementById('mpQrSilent').checked = false; }
     mpLoadQrCodes();
     toast('✅ QR '+_mpQrType+' generado: '+qrId);
   }).catch(function(e){ toast('Error: '+e.message); });
@@ -20509,13 +20514,13 @@ function _renderQrCodes(codes){
     var canvasId = 'qrCv_'+d._key;
     var img, destUrl, qrText='', wrapCls='';
     if(tp === 'custom'){
-      // ANTES el QR llevaba adentro la URL de destino completa y codificada
-      // (…&dest=https%3A%2F%2Fejemplo.com%2Fpagina-larga…), lo que producia
-      // un QR "version" muy alta = puntitos chiquisimos = dificil de escanear,
-      // sobretodo impreso chico. Este tipo es "URL Custom": el QR debe llevar
-      // DIRECTO a la URL que pusiste, sin pasar por lead-capture.html (esa
-      // pagina es para los otros tipos: whatsapp/telegram/sms/teams).
-      destUrl = d.customUrl || 'https://example.com';
+      // El QR lleva solo una referencia corta (?c=admin&q=ID&s=custom),
+      // igual que whatsapp/telegram/sms/teams -- NO la URL completa. Eso
+      // mantiene el QR liviano y facil de escanear. lead-capture.html
+      // busca la URL real (d.customUrl) en Firebase usando ese ID, y
+      // redirige ahi despues de guardar el escaneo (tracking + notif.
+      // por Telegram/Brevo/WhatsApp, igual que los otros tipos).
+      destUrl = baseUrl+'?c=admin&q='+encodeURIComponent(d._key)+'&s=custom'+(d.silent?'&silent=1':'');
       var qrColor = (d.qrColor||'#000000').replace('#','');
       var qrBg = (d.qrBgColor||'#ffffff').replace('#','');
       qrText = d.qrText||'';
