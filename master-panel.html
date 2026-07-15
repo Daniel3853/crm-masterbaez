@@ -20729,7 +20729,7 @@ function mpDeleteLead(key){
   if(_demoMode||!_fbdb) return;
   _fbdb.ref('qrScans/admin/'+key).once('value').then(function(snap){
     var d = snap.val();
-    if(!d) return;
+    if(!d){ toast('⚠️ Lead no encontrado'); return; }
     var entry = {
       _trashType: 'lead',
       id: 'lead_'+key,
@@ -20744,13 +20744,13 @@ function mpDeleteLead(key){
       _leadKey: key,
       _leadData: d
     };
-    _fbdb.ref('papelera/lead_'+key).set(entry).then(function(){
-      _fbdb.ref('qrScans/admin/'+key+'/deleted').set(true).then(function(){
-        toast('🗑 Lead enviado a Papelera');
-        mpLoadLeads();
-      });
+    return _fbdb.ref('papelera/lead_'+key).set(entry).then(function(){
+      return _fbdb.ref('qrScans/admin/'+key+'/deleted').set(true);
+    }).then(function(){
+      toast('🗑 Lead enviado a Papelera');
+      mpLoadLeads();
     });
-  }).catch(function(e){ toast('Error: '+e.message); });
+  }).catch(function(e){ toast('❌ Error al eliminar: '+e.message); console.error('mpDeleteLead:', e); });
 }
 
 // ── QR AGREEMENT DOCUMENT ────────────────────────────────────
