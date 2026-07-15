@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>Contact</title>
+<script>
+// Modo silencioso: si el link trae &silent=1 (QR "URL Custom" que apunta
+// a una landing page con su propio formulario), ocultamos la tarjeta
+// ANTES de que se pinte, para que el visitante nunca vea el formulario
+// generico -- solo se registra el escaneo en segundo plano y se redirige.
+if(location.search.indexOf('silent=1') !== -1){
+  document.write('<style>html{visibility:hidden}</style>');
+}
+</script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <style>
@@ -91,6 +100,61 @@ var _lcLat = null;
 var _lcLng = null;
 var _lcGeo = null;
 var _lcLang = 'en';
+var _lcCustomUrl = null;
+
+// Para QR tipo "custom", la URL final (a donde se redirige despues de
+// enviar el formulario) no viaja en el QR -- solo viaja el ID (q=...).
+// La buscamos en Firebase apenas carga la pagina, para tenerla lista
+// cuando la persona toque "Enviar" (el redirect tiene que dispararse
+// en el mismo click, sin esperas, para que funcione bien en celulares).
+function lcLoadCustomDest(){
+  if(!_lcdb || _lcParams.s !== 'custom' || !_lcParams.q) return;
+  _lcdb.ref('adminQrCodes/'+_lcParams.q).once('value').then(function(snap){
+    var d = snap.val();
+    if(d && d.customUrl) _lcCustomUrl = d.customUrl;
+    if(_lcParams.silent === '1' && _lcCustomUrl) lcSilentTrack(_lcCustomUrl);
+  }).catch(function(e){ console.warn('lcLoadCustomDest:', e); });
+}
+
+// Modo silencioso: sin formulario, sin pedir permiso de GPS. Solo saca
+// ciudad/pais aproximados por IP (sin avisos del navegador), guarda el
+// escaneo, notifica por el Worker, y redirige a la landing page real
+// de la campana (que ya tiene su propio formulario para nombre/telefono/email).
+function lcSilentTrack(destUrl){
+  var ua = navigator.userAgent;
+  var os = 'Unknown';
+  if(/Windows/.test(ua)) os = 'Windows';
+  else if(/Mac/.test(ua)) os = 'macOS';
+  else if(/Linux/.test(ua)) os = 'Linux';
+  else if(/Android/.test(ua)) os = 'Android';
+  else if(/iPhone|iPad|iPod/.test(ua)) os = 'iOS';
+
+  var done = false;
+  function go(scanData){
+    if(done) return; done = true;
+    _lcSaveScan(scanData);
+    window.location.href = destUrl;
+  }
+
+  var baseData = {
+    qrId: _lcParams.q || 'unknown', type: 'custom', leadName: '', leadEmail: '',
+    leadPhone: '', leadMessage: '', timestamp: new Date().toISOString(),
+    city: '', country: '', lat: null, lng: null, ip: '', os: os,
+    userAgent: ua, ref: 'admin', scanned: true, silent: true, lang: _lcLang
+  };
+
+  // Si en 2.5s no respondio el lookup de IP/ciudad, redirige igual --
+  // nunca hacemos esperar al visitante por esto.
+  var safety = setTimeout(function(){ go(baseData); }, 2500);
+
+  fetch('https://ipapi.co/json/').then(function(r){ return r.json(); }).then(function(g){
+    clearTimeout(safety);
+    baseData.city = g.city || '';
+    baseData.country = g.country_name || '';
+    baseData.ip = g.ip || '';
+    go(baseData);
+  }).catch(function(){ clearTimeout(safety); go(baseData); });
+}
 
 function _esc(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
@@ -235,6 +299,9 @@ function _lcBuildUrl(data){
     case 'teams':
       url = _lcProfile && _lcProfile.teamsWebhook ? _lcProfile.teamsWebhook : '#';
       break;
+    case 'custom':
+      url = _lcCustomUrl || '#';
+      break;
   }
   return url;
 }
@@ -266,6 +333,7 @@ function _lcNotifyWorker(data){
 
 lcLoadProfile();
 lcGetGps();
+lcLoadCustomDest();
 </script>
 </body>
 </html>
