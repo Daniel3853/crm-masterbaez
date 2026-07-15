@@ -20598,7 +20598,7 @@ function _renderQrCodes(codes){
       +(wrapCls?'<div class="'+wrapCls+'">'+inner+(qrText?'<div class="mp-qr-text">'+_esc(qrText)+'</div>':'')+'</div>':inner)
       +'<div class="mp-qr-label">'+_esc(labels[tp]||tp)+' — '+(a?'<span style="color:#22c55e">● '+_esc(t.mpActivo)+'</span>':'<span style="color:#ef4444">● '+_esc(t.mpInactivo)+'</span>')+'</div>'
       +'<div class="mp-qr-id" title="'+_esc(destUrl)+'">'+_esc(d._key)+'</div>'
-      +(tp==='custom' && d.customUrl ? '<div class="mp-qr-url-row"><input type="text" readonly value="'+_esc(d.customUrl)+'" onclick="this.select()" /><button class="mp-qr-copy-url" data-copyurl="'+_esc(d.customUrl)+'" title="'+_esc(t.mpCopiarUrl||'Copiar URL')+'">📋</button></div>' : '')
+      +'<div class="mp-qr-url-row"><input type="text" readonly value="'+_esc(destUrl)+'" onclick="this.select()" /><button class="mp-qr-copy-url" data-copyurl="'+_esc(destUrl)+'" title="'+_esc(t.mpCopiarUrl||'Copiar URL')+'">📋</button></div>'
       +'<div class="mp-qr-actions">'
       +(a
         ?'<button class="mpQrToggleBtn" data-key="'+_esc(d._key)+'" data-act="off">🔴 '+_esc(t.mpDesactivar)+'</button>'
