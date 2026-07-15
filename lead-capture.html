@@ -239,56 +239,29 @@ function _lcBuildUrl(data){
   return url;
 }
 
+// URL de tu Worker de Cloudflare — el envio de notificaciones
+// (Telegram, Brevo, WhatsApp) ya NO se hace desde el navegador del
+// visitante. Se hace desde el Worker, usando las claves guardadas
+// como Secrets en Cloudflare (nunca viajan al navegador del cliente).
+var LC_NOTIFY_WORKER_URL = 'https://masterbaez-notify.marketingusadb.workers.dev';
+
 function _lcSaveScan(data){
-  if(!_lcdb){ if(_lcProfile) _lcSendNotifs(data); return; }
+  if(!_lcdb){ _lcNotifyWorker(data); return; }
   _lcdb.ref('qrScans/admin').push(data).then(function(){
-    if(_lcProfile) _lcSendNotifs(data);
+    _lcNotifyWorker(data);
   }).catch(function(){
-    if(_lcProfile) _lcSendNotifs(data);
+    _lcNotifyWorker(data);
   });
 }
 
-function _lcSendNotifs(data){
-  var p = _lcProfile;
-  var na = '-';
-  var msg = 'Nuevo Lead QR\nNombre: '+data.leadName+'\nEmail: '+(data.leadEmail||na)+'\nTel: '+(data.leadPhone||na)+'\nMensaje: '+(data.leadMessage||na)+'\nUbicacion: '+[data.city,data.country].filter(Boolean).join(', ')+'\nQR: '+(data.qrId||na);
-  if(p.telegramToken && p.telegramChatId){
-    try{ fetch('https://api.telegram.org/bot'+p.telegramToken+'/sendMessage?chat_id='+p.telegramChatId+'&text='+encodeURIComponent(msg)).catch(function(e){ console.warn('Telegram notif failed:',e); }); }catch(e){ console.warn('Telegram error:',e); }
-  }
-  if(p.whatsappToken && p.whatsappPhoneId && p.whatsapp){
-    try{
-      fetch('https://graph.facebook.com/v18.0/'+p.whatsappPhoneId+'/messages',{method:'POST',headers:{'Authorization':'Bearer '+p.whatsappToken,'Content-Type':'application/json'},body:JSON.stringify({messaging_product:'whatsapp',to:p.whatsapp.replace(/\D/g,''),type:'text',text:{body:msg}})}).catch(function(e){ console.warn('WA notif failed:',e); });
-    }catch(e){ console.warn('WA error:',e); }
-  }
-  if(p.teamsWebhook){
-    try{ fetch(p.teamsWebhook,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:msg})}).catch(function(e){ console.warn('Teams notif failed:',e); }); }catch(e){ console.warn('Teams error:',e); }
-  }
-  if(p.brevoApiKey && p.brevoSenderEmail){
-    var isEn = data.lang !== 'es';
-    var adminSubject = isEn ? 'New QR Lead - ' + data.leadName : 'Nuevo Lead QR - ' + data.leadName;
-    var adminHtml = '<h2>' + (isEn ? 'New QR Lead' : 'Nuevo Lead QR') + '</h2><ul>'
-      + '<li><b>' + (isEn ? 'Name' : 'Nombre') + ':</b> ' + data.leadName + '</li>'
-      + '<li><b>Email:</b> ' + (data.leadEmail || na) + '</li>'
-      + '<li><b>' + (isEn ? 'Phone' : 'Telefono') + ':</b> ' + (data.leadPhone || na) + '</li>'
-      + '<li><b>' + (isEn ? 'Message' : 'Mensaje') + ':</b> ' + (data.leadMessage || na) + '</li>'
-      + '<li><b>' + (isEn ? 'Location' : 'Ubicacion') + ':</b> ' + [data.city,data.country].filter(Boolean).join(', ') + '</li>'
-      + '<li><b>QR ID:</b> ' + (data.qrId || na) + '</li></ul>';
-    try{
-      fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',headers:{'api-key':p.brevoApiKey,'Content-Type':'application/json'},body:JSON.stringify({sender:{email:p.brevoSenderEmail},to:[{email:p.brevoSenderEmail}],subject:adminSubject,htmlContent:adminHtml})}).then(function(r){ if(!r.ok) console.warn('Brevo admin email status:',r.status); }).catch(function(e){ console.warn('Brevo admin email failed:',e); });
-    }catch(e){ console.warn('Brevo admin error:',e); }
-    if(data.leadEmail){
-      var replySubject = (isEn ? 'Thanks for contacting us - ' : 'Gracias por contactarnos - ') + (p.bizName || '');
-      var replyHtml = '<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#f9f9f9;border-radius:12px">'
-        + '<h2 style="color:#1e293b">' + (isEn ? 'Thank you!' : 'Gracias!') + '</h2>'
-        + '<p style="color:#475569">' + (isEn ? 'We received your information and will contact you shortly.' : 'Recibimos tu informacion y te contactaremos pronto.') + '</p>'
-        + '<p style="color:#475569">' + (isEn ? 'Your message:' : 'Tu mensaje:') + '<br/><i>' + _esc(data.leadMessage || na) + '</i></p>'
-        + '<hr style="border:none;border-top:1px solid #e2e8f0;margin:16px 0"/>'
-        + '<p style="font-size:12px;color:#94a3b8">' + (p.bizName || '') + '</p></div>';
-      try{
-        fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',headers:{'api-key':p.brevoApiKey,'Content-Type':'application/json'},body:JSON.stringify({sender:{email:p.brevoSenderEmail},to:[{email:data.leadEmail}],subject:replySubject,htmlContent:replyHtml})}).then(function(r){ if(!r.ok) console.warn('Brevo auto-reply status:',r.status); }).catch(function(e){ console.warn('Brevo auto-reply failed:',e); });
-      }catch(e){ console.warn('Brevo auto-reply error:',e); }
-    }
-  }
+function _lcNotifyWorker(data){
+  try{
+    fetch(LC_NOTIFY_WORKER_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    }).catch(function(e){ console.warn('Worker notify failed:', e); });
+  }catch(e){ console.warn('Worker notify error:', e); }
 }
 
 lcLoadProfile();
