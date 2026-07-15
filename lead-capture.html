@@ -45,7 +45,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </style>
 </head>
 <body>
-<div class="lc-card lc-lang-en" id="lcCard">
+<div class="lc-card lc-lang-en" id="lcCard" style="visibility:hidden">
   <button class="lc-lang-btn" id="lcLangBtn" onclick="lcToggleLang()">🌐 Español</button>
   <div id="lcLogo" class="lc-logo"></div>
   <h1 id="lcTitle" class="lc-en-part">Get in Touch</h1>
@@ -173,10 +173,24 @@ function lcToggleLang(){
   card.classList.add('lc-lang-'+_lcLang);
   document.getElementById('lcLangBtn').textContent = _lcLang === 'en' ? '🌐 Español' : '🌐 English';
   document.getElementById('lcGps').textContent = _lcLang === 'en' ? '📍 Getting location...' : '📍 Obteniendo ubicación...';
+  var ph = _lcLang === 'es'
+    ? {name:'Tu nombre', email:'tu@correo.com', phone:'+1 234 567 8900'}
+    : {name:'Your name', email:'you@email.com', phone:'+1 234 567 8900'};
+  document.getElementById('lcName').placeholder = ph.name;
+  document.getElementById('lcEmail').placeholder = ph.email;
+  document.getElementById('lcPhone').placeholder = ph.phone;
+}
+
+function lcRevealCard(){
+  if(_lcParams.silent === '1') return; // modo silencioso: la tarjeta nunca se muestra
+  var card = document.getElementById('lcCard');
+  if(card) card.style.visibility = 'visible';
 }
 
 function lcLoadProfile(){
-  if(!_lcdb) return;
+  if(!_lcdb){ lcRevealCard(); return; }
+  var revealed = false;
+  var safety = setTimeout(function(){ revealed = true; lcRevealCard(); }, 1200);
   _lcdb.ref('adminProfile').once('value').then(function(snap){
     _lcProfile = snap.val() || {};
     if(_lcProfile.logoUrl){
@@ -190,7 +204,9 @@ function lcLoadProfile(){
       document.getElementById('lcTitle').textContent = _lcProfile.bizName;
       document.getElementById('lcTitleEs').textContent = _lcProfile.bizName;
     }
-  }).catch(function(e){ console.warn('lcLoadProfile:', e); });
+  }).catch(function(e){ console.warn('lcLoadProfile:', e); }).finally(function(){
+    if(!revealed){ clearTimeout(safety); lcRevealCard(); }
+  });
 }
 
 function lcGetGps(){
