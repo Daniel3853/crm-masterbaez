@@ -2584,23 +2584,23 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
         <div class="mp-card" id="mpPerfilCard">
           <div class="mp-card-head" data-i18n="mpPerfil">👤 Mi Perfil</div>
           <div class="mp-card-body">
-            <div class="mp-field"><label>Nombre del Negocio</label><input id="mpBizName" placeholder="Ej: Mi Empresa" /></div>
-            <div class="mp-field"><label>WhatsApp <small>(número, ej: 573001234567)</small></label><input id="mpWhatsapp" placeholder="573001234567" /></div>
-            <div class="mp-field"><label>Mensaje precargado en formulario</label><textarea id="mpWaMsg" placeholder="Hola, quiero info sobre tus servicios"></textarea></div>
-            <div class="mp-field"><label>Token del bot de Telegram</label><input id="mpTelegramToken" placeholder="123456789:ABC..." /></div>
-            <div class="mp-field"><label>Chat ID de Telegram</label><input id="mpTelegramChat" placeholder="-1001234567890" /></div>
-            <div class="mp-field"><label>Usuario de Telegram <small>(@usuario)</small></label><input id="mpTelegramUser" placeholder="usuario_sin_@" /></div>
+            <div class="mp-field"><label data-i18n="mpLblBizName">Nombre del Negocio</label><input id="mpBizName" placeholder="Ej: Mi Empresa" /></div>
+            <div class="mp-field"><label><span data-i18n="mpLblWhatsapp">WhatsApp</span> <small data-i18n="mpLblWhatsappSm">(número, ej: 573001234567)</small></label><input id="mpWhatsapp" placeholder="573001234567" /></div>
+            <div class="mp-field"><label data-i18n="mpLblWaMsg">Mensaje precargado en formulario</label><textarea id="mpWaMsg" placeholder="Hola, quiero info sobre tus servicios"></textarea></div>
+            <div class="mp-field"><label data-i18n="mpLblTelegramToken">Token del bot de Telegram</label><input id="mpTelegramToken" placeholder="123456789:ABC..." /></div>
+            <div class="mp-field"><label data-i18n="mpLblTelegramChat">Chat ID de Telegram</label><input id="mpTelegramChat" placeholder="-1001234567890" /></div>
+            <div class="mp-field"><label><span data-i18n="mpLblTelegramUser">Usuario de Telegram</span> <small>(@usuario)</small></label><input id="mpTelegramUser" placeholder="usuario_sin_@" /></div>
             <hr style="margin:12px 0;border:none;border-top:1px solid var(--border)" />
-            <div class="mp-field"><label>Brevo API Key v3</label><input id="mpBrevoKey" placeholder="xsksm...abc123" /></div>
-            <div class="mp-field"><label>Email del remitente</label><input id="mpBrevoSender" placeholder="tucorreo@gmail.com" /></div>
-            <div class="mp-field"><label>Teléfono de contacto</label><input id="mpAutoReplyPhone" placeholder="953801340" /></div>
-            <div class="mp-field"><label>Google Voice</label><input id="mpGoogleVoice" placeholder="17866811651" /></div>
+            <div class="mp-field"><label data-i18n="mpLblBrevoKey">Brevo API Key v3</label><input id="mpBrevoKey" placeholder="xsksm...abc123" /></div>
+            <div class="mp-field"><label data-i18n="mpLblBrevoSender">Email del remitente</label><input id="mpBrevoSender" placeholder="tucorreo@gmail.com" /></div>
+            <div class="mp-field"><label data-i18n="mpLblContactPhone">Teléfono de contacto</label><input id="mpAutoReplyPhone" placeholder="953801340" /></div>
+            <div class="mp-field"><label data-i18n="mpLblGoogleVoice">Google Voice</label><input id="mpGoogleVoice" placeholder="17866811651" /></div>
             <hr style="margin:12px 0;border:none;border-top:1px solid var(--border)" />
-            <div class="mp-field"><label>WhatsApp Cloud Phone ID</label><input id="mpWacPhoneId" placeholder="123456789012345" /></div>
-            <div class="mp-field"><label>WhatsApp Cloud Token</label><input id="mpWacToken" placeholder="EAAx..." /></div>
-            <div class="mp-field"><label>Teams Webhook URL</label><input id="mpTeamsWebhook" placeholder="https://...webhook..." /></div>
-            <div class="mp-field"><label>🌐 Lead Capture URL <small>(URL pública donde subas lead-capture.html)</small></label><input id="mpLeadCaptureUrl" placeholder="https://tudominio.com/lead-capture.html" /></div>
-            <div class="mp-field"><label>Logo URL</label><input id="mpLogoUrl" placeholder="https://..." /></div>
+            <div class="mp-field"><label data-i18n="mpLblWaPhoneId">WhatsApp Cloud Phone ID</label><input id="mpWacPhoneId" placeholder="123456789012345" /></div>
+            <div class="mp-field"><label data-i18n="mpLblWaToken">WhatsApp Cloud Token</label><input id="mpWacToken" placeholder="EAAx..." /></div>
+            <div class="mp-field"><label data-i18n="mpLblTeamsWebhook">Teams Webhook URL</label><input id="mpTeamsWebhook" placeholder="https://...webhook..." /></div>
+            <div class="mp-field"><label><span data-i18n="mpLblLeadCaptureUrl">🌐 Lead Capture URL</span> <small data-i18n="mpLblLeadCaptureUrlSm">(URL pública donde subas lead-capture.html)</small></label><input id="mpLeadCaptureUrl" placeholder="https://tudominio.com/lead-capture.html" /></div>
+            <div class="mp-field"><label data-i18n="mpLblLogoUrl">Logo URL</label><input id="mpLogoUrl" placeholder="https://..." /></div>
             <div id="mpProfileMsg" style="margin-top:10px;font-size:13px;font-weight:700;padding:8px 12px;border-radius:6px"></div>
           </div>
         </div>
@@ -4340,7 +4340,7 @@ function goPage(p){
   currentPage = p;
   if(p==='clients')    { renderClients(); }
   if(p==='config')     { renderConfig(); loadNotifConfig(); }
-  if(p==='papelera')   { renderPapelera(); }
+  if(p==='papelera')   { reloadPapeleraAndRender(); }
   if(p==='partners')   { renderPartners(); }
   if(p==='referidores'){ renderReferidores(); }
   if(p==='prospectos') { renderProspectos(); }
@@ -12675,6 +12675,16 @@ function updatePapeleraBadge(){
   }
 }
 
+function reloadPapeleraAndRender(){
+  if(_demoMode||!_fbdb){ renderPapelera(); return; }
+  _fbdb.ref('papelera').once('value').then(function(snap){
+    var papd = snap.val()||{};
+    papelera = Object.values(papd);
+    updatePapeleraBadge();
+    renderPapelera();
+  }).catch(function(e){ console.warn('reloadPapelera:', e); renderPapelera(); });
+}
+
 function renderPapelera(){
   var t = tx(); var isEN = _masterLang === 'en';
   var el = document.getElementById('papeleraList');
@@ -14557,7 +14567,16 @@ var LANG = {
     mpEliminarLead:'🗑 Eliminar este lead?', mpMapa:'Ver en mapa',
     mpLlamar:'Llamar', mpWhatsApp:'WhatsApp', mpSMS:'SMS', mpEmail:'Email',
     mpQrActivado:'QR activado', mpQrDesactivado:'QR desactivado', mpQrEliminado:'QR eliminado',
-    mpError:'Error'
+    mpError:'Error',
+    mpLblBizName:'Nombre del Negocio', mpLblWhatsapp:'WhatsApp', mpLblWhatsappSm:'(número, ej: 573001234567)',
+    mpLblWaMsg:'Mensaje precargado en formulario', mpLblTelegramToken:'Token del bot de Telegram',
+    mpLblTelegramChat:'Chat ID de Telegram', mpLblTelegramUser:'Usuario de Telegram (@usuario)',
+    mpLblBrevoKey:'Brevo API Key v3', mpLblBrevoSender:'Email del remitente',
+    mpLblContactPhone:'Teléfono de contacto', mpLblGoogleVoice:'Google Voice',
+    mpLblWaPhoneId:'WhatsApp Cloud Phone ID', mpLblWaToken:'WhatsApp Cloud Token',
+    mpLblTeamsWebhook:'Teams Webhook URL',
+    mpLblLeadCaptureUrl:'🌐 Lead Capture URL', mpLblLeadCaptureUrlSm:'(URL pública donde subas lead-capture.html)',
+    mpLblLogoUrl:'Logo URL'
   },
   en:{
     dashboard:'📊 Dashboard', clients:'👥 Clients', config:'⚙️ Settings',
@@ -14706,7 +14725,16 @@ var LANG = {
     mpEliminarLead:'🗑 Delete this lead?', mpMapa:'View on map',
     mpLlamar:'Call', mpWhatsApp:'WhatsApp', mpSMS:'SMS', mpEmail:'Email',
     mpQrActivado:'QR activated', mpQrDesactivado:'QR deactivated', mpQrEliminado:'QR deleted',
-    mpError:'Error'
+    mpError:'Error',
+    mpLblBizName:'Business Name', mpLblWhatsapp:'WhatsApp', mpLblWhatsappSm:'(number, ex: 573001234567)',
+    mpLblWaMsg:'Pre-loaded message in form', mpLblTelegramToken:'Telegram bot token',
+    mpLblTelegramChat:'Telegram Chat ID', mpLblTelegramUser:'Telegram username (@username)',
+    mpLblBrevoKey:'Brevo API Key v3', mpLblBrevoSender:'Sender email',
+    mpLblContactPhone:'Contact phone', mpLblGoogleVoice:'Google Voice',
+    mpLblWaPhoneId:'WhatsApp Cloud Phone ID', mpLblWaToken:'WhatsApp Cloud Token',
+    mpLblTeamsWebhook:'Teams Webhook URL',
+    mpLblLeadCaptureUrl:'🌐 Lead Capture URL', mpLblLeadCaptureUrlSm:'(public URL where you host lead-capture.html)',
+    mpLblLogoUrl:'Logo URL'
   }
 };
 function tx(){ return LANG[_masterLang]; }
@@ -20694,11 +20722,12 @@ function mpLoadLeads(){
     var count = 0;
     if(snap.exists()){
       snap.forEach(function(child){
+        try{
         var d = child.val();
         if(d.deleted) return; count++;
-        var phone = d.leadPhone || '';
+        var phone = String(d.leadPhone || '');
         var phoneDigits = phone.replace(/\D/g,'');
-        var email = d.leadEmail || '';
+        var email = String(d.leadEmail || '');
         html += '<tr style="border-bottom:1px solid var(--border)">'
           +'<td style="padding:6px 8px;white-space:nowrap;font-size:11px">'+tf(d.timestamp)+'</td>'
           +'<td style="padding:6px 8px"><b>'+_esc(d.leadName||'—')+'</b></td>'
@@ -20714,6 +20743,7 @@ function mpLoadLeads(){
           +(email?'<a href="mailto:'+email+'" style="text-decoration:none;cursor:pointer" title="'+_esc(t.mpEmail)+'">📧</a> ':'')
           +'<span onclick="if(confirm(\''+_esc(t.mpEliminarLead)+'\')){mpDeleteLead(\''+child.key+'\')}" style="cursor:pointer" title="🗑">🗑</span>'
           +'</td></tr>';
+        }catch(rowErr){ console.warn('mpLoadLeads row error:', rowErr, child.key); }
       });
     }
     html += '</tbody></table></div>';
