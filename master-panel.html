@@ -12601,6 +12601,17 @@ function restaurarCliente(id){
     if(!_demoMode && _fbdb){ _fbdb.ref('masterMods/leads/'+r.id).set(r); _fbdb.ref('masterMods/leadsTrash/'+id).remove(); _fbdb.ref('papelera/'+r.id).remove(); }
     renderPapelera(); renderLeadsInbox(); updateLeadsBadge(); updatePapeleraBadge();
     showToast(isEN?'✅ Lead restored':'✅ Lead restaurado');
+  } else if(tipo === 'qrlead'){
+    // Este lead viene de un escaneo de QR (qrScans/admin), no del inbox de
+    // Leads principal — restaurarlo solo debe quitarle la marca "deleted"
+    // en su nodo original, nunca crear un nodo falso en masterMods/leads.
+    if(!_demoMode && _fbdb){
+      _fbdb.ref('qrScans/admin/'+(r._leadKey||'')+'/deleted').remove();
+      _fbdb.ref('papelera/'+r.id).remove();
+    }
+    renderPapelera(); updatePapeleraBadge();
+    if(typeof mpLoadLeads==='function') mpLoadLeads();
+    showToast(isEN?'✅ QR lead restored':'✅ Lead de QR restaurado');
   }
 }
 
@@ -12733,11 +12744,11 @@ function renderPapelera(){
     return;
   }
 
-  var typeIcon  = {client:'👤',partner:'🏢',referidor:'👥',prospecto:'🎯',chatbot:'🤖',lead:'📥'};
+  var typeIcon  = {client:'👤',partner:'🏢',referidor:'👥',prospecto:'🎯',chatbot:'🤖',lead:'📥',qrlead:'📱'};
   var typeLbl   = isEN
-    ? {client:'Client',partner:'Partner',referidor:'Referrer',prospecto:'Prospect',chatbot:'Chatbot Lead',lead:'Lead'}
-    : {client:'Cliente',partner:'Partner',referidor:'Referidor',prospecto:'Prospecto',chatbot:'Lead Chatbot',lead:'Lead'};
-  var typeColor = {client:'var(--accent)',partner:'var(--accent2)',referidor:'#f97316',prospecto:'#6366f1',chatbot:'#f43f5e',lead:'#eab308'};
+    ? {client:'Client',partner:'Partner',referidor:'Referrer',prospecto:'Prospect',chatbot:'Chatbot Lead',lead:'Lead',qrlead:'QR Lead'}
+    : {client:'Cliente',partner:'Partner',referidor:'Referidor',prospecto:'Prospecto',chatbot:'Lead Chatbot',lead:'Lead',qrlead:'Lead de QR'};
+  var typeColor = {client:'var(--accent)',partner:'var(--accent2)',referidor:'#f97316',prospecto:'#6366f1',chatbot:'#f43f5e',lead:'#eab308',qrlead:'#0ea5e9'};
   var motivoColor = {'No interesado':'var(--muted)','No contestó':'var(--warn)','Precio muy alto':'var(--danger)','Eligió a la competencia':'var(--danger)','Trial expirado sin respuesta':'var(--warn)'};
 
   var rows = papelera.map(function(r){
@@ -20761,8 +20772,8 @@ function mpDeleteLead(key){
     var d = snap.val();
     if(!d){ toast('⚠️ Lead no encontrado'); return; }
     var entry = {
-      _trashType: 'lead',
-      id: 'lead_'+key,
+      _trashType: 'qrlead',
+      id: 'qrlead_'+key,
       name: d.leadName || d.leadEmail || 'Lead',
       firstName: d.leadName || '',
       bizName: d.leadName || '',
@@ -20774,9 +20785,14 @@ function mpDeleteLead(key){
       _leadKey: key,
       _leadData: d
     };
-    return _fbdb.ref('papelera/lead_'+key).set(entry).then(function(){
+    return _fbdb.ref('papelera/qrlead_'+key).set(entry).then(function(){
       return _fbdb.ref('qrScans/admin/'+key+'/deleted').set(true);
     }).then(function(){
+      // Reflejar el cambio de inmediato en memoria, sin esperar a que se
+      // navegue a la página de Papelera para que se recargue desde Firebase.
+      papelera = papelera.filter(function(x){ return x.id !== entry.id; });
+      papelera.unshift(entry);
+      updatePapeleraBadge();
       toast('🗑 Lead enviado a Papelera');
       mpLoadLeads();
     });
