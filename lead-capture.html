@@ -41,11 +41,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .lc-lang-en .lc-en-part{display:revert!important}
 .lc-lang-en .lc-es-part{display:none!important}
 .lc-lang-es .lc-es-part{display:revert!important}
-.lc-lang-es .lc-en-part{display:none!important}
+.lc-lang-es .lc-en-part{display:none!important}.lc-loading{display:flex;flex-direction:column;align-items:center;gap:12px;color:#94a3b8;font-size:13px}
+.lc-spinner{width:34px;height:34px;border:3px solid rgba(148,163,184,.25);border-top-color:#8b5cf6;border-radius:50%;animation:lcspin .8s linear infinite}
+@keyframes lcspin{to{transform:rotate(360deg)}}
+.lc-hide{display:none!important}
 </style>
 </head>
 <body>
-<div class="lc-card lc-lang-en" id="lcCard">
+<div class="lc-loading" id="lcLoading"><div class="lc-spinner"></div><div id="lcLoadingTxt">Cargando...</div></div>
+<div class="lc-card lc-lang-en lc-hide" id="lcCard">
   <button class="lc-lang-btn" id="lcLangBtn" onclick="lcToggleLang()">🌐 Español</button>
   <div id="lcLogo" class="lc-logo"></div>
   <h1 id="lcTitle" class="lc-en-part">Get in Touch</h1>
@@ -99,7 +103,10 @@ var _lcParams = {};
 var _lcLat = null;
 var _lcLng = null;
 var _lcGeo = null;
-var _lcLang = 'en';
+var _lcLang = (navigator.language||'').toLowerCase().indexOf('es') === 0 ? 'es' : 'en';
+document.getElementById('lcLoadingTxt').textContent = _lcLang === 'es' ? 'Cargando...' : 'Loading...';
+document.getElementById('lcCard').className = 'lc-card lc-hide lc-lang-'+_lcLang;
+document.getElementById('lcLangBtn') && (document.getElementById('lcLangBtn').textContent = _lcLang === 'en' ? '🌐 Español' : '🌐 English');
 var _lcCustomUrl = null;
 
 // Para QR tipo "custom", la URL final (a donde se redirige despues de
@@ -182,28 +189,35 @@ function lcToggleLang(){
 }
 
 function lcRevealCard(){
+  var loading = document.getElementById('lcLoading');
+  if(loading) loading.classList.add('lc-hide');
   if(_lcParams.silent === '1') return; // modo silencioso: la tarjeta nunca se muestra
   var card = document.getElementById('lcCard');
-  if(card) card.style.visibility = 'visible';
+  if(card) card.classList.remove('lc-hide');
 }
 
 // Marca si la persona ya empezó a escribir su propio mensaje, para que
 // cuando llegue el mensaje por defecto (waMessage) desde Firebase NUNCA
-// se le borre lo que ya escribió -- antes esto pasaba si Firebase tardaba
-// y la persona alcanzaba a escribir antes de que la respuesta llegara.
+// se le borre lo que ya escribió.
 var _lcMsgTouched = false;
 ['lcMessage','lcMessageEs'].forEach(function(id){
   var el = document.getElementById(id);
   if(el) el.addEventListener('input', function(){ _lcMsgTouched = true; });
 });
 
+// Mientras carga mostramos un spinner (nunca una pantalla en blanco), y
+// solo revelamos la tarjeta cuando el logo/nombre del negocio YA están
+// listos -- así siempre aparece con tu identidad puesta, sin que cambie
+// nada delante de la persona. El único tope (4s) es una red de seguridad
+// por si Firebase se cae del todo, para que el visitante no se quede
+// viendo el spinner para siempre.
 function lcLoadProfile(){
-  if(!_lcdb) return;
+  if(!_lcdb){ lcRevealCard(); return; }
+  var revealed = false;
+  function revealOnce(){ if(revealed) return; revealed = true; lcRevealCard(); }
+  var safety = setTimeout(revealOnce, 4000);
   _lcdb.ref('adminProfile').once('value').then(function(snap){
     _lcProfile = snap.val() || {};
-    if(_lcProfile.logoUrl){
-      document.getElementById('lcLogo').innerHTML = '<img src="'+_lcProfile.logoUrl+'" alt="Logo"/>';
-    }
     if(_lcProfile.waMessage && !_lcMsgTouched){
       var mEl = document.getElementById('lcMessage');
       var mElEs = document.getElementById('lcMessageEs');
@@ -217,7 +231,30 @@ function lcLoadProfile(){
       document.getElementById('lcTitle').textContent = _lcProfile.bizName;
       document.getElementById('lcTitleEs').textContent = _lcProfile.bizName;
     }
-  }).catch(function(e){ console.warn('lcLoadProfile:', e); });
+    if(_lcProfile.logoUrl){
+      // Precargamos la imagen del logo antes de mostrar la tarjeta, para
+      // que no aparezca primero rota/vacía y luego "salte" al cargar.
+      // Máximo 800ms esperando el logo -- si tarda más, se revela igual
+      // (el <img> seguirá cargando solo) para no demorar al visitante.
+      var logoSafety = setTimeout(function(){
+        document.getElementById('lcLogo').innerHTML = '<img src="'+_lcProfile.logoUrl+'" alt="Logo"/>';
+        clearTimeout(safety); revealOnce();
+      }, 800);
+      var pre = new Image();
+      pre.onload = function(){
+        clearTimeout(logoSafety);
+        document.getElementById('lcLogo').innerHTML = '<img src="'+_lcProfile.logoUrl+'" alt="Logo"/>';
+        clearTimeout(safety); revealOnce();
+      };
+      pre.onerror = function(){
+        clearTimeout(logoSafety);
+        clearTimeout(safety); revealOnce();
+      };
+      pre.src = _lcProfile.logoUrl;
+    } else {
+      clearTimeout(safety); revealOnce();
+    }
+  }).catch(function(e){ console.warn('lcLoadProfile:', e); clearTimeout(safety); revealOnce(); });
 }
 
 function lcGetGps(){
