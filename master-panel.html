@@ -1203,6 +1203,10 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 .mp-qr-item img,.mp-qr-item canvas{width:100%;max-width:160px;border-radius:6px;display:block;margin:0 auto 6px}
 .mp-qr-item .mp-qr-label{font-size:11px;color:var(--fg);margin-bottom:2px;word-break:break-word}
 .mp-qr-item .mp-qr-id{font-size:9px;color:var(--muted);word-break:break-all}
+.mp-qr-item .mp-qr-url-row{display:flex;align-items:center;gap:4px;margin-top:3px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 6px}
+.mp-qr-item .mp-qr-url-row input{flex:1;min-width:0;border:none;background:transparent;color:var(--fg);font-size:10px;font-family:monospace;padding:0}
+.mp-qr-item .mp-qr-url-row input:focus{outline:none}
+.mp-qr-item .mp-qr-copy-url{flex-shrink:0;padding:2px 6px!important;font-size:10px!important}
 .mp-qr-item .mp-qr-actions{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;margin-top:6px}
 .mp-qr-item .mp-qr-actions button,.mp-qr-item .mp-qr-actions a{padding:3px 7px;font-size:10px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:var(--fg);cursor:pointer;text-decoration:none;transition:all .15s;font-family:inherit;font-weight:700;display:inline-flex;align-items:center;gap:3px}
 .mp-qr-item .mp-qr-actions button:hover,.mp-qr-item .mp-qr-actions a:hover{border-color:var(--accent);color:var(--accent);background:rgba(232,255,60,.05)}
@@ -12663,12 +12667,23 @@ function vaciarPapelera(){
       : '🗑 Vaciar papelera — eliminar '+totalItems+' elemento(s) para siempre',
     onConfirm: function(){
       if(!_demoMode && _fbdb){
-        papelera.forEach(function(r){ _fbdb.ref('papelera/'+r.id).remove(); });
+        // Borramos el nodo completo de Firebase en vez de recorrer el
+        // arreglo local: así no importa si `papelera` en memoria estaba
+        // desactualizado respecto a lo que realmente hay guardado — se
+        // vacía TODO, sin dejar huérfanos que reaparezcan después.
+        _fbdb.ref('papelera').remove();
+        // Los leads del inbox principal también quedan duplicados en
+        // masterMods/leadsTrash — hay que limpiarlos ahí también o
+        // seguirían "vivos" en la pestaña de papelera del inbox de Leads.
+        _fbdb.ref('masterMods/leadsTrash').remove();
       }
       papelera = [];
       planTrash = {};
+      _trashLeads = [];
       saveConfig();
       renderPapelera(); updatePapeleraBadge();
+      updateLeadsBadge();
+      if(typeof renderLeadsInbox==='function' && currentPage==='leads') renderLeadsInbox();
       showToast(tx().toastEmptied);
     }
   });
@@ -14577,7 +14592,7 @@ var LANG = {
     mpActivo:'Activo', mpInactivo:'Inactivo', mpActivar:'🟢 Activar', mpDesactivar:'🔴 Desactivar',
     mpEliminarLead:'🗑 Eliminar este lead?', mpMapa:'Ver en mapa',
     mpLlamar:'Llamar', mpWhatsApp:'WhatsApp', mpSMS:'SMS', mpEmail:'Email',
-    mpQrActivado:'QR activado', mpQrDesactivado:'QR desactivado', mpQrEliminado:'QR eliminado',
+    mpQrActivado:'QR activado', mpQrDesactivado:'QR desactivado', mpQrEliminado:'QR eliminado', mpCopiarUrl:'Copiar URL',
     mpError:'Error',
     mpLblBizName:'Nombre del Negocio', mpLblWhatsapp:'WhatsApp', mpLblWhatsappSm:'(número, ej: 573001234567)',
     mpLblWaMsg:'Mensaje precargado en formulario', mpLblTelegramToken:'Token del bot de Telegram',
@@ -14735,7 +14750,7 @@ var LANG = {
     mpActivo:'Active', mpInactivo:'Inactive', mpActivar:'🟢 Activate', mpDesactivar:'🔴 Deactivate',
     mpEliminarLead:'🗑 Delete this lead?', mpMapa:'View on map',
     mpLlamar:'Call', mpWhatsApp:'WhatsApp', mpSMS:'SMS', mpEmail:'Email',
-    mpQrActivado:'QR activated', mpQrDesactivado:'QR deactivated', mpQrEliminado:'QR deleted',
+    mpQrActivado:'QR activated', mpQrDesactivado:'QR deactivated', mpQrEliminado:'QR deleted', mpCopiarUrl:'Copy URL',
     mpError:'Error',
     mpLblBizName:'Business Name', mpLblWhatsapp:'WhatsApp', mpLblWhatsappSm:'(number, ex: 573001234567)',
     mpLblWaMsg:'Pre-loaded message in form', mpLblTelegramToken:'Telegram bot token',
@@ -20583,6 +20598,7 @@ function _renderQrCodes(codes){
       +(wrapCls?'<div class="'+wrapCls+'">'+inner+(qrText?'<div class="mp-qr-text">'+_esc(qrText)+'</div>':'')+'</div>':inner)
       +'<div class="mp-qr-label">'+_esc(labels[tp]||tp)+' — '+(a?'<span style="color:#22c55e">● '+_esc(t.mpActivo)+'</span>':'<span style="color:#ef4444">● '+_esc(t.mpInactivo)+'</span>')+'</div>'
       +'<div class="mp-qr-id" title="'+_esc(destUrl)+'">'+_esc(d._key)+'</div>'
+      +(tp==='custom' && d.customUrl ? '<div class="mp-qr-url-row"><input type="text" readonly value="'+_esc(d.customUrl)+'" onclick="this.select()" /><button class="mp-qr-copy-url" data-copyurl="'+_esc(d.customUrl)+'" title="'+_esc(t.mpCopiarUrl||'Copiar URL')+'">📋</button></div>' : '')
       +'<div class="mp-qr-actions">'
       +(a
         ?'<button class="mpQrToggleBtn" data-key="'+_esc(d._key)+'" data-act="off">🔴 '+_esc(t.mpDesactivar)+'</button>'
@@ -20657,8 +20673,30 @@ function _mpBindQrGridEvents(){
       mpDelQr(btn.dataset.key);
     } else if(btn.classList.contains('mpQrDlBtn')){
       _mpDlQrCanvas(btn.dataset.key, btn.dataset.qrsrc, btn.dataset.name);
+    } else if(btn.classList.contains('mp-qr-copy-url')){
+      var urlToCopy = btn.dataset.copyurl || '';
+      var doneMsg = (_masterLang==='en') ? '✅ URL copied' : '✅ URL copiada';
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(urlToCopy).then(function(){ toast(doneMsg); })
+          .catch(function(){ _mpFallbackCopy(urlToCopy); toast(doneMsg); });
+      } else {
+        _mpFallbackCopy(urlToCopy); toast(doneMsg);
+      }
     }
   });
+}
+
+// Fallback para navegadores/contextos donde navigator.clipboard no está
+// disponible (ej. http sin TLS): usa un input temporal + execCommand.
+function _mpFallbackCopy(text){
+  try{
+    var tmp = document.createElement('input');
+    tmp.value = text;
+    document.body.appendChild(tmp);
+    tmp.select();
+    document.execCommand('copy');
+    document.body.removeChild(tmp);
+  }catch(ex){ console.warn('_mpFallbackCopy:', ex); }
 }
 
 // Descarga el PNG final tal como quedo en el canvas (con el logo pegado si
