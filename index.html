@@ -2644,6 +2644,84 @@ function exportPublic(){
   }
 })();
 
+// ── QR SCAN TRACKING (GPS con permiso del navegador + respaldo por IP) ─────────
+// El navegador SIEMPRE pide permiso al usuario para compartir GPS — eso no se
+// puede ni se debe evitar. Si lo rechaza, usamos la IP para una ubicación
+// aproximada (ciudad/región), que no requiere permiso porque no es su GPS.
+(function(){
+  var params=new URLSearchParams(window.location.search);
+  var ref=params.get('ref');
+  if(!ref) return; // sin ref no hay escaneo de QR que registrar
+
+  // 1 escaneo por sesión de navegador — evita duplicados si recarga la página
+  var sessionKey='qrScanLogged_'+ref;
+  if(sessionStorage.getItem(sessionKey)) return;
+  sessionStorage.setItem(sessionKey,'1');
+
+  function baseScan(){
+    return {
+      type:'qr',
+      dest:window.location.href,
+      timestamp:new Date().toISOString(),
+      userAgent:navigator.userAgent,
+      language:navigator.language||'',
+      scanned:true
+    };
+  }
+
+  function saveScan(scan){
+    if(!FIREBASE_READY){
+      console.warn('⚠️ FIREBASE_READY=false — Escaneo NO guardado en Firebase.');
+      return;
+    }
+    // Misma ruta que ya lee el Master Panel: qrScans/{ref}/{pushId}
+    _fbdb.ref('qrScans/'+ref).push(scan)
+      .catch(function(e){ console.error('Firebase qrScan error:',e); });
+  }
+
+  function saveWithIpFallback(scan){
+    // Ubicación aproximada por IP — no pide permiso, es solo ciudad/región
+    fetch('https://ipapi.co/json/')
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){
+        if(d && !d.error){
+          scan.locationType='ip';
+          scan.city=d.city||'';
+          scan.region=d.region||'';
+          scan.country=d.country_name||'';
+          scan.lat=d.latitude||null;
+          scan.lng=d.longitude||null;
+        }else{
+          scan.locationType='none';
+        }
+        saveScan(scan);
+      })
+      .catch(function(){
+        scan.locationType='none';
+        saveScan(scan);
+      });
+  }
+
+  var scan=baseScan();
+
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(
+      function(pos){ // permiso aceptado — GPS exacto
+        scan.locationType='gps';
+        scan.lat=pos.coords.latitude;
+        scan.lng=pos.coords.longitude;
+        saveScan(scan);
+      },
+      function(){ // rechazado o falló — respaldo por IP
+        saveWithIpFallback(scan);
+      },
+      { timeout:8000, maximumAge:0 }
+    );
+  }else{
+    saveWithIpFallback(scan);
+  }
+})();
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
 fbLoad();
 </script>
