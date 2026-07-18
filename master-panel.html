@@ -4018,17 +4018,34 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 
     <div class="modal-body">
 
+      <!-- 📷 Foto del Cliente -->
+      <div class="pro-section">
+        <div style="display:flex;align-items:center;gap:16px">
+          <div id="ec-avatar-preview" onclick="document.getElementById('ec-avatar-file').click()" style="width:68px;height:68px;border-radius:14px;background:var(--surface2);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;cursor:pointer;font-family:'Syne',sans-serif;flex-shrink:0;overflow:hidden;transition:border-color .2s" title="Subir foto">
+            <span id="ec-avatar-initials" style="color:var(--accent)">?</span>
+          </div>
+          <input type="file" id="ec-avatar-file" accept="image/*" style="display:none" onchange="ecAvatarChanged(this)"/>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div id="ecLblPhoto" style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Foto del Cliente / Client Photo</div>
+            <div style="display:flex;gap:8px">
+              <button type="button" onclick="document.getElementById('ec-avatar-file').click()" style="padding:6px 14px;border-radius:7px;border:1.5px solid var(--border);background:transparent;color:var(--text);font-size:12px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif" id="ecBtnUploadPhoto">📷 Subir</button>
+              <button type="button" onclick="ecClearAvatar()" style="padding:6px 14px;border-radius:7px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif" id="ecBtnRemovePhoto">✕ Quitar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 👤 Personal Information -->
       <div class="pro-section">
         <div class="pro-section-title" id="ecSectionPersonal">👤 Personal Information</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
           <div class="pro-field">
             <label id="ecLblFirst">First Name</label>
-            <input type="text" id="ecFirstName" class="pro-input" placeholder="John" onkeydown="if(event.key==='Enter')document.getElementById('ecLastName').focus()"/>
+            <input type="text" id="ecFirstName" class="pro-input" placeholder="John" oninput="ecUpdateAvatarInitials()" onkeydown="if(event.key==='Enter')document.getElementById('ecLastName').focus()"/>
           </div>
           <div class="pro-field">
             <label id="ecLblLast">Last Name</label>
-            <input type="text" id="ecLastName" class="pro-input" placeholder="Smith" onkeydown="if(event.key==='Enter')document.getElementById('ecEmail').focus()"/>
+            <input type="text" id="ecLastName" class="pro-input" placeholder="Smith" oninput="ecUpdateAvatarInitials()" onkeydown="if(event.key==='Enter')document.getElementById('ecEmail').focus()"/>
           </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
@@ -5048,6 +5065,36 @@ function updateNavBadgeScans(){
   }
 }
 
+// ── Aviso de escaneo nuevo (sonido + toast) ────────────────────
+var _scanSeenKeys = null; // null = todavía no cargó la primera vez
+function playQrScanAlertSound(){
+  try{
+    var ctx = new (window.AudioContext||window.webkitAudioContext)();
+    [880,1320].forEach(function(freq,i){
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.001, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + i*0.14 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i*0.14 + 0.28);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + i*0.14);
+      osc.stop(ctx.currentTime + i*0.14 + 0.3);
+    });
+  }catch(e){ console.warn('No se pudo reproducir el sonido de aviso:', e); }
+}
+function notifyNewQrScans(newScans){
+  var isEN = _masterLang === 'en';
+  playQrScanAlertSound();
+  var s = newScans[0];
+  var withLoc = s.lat && s.lng ? ' 📍' : '';
+  var msg = (isEN
+    ? '📡 New QR scan'+(newScans.length>1?'s ('+newScans.length+')':'')
+    : '📡 Nuevo escaneo QR'+(newScans.length>1?'s ('+newScans.length+')':''))+withLoc;
+  showToast(msg, '#22c55e', 5000);
+}
+
 function initQrScanListener(){
   if(_demoMode || !_fbdb || _scanListenerRef) return;
   var isEN = _masterLang === 'en';
@@ -5056,6 +5103,8 @@ function initQrScanListener(){
   _scanListenerFn = function(snap){
     _scanCache = {};
     _scanCount24h = 0;
+    var currentKeys = {};
+    var newScans = [];
     snap.forEach(function(refSnap){
       var refId = refSnap.key;
       _scanCache[refId] = [];
@@ -5064,8 +5113,13 @@ function initQrScanListener(){
         s._key = scanSnap.key;
         _scanCache[refId].push(s);
         _scanCount24h++;
+        var uniqueKey = refId+'/'+scanSnap.key;
+        currentKeys[uniqueKey] = true;
+        if(_scanSeenKeys && !_scanSeenKeys[uniqueKey]) newScans.push(s);
       });
     });
+    if(_scanSeenKeys && newScans.length > 0) notifyNewQrScans(newScans);
+    _scanSeenKeys = currentKeys;
     updateNavBadgeScans();
   };
   _scanListenerRef.on('value', _scanListenerFn);
@@ -5127,7 +5181,15 @@ function renderQrScans(){
           scans.slice(-5).reverse().map(function(s){
             var t = s.timestamp ? new Date(s.timestamp).toLocaleTimeString() : '';
             var icon = {qr:'📱',wa:'💬',sms:'📱',email:'📧',share:'🔗',download:'📄',print:'🖨'}[s.type]||'📡';
-            return '<span style="font-size:10px;background:var(--surface2);padding:2px 8px;border-radius:10px;border:1px solid var(--border)">'+icon+' '+s.type+' — '+t+'</span>';
+            var pill = '<span style="font-size:10px;background:var(--surface2);padding:2px 8px;border-radius:10px;border:1px solid var(--border)">'+icon+' '+s.type+' — '+t+'</span>';
+            if(s.lat && s.lng){
+              var mapsUrl = 'https://maps.google.com/?q='+s.lat+','+s.lng;
+              var locIcon = s.locationType==='gps' ? '📍' : '🌐';
+              var locLabel = s.locationType==='gps' ? (isEN?'exact':'exacta') : (isEN?'approx.':'aprox.');
+              var placeTxt = s.city ? (' '+esc(s.city)+(s.region?', '+esc(s.region):'')) : '';
+              pill += ' <a href="'+mapsUrl+'" target="_blank" rel="noopener" style="font-size:10px;background:rgba(232,255,60,.1);padding:2px 8px;border-radius:10px;border:1px solid var(--accent);color:var(--accent);text-decoration:none">'+locIcon+' '+(isEN?'Map':'Mapa')+' ('+locLabel+')'+placeTxt+'</a>';
+            }
+            return pill;
           }).join('')+
         '</div>'+
       '</div>';
@@ -5144,6 +5206,7 @@ function refreshQrScans(){
   }
   _scanCache = {};
   _scanCount24h = 0;
+  _scanSeenKeys = null;
   initQrScanListener();
   renderQrScans();
   showToast(isEN?'🔄 Scans refreshed':'🔄 Scans actualizados');
@@ -5385,13 +5448,14 @@ function showPartnerQR(cid, bizName){
   _qrCurrentUrl = trackingUrl;
   _qrCurrentDest = directUrl;
   _qrCurrentRef = cid;
-  _qrCurrentSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&color=000000&bgcolor=ffffff&margin=10&data='+encodeURIComponent(trackingUrl);
+  _qrCurrentSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&ecc='+((_mpProfile&&_mpProfile.logoUrl)?'H':'M')+'&color=000000&bgcolor=ffffff&margin=10&data='+encodeURIComponent(trackingUrl);
   _qrCurrentName = bizName || 'partner-'+cid;
   _qrLang = _masterLang || 'es';
   document.getElementById('qrModalTitle').textContent = '📱 QR — ' + bizName;
   document.getElementById('qrBizName').textContent = bizName;
   document.getElementById('qrUrl').textContent = directUrl;
   document.getElementById('qrImg').src = _qrCurrentSrc;
+  _drawQrModalLogo();
   setQrLang(_qrLang);
   openModal('qrModal');
 }
@@ -5854,16 +5918,9 @@ async function convertProspectoToClient(id){
     createdAt:          new Date().toISOString()
   };
   registrations.unshift(newReg);
-  // ── Record affiliate earnings if referred ──
-  if(p.fuenteId && AFFILIATE_CONFIG.settings.autoTrack){
-    var ref = referidores.find(function(x){ return x.cid===p.fuenteId; });
-    if(ref){
-      var planData = plans[p.plan]||{nameES:p.plan};
-      var price = planData.price || 0;
-      var isFirst = affiliateEarnings.filter(function(e){ return e.refId===ref.id; }).length === 0;
-      recordAffiliateEarning(ref.id, p.firstName+' '+p.lastName, 'program', planData.nameES||p.plan, price, isFirst);
-    }
-  }
+  // Nota: la comisión del referidor YA NO se registra aquí — se registra
+  // hasta que el cliente paga de verdad (ver ecPaymentStatusChanged),
+  // usando el monto real pagado, no el precio de lista del plan.
   // Mark prospecto as enrollado
   p.etapa = 'trial';
   p.linkedClientId = newReg.id;
@@ -7141,33 +7198,61 @@ function saveRCConfig(){
   }
 }
 
+// ── Monto mensual REAL que paga un cliente referido (no el del referidor) ──
+function getClientMonthlyAmount(c){
+  if(c && c.planPrice){
+    var n = parseFloat(c.planPrice);
+    if(!isNaN(n)) return n;
+  }
+  if(c && c.plan && typeof plans !== 'undefined' && plans[c.plan]){
+    var pl = plans[c.plan];
+    var raw = pl.priceES || pl.priceEN || pl.price || '';
+    var n2 = parseFloat(String(raw).replace(/[^0-9.]/g,''));
+    if(!isNaN(n2)) return n2;
+  }
+  return 0;
+}
+
+// ── ÚNICA fuente de verdad para el crédito/comisión de un referidor ──
+// El crédito de CADA cliente activo se calcula sobre lo que ESE cliente
+// paga (getClientMonthlyAmount), nunca sobre la mensualidad del referidor.
+// pagoBase solo se usa para saber cuánto debe cubrir el referidor de SU
+// PROPIA mensualidad con el crédito acumulado (si aplica ese modelo).
+function calcRefCreditData(ref){
+  var pagoBase = +(ref.pagoBase || ref.nivelAcordado || 0);
+  var pct      = ref.pct || RC_CONFIG.creditPct || 10;
+  var todos    = getReferidorLeads(ref.cid);
+  var activos  = todos.filter(function(c){ return getStatus(c)==='active'; });
+  var perClient = activos.map(function(c){
+    var amount = getClientMonthlyAmount(c);
+    return { client: c, amount: amount, credit: +(amount * pct / 100).toFixed(2) };
+  });
+  var totalDesc  = +perClient.reduce(function(s,x){ return s + x.credit; }, 0).toFixed(2);
+  var descReal   = pagoBase > 0 ? Math.min(totalDesc, pagoBase) : totalDesc;
+  var pagoActual = pagoBase > 0 ? Math.max(0, +(pagoBase - descReal).toFixed(2)) : null;
+  var pctProg    = pagoBase > 0 ? Math.round(descReal / pagoBase * 100) : (totalDesc > 0 ? 100 : 0);
+  var creditoDisponible = pagoBase > 0 ? (totalDesc >= pagoBase ? +(totalDesc - pagoBase).toFixed(2) : 0) : totalDesc;
+  var avgPerClient = activos.length > 0 ? +(totalDesc / activos.length).toFixed(2) : 0;
+  return {
+    pagoBase: pagoBase, pct: pct, activos: activos, perClient: perClient,
+    totalDesc: totalDesc, descReal: descReal, pagoActual: pagoActual || 0,
+    pctProg: pctProg, creditoDisponible: creditoDisponible, avgPerClient: avgPerClient
+  };
+}
+
 // calcRefNetBalance — usado por renderReferidores para mostrar el botón 🎁
 function calcRefNetBalance(ref){
-	var pagoBase = +(ref.pagoBase || ref.nivelAcordado || 0);
-	var pct      = ref.pct || RC_CONFIG.creditPct || 10;
-	var activos  = getReferidorLeads(ref.cid).filter(function(c){ return getStatus(c)==='active'; });
-	var descXRef = +(pagoBase * pct / 100).toFixed(2);
-	var descReal = +(descXRef * activos.length).toFixed(2);
-	var bal      = _getRefBal(ref.id);
-	var paid     = bal.paid || 0;
-	var pending  = +(descReal - paid).toFixed(2);
-	var nivel    = pagoBase || 0;
-	var creditFavor = (nivel > 0 && pending >= nivel) ? +(pending - nivel).toFixed(2) : 0;
-	return { pending: pending, creditFavor: creditFavor, hasCredit: creditFavor > 0, pct: pct, descXRef: descXRef };
+	var d = calcRefCreditData(ref);
+	var bal = _getRefBal(ref.id);
+	var paid = bal.paid || 0;
+	var pending = +(d.totalDesc - paid).toFixed(2);
+	var creditFavor = (d.pagoBase > 0 && pending >= d.pagoBase) ? +(pending - d.pagoBase).toFixed(2) : (d.pagoBase <= 0 ? pending : 0);
+	return { pending: pending, creditFavor: creditFavor, hasCredit: creditFavor > 0, pct: d.pct, descXRef: d.avgPerClient };
 }
 
 function calcCreditoReferidor(ref){
-	var pagoBase = +(ref.pagoBase || ref.nivelAcordado || 0);
-	var pct      = ref.pct || RC_CONFIG.creditPct || 10;
-	var todos    = getReferidorLeads(ref.cid);
-	var activos  = todos.filter(function(c){ return getStatus(c)==='active'; });
-	var nActivos = activos.length;
-	var descXRef = +(pagoBase * pct / 100).toFixed(2);
-	var totalDesc = +(descXRef * nActivos).toFixed(2);
-	var descReal  = pagoBase > 0 ? Math.min(totalDesc, pagoBase) : totalDesc;
-	var pagoActual = pagoBase > 0 ? Math.max(0, +(pagoBase - descReal).toFixed(2)) : null;
-	var creditoDisponible = (pagoBase > 0 && totalDesc >= pagoBase) ? +(totalDesc - pagoBase).toFixed(2) : 0;
-	return { nActivos: nActivos, pagoActual: pagoActual || 0, pagoBase: pagoBase, creditoDisponible: creditoDisponible, pct: pct, descXRef: descXRef };
+	var d = calcRefCreditData(ref);
+	return { nActivos: d.activos.length, pagoActual: d.pagoActual, pagoBase: d.pagoBase, creditoDisponible: d.creditoDisponible, pct: d.pct, descXRef: d.avgPerClient };
 }
 
 function openRefBalance(refId){
@@ -7278,13 +7363,8 @@ function convertirClienteAReferidor(clientId, clientName){
 function usarCredRefModal(refId){
   var ref = referidores.find(function(x){ return x.id === refId; });
   if(!ref) return;
-  var allClients = getReferidorLeads(ref.cid);
-  var activos    = allClients.filter(function(c){ return getStatus(c) === 'active'; });
-  var pagoBase = ref.pagoBase || ref.nivelAcordado || 150;
-  var pctVal   = ref.pct || 10;
-  var descXRef  = +(pagoBase * pctVal / 100).toFixed(2);
-  var totalDesc = +(descXRef * activos.length).toFixed(2);
-  var creditoBruto = totalDesc >= pagoBase ? +(totalDesc - pagoBase).toFixed(2) : 0;
+  var d = calcRefCreditData(ref);
+  var creditoBruto = d.creditoDisponible;
   var bal = _getRefBal(ref.id);
   var disponible = +(creditoBruto - (bal.paid || 0)).toFixed(2);
   if(disponible <= 0){
@@ -7306,13 +7386,8 @@ function usarCredRefModal(refId){
 function cobrarCredRefModal(refId){
   var ref = referidores.find(function(x){ return x.id === refId; });
   if(!ref) return;
-  var allClients = getReferidorLeads(ref.cid);
-  var activos    = allClients.filter(function(c){ return getStatus(c) === 'active'; });
-  var pagoBase = ref.pagoBase || ref.nivelAcordado || 150;
-  var pctVal   = ref.pct || 10;
-  var descXRef  = +(pagoBase * pctVal / 100).toFixed(2);
-  var totalDesc = +(descXRef * activos.length).toFixed(2);
-  var creditoBruto = totalDesc >= pagoBase ? +(totalDesc - pagoBase).toFixed(2) : 0;
+  var d = calcRefCreditData(ref);
+  var creditoBruto = d.creditoDisponible;
   var bal = _getRefBal(ref.id);
   var disponible = +(creditoBruto - (bal.paid || 0)).toFixed(2);
   if(disponible <= 0){
@@ -7340,27 +7415,32 @@ function renderRefBalance(){
   if(!body) return;
 
   var allClients = getReferidorLeads(ref.cid);
-  var activos    = allClients.filter(function(c){ return getStatus(c) === 'active'; });
   var bal        = _getRefBal(ref.id);
 
-  var pagoBase = ref.pagoBase || ref.nivelAcordado || 150;
   if(!ref.pagoBase) ref.pagoBase = 150;
-  var pctVal   = ref.pct || 10;
-
-  var descXRef  = +(pagoBase * pctVal / 100).toFixed(2);
-  var totalDesc = +(descXRef * activos.length).toFixed(2);
-  var descReal  = Math.min(totalDesc, pagoBase);
-  var pagoActual= +(pagoBase - descReal).toFixed(2);
-  var pctProg   = Math.round(descReal / pagoBase * 100);
-  var creditoDisponible = totalDesc >= pagoBase ? +(totalDesc - pagoBase).toFixed(2) : 0;
+  var d = calcRefCreditData(ref);
+  var activos    = d.activos;
+  var pagoBase   = d.pagoBase;
+  var pctVal     = d.pct;
+  var totalDesc  = d.totalDesc;
+  var descReal   = d.descReal;
+  var pagoActual = d.pagoActual;
+  var pctProg    = d.pctProg;
+  var creditoDisponible = d.creditoDisponible;
+  var perClient  = d.perClient; // [{client, amount, credit}]
 
   body.innerHTML =
     '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:18px">'
-      +buildRefCard(ref, pagoBase, pctVal, descXRef, descReal, pagoActual, pctProg, creditoDisponible, activos, allClients, bal, ref.notes)+
+      +buildRefCard(ref, pagoBase, pctVal, d.avgPerClient, descReal, pagoActual, pctProg, creditoDisponible, activos, allClients, bal, ref.notes, perClient, totalDesc)+
     '</div>';
 }
 
-function buildRefCard(ref, pagoBase, pctVal, descXRef, descReal, pagoActual, pctProg, creditoDisponible, activos, allClients, bal, notes){
+function buildRefCard(ref, pagoBase, pctVal, descXRef, descReal, pagoActual, pctProg, creditoDisponible, activos, allClients, bal, notes, perClient, totalDesc){
+  perClient = perClient || [];
+  function creditOf(clientId){
+    var f = perClient.filter(function(pc){ return pc.client && pc.client.id === clientId; });
+    return f.length ? f[0].credit : 0;
+  }
   function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
   function escDq(s){ return (s||'').replace(/'/g,"\\'"); }
   function st(c){ return getStatus(c); }
@@ -7421,9 +7501,9 @@ function buildRefCard(ref, pagoBase, pctVal, descXRef, descReal, pagoActual, pct
   html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px">'
     +'<div class="ref-stat"><div class="ref-stat-lbl">Mensualidad</div><div class="ref-stat-val" style="color:#60a5fa">$'+pagoBase.toFixed(2)+'</div></div>'
     +'<div class="ref-stat"><div class="ref-stat-lbl">% por cliente</div><div class="ref-stat-val" style="color:#eab308">'+pctVal+'%</div></div>'
-    +'<div class="ref-stat"><div class="ref-stat-lbl">Por cliente</div><div class="ref-stat-val" style="color:#22c55e">$'+descXRef.toFixed(2)+'</div></div>'
+    +'<div class="ref-stat"><div class="ref-stat-lbl">Promedio/cliente</div><div class="ref-stat-val" style="color:#22c55e">$'+descXRef.toFixed(2)+'</div></div>'
     +'<div class="ref-stat"><div class="ref-stat-lbl">Clientes activos</div><div class="ref-stat-val" style="color:var(--text)">'+activos.length+'</div></div>'
-    +'<div class="ref-stat"><div class="ref-stat-lbl">Total ganado</div><div class="ref-stat-val" style="color:#ef4444">$'+descReal.toFixed(2)+'</div></div>'
+    +'<div class="ref-stat"><div class="ref-stat-lbl">Total generado</div><div class="ref-stat-val" style="color:#ef4444">$'+(totalDesc||0).toFixed(2)+'</div></div>'
     +'<div class="ref-stat"><div class="ref-stat-lbl">Pago este mes</div><div class="ref-stat-val" style="color:'+(pagoActual<=0?'#22c55e':'#eab308')+'">$'+pagoActual.toFixed(2)+'</div></div>'
   +'</div>';
 
@@ -7441,7 +7521,7 @@ function buildRefCard(ref, pagoBase, pctVal, descXRef, descReal, pagoActual, pct
         ? 'Sin clientes activos a\u00fan'
         : pagoActual <= 0
           ? '\u2705 Pagaste $0'
-          : 'faltan '+Math.ceil((pagoBase - descReal) / (descXRef || 1))+' cliente(s)')
+          : (descXRef > 0 ? 'faltan ~'+Math.ceil((pagoBase - descReal) / descXRef)+' cliente(s) (según promedio actual)' : 'Agrega el monto que paga cada cliente para calcular cuánto falta'))
     +'</div>'
   +'</div>';
 
@@ -7469,7 +7549,7 @@ function buildRefCard(ref, pagoBase, pctVal, descXRef, descReal, pagoActual, pct
     ? '<div style="background:linear-gradient(135deg,rgba(234,179,8,.1),rgba(234,179,8,.02));border:1.5px solid rgba(234,179,8,.3);border-radius:10px;padding:12px 14px;margin:10px 0;text-align:center">'
         +'<div style="font-size:20px">\uD83C\uDF89</div>'
         +'<div style="font-size:14px;font-weight:800;color:#eab308">\u00a1Paga $0 este mes!</div>'
-        +'<div style="font-size:11px;color:var(--text-secondary);margin-top:4px">Cada nuevo cliente activo = $'+descXRef.toFixed(2)+' en cr\u00e9dito</div>'
+        +'<div style="font-size:11px;color:var(--text-secondary);margin-top:4px">Promedio actual: $'+descXRef.toFixed(2)+' en cr\u00e9dito por cliente activo</div>'
       +'</div>'
     : '');
 
@@ -7497,16 +7577,18 @@ function buildRefCard(ref, pagoBase, pctVal, descXRef, descReal, pagoActual, pct
             +'<code style="background:var(--surface2);padding:1px 6px;border-radius:4px;font-size:10px;color:var(--accent);flex-shrink:0">'+esc(c.cid||'—')+'</code>'
             +'<span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:8px;background:'
               +(esAct?'rgba(34,197,94,.12)':s==='trial'?'rgba(168,85,247,.12)':'rgba(239,68,68,.12)')+';color:'+col+'">'+lbl+'</span>'
-            +(esAct && descXRef>0
-              ?'<span style="font-weight:800;font-size:11px;color:#22c55e;flex-shrink:0;text-align:right;min-width:36px">-$'+descXRef.toFixed(2)+'</span>'
+            +(esAct
+              ?(function(){ var cc=creditOf(c.id); return cc>0
+                  ?'<span style="font-weight:800;font-size:11px;color:#22c55e;flex-shrink:0;text-align:right;min-width:36px" title="'+pctVal+'% de $'+getClientMonthlyAmount(c).toFixed(2)+' que paga este cliente">-$'+cc.toFixed(2)+'</span>'
+                  :'<span style="font-size:10px;color:var(--muted2);flex-shrink:0" title="Este cliente no tiene un monto de pago configurado (planPrice)">sin monto</span>'; })()
               :'')
             +'<button onclick="eliminarLeadDeRef(\''+ref.id+'\',\''+c.id+'\')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:12px;padding:2px 4px;flex-shrink:0" title="Eliminar cliente">&times;</button>'
           +'</div>';
         }).join('')
-        +(activos.length>0 && descXRef>0
+        +(activos.length>0
           ?'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;margin-top:4px;background:var(--surface2);border-radius:6px;font-size:11px">'
-            +'<span style="color:var(--text-secondary)">'+activos.length+' activos \u00d7 $'+descXRef.toFixed(2)+'</span>'
-            +'<span style="font-weight:800;color:#22c55e">-$'+descReal.toFixed(2)+' descuento</span>'
+            +'<span style="color:var(--text-secondary)">'+activos.length+' activos \u00d7 '+pctVal+'% de lo que paga cada uno</span>'
+            +'<span style="font-weight:800;color:#22c55e">$'+(totalDesc||0).toFixed(2)+' generado</span>'
           +'</div>'
           :'')
       +'</div>';
@@ -8177,6 +8259,7 @@ function generarContratoReferidor(ref, lang){
     step4: isEN?'The business will verify each conversion and deliver the benefit within a maximum of 30 calendar days.':'El negocio verificará cada conversión y entregará el beneficio en un plazo máximo de 30 días calendario.',
     t1: isEN?'The Referrer voluntarily agrees to participate in the referral program of ':'El Referidor acepta participar voluntariamente en el programa de referidos de ',
     t2: isEN?'The benefit applies only to referrals who complete registration and become active paying clients.':'El beneficio aplica únicamente por referidos que completen el registro y se conviertan en clientes activos de pago.',
+    t2b: isEN?'The commission/benefit is calculated ONLY on the tuition or monthly fee of the class/program the referred student enrolls in. It does NOT apply to uniforms, gear, merchandise, or any other product or service the referral purchases afterward, unless expressly agreed in writing.':'La comisión/beneficio se calcula ÚNICAMENTE sobre la matrícula o mensualidad del programa/clase en la que se inscribe el estudiante referido. NO aplica sobre uniformes, equipo, mercancía, ni ningún otro producto o servicio que el referido compre posteriormente, salvo que se acuerde expresamente por escrito.',
     t3: isEN?'The business reserves the right to modify or cancel the program with 15 days prior notice.':'El negocio se reserva el derecho de modificar o cancelar el programa con aviso previo de 15 días.',
     t4: isEN?'The Referrer may not use deceptive practices, spam, or undue pressure to generate referrals.':'El Referidor no puede usar prácticas engañosas, spam o presión indebida para generar referidos.',
     t5: isEN?'Benefits are not transferable or redeemable for cash, unless the incentive type expressly states otherwise.':'Los beneficios no son transferibles ni canjeables por efectivo, salvo que el tipo de incentivo lo indique expresamente.',
@@ -8255,6 +8338,11 @@ function generarContratoReferidor(ref, lang){
     '<div class="commission-item"><div class="cl">' + txt.freq + '</div><div class="cv">' + freqText + '</div></div>' +
     '<div class="commission-item"><div class="cl">' + txt.pct + '</div><div class="cv">' + (ref.pct||10) + '%</div></div>' +
   '</div>' +
+  '<div style="margin-top:12px;padding-top:10px;border-top:1px dashed #93c5fd;font-size:11px;color:#1e40af;line-height:1.5">' +
+    '⚠️ ' + (isEN
+      ? 'This ' + (ref.pct||10) + '% applies ONLY to the tuition/monthly fee of the program the referred student enrolls in — not to uniforms, gear, or any other future purchase by that person.'
+      : 'Este ' + (ref.pct||10) + '% aplica ÚNICAMENTE sobre la matrícula/mensualidad del programa en el que se inscribe el estudiante referido — no sobre uniformes, equipo, ni ninguna otra compra futura de esa persona.') +
+  '</div>' +
   '</div>' +
 
   (function(){
@@ -8314,6 +8402,7 @@ function generarContratoReferidor(ref, lang){
   '<div class="terms"><ol>' +
     '<li>' + txt.t1 + '<strong>' + bizName + '</strong>.</li>' +
     '<li>' + txt.t2 + '</li>' +
+    '<li><strong>' + txt.t2b + '</strong></li>' +
     '<li>' + txt.t3 + '</li>' +
     '<li>' + txt.t4 + '</li>' +
     '<li>' + txt.t5 + '</li>' +
@@ -10330,12 +10419,13 @@ function showReferidorQR(cid, nombre){
   _qrCurrentUrl = trackingUrl;
   _qrCurrentDest = directUrl;
   _qrCurrentRef = cid;
-  _qrCurrentSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&color=000000&bgcolor=ffffff&margin=10&data='+encodeURIComponent(trackingUrl);
+  _qrCurrentSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&ecc='+((_mpProfile&&_mpProfile.logoUrl)?'H':'M')+'&color=000000&bgcolor=ffffff&margin=10&data='+encodeURIComponent(trackingUrl);
   _qrCurrentName = nombre || 'ref-'+cid;
   _qrLang = _masterLang || 'es';
   document.getElementById('qrBizName').textContent = nombre + ' (Referidor)';
   document.getElementById('qrUrl').textContent = directUrl;
   document.getElementById('qrImg').src = _qrCurrentSrc;
+  _drawQrModalLogo();
   document.getElementById('qrModalTitle').textContent = '📱 QR Personal del Referidor';
   setQrLang(_qrLang);
   openModal('qrModal');
@@ -10659,15 +10749,15 @@ function openReferidorDetail(id){
         // Accumulated explanation
         '<div style="background:var(--surface3);border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.7;color:var(--text-secondary)">'+
           '📈 <strong>¿Cómo acumula?</strong><br>'+
-          'Por cada cliente referido que se hace <strong>activo</strong>, '+
           (totalCommPerClient > 0 ?
-            'se acumulan <strong style="color:#22c55e">$'+totalCommPerClient.toFixed(2)+'</strong> al saldo del referidor.'
+            '<em>Estimado</em> (según precio de lista × % comisión de los programas vinculados): <strong style="color:#22c55e">$'+totalCommPerClient.toFixed(2)+'</strong> por cliente activo. Esto es solo una referencia.'
           : ref.incentiveValue ?
-            'se registra el beneficio acordado de <strong>'+esc(ref.incentiveValue)+'</strong>.'
+            'Beneficio acordado: <strong>'+esc(ref.incentiveValue)+'</strong>. Esto es solo una referencia.'
           :
-            'se registrará el beneficio que configures.'
+            'Aún no hay un beneficio ni programa configurado como referencia.'
           )+
-          '<br>Cuando el referidor quiera cobrar, usa el botón <strong>💵 Balance</strong> para ver y canjear su saldo acumulado.'+
+          '<br><br>💰 <strong>La comisión real</strong> (la que cuenta para pagarle al referidor) se calcula sobre el monto exacto que <u>el cliente referido</u> paga — nunca sobre la mensualidad del propio referidor — y se registra automáticamente en cuanto marcas un pago de ese cliente como <strong>"Pagado"</strong> en su cuenta.'+
+          '<br>Cuando el referidor quiera cobrar, usa el botón <strong>💵 Balance</strong> para ver y canjear su saldo "Por Pagar".'+
         '</div>'+
       '</div>'+
       // Edit button
@@ -10691,15 +10781,30 @@ function openReferidorDetail(id){
       '<div style="display:grid;grid-template-columns:1fr 70px 75px 75px;gap:4px 6px;padding:0 6px;margin-bottom:6px">'+
         '<span style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted)">Cliente</span>'+
         '<span style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--muted);text-align:center">Estado</span>'+
-        '<span style="font-size:9px;font-weight:700;text-transform:uppercase;color:#22c55e;text-align:right">Ganado</span>'+
-        '<span style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--warn);text-align:right">Pend.</span>'+
+        '<span style="font-size:9px;font-weight:700;text-transform:uppercase;color:#22c55e;text-align:right">Pagado</span>'+
+        '<span style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--warn);text-align:right">Por Pagar</span>'+
       '</div>'+
       // Scrollable rows
       '<div style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;padding-right:2px">'+
         leads.map(function(l){
           var st = getStatus(l);
-          var earnedAmt  = (st==='active' && perLeadVal!==null) ? '<span style="color:#22c55e;font-weight:800;font-size:13px">$'+perLeadVal+'</span>' : (st==='active'?'<span style="color:#22c55e">✅</span>':'<span style="color:var(--muted2)">—</span>');
-          var pendingAmt = (st==='trial'  && perLeadVal!==null) ? '<span style="color:var(--warn);font-weight:800;font-size:13px">$'+perLeadVal+'</span>' : (st==='trial'?'<span style="color:var(--warn)">⏳</span>':'<span style="color:var(--muted2)">—</span>');
+          // ── Monto REAL: se busca en affiliateEarnings por nombre de cliente,
+          //    que es lo que efectivamente pagó el cliente referido ──
+          var clientName = l.firstName+' '+l.lastName;
+          var clientEarn = affHist.filter(function(e){ return e.clientName===clientName; });
+          var cPaid    = clientEarn.filter(function(e){ return e.status==='paid';    }).reduce(function(s,e){ return s+e.total; },0);
+          var cPending = clientEarn.filter(function(e){ return e.status==='pending'; }).reduce(function(s,e){ return s+e.total; },0);
+          var earnedAmt, pendingAmt;
+          if(clientEarn.length > 0){
+            earnedAmt  = cPaid    > 0 ? '<span style="color:#22c55e;font-weight:800;font-size:13px">$'+cPaid.toFixed(2)+'</span>'    : '<span style="color:var(--muted2)">—</span>';
+            pendingAmt = cPending > 0 ? '<span style="color:var(--warn);font-weight:800;font-size:13px">$'+cPending.toFixed(2)+'</span>' : '<span style="color:var(--muted2)">—</span>';
+          } else if(st==='active'){
+            earnedAmt  = '<span style="color:var(--muted2);font-size:10px" title="Aún no se ha marcado ningún pago de este cliente como Pagado">Sin pago aún</span>';
+            pendingAmt = '<span style="color:var(--muted2)">—</span>';
+          } else {
+            earnedAmt  = '<span style="color:var(--muted2)">—</span>';
+            pendingAmt = '<span style="color:var(--muted2)">—</span>';
+          }
           var progTag = l.program ? '<div style="font-size:10px;color:var(--muted)">'+esc(l.program)+'</div>' : '';
           return '<div style="display:grid;grid-template-columns:1fr 70px 75px 75px;gap:4px 6px;align-items:center;background:var(--surface3);border-radius:9px;padding:9px 12px;border:1px solid var(--border)">'+
             '<div>'+
@@ -10722,11 +10827,11 @@ function openReferidorDetail(id){
         '</div>'+
         '<div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:11px;text-align:center">'+
           '<div style="font-family:Syne,sans-serif;font-weight:800;font-size:22px;color:#22c55e">'+(isMoney?'$'+(+shownEarned).toFixed(2):shownEarned+'×')+'</div>'+
-          '<div style="font-size:9px;font-weight:700;color:#22c55e;text-transform:uppercase;letter-spacing:.05em;margin-top:2px">✅ Ganado</div>'+
+          '<div style="font-size:9px;font-weight:700;color:#22c55e;text-transform:uppercase;letter-spacing:.05em;margin-top:2px">✅ Pagado</div>'+
         '</div>'+
         '<div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:11px;text-align:center">'+
           '<div style="font-family:Syne,sans-serif;font-weight:800;font-size:22px;color:var(--warn)">'+(isMoney?'$'+(+shownPending).toFixed(2):shownPending+'×')+'</div>'+
-          '<div style="font-size:9px;font-weight:700;color:var(--warn);text-transform:uppercase;letter-spacing:.05em;margin-top:2px">⏳ Pendiente</div>'+
+          '<div style="font-size:9px;font-weight:700;color:var(--warn);text-transform:uppercase;letter-spacing:.05em;margin-top:2px">⏳ Por Pagar</div>'+
         '</div>'+
       '</div>';
 
@@ -10735,6 +10840,7 @@ function openReferidorDetail(id){
         '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary);margin-bottom:10px">📋 Clientes Referidos & Ganancia</div>'+
         clientRows+
         totBar+
+        '<div style="font-size:10px;color:var(--muted);margin-top:8px;line-height:1.5">💡 "Pagado" y "Por Pagar" reflejan si <strong>tú ya le liquidaste esa comisión al referidor</strong> — no si el cliente está activo o en trial. Un cliente activo puede seguir "Por Pagar" hasta que canjees su saldo en 💵 Balance.</div>'+
       '</div>';
 
   } else {
@@ -11803,6 +11909,37 @@ function addManualPayment(){
   updatePaymentSummary();
 }
 
+function ecPaymentStatusChanged(i, newStatus){
+  var p = _ecPayments[i];
+  if(!p) return;
+  var wasPaid = p.status === 'paid';
+  p.status = newStatus;
+  renderPaymentList();
+  updatePaymentSummary();
+
+  // ── Comisión del referidor: SOLO se registra cuando el pago se marca
+  //    como "Pagado", y se basa en el monto real que pagó el cliente ──
+  if(newStatus === 'paid' && !wasPaid && !p.commissionRecorded){
+    var r = registrations.find(function(x){ return x.id===_editClientId; });
+    if(r && r.ref_id && typeof AFFILIATE_CONFIG !== 'undefined' && AFFILIATE_CONFIG.settings.autoTrack){
+      var ref = referidores.find(function(x){ return x.cid===r.ref_id; });
+      if(ref){
+        var pl = plans[r.plan];
+        var itemName = pl ? (pl.nameES||pl.nameEN||r.plan) : (r.plan||(_editLang==='en'?'Payment':'Pago'));
+        var isFirst = affiliateEarnings.filter(function(e){ return e.refId===ref.id; }).length === 0;
+        recordAffiliateEarning(ref.id, r.firstName+' '+r.lastName, 'program', itemName, p.amount||0, isFirst);
+        p.commissionRecorded = true;
+        var isEN = _editLang === 'en';
+        showToast(
+          (isEN ? '💰 $'+((p.amount)||0).toFixed(2)+' commission credited to ' : '💰 Comisión de $'+((p.amount)||0).toFixed(2)+' acumulada para ')
+          + ref.firstName+' '+ref.lastName,
+          '#22c55e'
+        );
+      }
+    }
+  }
+}
+
 function renderPaymentList(){
   var el = document.getElementById('ecPaymentList');
   if(!el) return;
@@ -11822,7 +11959,7 @@ function renderPaymentList(){
       '<span style="color:var(--muted);font-size:11px;min-width:24px">#'+p.num+'</span>'+
       '<input type="date" value="'+p.date+'" onchange="_ecPayments['+i+'].date=this.value" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:12px;font-family:\'DM Sans\',sans-serif"/>'+
       '<input type="number" value="'+p.amount+'" onchange="_ecPayments['+i+'].amount=parseFloat(this.value)||0;updatePaymentSummary()" style="width:70px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:12px;font-family:\'DM Sans\',sans-serif"/>'+
-      '<select onchange="_ecPayments['+i+'].status=this.value;renderPaymentList();updatePaymentSummary()" style="background:var(--surface);border:1px solid '+col+';border-radius:6px;padding:4px 8px;color:'+col+';font-size:12px;font-family:\'DM Sans\',sans-serif">'+
+      '<select onchange="ecPaymentStatusChanged('+i+',this.value)" style="background:var(--surface);border:1px solid '+col+';border-radius:6px;padding:4px 8px;color:'+col+';font-size:12px;font-family:\'DM Sans\',sans-serif">'+
         ['pending','paid','hold','deducted'].map(function(s){
           return '<option value="'+s+'"'+(p.status===s?' selected':'')+'>'+statusLabels[s]+'</option>';
         }).join('')+
@@ -11971,7 +12108,12 @@ function renderClients(){
     var activoTxt = isEN ? '✅ Active' : '✅ Activo';
 
     return '<tr>'+
-      '<td><strong>'+esc(r.firstName+' '+r.lastName)+'</strong><br/><span style="color:var(--muted);font-size:12px">'+esc(r.email)+'</span></td>'+
+      '<td><div style="display:flex;align-items:center;gap:10px">'+
+        (r.avatarData
+          ? '<div style="width:34px;height:34px;border-radius:9px;flex-shrink:0;background-image:url('+r.avatarData+');background-size:cover;background-position:center"></div>'
+          : '<div style="width:34px;height:34px;border-radius:9px;flex-shrink:0;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--accent)">'+esc((((r.firstName||'')[0]||'')+((r.lastName||'')[0]||'')).toUpperCase())+'</div>')+
+        '<div><strong>'+esc(r.firstName+' '+r.lastName)+'</strong><br/><span style="color:var(--muted);font-size:12px">'+esc(r.email)+'</span></div>'+
+      '</div></td>'+
       '<td><span style="font-weight:500">'+esc(r.bizName)+'</span><br/><span style="color:var(--muted);font-size:11px">'+esc(r.bizType)+'</span></td>'+
       '<td><span style="font-weight:600">'+(pl?(isEN?pl.nameEN:pl.nameES):r.plan)+'</span></td>'+
       '<td>'+statusBadge(r)+'</td>'+
@@ -12198,6 +12340,28 @@ function openEditClient(id){
   _editClientId = id;
   _editLang = _masterLang;
   var isEN = _editLang === 'en';
+
+  // Cargar foto existente (o iniciales si no tiene)
+  _ecAvatarData = r.avatarData || null;
+  var ecPr = document.getElementById('ec-avatar-preview');
+  var ecIni = document.getElementById('ec-avatar-initials');
+  if(ecPr){
+    if(_ecAvatarData){
+      ecPr.style.backgroundImage = 'url('+_ecAvatarData+')';
+      ecPr.style.backgroundSize = 'cover';
+      ecPr.style.backgroundPosition = 'center';
+      ecPr.style.borderStyle = 'solid';
+      ecPr.style.borderColor = 'var(--accent)';
+      if(ecIni) ecIni.style.display = 'none';
+    } else {
+      ecPr.style.backgroundImage = 'none';
+      ecPr.style.borderStyle = 'dashed';
+      ecPr.style.borderColor = 'var(--border)';
+      if(ecIni) ecIni.style.display = '';
+    }
+  }
+  var ecFi = document.getElementById('ec-avatar-file');
+  if(ecFi) ecFi.value = '';
   
   // Update modal title and buttons based on language
   document.getElementById('editClientModalTitle').textContent = isEN ? '✏️ Edit Client' : '✏️ Editar Cliente';
@@ -12236,6 +12400,7 @@ function openEditClient(id){
   // Fill fields with current data
   document.getElementById('ecFirstName').value  = r.firstName  || '';
   document.getElementById('ecLastName').value   = r.lastName   || '';
+  ecUpdateAvatarInitials();
   document.getElementById('ecEmail').value      = r.email      || '';
   document.getElementById('ecPhone').value      = r.phone      || '';
   document.getElementById('ecBizName').value    = r.bizName    || '';
@@ -12287,6 +12452,63 @@ function openEditClient(id){
   openModal('editClientModal');
 }
 
+var _ecAvatarData = null;
+var _ecAvatarColors = ['#e8ff3c','#3cffd4','#a855f7','#f59e0b','#22c55e','#f472b6','#60a5fa','#fb923c'];
+function ecAvatarColorForName(name){
+  var n=0; for(var i=0;i<name.length;i++) n+=name.charCodeAt(i);
+  return _ecAvatarColors[n % _ecAvatarColors.length];
+}
+function ecUpdateAvatarInitials(){
+  if(_ecAvatarData) return; // ya tiene foto
+  var f=(document.getElementById('ecFirstName')||{}).value||'';
+  var l=(document.getElementById('ecLastName')||{}).value||'';
+  var initials = (f[0]||'')+(l[0]||'');
+  var el = document.getElementById('ec-avatar-initials');
+  var pr = document.getElementById('ec-avatar-preview');
+  if(!el||!pr) return;
+  if(initials){
+    var col = ecAvatarColorForName(f+l);
+    el.textContent = initials.toUpperCase();
+    el.style.color = col;
+    pr.style.borderColor = col;
+    pr.style.borderStyle = 'solid';
+  } else {
+    el.textContent = '?';
+    el.style.color = 'var(--accent)';
+    pr.style.borderStyle = 'dashed';
+    pr.style.borderColor = 'var(--border)';
+  }
+}
+function ecAvatarChanged(input){
+  var file = input.files && input.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    _ecAvatarData = e.target.result;
+    var pr = document.getElementById('ec-avatar-preview');
+    var ini = document.getElementById('ec-avatar-initials');
+    if(ini) ini.style.display = 'none';
+    if(pr){
+      pr.style.backgroundImage = 'url('+_ecAvatarData+')';
+      pr.style.backgroundSize = 'cover';
+      pr.style.backgroundPosition = 'center';
+      pr.style.borderStyle = 'solid';
+      pr.style.borderColor = 'var(--accent)';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+function ecClearAvatar(){
+  _ecAvatarData = null;
+  var pr = document.getElementById('ec-avatar-preview');
+  var ini = document.getElementById('ec-avatar-initials');
+  if(pr){ pr.style.backgroundImage='none'; pr.style.borderStyle='dashed'; pr.style.borderColor='var(--border)'; }
+  if(ini){ ini.style.display=''; }
+  ecUpdateAvatarInitials();
+  var fi = document.getElementById('ec-avatar-file');
+  if(fi) fi.value='';
+}
+
 async function saveEditClient(){
   var isEN = _masterLang === 'en';
   var r = registrations.find(function(x){ return x.id===_editClientId; });
@@ -12325,6 +12547,7 @@ async function saveEditClient(){
   r.ref_id     = document.getElementById('ecRefId').value.trim();
   r.cid        = document.getElementById('ecCid').value.trim() || generarCID(r.firstName);
   r.notes      = document.getElementById('ecNotes').value.trim();
+  r.avatarData = _ecAvatarData || '';
   r.updatedAt  = new Date().toISOString();
   
   // Guardar info de tarjeta
@@ -12599,6 +12822,23 @@ function restaurarCliente(id){
     if(!_demoMode && _fbdb){ _fbdb.ref('chatbotLeads/'+r.id).set(r); _fbdb.ref('papelera/'+r.id).remove(); }
     renderPapelera(); if(typeof _renderCbLeads==='function') _renderCbLeads(); if(typeof _updateCbBadge==='function') _updateCbBadge(); updatePapeleraBadge();
     showToast(isEN?'✅ Chatbot lead restored':'✅ Lead de chatbot restaurado');
+  } else if(tipo === 'billingauth'){
+    if(typeof _baRecords!=='undefined') _baRecords.unshift(r);
+    if(!_demoMode && _fbdb){ _fbdb.ref('billingAuths/'+r.id).set(r); _fbdb.ref('papelera/'+r.id).remove(); }
+    renderPapelera(); if(typeof baRenderRecords==='function') baRenderRecords(); updatePapeleraBadge();
+    showToast(isEN?'✅ Billing authorization restored':'✅ Autorización de cobro restaurada');
+  } else if(tipo === 'enrollment'){
+    if(typeof _enrRecords!=='undefined') _enrRecords.unshift(r);
+    if(!_demoMode && _fbdb){
+      _fbdb.ref('enrollments/'+r.id).set(r); _fbdb.ref('papelera/'+r.id).remove();
+    } else {
+      try{
+        var ex = JSON.parse(localStorage.getItem('enrollments')||'[]');
+        ex.unshift(r); localStorage.setItem('enrollments', JSON.stringify(ex.slice(0,500)));
+      } catch(e){}
+    }
+    renderPapelera(); if(typeof enrLoadRecords==='function') enrLoadRecords(); updatePapeleraBadge();
+    showToast(isEN?'✅ Enrollment restored':'✅ Enrollment restaurado');
   } else if(tipo === 'lead'){
     leads.unshift(r);
     _trashLeads = _trashLeads.filter(function(x){ return x.id!==id; });
@@ -12759,11 +12999,11 @@ function renderPapelera(){
     return;
   }
 
-  var typeIcon  = {client:'👤',partner:'🏢',referidor:'👥',prospecto:'🎯',chatbot:'🤖',lead:'📥',qrlead:'📱'};
+  var typeIcon  = {client:'👤',partner:'🏢',referidor:'👥',prospecto:'🎯',chatbot:'🤖',lead:'📥',qrlead:'📱',billingauth:'💳',enrollment:'📋'};
   var typeLbl   = isEN
-    ? {client:'Client',partner:'Partner',referidor:'Referrer',prospecto:'Prospect',chatbot:'Chatbot Lead',lead:'Lead',qrlead:'QR Lead'}
-    : {client:'Cliente',partner:'Partner',referidor:'Referidor',prospecto:'Prospecto',chatbot:'Lead Chatbot',lead:'Lead',qrlead:'Lead de QR'};
-  var typeColor = {client:'var(--accent)',partner:'var(--accent2)',referidor:'#f97316',prospecto:'#6366f1',chatbot:'#f43f5e',lead:'#eab308',qrlead:'#0ea5e9'};
+    ? {client:'Client',partner:'Partner',referidor:'Referrer',prospecto:'Prospect',chatbot:'Chatbot Lead',lead:'Lead',qrlead:'QR Lead',billingauth:'Billing Auth',enrollment:'Enrollment'}
+    : {client:'Cliente',partner:'Partner',referidor:'Referidor',prospecto:'Prospecto',chatbot:'Lead Chatbot',lead:'Lead',qrlead:'Lead de QR',billingauth:'Billing Auth',enrollment:'Enrollment'};
+  var typeColor = {client:'var(--accent)',partner:'var(--accent2)',referidor:'#f97316',prospecto:'#6366f1',chatbot:'#f43f5e',lead:'#eab308',qrlead:'#0ea5e9',billingauth:'#60a5fa',enrollment:'#a855f7'};
   var motivoColor = {'No interesado':'var(--muted)','No contestó':'var(--warn)','Precio muy alto':'var(--danger)','Eligió a la competencia':'var(--danger)','Trial expirado sin respuesta':'var(--warn)'};
 
   var rows = papelera.map(function(r){
@@ -13841,12 +14081,13 @@ function showClientQR(r){
   _qrCurrentUrl = trackingUrl;
   _qrCurrentDest = directUrl;
   _qrCurrentRef = clientRef;
-  _qrCurrentSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&color=000000&bgcolor=ffffff&margin=10&data='+encodeURIComponent(trackingUrl);
+  _qrCurrentSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&ecc='+((_mpProfile&&_mpProfile.logoUrl)?'H':'M')+'&color=000000&bgcolor=ffffff&margin=10&data='+encodeURIComponent(trackingUrl);
   _qrCurrentName = (r.firstName||'')+'-'+(r.lastName||'') || 'cli-'+r.id;
   _qrLang = _masterLang || 'es';
   document.getElementById('qrBizName').textContent = (r.firstName||'') + ' ' + (r.lastName||'') + ' — ' + (r.bizName||'');
   document.getElementById('qrUrl').textContent = directUrl;
   document.getElementById('qrImg').src = _qrCurrentSrc;
+  _drawQrModalLogo();
   document.getElementById('qrModalTitle').textContent = _masterLang==='en' ? '📱 Client Personal QR' : '📱 QR Personal del Cliente';
   setQrLang(_qrLang);
   openModal('qrModal');
@@ -16279,15 +16520,8 @@ async function confirmConvertLead(profileType){
   };
   registrations.unshift(newReg);
   l._linkedRegId = newReg.id; // save for undo
-  
-  // ── Record affiliate earnings if referred ──
-  if(l.ref_id && AFFILIATE_CONFIG.settings.autoTrack){
-    var ref = referidores.find(function(x){ return x.cid===l.ref_id; });
-    if(ref){
-      var isFirst = affiliateEarnings.filter(function(e){ return e.refId===ref.id; }).length === 0;
-      recordAffiliateEarning(ref.id, l.firstName+' '+l.lastName, 'program', 'Nuevo Cliente', 0, isFirst);
-    }
-  }
+  // Nota: la comisión del referidor YA NO se registra aquí — se registra
+  // hasta que el cliente paga de verdad (ver ecPaymentStatusChanged).
 
   
   if(!_demoMode && _fbdb){
@@ -16790,6 +17024,37 @@ function cwSavePayment(){
   }
   if(errEl) errEl.textContent='';
 
+  // Si no hay un cliente existente vinculado (caso "➕ Nuevo Cliente"),
+  // creamos el registro del cliente ahora — antes esto nunca pasaba y
+  // el cliente nuevo no se guardaba en ningún lado.
+  if(!_cwReg){
+    var newReg = {
+      id:          'CLI-'+Date.now().toString(36).toUpperCase(),
+      cid:         (typeof generarCID==='function') ? generarCID(fname) : ('CID-'+Date.now().toString(36).toUpperCase()),
+      firstName:   fname,
+      lastName:    lname,
+      email:       email,
+      phone:       phone,
+      bizName:     bizname,
+      bizType:     biztype,
+      plan:        planName,
+      planFreq:    _cwPlanFreq||'monthly',
+      planPrice:   amt,
+      status:      'active',
+      payMethod:   method,
+      profileType: _cwRelation||'cliente',
+      avatarData:  _cwAvatarData||'',
+      notes:       notes,
+      trialStart:  start,
+      createdAt:   new Date().toISOString()
+    };
+    registrations.unshift(newReg);
+    if(!_demoMode && _fbdb){
+      _fbdb.ref('registrations/'+newReg.id).set(newReg);
+    }
+    _cwReg = newReg;
+  }
+
   var rec = {
     id:        'REC-'+Date.now().toString(36).toUpperCase(),
     customer:  fname+' '+lname,
@@ -16816,7 +17081,7 @@ function cwSavePayment(){
     authSigned:(document.getElementById('cw-auth')||{}).checked||false,
     policyAccepted:(document.getElementById('cw-policy-accept')||{}).checked||false,
     createdAt: new Date().toISOString(),
-    clientId:  _cwReg ? _cwReg.id : 'CLI-'+Date.now().toString(36).toUpperCase()
+    clientId:  _cwReg.id
   };
 
   // Save recurring payment
@@ -16837,6 +17102,8 @@ function cwSavePayment(){
   }
 
   renderClients();
+  renderDashboard();
+  if(typeof updateNavBadge==='function') updateNavBadge();
   showToast('✅ Cliente creado y pago guardado — '+rec.customer);
   closeClientWelcomePopup();
 }
@@ -17856,15 +18123,8 @@ async function saveTrialConfig(){
     convertedFromLead: id, createdAt: new Date().toISOString()
   };
   registrations.unshift(newReg);
-  
-  // ── Record affiliate earnings if referred ──
-  if(l.ref_id && AFFILIATE_CONFIG.settings.autoTrack){
-    var ref = referidores.find(function(x){ return x.cid===l.ref_id; });
-    if(ref){
-      var isFirst = affiliateEarnings.filter(function(e){ return e.refId===ref.id; }).length === 0;
-      recordAffiliateEarning(ref.id, l.firstName+' '+l.lastName, 'program', 'Trial: '+dur+' '+unit, totalCharges, isFirst);
-    }
-  }
+  // Nota: la comisión del referidor YA NO se registra aquí — se registra
+  // hasta que el cliente paga de verdad (ver ecPaymentStatusChanged).
   
   if(!_demoMode && _fbdb){
     try{
@@ -19090,15 +19350,15 @@ function rpShowExistingInfo(val){
   var info = document.getElementById('rp-existing-info');
   if(!val){ if(info) info.style.display='none'; return; }
   var c = null;
-  if(typeof clients !== 'undefined'){
-    c = clients.find(function(x){ return (x.id||x.name||'')==val || x.name==val; });
+  if(typeof registrations !== 'undefined'){
+    c = registrations.find(function(x){ return x.id===val; });
   }
   if(c && info){
-    var parts = (c.name||'').split(' ');
-    document.getElementById('rp-ei-fname').textContent = parts[0]||'—';
-    document.getElementById('rp-ei-lname').textContent = parts.slice(1).join(' ')||'—';
+    document.getElementById('rp-ei-fname').textContent = c.firstName||'—';
+    document.getElementById('rp-ei-lname').textContent = c.lastName||'—';
     document.getElementById('rp-ei-email').textContent = c.email||'—';
-    document.getElementById('rp-ei-plan').textContent = c.plan||c.service||c.prog||'—';
+    var pl = (typeof plans!=='undefined') ? plans[c.plan] : null;
+    document.getElementById('rp-ei-plan').textContent = (pl ? (_masterLang==='en'?pl.nameEN:pl.nameES) : c.plan) || '—';
     info.style.display = '';
   } else if(info){
     info.style.display = 'none';
@@ -19108,11 +19368,11 @@ function rpPopulateClients(){
   var sel = document.getElementById('rp-customer-select');
   if(!sel) return;
   sel.innerHTML = '<option value="">— Select Customer —</option>';
-  if(typeof clients !== 'undefined' && clients.length){
-    clients.forEach(function(c){
+  if(typeof registrations !== 'undefined' && registrations.length){
+    registrations.forEach(function(c){
       var opt = document.createElement('option');
-      opt.value = c.id||c.name||'';
-      opt.textContent = (c.name||'')+(c.email?' — '+c.email:'');
+      opt.value = c.id||'';
+      opt.textContent = ((c.firstName||'')+' '+(c.lastName||'')).trim()+(c.email?' — '+c.email:'');
       sel.appendChild(opt);
     });
   }
@@ -19135,10 +19395,23 @@ function rpSubmit(){
   var amount = parseFloat(document.getElementById('rp-amount').value)||0;
   if(!freq){ err.textContent = 'Please select a frequency on step 2.'; rpShowStep(2); return; }
   if(amount <= 0){ err.textContent = 'Please enter an amount on step 2.'; rpShowStep(2); return; }
+  // Determine linked client (if an existing customer was selected)
+  var linkedClientId = '';
+  var customerName = '';
+  if(_rpMode==='existing'){
+    linkedClientId = document.getElementById('rp-customer-select').value||'';
+    var linkedC = (typeof registrations!=='undefined') ? registrations.find(function(x){ return x.id===linkedClientId; }) : null;
+    customerName = linkedC ? (linkedC.firstName+' '+linkedC.lastName).trim() : ((document.getElementById('rp-customer-select').options[document.getElementById('rp-customer-select').selectedIndex]||{}).text||'');
+  } else {
+    customerName = (document.getElementById('rp-fname').value+' '+document.getElementById('rp-lname').value).trim();
+  }
   // Build record
   var rec = {
-    id: Date.now(),
-    customer: _rpMode==='existing' ? (document.getElementById('rp-customer-select').options[document.getElementById('rp-customer-select').selectedIndex]||{}).text||'' : (document.getElementById('rp-fname').value+' '+document.getElementById('rp-lname').value).trim(),
+    id: 'RP-'+Date.now().toString(36).toUpperCase(),
+    clientId: linkedClientId,
+    customer: customerName,
+    email: _rpMode==='existing' ? '' : (document.getElementById('rp-email')||{}).value||'',
+    notes: _rpMode==='existing' ? '' : (document.getElementById('rp-notes')||{}).value||'',
     planName: document.getElementById('rp-plan-name').value||'Recurring Payment',
     frequency: freq,
     amount: amount,
@@ -19147,10 +19420,28 @@ function rpSubmit(){
     startDate: document.getElementById('rp-start-date').value,
     endDate: document.getElementById('rp-end-date').value,
     cardLast4: cardNum.slice(-4),
+    cardName: cardName,
+    zip: zip,
     commercial: document.getElementById('rp-commercial').checked,
     notify: document.getElementById('rp-notify-customer').checked,
-    createdAt: new Date().toLocaleDateString()
+    createdAt: new Date().toISOString()
   };
+  // ── Guardar de verdad en Firebase (antes esto nunca se guardaba) ──
+  if(!_demoMode && typeof _fbdb !== 'undefined' && _fbdb){
+    try{ _fbdb.ref('recurringPayments/'+rec.id).set(rec); }catch(e){ console.error(e); }
+  }
+  // Si está vinculado a un cliente existente, actualizamos su método de pago/tarjeta
+  if(linkedClientId && typeof registrations !== 'undefined'){
+    var linkedReg = registrations.find(function(x){ return x.id===linkedClientId; });
+    if(linkedReg){
+      linkedReg.payMethod = 'card';
+      linkedReg.cardLast4 = rec.cardLast4;
+      if(!_demoMode && typeof _fbdb !== 'undefined' && _fbdb){
+        try{ _fbdb.ref('registrations/'+linkedReg.id).update({payMethod:'card', cardLast4:rec.cardLast4}); }catch(e){}
+      }
+      if(typeof renderClients==='function') renderClients();
+    }
+  }
   // Add to recent list
   var list = document.getElementById('rp-recent-list');
   if(list){
@@ -19159,7 +19450,7 @@ function rpSubmit(){
     row.innerHTML = '<div style="font-family:Syne,sans-serif;font-weight:700;font-size:13px;color:var(--text);">'+rec.customer+'</div>'
       +'<div style="font-size:11px;color:var(--muted);margin-top:2px;">'+rec.planName+' · '+rec.frequency+'</div>'
       +'<div style="font-size:11px;color:var(--accent);margin-top:2px;">$'+rec.amount.toFixed(2)+' + 3.50% = $'+rec.total.toFixed(2)+'</div>'
-      +'<div style="font-size:10px;color:var(--muted2);margin-top:2px;">Card *'+rec.cardLast4+' · '+rec.createdAt+'</div>';
+      +'<div style="font-size:10px;color:var(--muted2);margin-top:2px;">Card *'+rec.cardLast4+' · '+rec.createdAt.split('T')[0]+'</div>';
     if(list.textContent.trim().includes('No recurring')) list.innerHTML='';
     list.prepend(row);
   }
@@ -19626,6 +19917,17 @@ function toggleWalkInLang(){
 function openWalkInModal(){
   var m = document.getElementById('walkInModal');
   m.style.display = 'flex';
+  // Limpiar todos los campos de texto/número/email/tel del walk-in anterior
+  ['wi_firstName','wi_lastName','wi_phone','wi_email','wi_age','wi_referidoPor','wi_asignadoA','wi_notes'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  // Resetear selects a su primera opción / valor por defecto
+  ['wi_lang','wi_comoLlego','wi_bizType','wi_programa','wi_budget','wi_etapa','wi_followMethod'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.selectedIndex = 0;
+  });
+  document.getElementById('wi_error').textContent = '';
   // Reset language
   _walkInLang = _masterLang;
   var isEN = _walkInLang === 'en';
@@ -19936,6 +20238,16 @@ var _qrcViewName = '';
 
 function loadQRClientes(){
   if(!_demoMode && _fbdb){
+    // Asegura que el perfil (con el logo) este cargado, igual criterio que
+    // ya se aplica en "My QR Codes" (mpLoadProfile). Antes, si el usuario
+    // entraba directo a Clientes sin pasar primero por "Mi Perfil QR",
+    // _mpProfile seguia en null al pintar los QR y el logo no aparecia.
+    if(!_mpProfile){
+      _fbdb.ref('adminProfile').once('value').then(function(psnap){
+        _mpProfile = psnap.val() || {};
+        renderQRClientes();
+      }).catch(function(e){ console.warn('loadQRClientes profile:', e); });
+    }
     _fbdb.ref('qrClientes').once('value', function(snap){
       qrClientes = snap.exists() ? Object.values(snap.val()) : [];
       renderQRClientes();
@@ -19971,6 +20283,18 @@ function switchAnunciosTab(tab){
 function renderQRClientes(){
   var container = document.getElementById('qrclientesGrid');
   if(!container) return;
+  // Igual criterio que "My QR Codes": si el perfil (con el logo) todavia no
+  // se cargo -porque nunca visitaste "Mi Perfil QR" en esta sesion- lo
+  // pedimos aca mismo y repintamos apenas llegue, para que el logo SIEMPRE
+  // aparezca sin importar por donde entres primero.
+  if(!_mpProfile && !_demoMode && _fbdb && !_mpProfileLoading){
+    _mpProfileLoading = true;
+    _fbdb.ref('adminProfile').once('value').then(function(psnap){
+      _mpProfile = psnap.val() || {};
+      _mpProfileLoading = false;
+      renderQRClientes();
+    }).catch(function(e){ _mpProfileLoading = false; console.warn('renderQRClientes profile:', e); });
+  }
   var isEN = _masterLang === 'en';
   var search = (document.getElementById('qrClientesSearchInp')||{}).value||'';
   search = search.toLowerCase().trim();
@@ -19999,48 +20323,88 @@ function renderQRClientes(){
   }
 
   var typeInfo = {
-    whatsapp: {num:1, label:isEN?'WhatsApp':'WhatsApp',       icon:'📲', color:'#22c55e'},
-    sms:      {num:2, label:'SMS',            icon:'💬', color:'#60a5fa'},
-    telegram: {num:3, label:isEN?'Telegram':'Telegram',       icon:'✈️', color:'#22d3ee'},
-    teams:    {num:4, label:isEN?'Microsoft Teams':'Microsoft Teams',icon:'🟦', color:'#818cf8'},
-    link:     {num:5, label:isEN?'Link':'Link',           icon:'🌐', color:'#d8b4fe'}
+    whatsapp: {label:isEN?'WhatsApp':'WhatsApp',       icon:'📲', color:'#22c55e'},
+    sms:      {label:'SMS',            icon:'💬', color:'#60a5fa'},
+    telegram: {label:isEN?'Telegram':'Telegram',       icon:'✈️', color:'#22d3ee'},
+    teams:    {label:isEN?'Microsoft Teams':'Microsoft Teams',icon:'🟦', color:'#818cf8'},
+    link:     {label:isEN?'Custom URL':'URL Custom',           icon:'🔗', color:'#d8b4fe'}
   };
 
-  container.innerHTML =
-    '<table class="client-table">'+
-    '<thead><tr>'+
-      '<th>'+(isEN?'Name / Client':'Nombre / Cliente')+'</th>'+
-      '<th>'+(isEN?'QR Type':'Tipo QR')+'</th>'+
-      '<th>ID</th>'+
-      '<th>'+(isEN?'Status':'Estado')+'</th>'+
-      '<th>'+(isEN?'Actions':'Acciones')+'</th>'+
-    '</tr></thead><tbody>'+
-    filtered.map(function(c){
-      var t = typeInfo[c.type] || typeInfo.link;
-      var isOn = c.qrEnabled !== false;
-      var payActive = c.paymentActive === true;
-      var cid = esc(c.id);
-      var name = esc(c.name)+(c.bizName?' <span style="color:var(--muted);font-weight:400;font-size:12px">— '+esc(c.bizName)+'</span>':'');
-      return '<tr style="cursor:pointer" onclick="handleQRRowClick(event,\''+cid+'\')">'+
-        '<td><strong style="font-size:14px;font-family:Syne,sans-serif">'+name+'</strong>'+
-          (c.phone?'<br/><span style="font-size:11px;color:var(--muted)">📱 '+esc(c.phone)+'</span>':'')+
-        '</td>'+
-        '<td><span style="color:'+t.color+';font-weight:700;font-size:13px">'+t.icon+' '+t.label+'</span></td>'+
-        '<td><code style="background:var(--surface2);padding:2px 8px;border-radius:4px;font-size:10px;color:var(--muted2)">'+esc(c.id)+'</code></td>'+
-        '<td><span class="badge '+(isOn?'badge-partner-active':'badge-partner-inactive')+'">'+(isOn?(isEN?'✅ Active':'✅ Activo'):(isEN?'🚫 Inactive':'🚫 Inactivo'))+'</span>'+
-          (payActive?'<br/><span style="display:inline-flex;align-items:center;gap:3px;background:rgba(34,197,94,.15);color:#22c55e;padding:2px 7px;border-radius:20px;font-size:9px;font-weight:700;margin-top:4px">💳 '+(isEN?'Payments ON':'Pagos ON')+'</span>':'')+
-        '</td>'+
-        '<td><div class="actions-cell">'+
-          '<button class="act-btn" data-qrcaction="toggle" data-qrcid="'+cid+'" style="'+(isOn?'color:#22c55e;border-color:#22c55e':'color:#f87171;border-color:#f87171')+'" title="'+(isOn?(isEN?'Deactivate':'Desactivar'):(isEN?'Activate':'Activar'))+'">'+(isOn?'✅':'🚫')+'</button>'+
-          '<button class="act-btn" data-qrcaction="copy"   data-qrcid="'+cid+'" title="'+(isEN?'Copy link':'Copiar link')+'">🔗</button>'+
-          '<button class="act-btn" data-qrcaction="agree"  data-qrcid="'+cid+'" style="color:#a78bfa;border-color:#a78bfa" title="'+(isEN?'Agreement':'Acuerdo')+'">📄</button>'+
-          '<button class="act-btn" data-qrcaction="pay"    data-qrcid="'+cid+'" style="'+(payActive?'color:#22c55e;border-color:#22c55e':'color:#f59e0b;border-color:#f59e0b')+'" title="'+(isEN?'Payments':'Pagos')+'">'+(payActive?'💳 ON':'💳')+'</button>'+
-          '<button class="act-btn" data-qrcaction="edit"   data-qrcid="'+cid+'" title="'+(isEN?'Edit':'Editar')+'">✏️</button>'+
-          '<button class="act-btn danger" data-qrcaction="delete" data-qrcid="'+cid+'" title="'+(isEN?'Delete':'Eliminar')+'">🗑</button>'+
-        '</div></td>'+
-      '</tr>';
-    }).join('')+
-    '</tbody></table>';
+  // Mismo logo que se usa en "My QR Codes" (Mi Perfil): se pega igual
+  // sobre todas las tarjetas de clientes.
+  var logoUrl = (_mpProfile&&_mpProfile.logoUrl) ? _mpProfile.logoUrl.trim() : '';
+
+  var html = '<div class="mp-qr-grid" style="padding:16px">';
+  var _logoJobs = []; // {canvasId, qrSrc, logoUrl}
+  filtered.forEach(function(c){
+    var t = typeInfo[c.type] || typeInfo.link;
+    var isOn = c.qrEnabled !== false;
+    var payActive = c.paymentActive === true;
+    var cid = esc(c.id);
+    var canvasId = 'qrcCv_'+c.id;
+    var name = esc(c.name)+(c.bizName?' — '+esc(c.bizName):'');
+
+    var inner, wrapCls = '', qrText = '', img = '', destUrl = '';
+    // Aviso si al cliente le falta el dato que ese tipo de QR necesita
+    // (num. de telefono para whatsapp/sms/telegram, o link para teams/link).
+    var needsPhone = (c.type==='whatsapp'||c.type==='sms'||c.type==='telegram');
+    var missingData = needsPhone ? !(c.phone||'').trim() : !(c.link||'').trim();
+
+    if(!isOn){
+      // QR bloqueado: no se genera imagen (mismo criterio que ya usan
+      // viewQRClient/copyQRClientUrlById para QRs desactivados).
+      inner = '<div style="width:100%;max-width:160px;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;background:var(--surface2);border-radius:6px;font-size:34px">🔒</div>';
+    } else {
+      destUrl = buildQRClientDirectUrl(c);
+      // Igual que "My QR Codes": el color/forma/borde/texto personalizado
+      // SOLO aplica al tipo "Link" (equivalente a "URL Custom" del perfil).
+      // Los demas tipos (WhatsApp/SMS/Telegram/Teams) salen en blanco y
+      // negro, exactamente igual que en Mi Perfil.
+      var ecc = logoUrl ? 'H' : 'M';
+      if(c.type === 'link'){
+        var qrColor = (c.qrColor||'#000000').replace('#','');
+        var qrBg = (c.qrBgColor||'#ffffff').replace('#','');
+        qrText = c.qrText||'';
+        var shape = c.qrShape||'square';
+        var border = c.qrBorder||'none';
+        wrapCls = 'mp-qr-custom-wrap';
+        if(shape==='rounded') wrapCls+=' shape-rounded';
+        if(shape==='circular') wrapCls+=' shape-circular';
+        if(border!=='none') wrapCls+=' border-'+border;
+        img = 'https://api.qrserver.com/v1/create-qr-code/?size=320x320&ecc='+ecc+'&margin=10&color='+qrColor+'&bgcolor='+qrBg+'&data='+encodeURIComponent(destUrl);
+      } else {
+        img = 'https://api.qrserver.com/v1/create-qr-code/?size=320x320&ecc='+ecc+'&margin=10&data='+encodeURIComponent(destUrl);
+      }
+      inner = '<canvas id="'+canvasId+'" width="320" height="320"></canvas>';
+      _logoJobs.push({canvasId:canvasId, qrSrc:img, logoUrl:logoUrl});
+    }
+
+    html += '<div class="mp-qr-item">'
+      +(wrapCls?'<div class="'+wrapCls+'">'+inner+(qrText?'<div class="mp-qr-text">'+esc(qrText)+'</div>':'')+'</div>':inner)
+      +'<div class="mp-qr-label">'+t.icon+' '+t.label+' — '+(isOn?'<span style="color:#22c55e">● '+(isEN?'Active':'Activo')+'</span>':'<span style="color:#ef4444">● '+(isEN?'Inactive':'Inactivo')+'</span>')+'</div>'
+      +(missingData?'<div style="font-size:10px;color:#f59e0b;font-weight:700;margin:2px 0 4px">⚠️ '+(needsPhone?(isEN?'Missing phone number — click ✏️':'Falta el número — toca ✏️'):(isEN?'Missing URL — click ✏️':'Falta la URL — toca ✏️'))+'</div>':'')
+      +'<div class="mp-qr-id" title="'+name+'">'+name+(c.phone?' · 📱 '+esc(c.phone):'')+'</div>'
+      +'<div class="mp-qr-id" style="opacity:.7">'+cid+(payActive?' · 💳 '+(isEN?'Pay ON':'Pago ON'):'')+'</div>'
+      +(isOn?'<div class="mp-qr-url-row"><input type="text" readonly value="'+esc(destUrl)+'" onclick="this.select()" /><button class="mp-qr-copy-url" data-qrcaction="copy" data-qrcid="'+cid+'" title="'+(isEN?'Copy link':'Copiar link')+'">📋</button></div>':'')
+      +'<div class="mp-qr-actions">'
+      +'<button data-qrcaction="toggle" data-qrcid="'+cid+'" style="'+(isOn?'color:#f87171;border-color:#f87171':'color:#22c55e;border-color:#22c55e')+'" title="'+(isOn?(isEN?'Deactivate':'Desactivar'):(isEN?'Activate':'Activar'))+'">'+(isOn?'🔴 '+(isEN?'Deactivate':'Desactivar'):'🟢 '+(isEN?'Activate':'Activar'))+'</button>'
+      +(isOn?'<button data-qrcaction="download" data-qrcid="'+cid+'" title="'+(isEN?'Download':'Descargar')+'">⬇</button>':'')
+      +'<button data-qrcaction="agree" data-qrcid="'+cid+'" style="color:#a78bfa;border-color:#a78bfa" title="'+(isEN?'Agreement':'Acuerdo')+'">📄</button>'
+      +'<button data-qrcaction="pay" data-qrcid="'+cid+'" style="'+(payActive?'color:#22c55e;border-color:#22c55e':'color:#f59e0b;border-color:#f59e0b')+'" title="'+(isEN?'Payments':'Pagos')+'">'+(payActive?'💳 ON':'💳')+'</button>'
+      +'<button data-qrcaction="edit" data-qrcid="'+cid+'" title="'+(isEN?'Edit':'Editar')+'">✏️</button>'
+      +'<button data-qrcaction="delete" data-qrcid="'+cid+'" style="color:#f87171;border-color:#f87171" title="'+(isEN?'Delete':'Eliminar')+'">🗑</button>'
+      +'</div></div>';
+  });
+  html += '</div>';
+  container.innerHTML = html;
+
+  // Dibuja cada QR en su canvas y le pega el logo de la academia encima,
+  // usando la MISMA funcion que ya usa "My QR Codes" en Mi Perfil
+  // (_mpDrawQrWithLogo, sin tocar) para que el resultado sea idéntico.
+  _logoJobs.forEach(function(job){
+    var el = document.getElementById(job.canvasId);
+    if(el) _mpDrawQrWithLogo(el, job.qrSrc, job.logoUrl);
+  });
 
   // Event delegation
   container.onclick = function(e){
@@ -20054,7 +20418,26 @@ function renderQRClientes(){
     else if(action==='pay')        openPaymentActivationModal(id);
     else if(action==='edit')       openQRClientModal(id);
     else if(action==='delete')     deleteQRClient(id);
+    else if(action==='download')   _qrcDlCanvasFor(id);
   };
+}
+
+// Descarga el PNG del QR de cliente tal como quedo dibujado en el canvas
+// (con el logo pegado si aplica) — mismo criterio de descarga que
+// "My QR Codes" (_mpDlQrCanvas): intenta el canvas primero, y si el logo
+// rompio el canvas por CORS, avisa mediante toast.
+function _qrcDlCanvasFor(id){
+  var c = qrClientes.find(function(x){return x.id===id;});
+  if(!c) return;
+  var canvasEl = document.getElementById('qrcCv_'+id);
+  var name = 'QR_'+(c.name||id).replace(/\s+/g,'-')+'.png';
+  var dataUrl = null;
+  if(canvasEl){
+    try{ dataUrl = canvasEl.toDataURL('image/png'); }
+    catch(ex){ console.warn('Descarga con logo bloqueada por CORS:', ex); }
+  }
+  if(dataUrl){ _dlQr(dataUrl, name); return; }
+  showToast('⚠️ No se pudo incluir el logo en la descarga (CORS). Intenta de nuevo.','var(--danger)');
 }
 
 function handleQRRowClick(e, id){
@@ -20075,13 +20458,24 @@ function buildQRClientUrl(c, ignoreEnabled){
   return buildQRClientDirectUrl(c);
 }
 
-// Returns the real destination URL for display/copy purposes only (not for the QR image)
+// Builds the tracking URL through lead-capture.html (same pattern as My QR Codes)
+// EXCEPCION: el tipo "link" (🔗 URL Custom) NO pasa por lead-capture.html —
+// va DIRECTO a la URL que cargaste en el cliente. Asi cada promoción puede
+// llevar a su propia página distinta, sin pasar por el formulario ni
+// depender de que lead-capture.html sepa interpretar el parámetro.
 function buildQRClientDirectUrl(c){
+  if(c.type === 'link') return c.link || '';
+  var _mpDir = window.location.pathname.replace(/[^\/]*$/, '');
+  var baseUrl = (_mpProfile&&_mpProfile.leadCaptureUrl)||(window.location.origin+_mpDir+'lead-capture.html');
+  return baseUrl+'?c=qrclient&q='+encodeURIComponent(c.id)+'&s='+c.type;
+}
+
+// Returns the real destination URL for display/copy purposes only
+function buildQRClientRealDestUrl(c){
   var phone = (c.phone||'').replace(/\D/g,'');
-  var msg   = encodeURIComponent((c.msg||'').substring(0, 200)); // Limit message length
+  var msg   = encodeURIComponent((c.msg||'').substring(0, 200));
   switch(c.type){
     case 'whatsapp':
-      // Use api.whatsapp.com/send which handles messages better
       return phone ? 'https://api.whatsapp.com/send?phone='+phone+(c.msg?'&text='+msg:'') : '';
     case 'sms':
       return phone ? 'sms:+'+phone+(c.msg?'?body='+msg:'') : '';
@@ -20122,6 +20516,11 @@ function openQRClientModal(id){
   document.getElementById('qrc-msg').value = c ? (c.msg||'') : '';
   document.getElementById('qrc-notes').value = c ? (c.notes||'') : '';
   document.getElementById('qrc-link').value = c ? (c.link||'') : '';
+  document.getElementById('qrc-qrColor').value = c ? (c.qrColor||'#000000') : '#000000';
+  document.getElementById('qrc-qrBgColor').value = c ? (c.qrBgColor||'#ffffff') : '#ffffff';
+  document.getElementById('qrc-qrShape').value = c ? (c.qrShape||'square') : 'square';
+  document.getElementById('qrc-qrBorder').value = c ? (c.qrBorder||'none') : 'none';
+  document.getElementById('qrc-qrText').value = c ? (c.qrText||'') : '';
   toggleQRClientFields();
   modal.style.display = 'flex';
 }
@@ -20172,6 +20571,11 @@ async function saveQRClient(){
     name: name, bizName: bizName, email: email,
     type: type, phone: phone, msg: msg, notes: notes, link: link,
     qrEnabled: _editQRClientId ? (qrClientes.find(function(x){return x.id===_editQRClientId;})||{}).qrEnabled !== false : true,
+    qrColor: document.getElementById('qrc-qrColor').value,
+    qrBgColor: document.getElementById('qrc-qrBgColor').value,
+    qrShape: document.getElementById('qrc-qrShape').value,
+    qrBorder: document.getElementById('qrc-qrBorder').value,
+    qrText: document.getElementById('qrc-qrText').value.trim(),
     paymentActive: _editQRClientId ? ((qrClientes.find(function(x){return x.id===_editQRClientId;})||{}).paymentActive||false) : false,
     paymentAmount: _editQRClientId ? ((qrClientes.find(function(x){return x.id===_editQRClientId;})||{}).paymentAmount||'') : '',
     paymentPlan:   _editQRClientId ? ((qrClientes.find(function(x){return x.id===_editQRClientId;})||{}).paymentPlan||'') : '',
@@ -20336,10 +20740,13 @@ function viewQRClient(id){
   }
   document.getElementById('qrcv-url').textContent = url;
   document.getElementById('qrcv-url').style.color = '';
-  // Use qrserver.com (same as QR Flyer section)
-  var qrImgUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data='+encodeURIComponent(url);
+  // Build QR image URL with customization (same as My QR Codes)
+  var qrColor = (c.qrColor||'#000000').replace('#','');
+  var qrBg = (c.qrBgColor||'#ffffff').replace('#','');
+  var ecc = (_mpProfile&&_mpProfile.logoUrl) ? 'H' : 'M';
+  var qrImgUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=320x320&ecc='+ecc+'&margin=10&color='+qrColor+'&bgcolor='+qrBg+'&data='+encodeURIComponent(url);
   var canvas = document.getElementById('qrcv-canvas');
-  // Replace canvas with img for simplicity
+  // Replace canvas with img, then draw on canvas for download + logo overlay
   var imgEl = document.getElementById('qrcv-img');
   if(!imgEl){
     imgEl = document.createElement('img');
@@ -20352,15 +20759,48 @@ function viewQRClient(id){
   imgEl.style.display = 'block';
   imgEl.crossOrigin = 'anonymous';
   imgEl.src = qrImgUrl;
-  // Store for download
+  // Draw on canvas with logo overlay (same as My QR Codes)
+  var logoUrl = (_mpProfile&&_mpProfile.logoUrl) ? _mpProfile.logoUrl.trim() : '';
   imgEl.onload = function(){
     var cv = document.getElementById('qrcv-canvas');
+    cv.width = 320; cv.height = 320;
+    var ctx = cv.getContext('2d');
+    ctx.drawImage(imgEl, 0, 0, 320, 320);
+    if(!logoUrl) return;
+    var logoImg = new Image();
+    logoImg.crossOrigin = 'anonymous';
+    logoImg.onload = function(){
+      try{
+        var logoSize = Math.round(320*0.22);
+        var cx = 160, cy = 160;
+        var plateR = Math.round(logoSize/2 + logoSize*0.16);
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(cx, cy, plateR, 0, Math.PI*2);
+        ctx.fill();
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, logoSize/2, 0, Math.PI*2);
+        ctx.clip();
+        ctx.drawImage(logoImg, cx-logoSize/2, cy-logoSize/2, logoSize, logoSize);
+        ctx.restore();
+      }catch(e){}
+    };
+    logoImg.onerror = function(){ console.warn('QR Clientes: logo load failed'); };
+    logoImg.src = logoUrl;
+  };
+  imgEl.onerror = function(){
+    var cv = document.getElementById('qrcv-canvas');
     cv.width = 220; cv.height = 220;
-    try {
-      cv.getContext('2d').drawImage(imgEl, 0, 0);
-    } catch(e) {
-      // Canvas may still be tainted if server doesn't send CORS headers
-    }
+    var ctx = cv.getContext('2d');
+    ctx.fillStyle = '#333';
+    ctx.fillRect(0,0,220,220);
+    ctx.fillStyle = '#ef4444';
+    ctx.font = 'bold 14px Syne, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('QR Error', 110, 115);
+    imgEl.style.display = 'none';
+    cv.style.display = 'block';
   };
   document.getElementById('qrclienteViewModal').style.display = 'flex';
 }
@@ -20425,6 +20865,7 @@ function closeNotesPopup(){
 
 // ── MI PERFIL QR ────────────────────────────────────────────
 var _mpProfile = null;
+var _mpProfileLoading = false;
 var _mpQrType = 'whatsapp';
 
 function _esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
@@ -20620,6 +21061,47 @@ function _renderQrCodes(codes){
 // Dibuja el QR en un <canvas> y, si hay logo de la academia guardado en el
 // perfil, lo pega encima de un circulo blanco en el centro (asi se lee bien
 // aunque el fondo del logo sea transparente). Se usa ecc=H arriba para que
+// Superpone el logo configurado en "Mi Perfil" sobre el QR mostrado en el
+// modal genérico (#qrImg), usado por showPartnerQR / showReferidorQR /
+// showClientQR. Si no hay logo configurado, no hace nada.
+function _drawQrModalLogo(){
+  var logoUrl = (_mpProfile&&_mpProfile.logoUrl) ? _mpProfile.logoUrl.trim() : '';
+  if(!logoUrl) return;
+  var imgEl = document.getElementById('qrImg');
+  if(!imgEl) return;
+  var qrSrc = imgEl.src;
+  var size = 400;
+  var canvas = document.createElement('canvas');
+  canvas.width = size; canvas.height = size;
+  var ctx = canvas.getContext('2d');
+  var qrImgObj = new Image();
+  qrImgObj.crossOrigin = 'anonymous';
+  qrImgObj.onload = function(){
+    ctx.drawImage(qrImgObj, 0, 0, size, size);
+    var logoImg = new Image();
+    logoImg.crossOrigin = 'anonymous';
+    logoImg.onload = function(){
+      try{
+        var logoSize = Math.round(size*0.22);
+        var cx = size/2, cy = size/2;
+        var plateR = Math.round(logoSize/2 + logoSize*0.16);
+        ctx.beginPath();
+        ctx.arc(cx, cy, plateR, 0, Math.PI*2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.drawImage(logoImg, cx-logoSize/2, cy-logoSize/2, logoSize, logoSize);
+        var dataUrl = canvas.toDataURL('image/png');
+        imgEl.src = dataUrl;
+        _qrCurrentSrc = dataUrl; // mantiene sincronizado Descargar/Imprimir
+      }catch(ex){ console.warn('logo overlay qrModal:', ex); }
+    };
+    logoImg.onerror = function(){ console.warn('No se pudo cargar el logo del QR (verifica que la URL sea pública / permita CORS).'); };
+    logoImg.src = logoUrl;
+  };
+  qrImgObj.onerror = function(){ console.warn('No se pudo cargar la imagen QR para superponer el logo.'); };
+  qrImgObj.src = qrSrc;
+}
+
 // el QR tolere esa parte tapada y siga escaneando bien.
 function _mpDrawQrWithLogo(canvasEl, qrSrc, logoUrl){
   var ctx = canvasEl.getContext('2d');
@@ -21119,14 +21601,35 @@ async function savePaymentActivation(activate){
           <option value="sms">💬 SMS</option>
           <option value="telegram">✈️ Telegram</option>
           <option value="teams">🟦 Microsoft Teams</option>
-          <option value="link">🌐 Link</option>
+          <option value="link">🔗 URL Custom</option>
         </select>
       </div>
       <div class="mfield" id="qrc-phone-field"><label id="qrc-phone-label">📱 Número de teléfono</label><input id="qrc-phone" type="tel" placeholder="19543801340"/></div>
       <div class="mfield" id="qrc-msg-field"><label>Mensaje pre-escrito (opcional)</label><input id="qrc-msg" placeholder="Hola, me interesa información..."/></div>
       <div class="mfield"><label>Notas internas (opcional)</label><input id="qrc-notes" placeholder="Ej: Plan básico, paga $39/mes"/></div>
       <div class="mfield" id="qrc-link-field" style="display:none"><label>🌐 URL</label><input id="qrc-link" type="url" placeholder="https://..."/></div>
-      <div style="display:flex;gap:10px;margin-top:8px">
+      <!-- QR CUSTOMIZATION (same as My QR Codes) -->
+      <div style="border-top:1px solid var(--border);margin-top:12px;padding-top:12px">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px">🎨 Personalizar QR</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="mfield"><label>Color QR</label><input type="color" id="qrc-qrColor" value="#000000" style="width:100%;height:36px;border:1px solid var(--border);border-radius:8px;cursor:pointer"/></div>
+          <div class="mfield"><label>Color Fondo</label><input type="color" id="qrc-qrBgColor" value="#ffffff" style="width:100%;height:36px;border:1px solid var(--border);border-radius:8px;cursor:pointer"/></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="mfield"><label>Forma</label>
+            <select id="qrc-qrShape" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;font-family:'Syne',sans-serif">
+              <option value="square">Cuadrado</option><option value="rounded">Redondeado</option><option value="circular">Circular</option>
+            </select>
+          </div>
+          <div class="mfield"><label>Borde</label>
+            <select id="qrc-qrBorder" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;font-family:'Syne',sans-serif">
+              <option value="none">Ninguno</option><option value="box">Cuadro</option><option value="shadow">Sombra</option><option value="gradient">Gradiente</option>
+            </select>
+          </div>
+        </div>
+        <div class="mfield" style="margin-bottom:0"><label>Texto debajo del QR</label><input type="text" id="qrc-qrText" placeholder="Ej: Escaneame!" maxlength="60" style="width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif"/></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:12px">
         <button class="act-btn" onclick="closeQRClientModal()" style="flex:1">Cancelar</button>
         <button class="act-btn primary" onclick="saveQRClient()" style="flex:1">💾 Guardar</button>
       </div>
@@ -23547,30 +24050,66 @@ async function enrLoadRecords(){
     var date = (r.submittedAt||'').split('T')[0];
     var hasLinked = !!r.linkedClientId;
     var hasSig = !!r.signatureData;
-    html += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:10px;position:relative">'
-      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">'
-        +'<div>'
-          +'<div style="font-family:\'Syne\',sans-serif;font-size:14px;font-weight:800;color:var(--text);margin-bottom:4px">'+(r.firstName||'')+ ' '+(r.lastName||'')+'</div>'
-          +'<div style="font-size:12px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap">'
-            +(r.phone?'<span>📞 '+r.phone+'</span>':'')+
-            (r.email?'<span>✉️ '+r.email+'</span>':'')+
-            '<span>📋 '+(r.programNameEN||r.programKey||'—')+'</span>'+
-            '<span>📅 '+date+'</span>'+
-          '</div>'
-        +'</div>'
-        +'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'
-          +(hasLinked?'<span style="padding:3px 10px;background:rgba(6,182,212,.12);border:1px solid rgba(6,182,212,.3);border-radius:20px;font-size:10px;color:#22d3ee;font-weight:700">🔗 CRM Linked</span>':'')+
-          +(hasSig?'<span style="padding:3px 10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);border-radius:20px;font-size:10px;color:#22c55e;font-weight:700">✍️ Firmado</span>':'')+
-          +(r.waiverAgreed?'<span style="padding:3px 10px;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.25);border-radius:20px;font-size:10px;color:#c084fc;font-weight:700">⚖️ Waiver ✓</span>':'')+
-          '<button onclick="enrViewRecord(\''+r.id+'\')" style="padding:5px 12px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:11px;font-weight:700;cursor:pointer;font-family:\'Syne\',sans-serif">👁 Ver</button>'+
-          +'<button onclick="enrDownloadPDF(\''+r.id+'\')" style="padding:5px 12px;border-radius:7px;border:none;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:\'Syne\',sans-serif">⬇️ PDF</button>'+
-        '</div>'
-      +'</div>'
-      // Mini signature preview
-      +(hasSig?'<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px"><img src="'+r.signatureData+'" style="max-height:50px;border-radius:4px;background:#fff;padding:4px 8px;border:1px solid var(--border)" alt="Firma"/></div>':'')+
-    '</div>';
+    html += [
+      '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:10px;position:relative">',
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">',
+          '<div>',
+            '<div style="font-family:\'Syne\',sans-serif;font-size:14px;font-weight:800;color:var(--text);margin-bottom:4px">'+(r.firstName||'')+' '+(r.lastName||'')+'</div>',
+            '<div style="font-size:12px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap">',
+              (r.phone?'<span>📞 '+r.phone+'</span>':''),
+              (r.email?'<span>✉️ '+r.email+'</span>':''),
+              '<span>📋 '+(r.programNameEN||r.programKey||'—')+'</span>',
+              '<span>📅 '+date+'</span>',
+            '</div>',
+          '</div>',
+          '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">',
+            (hasLinked?'<span style="padding:3px 10px;background:rgba(6,182,212,.12);border:1px solid rgba(6,182,212,.3);border-radius:20px;font-size:10px;color:#22d3ee;font-weight:700">🔗 CRM Linked</span>':''),
+            (hasSig?'<span style="padding:3px 10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);border-radius:20px;font-size:10px;color:#22c55e;font-weight:700">✍️ Firmado</span>':''),
+            (r.waiverAgreed?'<span style="padding:3px 10px;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.25);border-radius:20px;font-size:10px;color:#c084fc;font-weight:700">⚖️ Waiver ✓</span>':''),
+            '<button onclick="enrViewRecord(\''+r.id+'\')" style="padding:5px 12px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:11px;font-weight:700;cursor:pointer;font-family:\'Syne\',sans-serif">👁 Ver</button>',
+            '<button onclick="enrDownloadPDF(\''+r.id+'\')" style="padding:5px 12px;border-radius:7px;border:none;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:\'Syne\',sans-serif">⬇️ PDF</button>',
+            '<button onclick="enrDeleteToTrash(\''+r.id+'\')" title="Mover a papelera" style="padding:5px 12px;border-radius:7px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:11px;font-weight:700;cursor:pointer;font-family:\'Syne\',sans-serif">🗑</button>',
+          '</div>',
+        '</div>',
+        // Mini signature preview
+        (hasSig?'<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px"><img src="'+r.signatureData+'" style="max-height:50px;border-radius:4px;background:#fff;padding:4px 8px;border:1px solid var(--border)" alt="Firma"/></div>':''),
+      '</div>'
+    ].join('');
   });
   container.innerHTML = html;
+}
+
+function enrDeleteToTrash(id){
+  var isEN = typeof _masterLang!=='undefined' ? _masterLang==='en' : false;
+  if(!confirm(isEN?'Move this enrollment record to trash?':'¿Mover este registro de enrollment a la papelera?')) return;
+  var r = _enrRecords.find(function(x){ return x.id===id; });
+  if(!r) return;
+  r.deletedAt = new Date().toISOString();
+  r.deleteMotivo = isEN ? 'Deleted from Enrollment records' : 'Eliminado de Registros de Enrollment';
+  r._trashType = 'enrollment';
+  papelera.unshift(r);
+  _enrRecords = _enrRecords.filter(function(x){ return x.id!==id; });
+  if(!_demoMode && typeof _fbdb!=='undefined' && _fbdb){
+    _fbdb.ref('enrollments/'+id).remove();
+    _fbdb.ref('papelera/'+id).set(r);
+  } else {
+    try{
+      var ex = JSON.parse(localStorage.getItem('enrollments')||'[]');
+      ex = ex.filter(function(x){ return x.id!==id; });
+      localStorage.setItem('enrollments', JSON.stringify(ex));
+    } catch(e){}
+  }
+  enrUpdateRecordsBadge();
+  var container = document.getElementById('enrRecordsContainer');
+  if(container){
+    if(!_enrRecords.length){
+      container.innerHTML = '<div style="padding:32px;text-align:center;color:var(--muted);font-size:13px">No hay enrollments guardados aún.</div>';
+    } else {
+      enrLoadRecords();
+    }
+  }
+  if(typeof updatePapeleraBadge==='function') updatePapeleraBadge();
+  showToast(isEN?'🗑 Moved to trash':'🗑 Movido a papelera');
 }
 
 function enrViewRecord(id){
@@ -25357,6 +25896,7 @@ function baRenderRecords(){
       +(r.signatureData?'<span style="font-size:10px;background:rgba(34,197,94,.12);color:#22c55e;border-radius:6px;padding:2px 8px;font-weight:700">✍️ Firmado</span>':'')
       +'<button onclick="baViewRecord(\''+r.id+'\')" style="padding:5px 12px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--text);font-size:11px;font-weight:700;cursor:pointer">👁 Ver</button>'
       +'<button onclick="baPrintRecord(null,\''+r.id+'\')" style="padding:5px 12px;border-radius:7px;border:1px solid #22c55e;background:transparent;color:#22c55e;font-size:11px;font-weight:700;cursor:pointer">🖨️</button>'
+      +'<button onclick="baDeleteToTrash(\''+r.id+'\')" title="Mover a papelera" style="padding:5px 12px;border-radius:7px;border:1px solid var(--danger);background:transparent;color:var(--danger);font-size:11px;font-weight:700;cursor:pointer">🗑</button>'
       +'</div>'
       +'</div>';
   }).join('');
@@ -25367,6 +25907,25 @@ function baViewRecord(id){
   var r = _baRecords.find(function(x){ return x.id===id; });
   if(!r){ showToast('❌ Registro no encontrado'); return; }
   baPrintRecord(r);
+}
+
+function baDeleteToTrash(id){
+  var isEN = typeof _masterLang!=='undefined' ? _masterLang==='en' : false;
+  if(!confirm(isEN?'Move this billing authorization to trash?':'¿Mover esta autorización de cobro a la papelera?')) return;
+  var r = _baRecords.find(function(x){ return x.id===id; });
+  if(!r) return;
+  r.deletedAt = new Date().toISOString();
+  r.deleteMotivo = isEN ? 'Deleted from Billing Auth' : 'Eliminado de Billing Auth';
+  r._trashType = 'billingauth';
+  papelera.unshift(r);
+  _baRecords = _baRecords.filter(function(x){ return x.id!==id; });
+  if(!_demoMode && typeof _fbdb!=='undefined' && _fbdb){
+    _fbdb.ref('billingAuths/'+id).remove();
+    _fbdb.ref('papelera/'+id).set(r);
+  }
+  baRenderRecords();
+  if(typeof updatePapeleraBadge==='function') updatePapeleraBadge();
+  showToast(isEN?'🗑 Moved to trash':'🗑 Movido a papelera');
 }
 
 // ── Print / Preview ───────────────────────────────────────────────
@@ -25645,6 +26204,9 @@ function _baOpenSendFromClient(recId){
 .cblm-btn .ico{font-size:22px;line-height:1;}
 .cblm-btn:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,.3);}
 .cblm-wa{border-color:#22c55e;color:#22c55e;}.cblm-wa:hover{background:rgba(34,197,94,.1);}
+.cblm-smsgv{border-color:#34A853;color:#34A853;}.cblm-smsgv:hover{background:rgba(52,168,83,.1);}
+.cblm-smsms{border-color:#0078d4;color:#0078d4;}.cblm-smsms:hover{background:rgba(0,120,212,.1);}
+.cblm-tg{border-color:#22d3ee;color:#22d3ee;}.cblm-tg:hover{background:rgba(34,211,238,.1);}
 .cblm-enroll{border-color:#a855f7;color:#a855f7;}.cblm-enroll:hover{background:rgba(168,85,247,.1);}
 .cblm-billing{border-color:#60a5fa;color:#60a5fa;}.cblm-billing:hover{background:rgba(96,165,250,.1);}
 .cblm-convert{border-color:#22c55e;color:#22c55e;background:rgba(34,197,94,.08);}.cblm-convert:hover{background:rgba(34,197,94,.18);}
@@ -26213,6 +26775,9 @@ function _baOpenSendFromClient(recId){
     </div>
     <div class="cblm-grid">
       <button class="cblm-btn cblm-wa"      onclick="cbModalWhatsApp()"><span class="ico">&#x1F4AC;</span>WhatsApp</button>
+      <button class="cblm-btn cblm-smsgv"   onclick="cbModalSMSGV()"><span class="ico">&#x1F4AC;</span>SMS GV</button>
+      <button class="cblm-btn cblm-smsms"   onclick="cbModalSMSMS()"><span class="ico">&#x1F4AC;</span>SMS MS</button>
+      <button class="cblm-btn cblm-tg"      onclick="cbModalTelegram()"><span class="ico">&#x2708;&#xFE0F;</span>Telegram</button>
       <button class="cblm-btn cblm-contact" onclick="cbModalContacted()"><span class="ico">&#x1F4DE;</span>Marcar Contactado</button>
       <button class="cblm-btn cblm-enroll"  onclick="cbModalEnrollment()"><span class="ico">&#x1F4CB;</span>Enrollment/Waiver</button>
       <button class="cblm-btn cblm-billing" onclick="cbModalBilling()"><span class="ico">&#x1F4B3;</span>Billing Auth</button>
@@ -26252,6 +26817,43 @@ window.cbModalWhatsApp=function(){
   var tipo = l.status==='contacted' ? 'seguimiento' : 'bienvenida';
   _getTpl('whatsapp', tipo, {nombre:l.name||'', negocio:'Master Baez Martial Arts', telefono:l.phone||''}, function(msg){
     window.open(phone+encodeURIComponent(msg),'_blank');
+  });
+};
+window.cbModalSMSGV=function(){
+  var l=(window._cbLeadsGlobal||[]).find(function(x){return x.id===_cblmId;});
+  if(!l||!l.phone)return;
+  var num=l.phone.replace(/\D/g,'');
+  if(num.length===10) num='1'+num;
+  var tipo = l.status==='contacted' ? 'seguimiento' : 'bienvenida';
+  _getTpl('sms', tipo, {nombre:l.name||'', negocio:'Master Baez Martial Arts', telefono:l.phone||''}, function(msg){
+    try{ navigator.clipboard.writeText(msg); }catch(ex){}
+    window.open('https://voice.google.com/u/0/messages?itemId=t.%2B'+num,'_blank');
+  });
+};
+window.cbModalSMSMS=function(){
+  var l=(window._cbLeadsGlobal||[]).find(function(x){return x.id===_cblmId;});
+  if(!l||!l.phone)return;
+  var num=l.phone.replace(/\D/g,'');
+  if(num.length===11 && num[0]==='1') num=num.slice(1);
+  var tipo = l.status==='contacted' ? 'seguimiento' : 'bienvenida';
+  _getTpl('sms', tipo, {nombre:l.name||'', negocio:'Master Baez Martial Arts', telefono:l.phone||''}, function(msg){
+    var a=document.createElement('a');
+    a.href='sms:+1'+num+'?body='+encodeURIComponent(msg);
+    a.style.display='none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){ document.body.removeChild(a); },300);
+  });
+};
+window.cbModalTelegram=function(){
+  var l=(window._cbLeadsGlobal||[]).find(function(x){return x.id===_cblmId;});
+  if(!l||!l.phone)return;
+  var phone=l.phone.replace(/\D/g,'');
+  if(phone.length===10) phone='1'+phone;
+  var tipo = l.status==='contacted' ? 'seguimiento' : 'bienvenida';
+  _getTpl('sms', tipo, {nombre:l.name||'', negocio:'Master Baez Martial Arts', telefono:l.phone||''}, function(msg){
+    var tgUrl = 'https://t.me/'+phone+'?start=lead_'+_cblmId;
+    window.open(tgUrl,'_blank');
   });
 };
 window.cbModalContacted=function(){if(!_cblmId)return;if(typeof cbChangeStatus==='function')cbChangeStatus(_cblmId,'contacted');cbCloseLead();};
