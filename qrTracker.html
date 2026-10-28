@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirigiendo...</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0a0a0a;color:#fff;font-family:sans-serif;flex-direction:column;gap:16px}
+    .spinner{width:36px;height:36px;border:3px solid rgba(232,255,60,.15);border-top-color:#e8ff3c;border-radius:50%;animation:spin .7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    p{font-size:13px;color:rgba(255,255,255,.5)}
+  </style>
+</head>
+<body>
+  <div class="spinner"></div>
+  <p>Redirigiendo...</p>
+
+  <script>
+    // ── 1. Leer parámetros de la URL ──
+    var params = new URLSearchParams(location.search);
+    var ref     = params.get('ref') || '';
+    var dest    = params.get('dest') || '';
+    var type    = params.get('type') || 'qr';
+
+    // Si no hay dest, ir al index con el ref (compatibilidad hacia atrás)
+    if(!dest && ref){
+      dest = 'https://daniel3853.github.io/crm-masterbaez/index.html?ref=' + encodeURIComponent(ref);
+    }
+    if(!dest){ dest = 'https://daniel3853.github.io/crm-masterbaez/'; }
+
+    // ── 2. Firebase — guardar el scan ──
+    var FIREBASE_CONFIG = {
+      apiKey:            "AIzaSyDpjqJFZxh1ErjbfTJ8nq-uzB3oHXDo-iA",
+      authDomain:        "crm-leads-baez.firebaseapp.com",
+      databaseURL:       "https://crm-leads-baez-default-rtdb.firebaseio.com",
+      projectId:         "crm-leads-baez",
+      storageBucket:     "crm-leads-baez.firebasestorage.app",
+      messagingSenderId: "583732725999",
+      appId:             "1:583732725999:web:b38aa0a3ffc9e809c3b31a"
+    };
+
+
+// Ubicación aproximada por IP (ciudad/región/país). Sin permisos ni avisos al visitante.
+// Si no responde en 2.5s se continúa sin ubicación: nunca se hace esperar de más.
+function qrGeoLookup(cb){
+  var done = false;
+  function fin(g){ if(done) return; done = true; cb(g || {}); }
+  setTimeout(function(){ fin(null); }, 2500);
+  fetch('https://ipapi.co/json/').then(function(r){ return r.json(); }).then(function(g){
+    if(g && !g.error && (g.city || g.country_name)) fin({city:g.city, region:g.region, country:g.country_name, lat:g.latitude, lng:g.longitude, ip:g.ip});
+    else throw 0;
+  }).catch(function(){
+    fetch('https://ipwho.is/').then(function(r){ return r.json(); }).then(function(g){
+      if(g && g.success !== false) fin({city:g.city, region:g.region, country:g.country, lat:g.latitude, lng:g.longitude, ip:g.ip});
+      else fin(null);
+    }).catch(function(){ fin(null); });
+  });
+}
+function qrOsName(){
+  var ua = navigator.userAgent;
+  if(/Android/.test(ua)) return 'Android';
+  if(/iPhone|iPad|iPod/.test(ua)) return 'iOS';
+  if(/Windows/.test(ua)) return 'Windows';
+  if(/Mac/.test(ua)) return 'macOS';
+  if(/Linux/.test(ua)) return 'Linux';
+  return 'Unknown';
+}
+
+    var scanData = {
+      ref:       ref,
+      type:      type,
+      dest:      dest,
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+      language:  navigator.language || '',
+      os:        qrOsName(),
+      city: '', region: '', country: '', lat: null, lng: null, ip: '',
+      scanned:   true
+    };
+
+    var db = null;
+    try{
+      if(typeof firebase !== 'undefined' && !firebase.apps.length){
+        firebase.initializeApp(FIREBASE_CONFIG);
+      }
+      if(typeof firebase !== 'undefined' && firebase.apps.length){
+        db = firebase.database();
+      }
+    } catch(e){
+      console.warn('Firebase tracking error:', e);
+    }
+
+    // ── 3. Guardar el scan (con ubicación) y redirigir ──
+    var redirected = false;
+    function goDest(){
+      if(redirected) return; redirected = true;
+      window.location.href = dest;
+    }
+    var saved = false;
+    function saveAndGo(){
+      if(saved) return; saved = true;
+      try{
+        if(db){
+          var p = db.ref('qrScans/' + (ref || 'anonymous')).push(scanData);
+          if(p && p.then) p.then(goDest, goDest);
+          setTimeout(goDest, 1500);
+          return;
+        }
+      } catch(e){
+        console.warn('Firebase tracking error:', e);
+      }
+      goDest();
+    }
+    qrGeoLookup(function(g){
+      if(g){
+        scanData.city    = g.city    || '';
+        scanData.region  = g.region  || '';
+        scanData.country = g.country || '';
+        scanData.ip      = g.ip      || '';
+        if(g.lat != null && g.lng != null){ scanData.lat = g.lat; scanData.lng = g.lng; }
+      }
+      saveAndGo();
+    });
+  </script>
+</body>
+</html>
